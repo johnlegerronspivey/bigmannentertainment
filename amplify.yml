@@ -1,13 +1,7 @@
-version: 1
-env:
-  variables:
-    key: value
 frontend:
   phases:
-    preBuild:
-      commands:
-        - cd react-app
-        - npm ci
-    build:
-      commands:
-        - npm run build
+    commands:
+      build:
+        - yarn run build
+  artifacts:
+    baseDirectory: public
