@@ -1,6 +1,9 @@
-frontend:
+build:
   phases:
-    build:
+    preBuild:
       commands:
-        - if [ "${AWS_BRANCH}" = "main" ]; then echo "main branch"; fi
-        - if [ "${AWS_BRANCH}" = "dev" ]; then echo "dev branch"; fi
+        - npm config set <key> <value>
+        - npm config set registry https://registry.npmjs.org
+        - npm config set always-auth true
+        - npm config set email hello@amplifyapp.com
+        - yarn install
