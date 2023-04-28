@@ -1,7 +1,9 @@
-frontend:
+version: 1
+env:
+  variables:
+    key: value
+backend:
   phases:
-    commands:
-      build:
-        - yarn run build
-  artifacts:
-    baseDirectory: public
+    build:
+      commands:
+        - amplifyPush --simple
