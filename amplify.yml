@@ -1,6 +1,9 @@
-frontend:
+version: 1
+env:
+  variables:
+    key: value
+backend:
   phases:
     build:
       commands:
-        - if [ "${AWS_BRANCH}" = "main" ]; then echo "main branch"; fi
-        - if [ "${AWS_BRANCH}" = "dev" ]; then echo "dev branch"; fi
+        - amplifyPush --simple
