@@ -1,9 +1,9 @@
-version: 1
-env:
-  variables:
-    key: value
-backend:
+frontend:
   phases:
     build:
       commands:
-        - amplifyPush --simple
+        - npm install -g pkg-foo
+        - pkg-foo deploy
+        - yarn run build
+  artifacts:
+    baseDirectory: public
