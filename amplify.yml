@@ -1,9 +1,9 @@
-build:
+version: 1
+env:
+  variables:
+    key: value
+backend:
   phases:
-    preBuild:
+    build:
       commands:
-        - npm config set <key> <value>
-        - npm config set registry https://registry.npmjs.org
-        - npm config set always-auth true
-        - npm config set email hello@amplifyapp.com
-        - yarn install
+        - amplifyPush --simple
