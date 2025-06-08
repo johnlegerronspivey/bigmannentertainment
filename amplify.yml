@@ -1,9 +1,0 @@
-version: 1
-env:
-  variables:
-    key: value
-backend:
-  phases:
-    build:
-      commands:
-        - amplifyPush --simple
