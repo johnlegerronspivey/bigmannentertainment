@@ -319,7 +319,7 @@ async def get_deal_details(
     current_user: User = Depends(get_current_user)
 ):
     """Get detailed deal information"""
-    deal = await db.sponsorship_deals.find_one({"id": deal_id})
+    deal = await db.sponsorship_deals.find_one({"id": deal_id}, {"_id": 0})
     if not deal:
         raise HTTPException(status_code=404, detail="Deal not found")
     
@@ -328,14 +328,14 @@ async def get_deal_details(
         raise HTTPException(status_code=403, detail="Access denied")
     
     # Get sponsor information
-    sponsor = await db.sponsors.find_one({"id": deal["sponsor_id"]})
+    sponsor = await db.sponsors.find_one({"id": deal["sponsor_id"]}, {"_id": 0})
     deal["sponsor"] = sponsor
     
     # Get recent performance metrics
-    metrics = await db.performance_metrics.find({"deal_id": deal_id}).sort("measurement_date", -1).limit(30).to_list(length=30)
+    metrics = await db.performance_metrics.find({"deal_id": deal_id}, {"_id": 0}).sort("measurement_date", -1).limit(30).to_list(length=30)
     
     # Get recent bonus calculations
-    calculations = await db.bonus_calculations.find({"deal_id": deal_id}).sort("calculation_date", -1).limit(10).to_list(length=10)
+    calculations = await db.bonus_calculations.find({"deal_id": deal_id}, {"_id": 0}).sort("calculation_date", -1).limit(10).to_list(length=10)
     
     return {
         "deal": deal,
