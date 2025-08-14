@@ -407,8 +407,8 @@ class BackendTester:
                 if 'platforms' in data and isinstance(data['platforms'], dict):
                     platforms = data['platforms']
                     
-                    # Check if we have the expected number of platforms (37+)
-                    if len(platforms) >= 37:
+                    # Check if we have the expected number of platforms (52+)
+                    if len(platforms) >= 52:
                         # Verify platform categories
                         social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
                         streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
