@@ -418,12 +418,13 @@ class BackendTester:
                         podcast = [p for p in platforms.values() if p.get('type') == 'podcast']
                         performance_rights = [p for p in platforms.values() if p.get('type') == 'performance_rights']
                         
-                        # Verify specific platforms exist including new PRO platforms
+                        # Verify specific platforms exist including new FM broadcast platforms
                         expected_platforms = ['instagram', 'twitter', 'facebook', 'tiktok', 'youtube', 
                                             'spotify', 'apple_music', 'soundcloud', 'iheartradio', 
                                             'siriusxm', 'cnn', 'fox_news', 'netflix', 'hulu', 
                                             'spotify_podcasts', 'apple_podcasts', 'soundexchange', 
-                                            'ascap', 'bmi', 'sesac']
+                                            'ascap', 'bmi', 'sesac', 'clear_channel_pop', 'cumulus_country',
+                                            'entercom_rock', 'urban_one_hiphop', 'townsquare_adult_contemporary']
                         
                         missing_platforms = [p for p in expected_platforms if p not in platforms]
                         
