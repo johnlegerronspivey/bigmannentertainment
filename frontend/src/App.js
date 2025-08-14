@@ -126,6 +126,7 @@ const Header = () => {
             <Link to="/distribute" className="hover:text-purple-400 transition-colors">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-400 transition-colors">Platforms</Link>
             <Link to="/blockchain" className="hover:text-purple-400 transition-colors">Blockchain</Link>
+            <Link to="/ddex" className="hover:text-purple-400 transition-colors">DDEX Compliance</Link>
             {isAdmin() && (
               <div className="relative group">
                 <button className="flex items-center space-x-1 hover:text-purple-400 transition-colors">
