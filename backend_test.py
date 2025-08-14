@@ -3823,6 +3823,37 @@ class BackendTester:
         print("\nTesting DDEX XML Validation...")
         self.test_ddex_xml_validation()
         
+        # NEW: Sponsorship System Tests
+        print("\n💰 TESTING SPONSORSHIP BONUS MODELING SYSTEM")
+        print("-" * 50)
+        
+        print("\nTesting Sponsor Management...")
+        self.test_create_sponsor_profile()
+        self.test_get_sponsors_list()
+        self.test_get_sponsor_details()
+        
+        print("\nTesting Sponsorship Deal Management...")
+        self.test_create_sponsorship_deal()
+        self.test_get_user_deals()
+        self.test_get_deal_details()
+        self.test_approve_deal()
+        
+        print("\nTesting Performance Metrics...")
+        self.test_record_performance_metrics()
+        self.test_get_deal_metrics()
+        
+        print("\nTesting Bonus Calculation System...")
+        self.test_calculate_bonuses()
+        self.test_get_deal_bonuses()
+        
+        print("\nTesting Campaign Analytics...")
+        self.test_campaign_analytics()
+        self.test_bonus_recommendations()
+        
+        print("\nTesting Admin Sponsorship Features...")
+        self.test_admin_sponsorship_overview()
+        self.test_admin_all_deals()
+        
         # Print Summary
         self.print_summary()
     
