@@ -430,7 +430,7 @@ class BackendTester:
                         
                         if not missing_platforms:
                             self.log_result("distribution_platforms", "Distribution Platforms Endpoint", True, 
-                                          f"Found {len(platforms)} platforms across all categories (Social: {len(social_media)}, Streaming: {len(streaming)}, Radio: {len(radio)}, TV: {len(tv)}, Podcast: {len(podcast)}, Performance Rights: {len(performance_rights)})")
+                                          f"Found {len(platforms)} platforms across all categories (Social: {len(social_media)}, Streaming: {len(streaming)}, Radio: {len(radio)}, FM Broadcast: {len(fm_broadcast)}, TV: {len(tv)}, Podcast: {len(podcast)}, Performance Rights: {len(performance_rights)})")
                             return True
                         else:
                             self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
