@@ -2432,6 +2432,252 @@ async def download_media(media_id: str, current_user: User = Depends(get_current
         media_type=media["mime_type"]
     )
 
+# Blockchain and NFT routes
+@api_router.post("/blockchain/mint-nft")
+async def mint_nft(
+    media_id: str,
+    blockchain_network: str,
+    collection_name: Optional[str] = None,
+    royalty_percentage: float = 10.0,
+    current_user: User = Depends(get_current_user)
+):
+    """Mint NFT from media content"""
+    # Get media details
+    media = await db.media_content.find_one({"id": media_id, "owner_id": current_user.id})
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found or not owned by user")
+    
+    try:
+        # Create NFT collection if needed
+        if collection_name:
+            collection = NFTCollection(
+                name=collection_name,
+                description=f"Big Mann Entertainment - {collection_name}",
+                symbol="BME",
+                owner_id=current_user.id,
+                blockchain_network=blockchain_network,
+                royalty_percentage=royalty_percentage
+            )
+            await db.nft_collections.insert_one(collection.dict())
+            collection_id = collection.id
+        else:
+            # Use default collection
+            collection_id = f"default_{current_user.id}"
+        
+        # Mint NFT using distribution service
+        result = await distribution_service._distribute_to_platform(
+            blockchain_network, media, f"NFT Collection: {collection_name or 'Default'}", []
+        )
+        
+        if result.get("status") == "success":
+            # Create NFT token record
+            nft_token = NFTToken(
+                collection_id=collection_id,
+                media_id=media_id,
+                token_id=result.get("token_id"),
+                token_uri=result.get("token_uri", ""),
+                metadata_uri=result.get("metadata_uri", ""),
+                blockchain_network=blockchain_network,
+                contract_address=result.get("contract_address"),
+                transaction_hash=result.get("transaction_hash"),
+                minted_at=datetime.utcnow()
+            )
+            await db.nft_tokens.insert_one(nft_token.dict())
+            
+            return {
+                "message": "NFT minted successfully",
+                "nft_token_id": nft_token.id,
+                "blockchain_result": result
+            }
+        else:
+            return {"message": "NFT minting failed", "error": result.get("message")}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/blockchain/list-nft")
+async def list_nft_on_marketplace(
+    nft_token_id: str,
+    marketplace: str,
+    price: float,
+    currency: str = "ETH",
+    current_user: User = Depends(get_current_user)
+):
+    """List NFT on marketplace"""
+    # Get NFT token
+    nft_token = await db.nft_tokens.find_one({"id": nft_token_id})
+    if not nft_token:
+        raise HTTPException(status_code=404, detail="NFT token not found")
+    
+    # Get media details
+    media = await db.media_content.find_one({"id": nft_token["media_id"], "owner_id": current_user.id})
+    if not media:
+        raise HTTPException(status_code=403, detail="Not authorized to list this NFT")
+    
+    try:
+        # List on marketplace using distribution service
+        result = await distribution_service._distribute_to_platform(
+            marketplace, media, f"NFT Listing - {price} {currency}", []
+        )
+        
+        if result.get("status") == "success":
+            # Update NFT token
+            await db.nft_tokens.update_one(
+                {"id": nft_token_id},
+                {
+                    "$set": {
+                        "current_price": price,
+                        "is_listed": True,
+                        "marketplace": marketplace,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            
+            return {
+                "message": "NFT listed successfully",
+                "marketplace_result": result
+            }
+        else:
+            return {"message": "NFT listing failed", "error": result.get("message")}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/blockchain/nft-collections")
+async def get_user_nft_collections(current_user: User = Depends(get_current_user)):
+    """Get user's NFT collections"""
+    collections = await db.nft_collections.find({"owner_id": current_user.id}).to_list(100)
+    
+    # Remove _id fields
+    for collection in collections:
+        if '_id' in collection:
+            del collection['_id']
+    
+    return {"collections": collections}
+
+@api_router.get("/blockchain/nft-tokens")
+async def get_user_nft_tokens(
+    collection_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get user's NFT tokens"""
+    # Build query
+    user_media = await db.media_content.find({"owner_id": current_user.id}).to_list(1000)
+    media_ids = [media["id"] for media in user_media]
+    
+    query = {"media_id": {"$in": media_ids}}
+    if collection_id:
+        query["collection_id"] = collection_id
+    
+    tokens = await db.nft_tokens.find(query).to_list(100)
+    
+    # Remove _id fields
+    for token in tokens:
+        if '_id' in token:
+            del token['_id']
+    
+    return {"tokens": tokens}
+
+@api_router.post("/blockchain/connect-wallet")
+async def connect_crypto_wallet(
+    wallet_address: str,
+    blockchain_network: str,
+    wallet_type: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Connect crypto wallet to user account"""
+    # Check if wallet already exists
+    existing_wallet = await db.crypto_wallets.find_one({
+        "wallet_address": wallet_address,
+        "blockchain_network": blockchain_network
+    })
+    
+    if existing_wallet:
+        if existing_wallet["user_id"] != current_user.id:
+            raise HTTPException(status_code=400, detail="Wallet already connected to another account")
+        else:
+            return {"message": "Wallet already connected", "wallet_id": existing_wallet["id"]}
+    
+    # Create new wallet connection
+    crypto_wallet = CryptoWallet(
+        user_id=current_user.id,
+        wallet_address=wallet_address,
+        blockchain_network=blockchain_network,
+        wallet_type=wallet_type,
+        is_primary=True  # First wallet becomes primary
+    )
+    
+    await db.crypto_wallets.insert_one(crypto_wallet.dict())
+    
+    return {
+        "message": "Crypto wallet connected successfully",
+        "wallet_id": crypto_wallet.id
+    }
+
+@api_router.get("/blockchain/connected-wallets")
+async def get_connected_wallets(current_user: User = Depends(get_current_user)):
+    """Get user's connected crypto wallets"""
+    wallets = await db.crypto_wallets.find({"user_id": current_user.id}).to_list(100)
+    
+    # Remove _id fields
+    for wallet in wallets:
+        if '_id' in wallet:
+            del wallet['_id']
+    
+    return {"wallets": wallets}
+
+@api_router.post("/blockchain/create-smart-contract")
+async def create_smart_contract(
+    name: str,
+    contract_type: str,
+    blockchain_network: str,
+    beneficiaries: List[Dict[str, Any]],
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Create smart contract for royalty distribution"""
+    try:
+        # Generate contract address (simulated)
+        contract_address = f"0x{uuid.uuid4().hex[:8]}{uuid.uuid4().hex[:8][:32]}"
+        
+        # Validate beneficiaries percentages sum to 100%
+        total_percentage = sum(b.get("percentage", 0) for b in beneficiaries)
+        if abs(total_percentage - 100.0) > 0.01:
+            raise HTTPException(status_code=400, detail="Beneficiary percentages must sum to 100%")
+        
+        smart_contract = SmartContract(
+            name=name,
+            contract_type=contract_type,
+            blockchain_network=blockchain_network,
+            contract_address=contract_address,
+            owner_id=current_user.id,
+            beneficiaries=beneficiaries,
+            deployed_at=datetime.utcnow()
+        )
+        
+        await db.smart_contracts.insert_one(smart_contract.dict())
+        
+        return {
+            "message": "Smart contract created successfully",
+            "contract_id": smart_contract.id,
+            "contract_address": contract_address
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/blockchain/smart-contracts")
+async def get_smart_contracts(current_user: User = Depends(get_current_user)):
+    """Get user's smart contracts"""
+    contracts = await db.smart_contracts.find({"owner_id": current_user.id}).to_list(100)
+    
+    # Remove _id fields
+    for contract in contracts:
+        if '_id' in contract:
+            del contract['_id']
+    
+    return {"contracts": contracts}
+
 # Analytics routes
 @api_router.get("/analytics/dashboard")
 async def get_analytics_dashboard(current_user: User = Depends(get_current_admin_user)):
