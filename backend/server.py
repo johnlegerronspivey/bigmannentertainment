@@ -731,6 +731,9 @@ class DistributionService:
             return await self._submit_to_streaming_service(platform, media, custom_message)
         elif platform in ["iheartradio", "siriusxm", "radio_com", "tunein"]:
             return await self._submit_to_radio_station(platform, media, custom_message)
+        elif platform.endswith(("_pop", "_country", "_rock", "_hiphop", "_adult_contemporary", "_classic_rock", 
+                               "_alternative", "_latin", "_christian", "_jazz", "_urban", "_oldies", "_electronic", "_indie")) or "classical_public_radio" in platform or "regional_indie" in platform:
+            return await self._submit_to_fm_broadcast_station(platform, media, custom_message)
         elif platform in ["cnn", "fox_news", "msnbc", "espn", "netflix", "hulu", "hbo_max"]:
             return await self._submit_to_tv_network(platform, media, custom_message)
         elif platform in ["spotify_podcasts", "apple_podcasts", "google_podcasts", "podcast_one", "stitcher"]:
