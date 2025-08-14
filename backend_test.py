@@ -866,7 +866,8 @@ class BackendTester:
     def run_all_tests(self):
         """Run all backend tests"""
         print("=" * 80)
-        print("STARTING BIG MANN ENTERTAINMENT BACKEND TESTING")
+        print("STARTING BIG MANN ENTERTAINMENT COMPREHENSIVE BACKEND TESTING")
+        print("Testing Distribution Platform with 30+ Media Distribution Channels")
         print("=" * 80)
         
         # Authentication Tests
@@ -889,6 +890,30 @@ class BackendTester:
         self.test_media_filtering()
         self.test_media_details()
         
+        # Distribution Platform Tests
+        print("\n🌐 TESTING DISTRIBUTION PLATFORM ENDPOINTS")
+        print("-" * 40)
+        self.test_distribution_platforms_endpoint()
+        self.test_platform_configuration_details()
+        
+        # Content Distribution Tests
+        print("\n📡 TESTING CONTENT DISTRIBUTION SYSTEM")
+        print("-" * 40)
+        self.test_content_distribution_audio_to_streaming()
+        self.test_content_distribution_video_to_social()
+        
+        # Platform Compatibility Tests
+        print("\n🔍 TESTING PLATFORM COMPATIBILITY CHECKING")
+        print("-" * 40)
+        self.test_platform_compatibility_audio_to_video_only()
+        self.test_platform_compatibility_video_to_audio_only()
+        
+        # Distribution History Tests
+        print("\n📋 TESTING DISTRIBUTION HISTORY TRACKING")
+        print("-" * 40)
+        self.test_distribution_history_tracking()
+        self.test_distribution_status_retrieval()
+        
         # Payment Tests
         print("\n💳 TESTING PAYMENT INTEGRATION")
         print("-" * 40)
@@ -896,8 +921,8 @@ class BackendTester:
         self.test_payment_status_polling()
         self.test_webhook_endpoint()
         
-        # Analytics Tests
-        print("\n📊 TESTING ANALYTICS DASHBOARD")
+        # Enhanced Analytics Tests
+        print("\n📊 TESTING ENHANCED ANALYTICS WITH DISTRIBUTION METRICS")
         print("-" * 40)
         self.test_analytics_dashboard()
         
