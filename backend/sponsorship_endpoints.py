@@ -173,7 +173,8 @@ async def get_sponsors(
     if is_active is not None:
         query["is_active"] = is_active
     
-    sponsors = await db.sponsors.find(query).skip(skip).limit(limit).to_list(length=limit)
+    sponsors_cursor = db.sponsors.find(query, {"_id": 0}).skip(skip).limit(limit)
+    sponsors = await sponsors_cursor.to_list(length=limit)
     total = await db.sponsors.count_documents(query)
     
     return {
