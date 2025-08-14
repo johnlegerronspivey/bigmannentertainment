@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, date, timedelta
 import uuid
-from .sponsorship_models import *
+from sponsorship_models import *
 
 class SponsorshipBonusCalculator:
     """Service for calculating sponsorship bonuses based on performance metrics"""
