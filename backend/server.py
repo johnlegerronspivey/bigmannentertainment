@@ -19,8 +19,6 @@ from passlib.context import CryptContext
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import asyncio
 import aiohttp
-import tweepy
-import facebook
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
