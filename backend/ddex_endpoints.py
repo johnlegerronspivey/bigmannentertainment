@@ -455,7 +455,7 @@ async def generate_identifiers(
     }
 
 @ddex_router.get("/admin/messages", dependencies=[Depends(get_current_admin_user)])
-async def get_all_ddx_messages(
+async def get_all_ddex_messages(
     message_type: Optional[str] = None,
     status: Optional[str] = None,
     skip: int = 0,
