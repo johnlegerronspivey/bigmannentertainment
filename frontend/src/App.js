@@ -195,6 +195,13 @@ const Home = () => {
           }}
         ></div>
         <div className="relative container mx-auto px-4 text-center">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_audio-video-dist/artifacts/zwcs0h0g_Big%20Mann%20Entertainment%20Logo.png" 
+              alt="Big Mann Entertainment Logo" 
+              className="w-24 h-24 object-contain"
+            />
+          </div>
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             Big Mann Entertainment
           </h1>
