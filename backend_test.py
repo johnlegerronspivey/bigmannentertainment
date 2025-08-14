@@ -1156,6 +1156,460 @@ class BackendTester:
             self.log_result("soundexchange_pro", "Platform Count Update", False, f"Exception: {str(e)}")
             return False
 
+    def test_fm_broadcast_platform_count(self) -> bool:
+        """Test that we have 15+ FM broadcast stations across all genres"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Get FM broadcast platforms
+                fm_broadcast_platforms = {k: v for k, v in platforms.items() if v.get('type') == 'fm_broadcast'}
+                
+                if len(fm_broadcast_platforms) >= 15:
+                    # Verify genre coverage
+                    genres_covered = set()
+                    for platform_id, platform_info in fm_broadcast_platforms.items():
+                        # Extract genre from platform configuration or ID
+                        if 'genre' in platform_info:
+                            genres_covered.add(platform_info['genre'])
+                        elif '_' in platform_id:
+                            # Extract genre from platform ID (e.g., clear_channel_pop -> pop)
+                            genre_part = platform_id.split('_')[-1]
+                            genres_covered.add(genre_part)
+                    
+                    expected_genres = ['pop', 'country', 'rock', 'hip-hop', 'adult_contemporary', 
+                                     'classic_rock', 'alternative', 'latin', 'christian', 'jazz', 
+                                     'classical', 'urban', 'oldies', 'electronic', 'indie']
+                    
+                    covered_expected = [g for g in expected_genres if g in genres_covered or g.replace('-', '_') in genres_covered]
+                    
+                    if len(covered_expected) >= 10:  # At least 10 different genres
+                        self.log_result("fm_broadcast", "FM Broadcast Platform Count", True, 
+                                      f"Found {len(fm_broadcast_platforms)} FM broadcast stations covering {len(covered_expected)} genres: {', '.join(sorted(covered_expected))}")
+                        return True
+                    else:
+                        self.log_result("fm_broadcast", "FM Broadcast Platform Count", False, 
+                                      f"Only {len(covered_expected)} genres covered, expected 10+")
+                        return False
+                else:
+                    self.log_result("fm_broadcast", "FM Broadcast Platform Count", False, 
+                                  f"Expected 15+ FM broadcast platforms, found {len(fm_broadcast_platforms)}")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "FM Broadcast Platform Count", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "FM Broadcast Platform Count", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_major_fm_network_integration(self) -> bool:
+        """Test major FM network integrations (Clear Channel, Cumulus, Audacy, Urban One, NPR)"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Check for major network platforms
+                major_networks = {
+                    'clear_channel_pop': 'Clear Channel/iHeartMedia',
+                    'cumulus_country': 'Cumulus Media',
+                    'entercom_rock': 'Audacy (Entercom)',
+                    'audacy_rock': 'Audacy',  # Alternative name
+                    'urban_one_hiphop': 'Urban One',
+                    'classical_public_radio': 'NPR Network'
+                }
+                
+                found_networks = []
+                for network_id, network_name in major_networks.items():
+                    if network_id in platforms:
+                        platform_info = platforms[network_id]
+                        if (platform_info.get('type') == 'fm_broadcast' and 
+                            platform_info.get('supported_formats') == ['audio']):
+                            found_networks.append(network_name)
+                
+                if len(found_networks) >= 4:  # At least 4 major networks
+                    self.log_result("fm_broadcast", "Major FM Network Integration", True, 
+                                  f"Found {len(found_networks)} major FM networks: {', '.join(found_networks)}")
+                    return True
+                else:
+                    self.log_result("fm_broadcast", "Major FM Network Integration", False, 
+                                  f"Only found {len(found_networks)} major networks, expected 4+")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "Major FM Network Integration", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "Major FM Network Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_fm_broadcast_genre_targeting(self) -> bool:
+        """Test genre-specific FM broadcast distribution with proper targeting"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("fm_broadcast", "FM Broadcast Genre Targeting", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test distribution to genre-specific FM networks
+            fm_platforms = ['clear_channel_pop', 'cumulus_country', 'urban_one_hiphop', 
+                          'townsquare_adult_contemporary', 'saga_classic_rock']
+            
+            distribution_request = {
+                "media_id": self.test_media_id,  # Audio file
+                "platforms": fm_platforms,
+                "custom_message": "New track for FM broadcast consideration",
+                "hashtags": ["BigMannEntertainment", "FMRadio", "NewMusic"]
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                successful_submissions = []
+                for platform in fm_platforms:
+                    if platform in results:
+                        result = results[platform]
+                        if result.get('status') == 'success':
+                            # Verify FM-specific response fields
+                            if ('submission_id' in result and 
+                                'genre' in result and 
+                                'station_network' in result):
+                                successful_submissions.append(f"{platform}({result['genre']})")
+                
+                if len(successful_submissions) >= 3:  # At least 3 successful submissions
+                    self.log_result("fm_broadcast", "FM Broadcast Genre Targeting", True, 
+                                  f"Successfully submitted to {len(successful_submissions)} genre-specific FM networks: {', '.join(successful_submissions)}")
+                    return True
+                else:
+                    self.log_result("fm_broadcast", "FM Broadcast Genre Targeting", False, 
+                                  f"Only {len(successful_submissions)} successful FM submissions, expected 3+")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "FM Broadcast Genre Targeting", False, 
+                              f"Distribution failed: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "FM Broadcast Genre Targeting", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_clear_channel_network_workflow(self) -> bool:
+        """Test Clear Channel/iHeartMedia specific submission workflow"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("fm_broadcast", "Clear Channel Network Workflow", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test Clear Channel Pop network submission
+            distribution_request = {
+                "media_id": self.test_media_id,
+                "platforms": ["clear_channel_pop"],
+                "custom_message": "Pop track for Clear Channel network consideration"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                if 'clear_channel_pop' in results:
+                    cc_result = results['clear_channel_pop']
+                    
+                    # Verify Clear Channel specific response fields
+                    expected_fields = ['submission_id', 'station_network', 'genre', 
+                                     'target_markets', 'playlist_consideration', 'next_steps']
+                    
+                    if (cc_result.get('status') == 'success' and 
+                        all(field in cc_result for field in expected_fields)):
+                        
+                        # Verify Clear Channel specific data
+                        if ('iHeartMedia' in cc_result.get('station_network', '') and
+                            'CC_' in cc_result.get('submission_id', '') and
+                            isinstance(cc_result.get('target_markets'), list) and
+                            isinstance(cc_result.get('next_steps'), list)):
+                            
+                            self.log_result("fm_broadcast", "Clear Channel Network Workflow", True, 
+                                          f"Clear Channel submission successful: {cc_result['submission_id']}, Markets: {len(cc_result['target_markets'])}")
+                            return True
+                        else:
+                            self.log_result("fm_broadcast", "Clear Channel Network Workflow", False, 
+                                          f"Clear Channel response missing expected data: {cc_result}")
+                            return False
+                    else:
+                        self.log_result("fm_broadcast", "Clear Channel Network Workflow", False, 
+                                      f"Clear Channel response missing required fields: {cc_result}")
+                        return False
+                else:
+                    self.log_result("fm_broadcast", "Clear Channel Network Workflow", False, 
+                                  "No Clear Channel result in distribution response")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "Clear Channel Network Workflow", False, 
+                              f"Distribution failed: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "Clear Channel Network Workflow", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_urban_one_network_workflow(self) -> bool:
+        """Test Urban One network specific submission workflow"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("fm_broadcast", "Urban One Network Workflow", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test Urban One Hip-Hop network submission
+            distribution_request = {
+                "media_id": self.test_media_id,
+                "platforms": ["urban_one_hiphop"],
+                "custom_message": "Hip-Hop track for Urban One network consideration"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                if 'urban_one_hiphop' in results:
+                    uo_result = results['urban_one_hiphop']
+                    
+                    # Verify Urban One specific response fields
+                    expected_fields = ['submission_id', 'station_network', 'genre', 
+                                     'format_focus', 'target_demographics', 'key_markets']
+                    
+                    if (uo_result.get('status') == 'success' and 
+                        all(field in uo_result for field in expected_fields)):
+                        
+                        # Verify Urban One specific data
+                        if ('Urban One' in uo_result.get('station_network', '') and
+                            'UO_' in uo_result.get('submission_id', '') and
+                            'Urban Contemporary' in uo_result.get('format_focus', '') and
+                            'Urban Adults' in uo_result.get('target_demographics', '')):
+                            
+                            self.log_result("fm_broadcast", "Urban One Network Workflow", True, 
+                                          f"Urban One submission successful: {uo_result['submission_id']}, Demographics: {uo_result['target_demographics']}")
+                            return True
+                        else:
+                            self.log_result("fm_broadcast", "Urban One Network Workflow", False, 
+                                          f"Urban One response missing expected data: {uo_result}")
+                            return False
+                    else:
+                        self.log_result("fm_broadcast", "Urban One Network Workflow", False, 
+                                      f"Urban One response missing required fields: {uo_result}")
+                        return False
+                else:
+                    self.log_result("fm_broadcast", "Urban One Network Workflow", False, 
+                                  "No Urban One result in distribution response")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "Urban One Network Workflow", False, 
+                              f"Distribution failed: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "Urban One Network Workflow", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_npr_classical_network_workflow(self) -> bool:
+        """Test NPR Classical network specific submission workflow"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("fm_broadcast", "NPR Classical Network Workflow", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test NPR Classical network submission
+            distribution_request = {
+                "media_id": self.test_media_id,
+                "platforms": ["classical_public_radio"],
+                "custom_message": "Classical composition for NPR network consideration"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                if 'classical_public_radio' in results:
+                    npr_result = results['classical_public_radio']
+                    
+                    # Verify NPR specific response fields
+                    expected_fields = ['submission_id', 'station_network', 'genre', 
+                                     'programming_standards', 'member_stations', 'educational_component']
+                    
+                    if (npr_result.get('status') == 'success' and 
+                        all(field in npr_result for field in expected_fields)):
+                        
+                        # Verify NPR specific data
+                        if ('NPR' in npr_result.get('station_network', '') and
+                            'NPR_' in npr_result.get('submission_id', '') and
+                            'Classical' in npr_result.get('genre', '') and
+                            'public radio stations' in npr_result.get('member_stations', '')):
+                            
+                            self.log_result("fm_broadcast", "NPR Classical Network Workflow", True, 
+                                          f"NPR Classical submission successful: {npr_result['submission_id']}, Network: {npr_result['station_network']}")
+                            return True
+                        else:
+                            self.log_result("fm_broadcast", "NPR Classical Network Workflow", False, 
+                                          f"NPR response missing expected data: {npr_result}")
+                            return False
+                    else:
+                        self.log_result("fm_broadcast", "NPR Classical Network Workflow", False, 
+                                      f"NPR response missing required fields: {npr_result}")
+                        return False
+                else:
+                    self.log_result("fm_broadcast", "NPR Classical Network Workflow", False, 
+                                  "No NPR Classical result in distribution response")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "NPR Classical Network Workflow", False, 
+                              f"Distribution failed: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "NPR Classical Network Workflow", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_fm_broadcast_audio_only_validation(self) -> bool:
+        """Test that FM broadcast stations only accept audio content"""
+        try:
+            if not self.auth_token:
+                self.log_result("fm_broadcast", "FM Broadcast Audio-Only Validation", False, 
+                              "No auth token available")
+                return False
+            
+            # Upload a video file for testing
+            content, filename, mime_type = self.create_test_file("video")
+            
+            files = {'file': (filename, content, mime_type)}
+            data = {
+                'title': 'Test Video for FM Validation',
+                'description': 'Testing FM broadcast audio-only validation',
+                'category': 'test',
+                'price': 0,
+                'tags': 'test'
+            }
+            
+            upload_response = self.make_request('POST', '/media/upload', files=files, data=data)
+            
+            if upload_response.status_code == 200:
+                video_media_id = upload_response.json()['media_id']
+                
+                # Try to distribute video to FM broadcast stations
+                distribution_request = {
+                    "media_id": video_media_id,
+                    "platforms": ["clear_channel_pop", "cumulus_country", "urban_one_hiphop", "classical_public_radio"],
+                    "custom_message": "This should fail for video content"
+                }
+                
+                response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get('results', {})
+                    
+                    # Check that all FM platforms failed due to format incompatibility
+                    failed_fm_stations = []
+                    for platform in ['clear_channel_pop', 'cumulus_country', 'urban_one_hiphop', 'classical_public_radio']:
+                        if platform in results:
+                            result = results[platform]
+                            if (result.get('status') == 'error' and 
+                                ('not supported by' in result.get('message', '') or 
+                                 'only supports audio content' in result.get('message', ''))):
+                                failed_fm_stations.append(platform)
+                    
+                    if len(failed_fm_stations) >= 3:  # At least 3 should fail
+                        self.log_result("fm_broadcast", "FM Broadcast Audio-Only Validation", True, 
+                                      f"Correctly rejected video content for {len(failed_fm_stations)} FM broadcast stations")
+                        return True
+                    else:
+                        self.log_result("fm_broadcast", "FM Broadcast Audio-Only Validation", False, 
+                                      f"Only {len(failed_fm_stations)} FM stations correctly rejected video content")
+                        return False
+                else:
+                    self.log_result("fm_broadcast", "FM Broadcast Audio-Only Validation", False, 
+                                  f"Distribution request failed: {response.status_code}")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "FM Broadcast Audio-Only Validation", False, 
+                              "Failed to upload test video")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "FM Broadcast Audio-Only Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_fm_broadcast_programming_metadata(self) -> bool:
+        """Test FM broadcast programming metadata and requirements"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("fm_broadcast", "FM Broadcast Programming Metadata", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test multiple genre-specific FM networks to verify programming metadata
+            fm_platforms = ['clear_channel_pop', 'cumulus_country', 'beasley_jazz', 'alpha_electronic']
+            
+            distribution_request = {
+                "media_id": self.test_media_id,
+                "platforms": fm_platforms,
+                "custom_message": "Testing programming metadata for FM broadcast"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                successful_metadata_checks = []
+                for platform in fm_platforms:
+                    if platform in results:
+                        result = results[platform]
+                        if result.get('status') == 'success':
+                            # Check for programming-specific metadata
+                            programming_fields = ['genre', 'format_focus', 'target_demographics', 
+                                                'playlist_consideration', 'airplay_potential']
+                            
+                            metadata_present = sum(1 for field in programming_fields if field in result)
+                            
+                            if metadata_present >= 2:  # At least 2 programming fields
+                                successful_metadata_checks.append(f"{platform}({result.get('genre', 'unknown')})")
+                
+                if len(successful_metadata_checks) >= 2:  # At least 2 successful metadata checks
+                    self.log_result("fm_broadcast", "FM Broadcast Programming Metadata", True, 
+                                  f"Programming metadata properly configured for {len(successful_metadata_checks)} FM networks: {', '.join(successful_metadata_checks)}")
+                    return True
+                else:
+                    self.log_result("fm_broadcast", "FM Broadcast Programming Metadata", False, 
+                                  f"Only {len(successful_metadata_checks)} FM networks have proper programming metadata")
+                    return False
+            else:
+                self.log_result("fm_broadcast", "FM Broadcast Programming Metadata", False, 
+                              f"Distribution failed: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("fm_broadcast", "FM Broadcast Programming Metadata", False, f"Exception: {str(e)}")
+            return False
+
     def test_analytics_dashboard(self) -> bool:
         """Test analytics dashboard data retrieval with enhanced distribution metrics"""
         try:
