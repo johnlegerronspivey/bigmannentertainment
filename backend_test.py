@@ -2364,7 +2364,7 @@ class BackendTester:
         print("=" * 80)
         print("STARTING BIG MANN ENTERTAINMENT COMPREHENSIVE BACKEND TESTING")
         print("Testing Distribution Platform with 52+ Media Distribution Channels")
-        print("INCLUDING NEW FM BROADCAST STATIONS & PERFORMANCE RIGHTS ORGANIZATIONS")
+        print("INCLUDING COMPREHENSIVE ADMINISTRATOR FEATURES & ETHEREUM INTEGRATION")
         print("=" * 80)
         
         # Authentication Tests
@@ -2411,7 +2411,7 @@ class BackendTester:
         self.test_distribution_history_tracking()
         self.test_distribution_status_retrieval()
         
-        # NEW: SoundExchange and PRO Tests
+        # SoundExchange and PRO Tests
         print("\n🎵 TESTING SOUNDEXCHANGE & PERFORMANCE RIGHTS ORGANIZATIONS")
         print("-" * 40)
         self.test_soundexchange_platform_configuration()
@@ -2421,7 +2421,7 @@ class BackendTester:
         self.test_performance_rights_audio_only_validation()
         self.test_platform_count_update()
         
-        # NEW: FM Broadcast Station Tests
+        # FM Broadcast Station Tests
         print("\n📻 TESTING TRADITIONAL FM BROADCAST STATION INTEGRATION")
         print("-" * 40)
         self.test_fm_broadcast_platform_count()
@@ -2444,6 +2444,54 @@ class BackendTester:
         print("\n📊 TESTING ENHANCED ANALYTICS WITH DISTRIBUTION METRICS")
         print("-" * 40)
         self.test_analytics_dashboard()
+        
+        # NEW: Administrator Feature Tests
+        print("\n👑 TESTING ADMINISTRATOR AUTHENTICATION & AUTHORIZATION")
+        print("-" * 40)
+        self.create_admin_user()
+        self.test_admin_authentication()
+        
+        print("\n👥 TESTING ADMINISTRATOR USER MANAGEMENT SYSTEM")
+        print("-" * 40)
+        self.test_admin_user_management_list()
+        self.test_admin_user_management_details()
+        self.test_admin_user_management_update()
+        
+        print("\n📝 TESTING ADMINISTRATOR CONTENT MANAGEMENT SYSTEM")
+        print("-" * 40)
+        self.test_admin_content_management_list()
+        self.test_admin_content_moderation()
+        
+        print("\n📈 TESTING ADMINISTRATOR ANALYTICS DASHBOARD")
+        print("-" * 40)
+        self.test_admin_analytics_overview()
+        self.test_admin_user_analytics()
+        
+        print("\n🔧 TESTING ADMINISTRATOR PLATFORM MANAGEMENT")
+        print("-" * 40)
+        self.test_admin_platform_management()
+        self.test_admin_platform_toggle()
+        
+        print("\n💰 TESTING ADMINISTRATOR REVENUE MANAGEMENT")
+        print("-" * 40)
+        self.test_admin_revenue_management()
+        
+        print("\n⛓️ TESTING ADMINISTRATOR BLOCKCHAIN MANAGEMENT")
+        print("-" * 40)
+        self.test_admin_blockchain_management()
+        
+        print("\n🔒 TESTING ADMINISTRATOR SECURITY & AUDIT SYSTEM")
+        print("-" * 40)
+        self.test_admin_security_logs()
+        self.test_admin_security_stats()
+        
+        print("\n⚙️ TESTING ADMINISTRATOR SYSTEM CONFIGURATION")
+        print("-" * 40)
+        self.test_admin_system_config()
+        
+        print("\n🔗 TESTING ETHEREUM ADDRESS INTEGRATION")
+        print("-" * 40)
+        self.test_ethereum_address_integration()
         
         # Print Summary
         self.print_summary()
