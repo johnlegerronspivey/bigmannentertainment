@@ -849,7 +849,425 @@ const AdminUserManagement = () => {
   );
 };
 
-const Login = () => {
+// Admin Content Management Component
+const AdminContentManagement = () => {
+  const [content, setContent] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState({ approval_status: '', content_type: '' });
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (isAdmin()) {
+      fetchContent();
+    }
+  }, [isAdmin, filter]);
+
+  const fetchContent = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filter.approval_status) params.append('approval_status', filter.approval_status);
+      if (filter.content_type) params.append('content_type', filter.content_type);
+      
+      const response = await axios.get(`${API}/admin/content?${params}`);
+      setContent(response.data.content);
+    } catch (error) {
+      console.error('Error fetching content:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleModeration = async (mediaId, action, notes = '') => {
+    try {
+      await axios.post(`${API}/admin/content/${mediaId}/moderate`, {
+        media_id: mediaId,
+        action: action,
+        notes: notes
+      });
+      fetchContent(); // Refresh the list
+    } catch (error) {
+      console.error('Error moderating content:', error);
+      alert('Error moderating content. Please try again.');
+    }
+  };
+
+  if (!isAdmin()) {
+    return <Navigate to="/" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Content Management</h1>
+        
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select
+              value={filter.approval_status}
+              onChange={(e) => setFilter({ ...filter, approval_status: e.target.value })}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">All Approval Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <select
+              value={filter.content_type}
+              onChange={(e) => setFilter({ ...filter, content_type: e.target.value })}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">All Content Types</option>
+              <option value="audio">Audio</option>
+              <option value="video">Video</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Content List */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {content.map((item) => (
+              <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                <div className="flex justify-between items-center mb-4">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    item.content_type === 'audio' ? 'bg-purple-100 text-purple-600' :
+                    item.content_type === 'video' ? 'bg-red-100 text-red-600' :
+                    'bg-green-100 text-green-600'
+                  }`}>
+                    {item.content_type.toUpperCase()}
+                  </span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    item.approval_status === 'approved' ? 'bg-green-100 text-green-600' :
+                    item.approval_status === 'rejected' ? 'bg-red-100 text-red-600' :
+                    'bg-yellow-100 text-yellow-600'
+                  }`}>
+                    {item.approval_status.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleModeration(item.id, 'approve')}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleModeration(item.id, 'reject')}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleModeration(item.id, 'feature')}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Feature
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Admin Analytics Component
+const AdminAnalytics = () => {
+  const [analytics, setAnalytics] = useState({});
+  const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (isAdmin()) {
+      fetchAnalytics();
+    }
+  }, [isAdmin]);
+
+  const fetchAnalytics = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/analytics/overview`);
+      setAnalytics(response.data);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isAdmin()) {
+    return <Navigate to="/" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Advanced Analytics</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* User Analytics */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">User Analytics</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Total Users:</span>
+                <span className="font-semibold">{analytics.user_analytics?.total_users || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Active Users:</span>
+                <span className="font-semibold">{analytics.user_analytics?.active_users || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>New This Month:</span>
+                <span className="font-semibold">{analytics.user_analytics?.new_users_this_month || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Analytics */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">Content Analytics</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Total Media:</span>
+                <span className="font-semibold">{analytics.content_analytics?.total_media || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Published:</span>
+                <span className="font-semibold">{analytics.content_analytics?.published_media || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Pending:</span>
+                <span className="font-semibold">{analytics.content_analytics?.pending_approval || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Distribution Analytics */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">Distribution Analytics</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Total:</span>
+                <span className="font-semibold">{analytics.distribution_analytics?.total_distributions || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Successful:</span>
+                <span className="font-semibold">{analytics.distribution_analytics?.successful_distributions || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Success Rate:</span>
+                <span className="font-semibold">{analytics.distribution_analytics?.success_rate?.toFixed(1) || 0}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Analytics */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">Revenue Analytics</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Total Revenue:</span>
+                <span className="font-semibold">${analytics.revenue_analytics?.total_revenue?.toFixed(2) || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Commission:</span>
+                <span className="font-semibold">${analytics.revenue_analytics?.total_commission?.toFixed(2) || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Transactions:</span>
+                <span className="font-semibold">{analytics.revenue_analytics?.total_purchases || 0}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Admin Revenue Management Component
+const AdminRevenue = () => {
+  const [revenueData, setRevenueData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (isAdmin()) {
+      fetchRevenueData();
+    }
+  }, [isAdmin]);
+
+  const fetchRevenueData = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/revenue`);
+      setRevenueData(response.data);
+    } catch (error) {
+      console.error('Error fetching revenue data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isAdmin()) {
+    return <Navigate to="/" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Revenue Management</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Revenue Overview</h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <span>Total Revenue:</span>
+                <span className="font-bold text-green-600">${revenueData.total_revenue || 0}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <span>Total Commission:</span>
+                <span className="font-bold text-blue-600">${revenueData.total_commission || 0}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <span>Total Transactions:</span>
+                <span className="font-bold text-purple-600">{revenueData.total_transactions || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Top Earning Content</h2>
+            <div className="space-y-3">
+              {revenueData.top_earning_content?.slice(0, 5).map((item, index) => (
+                <div key={index} className="flex justify-between items-center p-2 border-b">
+                  <div>
+                    <div className="font-medium">{item.media_title || 'Unknown'}</div>
+                    <div className="text-sm text-gray-500">{item.media_type}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold">${item.total_revenue}</div>
+                    <div className="text-sm text-gray-500">{item.purchase_count} sales</div>
+                  </div>
+                </div>
+              )) || (
+                <p className="text-gray-500">No revenue data available</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Admin Security Component
+const AdminSecurity = () => {
+  const [securityLogs, setSecurityLogs] = useState([]);
+  const [securityStats, setSecurityStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (isAdmin()) {
+      fetchSecurityData();
+    }
+  }, [isAdmin]);
+
+  const fetchSecurityData = async () => {
+    try {
+      const [logsRes, statsRes] = await Promise.all([
+        axios.get(`${API}/admin/security/logs?limit=20`),
+        axios.get(`${API}/admin/security/stats`)
+      ]);
+      setSecurityLogs(logsRes.data.logs);
+      setSecurityStats(statsRes.data);
+    } catch (error) {
+      console.error('Error fetching security data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isAdmin()) {
+    return <Navigate to="/" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Security & Audit</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-2">Login Statistics</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Successful Logins:</span>
+                <span className="font-semibold text-green-600">{securityStats.login_statistics?.successful_logins || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Failed Logins:</span>
+                <span className="font-semibold text-red-600">{securityStats.login_statistics?.failed_logins || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Success Rate:</span>
+                <span className="font-semibold">{securityStats.login_statistics?.success_rate?.toFixed(1) || 0}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-2">Admin Actions</h3>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-purple-600">{securityStats.admin_actions || 0}</div>
+              <div className="text-sm text-gray-600">in last 7 days</div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-2">Total Activities</h3>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600">{securityStats.total_activities || 0}</div>
+              <div className="text-sm text-gray-600">in last 7 days</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Recent Security Logs</h2>
+          <div className="space-y-3">
+            {securityLogs.map((log, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center space-x-4">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div>
+                    <div className="font-medium">{log.action}</div>
+                    <div className="text-sm text-gray-500">
+                      {log.user?.full_name || 'Unknown User'} • {new Date(log.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {log.resource_type}
+                </div>
+              </div>
+            )) || (
+              <p className="text-gray-500">No security logs available</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
