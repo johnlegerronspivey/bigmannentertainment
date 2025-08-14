@@ -499,7 +499,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Sponsorship Bonus Modeling System Backend"
     - "Sponsorship Dashboard Interface"
   stuck_tasks: []
   test_all: false
