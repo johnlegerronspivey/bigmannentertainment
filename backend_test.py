@@ -438,7 +438,7 @@ class BackendTester:
                             return False
                     else:
                         self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
-                                      f"Expected 37+ platforms, found {len(platforms)}")
+                                      f"Expected 52+ platforms, found {len(platforms)}")
                         return False
                 else:
                     self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
