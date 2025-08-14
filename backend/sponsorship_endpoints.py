@@ -83,9 +83,39 @@ async def log_activity(user_id: str, action: str, resource_type: str, resource_i
     )
     await db.activity_logs.insert_one(activity.dict())
 
-# Import sponsorship models and services
-from sponsorship_models import *
-from sponsorship_service import SponsorshipBonusCalculator, SponsorshipAnalytics, SponsorshipRecommendationEngine
+# Import sponsorship models and services with absolute paths
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from sponsorship_models import *
+    from sponsorship_service import SponsorshipBonusCalculator, SponsorshipAnalytics, SponsorshipRecommendationEngine
+except ImportError:
+    # Fallback: Import using absolute paths
+    import importlib.util
+    
+    # Load sponsorship_models
+    models_path = os.path.join(os.path.dirname(__file__), 'sponsorship_models.py')
+    spec = importlib.util.spec_from_file_location("sponsorship_models", models_path)
+    sponsorship_models = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sponsorship_models)
+    
+    # Import all from models
+    for attr in dir(sponsorship_models):
+        if not attr.startswith('_'):
+            globals()[attr] = getattr(sponsorship_models, attr)
+    
+    # Load sponsorship_service
+    service_path = os.path.join(os.path.dirname(__file__), 'sponsorship_service.py')
+    spec = importlib.util.spec_from_file_location("sponsorship_service", service_path)
+    sponsorship_service = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sponsorship_service)
+    
+    # Import specific classes from service
+    SponsorshipBonusCalculator = sponsorship_service.SponsorshipBonusCalculator
+    SponsorshipAnalytics = sponsorship_service.SponsorshipAnalytics
+    SponsorshipRecommendationEngine = sponsorship_service.SponsorshipRecommendationEngine
 
 # Create Sponsorship router
 sponsorship_router = APIRouter(prefix="/api/sponsorship", tags=["Sponsorship"])
