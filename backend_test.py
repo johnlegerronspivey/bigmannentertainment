@@ -2364,6 +2364,584 @@ class BackendTester:
         except Exception as e:
             self.log_result("ethereum_integration", "Ethereum Address Integration", False, f"Exception: {str(e)}")
             return False
+
+    # DDEX Testing Methods
+    def create_test_audio_file_for_ddex(self) -> tuple:
+        """Create a test audio file for DDEX testing"""
+        # Create a more realistic audio file for DDEX testing
+        content = b"RIFF\x24\x08\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x02\x00\x44\xac\x00\x00\x10\xb1\x02\x00\x04\x00\x10\x00data\x00\x08\x00\x00"
+        filename = "big_mann_test_track.wav"
+        mime_type = "audio/wav"
+        return content, filename, mime_type
+
+    def test_ddex_ern_creation(self) -> bool:
+        """Test DDEX ERN (Electronic Release Notification) creation"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_ern", "ERN Creation", False, "No auth token available")
+                return False
+            
+            # Create test audio file
+            content, filename, mime_type = self.create_test_audio_file_for_ddex()
+            
+            # Prepare ERN creation data
+            files = {'audio_file': (filename, content, mime_type)}
+            data = {
+                'title': 'Big Mann Entertainment Test Track',
+                'artist_name': 'John LeGerron Spivey',
+                'label_name': 'Big Mann Entertainment',
+                'release_date': '2025-01-15',
+                'release_type': 'Single',
+                'territories': 'Worldwide'
+            }
+            
+            response = self.make_request('POST', '/ddex/ern/create', files=files, data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                required_fields = ['message_id', 'xml_filename', 'isrc', 'catalog_number', 'record_id']
+                
+                if all(field in result for field in required_fields):
+                    # Verify ISRC format (should be US-BME-YY-XXXXX)
+                    isrc = result['isrc']
+                    if len(isrc) == 12 and '-' in isrc:
+                        self.log_result("ddex_ern", "ERN Creation", True, 
+                                      f"ERN created successfully - Message ID: {result['message_id']}, ISRC: {isrc}")
+                        return True
+                    else:
+                        self.log_result("ddex_ern", "ERN Creation", False, f"Invalid ISRC format: {isrc}")
+                        return False
+                else:
+                    self.log_result("ddex_ern", "ERN Creation", False, "Missing required fields in response")
+                    return False
+            else:
+                self.log_result("ddex_ern", "ERN Creation", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_ern", "ERN Creation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_ern_with_cover_image(self) -> bool:
+        """Test DDEX ERN creation with cover image"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_ern", "ERN with Cover Image", False, "No auth token available")
+                return False
+            
+            # Create test files
+            audio_content, audio_filename, audio_mime = self.create_test_audio_file_for_ddex()
+            image_content, image_filename, image_mime = self.create_test_file("image")
+            
+            # Prepare ERN creation data with cover image
+            files = {
+                'audio_file': (audio_filename, audio_content, audio_mime),
+                'cover_image': (image_filename, image_content, image_mime)
+            }
+            data = {
+                'title': 'Big Mann Entertainment Album Track',
+                'artist_name': 'John LeGerron Spivey',
+                'label_name': 'Big Mann Entertainment',
+                'release_date': '2025-02-01',
+                'release_type': 'Album',
+                'territories': 'US'
+            }
+            
+            response = self.make_request('POST', '/ddex/ern/create', files=files, data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'message_id' in result and 'isrc' in result:
+                    self.log_result("ddex_ern", "ERN with Cover Image", True, 
+                                  f"ERN with cover image created - Message ID: {result['message_id']}")
+                    return True
+                else:
+                    self.log_result("ddex_ern", "ERN with Cover Image", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("ddex_ern", "ERN with Cover Image", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_ern", "ERN with Cover Image", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_cwr_registration(self) -> bool:
+        """Test DDEX CWR (Common Works Registration) for musical works"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_cwr", "CWR Registration", False, "No auth token available")
+                return False
+            
+            # Prepare CWR registration data
+            data = {
+                'title': 'Big Mann Entertainment Original Song',
+                'composer_name': 'John LeGerron Spivey',
+                'lyricist_name': 'John LeGerron Spivey',
+                'publisher_name': 'Big Mann Entertainment Publishing',
+                'performing_rights_org': 'ASCAP',
+                'duration': 'PT3M45S'
+            }
+            
+            response = self.make_request('POST', '/ddex/cwr/register-work', data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                required_fields = ['registration_id', 'xml_filename', 'iswc', 'work_id', 'record_id']
+                
+                if all(field in result for field in required_fields):
+                    # Verify ISWC format (should be T-XXX.XXX.XXX-X)
+                    iswc = result['iswc']
+                    if iswc.startswith('T-') and len(iswc) == 15:
+                        self.log_result("ddex_cwr", "CWR Registration", True, 
+                                      f"CWR registered successfully - Registration ID: {result['registration_id']}, ISWC: {iswc}")
+                        return True
+                    else:
+                        self.log_result("ddex_cwr", "CWR Registration", False, f"Invalid ISWC format: {iswc}")
+                        return False
+                else:
+                    self.log_result("ddex_cwr", "CWR Registration", False, "Missing required fields in response")
+                    return False
+            else:
+                self.log_result("ddex_cwr", "CWR Registration", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_cwr", "CWR Registration", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_cwr_minimal_registration(self) -> bool:
+        """Test DDEX CWR registration with minimal required fields"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_cwr", "CWR Minimal Registration", False, "No auth token available")
+                return False
+            
+            # Prepare minimal CWR registration data
+            data = {
+                'title': 'Big Mann Entertainment Instrumental',
+                'composer_name': 'John LeGerron Spivey',
+                'performing_rights_org': 'BMI'
+            }
+            
+            response = self.make_request('POST', '/ddex/cwr/register-work', data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'registration_id' in result and 'iswc' in result:
+                    self.log_result("ddex_cwr", "CWR Minimal Registration", True, 
+                                  f"Minimal CWR registered - Registration ID: {result['registration_id']}")
+                    return True
+                else:
+                    self.log_result("ddex_cwr", "CWR Minimal Registration", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("ddex_cwr", "CWR Minimal Registration", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_cwr", "CWR Minimal Registration", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_messages_retrieval(self) -> bool:
+        """Test retrieving user's DDEX messages"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_messages", "Messages Retrieval", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/ddex/messages')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'messages' in result and 'total' in result:
+                    messages = result['messages']
+                    total = result['total']
+                    self.log_result("ddex_messages", "Messages Retrieval", True, 
+                                  f"Retrieved {len(messages)} DDEX messages (total: {total})")
+                    return True
+                else:
+                    self.log_result("ddex_messages", "Messages Retrieval", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("ddex_messages", "Messages Retrieval", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_messages", "Messages Retrieval", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_messages_filtering(self) -> bool:
+        """Test filtering DDEX messages by type"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_messages", "Messages Filtering", False, "No auth token available")
+                return False
+            
+            # Test ERN filtering
+            ern_response = self.make_request('GET', '/ddex/messages?message_type=ERN')
+            
+            if ern_response.status_code == 200:
+                ern_result = ern_response.json()
+                
+                # Test CWR filtering
+                cwr_response = self.make_request('GET', '/ddex/messages?message_type=CWR')
+                
+                if cwr_response.status_code == 200:
+                    cwr_result = cwr_response.json()
+                    
+                    self.log_result("ddex_messages", "Messages Filtering", True, 
+                                  f"Message filtering working - ERN: {len(ern_result.get('messages', []))}, CWR: {len(cwr_result.get('messages', []))}")
+                    return True
+                else:
+                    self.log_result("ddex_messages", "Messages Filtering", False, f"CWR filtering failed: {cwr_response.status_code}")
+                    return False
+            else:
+                self.log_result("ddex_messages", "Messages Filtering", False, f"ERN filtering failed: {ern_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_messages", "Messages Filtering", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_message_details(self) -> bool:
+        """Test retrieving specific DDEX message details"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_messages", "Message Details", False, "No auth token available")
+                return False
+            
+            # First get list of messages
+            response = self.make_request('GET', '/ddex/messages')
+            
+            if response.status_code == 200:
+                result = response.json()
+                messages = result.get('messages', [])
+                
+                if messages:
+                    # Get details for first message
+                    message_id = messages[0].get('id')
+                    if message_id:
+                        details_response = self.make_request('GET', f'/ddex/messages/{message_id}')
+                        
+                        if details_response.status_code == 200:
+                            details = details_response.json()
+                            required_fields = ['id', 'message_type', 'created_at']
+                            
+                            if all(field in details for field in required_fields):
+                                self.log_result("ddex_messages", "Message Details", True, 
+                                              f"Retrieved message details - Type: {details['message_type']}")
+                                return True
+                            else:
+                                self.log_result("ddex_messages", "Message Details", False, "Missing required fields in details")
+                                return False
+                        else:
+                            self.log_result("ddex_messages", "Message Details", False, f"Details request failed: {details_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("ddex_messages", "Message Details", False, "No message ID found")
+                        return False
+                else:
+                    self.log_result("ddex_messages", "Message Details", True, "No messages to test details (expected if no DDEX messages created)")
+                    return True
+            else:
+                self.log_result("ddex_messages", "Message Details", False, f"Messages list failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_messages", "Message Details", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_xml_download(self) -> bool:
+        """Test downloading DDEX XML files"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_messages", "XML Download", False, "No auth token available")
+                return False
+            
+            # First get list of messages
+            response = self.make_request('GET', '/ddex/messages')
+            
+            if response.status_code == 200:
+                result = response.json()
+                messages = result.get('messages', [])
+                
+                if messages:
+                    # Try to download XML for first message
+                    message_id = messages[0].get('id')
+                    if message_id:
+                        xml_response = self.make_request('GET', f'/ddex/messages/{message_id}/xml')
+                        
+                        if xml_response.status_code == 200:
+                            # Check if response is XML content
+                            content_type = xml_response.headers.get('content-type', '')
+                            if 'xml' in content_type.lower() or xml_response.text.strip().startswith('<?xml'):
+                                self.log_result("ddex_messages", "XML Download", True, 
+                                              f"XML file downloaded successfully - Content-Type: {content_type}")
+                                return True
+                            else:
+                                self.log_result("ddex_messages", "XML Download", False, f"Invalid XML content type: {content_type}")
+                                return False
+                        else:
+                            self.log_result("ddex_messages", "XML Download", False, f"XML download failed: {xml_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("ddex_messages", "XML Download", False, "No message ID found")
+                        return False
+                else:
+                    self.log_result("ddex_messages", "XML Download", True, "No messages to test XML download (expected if no DDEX messages created)")
+                    return True
+            else:
+                self.log_result("ddex_messages", "XML Download", False, f"Messages list failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_messages", "XML Download", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_isrc_generation(self) -> bool:
+        """Test DDEX ISRC identifier generation"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_identifiers", "ISRC Generation", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/ddex/identifiers/generate?identifier_type=isrc&count=3')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'identifiers' in result and 'count' in result:
+                    identifiers = result['identifiers']
+                    count = result['count']
+                    
+                    if count == 3 and len(identifiers) == 3:
+                        # Verify ISRC format (US-BME-YY-XXXXX)
+                        valid_isrcs = []
+                        for isrc in identifiers:
+                            if len(isrc) == 12 and isrc.count('-') == 3:
+                                parts = isrc.split('-')
+                                if len(parts) == 4 and parts[0] == 'US' and parts[1] == 'BME':
+                                    valid_isrcs.append(isrc)
+                        
+                        if len(valid_isrcs) == 3:
+                            self.log_result("ddex_identifiers", "ISRC Generation", True, 
+                                          f"Generated 3 valid ISRCs: {', '.join(valid_isrcs)}")
+                            return True
+                        else:
+                            self.log_result("ddex_identifiers", "ISRC Generation", False, 
+                                          f"Invalid ISRC format in: {identifiers}")
+                            return False
+                    else:
+                        self.log_result("ddex_identifiers", "ISRC Generation", False, 
+                                      f"Expected 3 ISRCs, got {count}")
+                        return False
+                else:
+                    self.log_result("ddex_identifiers", "ISRC Generation", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("ddex_identifiers", "ISRC Generation", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_identifiers", "ISRC Generation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_iswc_generation(self) -> bool:
+        """Test DDEX ISWC identifier generation"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_identifiers", "ISWC Generation", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/ddex/identifiers/generate?identifier_type=iswc&count=2')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'identifiers' in result and 'count' in result:
+                    identifiers = result['identifiers']
+                    count = result['count']
+                    
+                    if count == 2 and len(identifiers) == 2:
+                        # Verify ISWC format (T-XXX.XXX.XXX-X)
+                        valid_iswcs = []
+                        for iswc in identifiers:
+                            if iswc.startswith('T-') and len(iswc) == 15 and iswc.count('.') == 2:
+                                valid_iswcs.append(iswc)
+                        
+                        if len(valid_iswcs) == 2:
+                            self.log_result("ddex_identifiers", "ISWC Generation", True, 
+                                          f"Generated 2 valid ISWCs: {', '.join(valid_iswcs)}")
+                            return True
+                        else:
+                            self.log_result("ddex_identifiers", "ISWC Generation", False, 
+                                          f"Invalid ISWC format in: {identifiers}")
+                            return False
+                    else:
+                        self.log_result("ddex_identifiers", "ISWC Generation", False, 
+                                      f"Expected 2 ISWCs, got {count}")
+                        return False
+                else:
+                    self.log_result("ddex_identifiers", "ISWC Generation", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("ddex_identifiers", "ISWC Generation", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_identifiers", "ISWC Generation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_catalog_number_generation(self) -> bool:
+        """Test DDEX catalog number generation"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_identifiers", "Catalog Number Generation", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/ddex/identifiers/generate?identifier_type=catalog_number&count=2')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'identifiers' in result and 'count' in result:
+                    identifiers = result['identifiers']
+                    count = result['count']
+                    
+                    if count == 2 and len(identifiers) == 2:
+                        # Verify catalog number format (BME + year + 6 chars)
+                        valid_catalogs = []
+                        for catalog in identifiers:
+                            if catalog.startswith('BME') and len(catalog) >= 9:
+                                valid_catalogs.append(catalog)
+                        
+                        if len(valid_catalogs) == 2:
+                            self.log_result("ddex_identifiers", "Catalog Number Generation", True, 
+                                          f"Generated 2 valid catalog numbers: {', '.join(valid_catalogs)}")
+                            return True
+                        else:
+                            self.log_result("ddex_identifiers", "Catalog Number Generation", False, 
+                                          f"Invalid catalog format in: {identifiers}")
+                            return False
+                    else:
+                        self.log_result("ddex_identifiers", "Catalog Number Generation", False, 
+                                      f"Expected 2 catalog numbers, got {count}")
+                        return False
+                else:
+                    self.log_result("ddex_identifiers", "Catalog Number Generation", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("ddex_identifiers", "Catalog Number Generation", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_identifiers", "Catalog Number Generation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_admin_messages(self) -> bool:
+        """Test admin access to all DDEX messages"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_admin", "Admin Messages Access", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/ddex/admin/messages')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'messages' in result and 'total' in result:
+                    messages = result['messages']
+                    total = result['total']
+                    self.log_result("ddex_admin", "Admin Messages Access", True, 
+                                  f"Admin retrieved {len(messages)} DDEX messages (total: {total})")
+                    return True
+                else:
+                    self.log_result("ddex_admin", "Admin Messages Access", False, "Invalid response format")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("ddex_admin", "Admin Messages Access", True, "Admin access required (expected for non-admin users)")
+                return True
+            else:
+                self.log_result("ddex_admin", "Admin Messages Access", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_admin", "Admin Messages Access", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_admin_statistics(self) -> bool:
+        """Test admin DDEX usage statistics"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_admin", "Admin Statistics", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/ddex/admin/statistics')
+            
+            if response.status_code == 200:
+                result = response.json()
+                required_fields = ['total_messages', 'ern_messages', 'cwr_registrations', 'recent_activity']
+                
+                if all(field in result for field in required_fields):
+                    total = result['total_messages']
+                    ern = result['ern_messages']
+                    cwr = result['cwr_registrations']
+                    
+                    self.log_result("ddex_admin", "Admin Statistics", True, 
+                                  f"DDEX statistics - Total: {total}, ERN: {ern}, CWR: {cwr}")
+                    return True
+                else:
+                    self.log_result("ddex_admin", "Admin Statistics", False, "Missing required statistics fields")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("ddex_admin", "Admin Statistics", True, "Admin access required (expected for non-admin users)")
+                return True
+            else:
+                self.log_result("ddex_admin", "Admin Statistics", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_admin", "Admin Statistics", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ddex_xml_validation(self) -> bool:
+        """Test DDEX XML validation functionality"""
+        try:
+            if not self.auth_token:
+                self.log_result("ddex_xml_validation", "XML Validation", False, "No auth token available")
+                return False
+            
+            # Create a simple test XML content
+            test_xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<TestMessage xmlns="http://ddex.net/xml/ern/41">
+    <MessageHeader>
+        <MessageId>TEST_001</MessageId>
+    </MessageHeader>
+</TestMessage>'''
+            
+            # Create a temporary file-like object
+            files = {'xml_file': ('test.xml', test_xml.encode('utf-8'), 'application/xml')}
+            data = {'schema_type': 'ERN'}
+            
+            response = self.make_request('POST', '/ddex/validate', files=files, data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'valid' in result and 'schema_type' in result:
+                    is_valid = result['valid']
+                    schema_type = result['schema_type']
+                    
+                    self.log_result("ddex_xml_validation", "XML Validation", True, 
+                                  f"XML validation working - Valid: {is_valid}, Schema: {schema_type}")
+                    return True
+                else:
+                    self.log_result("ddex_xml_validation", "XML Validation", False, "Missing validation result fields")
+                    return False
+            else:
+                self.log_result("ddex_xml_validation", "XML Validation", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ddex_xml_validation", "XML Validation", False, f"Exception: {str(e)}")
+            return False
     
     def run_all_tests(self):
         """Run all backend tests"""
