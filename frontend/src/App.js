@@ -77,8 +77,12 @@ const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const isAdmin = () => {
+    return user && (user.is_admin || ['admin', 'super_admin', 'moderator'].includes(user.role));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
@@ -94,8 +98,9 @@ const useAuth = () => {
 
 // Components
 const Header = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="bg-gray-900 text-white shadow-lg">
@@ -109,25 +114,55 @@ const Header = () => {
             />
             <div>
               <h1 className="text-xl font-bold">Big Mann Entertainment</h1>
-              <p className="text-sm text-gray-300">Digital Media Distribution</p>
+              <p className="text-sm text-gray-300">Digital Media Distribution Empire</p>
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-6">
             <Link to="/library" className="hover:text-purple-400 transition-colors">Library</Link>
             <Link to="/upload" className="hover:text-purple-400 transition-colors">Upload</Link>
             <Link to="/distribute" className="hover:text-purple-400 transition-colors">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-400 transition-colors">Platforms</Link>
             <Link to="/blockchain" className="hover:text-purple-400 transition-colors">Blockchain</Link>
-            {user?.is_admin && (
-              <Link to="/admin" className="hover:text-purple-400 transition-colors">Admin</Link>
+            {isAdmin() && (
+              <div className="relative group">
+                <button className="flex items-center space-x-1 hover:text-purple-400 transition-colors">
+                  <span>Admin</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white text-gray-900 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <Link to="/admin" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Dashboard</Link>
+                  <Link to="/admin/users" className="block px-4 py-2 hover:bg-gray-100 transition-colors">User Management</Link>
+                  <Link to="/admin/content" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Content Moderation</Link>
+                  <Link to="/admin/analytics" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Analytics</Link>
+                  <Link to="/admin/revenue" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Revenue</Link>
+                  <Link to="/admin/blockchain" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Blockchain</Link>
+                  <Link to="/admin/security" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Security</Link>
+                </div>
+              </div>
             )}
           </nav>
 
-          <div className="flex items-center space-x-4">
+          {/* Mobile Menu Button */}
+          <button 
+            className="lg:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+            </svg>
+          </button>
+
+          <div className="hidden lg:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm">Welcome, {user.full_name}</span>
+                <div className="text-right">
+                  <div className="text-sm font-medium">{user.full_name}</div>
+                  {isAdmin() && <div className="text-xs text-purple-300">Administrator</div>}
+                </div>
                 <button
                   onClick={logout}
                   className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
@@ -153,6 +188,44 @@ const Header = () => {
             )}
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden mt-4 py-4 border-t border-gray-700">
+            <nav className="flex flex-col space-y-2">
+              <Link to="/library" className="hover:text-purple-400 transition-colors py-2">Library</Link>
+              <Link to="/upload" className="hover:text-purple-400 transition-colors py-2">Upload</Link>
+              <Link to="/distribute" className="hover:text-purple-400 transition-colors py-2">Distribute</Link>
+              <Link to="/platforms" className="hover:text-purple-400 transition-colors py-2">Platforms</Link>
+              <Link to="/blockchain" className="hover:text-purple-400 transition-colors py-2">Blockchain</Link>
+              {isAdmin() && (
+                <>
+                  <div className="border-t border-gray-700 pt-2 mt-2">
+                    <div className="text-purple-300 font-medium mb-2">Admin</div>
+                    <Link to="/admin" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Dashboard</Link>
+                    <Link to="/admin/users" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Users</Link>
+                    <Link to="/admin/content" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Content</Link>
+                    <Link to="/admin/analytics" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Analytics</Link>
+                    <Link to="/admin/revenue" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Revenue</Link>
+                    <Link to="/admin/blockchain" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Blockchain</Link>
+                    <Link to="/admin/security" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Security</Link>
+                  </div>
+                </>
+              )}
+              {user && (
+                <div className="border-t border-gray-700 pt-2 mt-2">
+                  <div className="text-sm font-medium mb-2">{user.full_name}</div>
+                  <button
+                    onClick={logout}
+                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors w-full text-left"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
@@ -161,6 +234,7 @@ const Header = () => {
 const Home = () => {
   const [featuredMedia, setFeaturedMedia] = useState([]);
   const [stats, setStats] = useState({});
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchFeaturedMedia();
@@ -178,12 +252,25 @@ const Home = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${API}/analytics/dashboard`);
-      setStats(response.data.stats);
+      const response = await axios.get(`${API}/analytics`);
+      setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+      // Fallback stats
+      setStats({
+        users: { total: 0 },
+        media: { total: 0 },
+        distributions: { total: 0 },
+        revenue: { total: 0 },
+        platforms: { supported: 68 }
+      });
     }
   };
+
+  const platformPreviews = [
+    "Instagram", "Twitter", "Facebook", "TikTok", "YouTube", "Spotify", 
+    "Apple Music", "SoundCloud", "Ethereum", "OpenSea", "Audius", "iHeartRadio"
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -203,131 +290,79 @@ const Home = () => {
               className="w-24 h-24 object-contain"
             />
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            Big Mann Entertainment
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200">
-            Professional Audio, Video & Digital Media Distribution Platform
-          </p>
-          <p className="text-lg mb-8 text-gray-300">
-            John LeGerron Spivey • Commercial Publishing • Multi-Platform Distribution
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link
-              to="/library"
-              className="bg-purple-600 hover:bg-purple-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+          
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">Big Mann Entertainment</h1>
+          <p className="text-xl md:text-2xl mb-4">Complete Media Distribution Empire</p>
+          <p className="text-lg mb-8">John LeGerron Spivey - Empowering creators worldwide</p>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
+            <Link 
+              to="/upload" 
+              className="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold transition-colors"
             >
-              Explore Library
+              Start Creating
             </Link>
-            <Link
-              to="/register"
-              className="bg-pink-600 hover:bg-pink-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+            <Link 
+              to="/platforms" 
+              className="bg-transparent border-2 border-white hover:bg-white hover:text-purple-900 px-8 py-3 rounded-lg font-semibold transition-colors"
             >
-              Start Publishing
+              View Platforms
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
-            <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-lg">
-              <h3 className="text-3xl font-bold text-purple-600">{stats.total_media || 0}</h3>
-              <p className="text-gray-600">Total Media</p>
+          {/* Enhanced Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 md:gap-8">
+            <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+              <div className="text-2xl md:text-3xl font-bold">{stats.media?.total || 0}</div>
+              <div className="text-sm">Total Media</div>
             </div>
-            <div className="bg-gradient-to-r from-blue-100 to-purple-100 p-6 rounded-lg">
-              <h3 className="text-3xl font-bold text-blue-600">{stats.published_media || 0}</h3>
-              <p className="text-gray-600">Published</p>
+            <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+              <div className="text-2xl md:text-3xl font-bold">{stats.media?.published || 0}</div>
+              <div className="text-sm">Published</div>
             </div>
-            <div className="bg-gradient-to-r from-green-100 to-blue-100 p-6 rounded-lg">
-              <h3 className="text-3xl font-bold text-green-600">{stats.total_users || 0}</h3>
-              <p className="text-gray-600">Users</p>
+            <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+              <div className="text-2xl md:text-3xl font-bold">{stats.users?.total || 0}</div>
+              <div className="text-sm">Users</div>
             </div>
-            <div className="bg-gradient-to-r from-yellow-100 to-green-100 p-6 rounded-lg">
-              <h3 className="text-3xl font-bold text-yellow-600">${stats.total_revenue || 0}</h3>
-              <p className="text-gray-600">Revenue</p>
+            <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+              <div className="text-2xl md:text-3xl font-bold">${stats.revenue?.total || 0}</div>
+              <div className="text-sm">Revenue</div>
             </div>
-            <div className="bg-gradient-to-r from-red-100 to-yellow-100 p-6 rounded-lg">
-              <h3 className="text-3xl font-bold text-red-600">{stats.supported_platforms || 72}</h3>
-              <p className="text-gray-600">Platforms</p>
+            <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+              <div className="text-2xl md:text-3xl font-bold">{stats.platforms?.supported || 68}</div>
+              <div className="text-sm">Platforms</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Media */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Featured Content</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredMedia.map((media) => (
-              <div key={media.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      media.content_type === 'audio' ? 'bg-purple-100 text-purple-600' :
-                      media.content_type === 'video' ? 'bg-red-100 text-red-600' :
-                      'bg-green-100 text-green-600'
-                    }`}>
-                      {media.content_type.toUpperCase()}
-                    </span>
-                    <span className="text-lg font-bold text-gray-800">
-                      ${media.price > 0 ? media.price.toFixed(2) : 'FREE'}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">{media.title}</h3>
-                  <p className="text-gray-600 mb-4">{media.description}</p>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{media.download_count} downloads</span>
-                    <span>{media.view_count} views</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Distribution Platforms Preview */}
+      {/* Multi-Platform Distribution Showcase */}
       <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-8">Complete Web3 Media Distribution Empire</h2>
-          <p className="text-xl text-gray-600 mb-12">
-            70+ Platforms: Social Media • Streaming • FM Radio • TV • NFTs • Blockchain • Web3 Music • Performance Royalties
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-10 gap-3">
-            {[
-              "Instagram", "Spotify", "Clear Channel", "CNN", "Ethereum",
-              "Twitter", "Apple Music", "Cumulus Country", "Netflix", "OpenSea", 
-              "TikTok", "SoundCloud", "Audacy Rock", "ESPN", "Polygon",
-              "YouTube", "Pandora", "Urban One Hip-Hop", "HBO Max", "Rarible",
-              "Facebook", "Tidal", "NPR Classical", "SoundExchange", "Foundation",
-              "LinkedIn", "Amazon Music", "Regional Indie", "ASCAP", "Magic Eden",
-              "Pinterest", "Deezer", "Salem Christian", "BMI", "Audius",
-              "Snapchat", "Bandcamp", "Townsquare AC", "SESAC", "Catalog"
-            ].map((platform) => (
-              <div key={platform} className={`p-2 rounded-lg hover:bg-purple-100 transition-colors text-center ${
-                ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
-                  ? 'bg-orange-100 border-2 border-orange-200' 
-                  : platform.includes('FM') || ['Clear Channel', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Regional Indie', 'Salem Christian', 'Townsquare AC'].includes(platform)
-                  ? 'bg-amber-100 border-2 border-amber-200'
-                  : ['Ethereum', 'Polygon', 'OpenSea', 'Rarible', 'Foundation', 'Magic Eden', 'Audius', 'Catalog'].includes(platform)
-                  ? 'bg-cyan-100 border-2 border-cyan-200'
-                  : 'bg-gray-100'
-              }`}>
-                <p className={`font-semibold text-xs ${
-                  ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
-                    ? 'text-orange-700' 
-                    : platform.includes('FM') || ['Clear Channel', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Regional Indie', 'Salem Christian', 'Townsquare AC'].includes(platform)
-                    ? 'text-amber-700'
-                    : ['Ethereum', 'Polygon', 'OpenSea', 'Rarible', 'Foundation', 'Magic Eden', 'Audius', 'Catalog'].includes(platform)
-                    ? 'text-cyan-700'
-                    : 'text-gray-700'
-                }`}>{platform}</p>
-                {['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) && (
-                  <p className="text-xs text-orange-600 mt-1">Royalties</p>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+              Complete Distribution Empire
+            </h2>
+            <p className="text-xl text-gray-600 mb-8">
+              Distribute your content across 68+ platforms including social media, streaming, radio, TV, podcasts, NFT marketplaces, and Web3 platforms
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            {platformPreviews.map((platform, index) => (
+              <div key={index} className="bg-gray-100 rounded-lg p-4 text-center hover:shadow-md transition-shadow">
+                <div className="font-semibold text-gray-800 mb-2">{platform}</div>
+                {(platform.includes('Social') || ['Instagram', 'Twitter', 'Facebook', 'TikTok', 'YouTube'].includes(platform)) && (
+                  <p className="text-xs text-blue-600 mt-1">Social Media</p>
+                )}
+                {(['Spotify', 'Apple Music', 'SoundCloud', 'Amazon Music'].includes(platform)) && (
+                  <p className="text-xs text-green-600 mt-1">Streaming</p>
+                )}
+                {(platform.includes('Radio') || ['iHeartRadio', 'Pandora', 'SiriusXM'].includes(platform)) && (
+                  <p className="text-xs text-yellow-600 mt-1">Radio</p>
+                )}
+                {(platform.includes('Performance') || ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform)) && (
+                  <p className="text-xs text-orange-600 mt-1">Performance Rights</p>
                 )}
                 {(platform.includes('FM') || ['Clear Channel', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Regional Indie', 'Salem Christian', 'Townsquare AC'].includes(platform)) && (
                   <p className="text-xs text-amber-600 mt-1">FM Radio</p>
@@ -343,6 +378,473 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Featured Content */}
+      {featuredMedia.length > 0 && (
+        <section className="py-16 bg-gray-100">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12">Featured Content</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredMedia.map((media) => (
+                <div key={media.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        media.content_type === 'audio' ? 'bg-purple-100 text-purple-600' :
+                        media.content_type === 'video' ? 'bg-red-100 text-red-600' :
+                        'bg-green-100 text-green-600'
+                      }`}>
+                        {media.content_type.toUpperCase()}
+                      </span>
+                      <span className="text-lg font-bold text-gray-800">
+                        ${media.price > 0 ? media.price.toFixed(2) : 'FREE'}
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-xl font-semibold mb-2">{media.title}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-3">{media.description}</p>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>{media.download_count} downloads</span>
+                      <span>{media.view_count} views</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+};
+
+// Admin Dashboard Component
+const AdminDashboard = () => {
+  const [analytics, setAnalytics] = useState({});
+  const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (isAdmin()) {
+      fetchAnalytics();
+    }
+  }, [isAdmin]);
+
+  const fetchAnalytics = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/analytics/overview`);
+      setAnalytics(response.data);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isAdmin()) {
+    return <Navigate to="/" />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Administrator Dashboard</h1>
+        
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-2xl font-bold text-purple-600">
+                {analytics.user_analytics?.total_users || 0}
+              </div>
+              <div className="p-2 bg-purple-100 rounded-full">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-gray-600">Total Users</p>
+            <p className="text-sm text-green-600 mt-2">
+              +{analytics.user_analytics?.new_users_this_month || 0} this month
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-2xl font-bold text-blue-600">
+                {analytics.content_analytics?.total_media || 0}
+              </div>
+              <div className="p-2 bg-blue-100 rounded-full">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-gray-600">Total Content</p>
+            <p className="text-sm text-orange-600 mt-2">
+              {analytics.content_analytics?.pending_approval || 0} pending approval
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-2xl font-bold text-green-600">
+                {analytics.distribution_analytics?.success_rate?.toFixed(1) || 0}%
+              </div>
+              <div className="p-2 bg-green-100 rounded-full">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-gray-600">Distribution Success</p>
+            <p className="text-sm text-gray-500 mt-2">
+              {analytics.distribution_analytics?.total_distributions || 0} total distributions
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-2xl font-bold text-pink-600">
+                ${analytics.revenue_analytics?.total_revenue?.toFixed(2) || 0}
+              </div>
+              <div className="p-2 bg-pink-100 rounded-full">
+                <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-gray-600">Total Revenue</p>
+            <p className="text-sm text-green-600 mt-2">
+              ${analytics.revenue_analytics?.total_commission?.toFixed(2) || 0} commission
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <Link to="/admin/users" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">User Management</h3>
+                <p className="text-gray-600 text-sm">Manage user accounts and permissions</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/admin/content" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Content Moderation</h3>
+                <p className="text-gray-600 text-sm">Review and moderate uploaded content</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/admin/analytics" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 rounded-full">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Advanced Analytics</h3>
+                <p className="text-gray-600 text-sm">View detailed platform analytics</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Recent Activities */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Recent System Activity</h2>
+          <div className="space-y-4">
+            {analytics.recent_activities?.slice(0, 10).map((activity, index) => (
+              <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{activity.action.replace('_', ' ').toUpperCase()}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(activity.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {activity.resource_type}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Admin User Management Component
+const AdminUserManagement = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (isAdmin()) {
+      fetchUsers();
+    }
+  }, [isAdmin, searchTerm, roleFilter, statusFilter]);
+
+  const fetchUsers = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (roleFilter) params.append('role', roleFilter);
+      if (statusFilter) params.append('account_status', statusFilter);
+      
+      const response = await axios.get(`${API}/admin/users?${params}`);
+      setUsers(response.data.users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUserUpdate = async (userId, updateData) => {
+    try {
+      await axios.put(`${API}/admin/users/${userId}`, updateData);
+      fetchUsers();
+      setShowUserModal(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('Error updating user. Please try again.');
+    }
+  };
+
+  const handleUserDelete = async (userId) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        await axios.delete(`${API}/admin/users/${userId}`);
+        fetchUsers();
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Error deleting user. Please try again.');
+      }
+    }
+  };
+
+  if (!isAdmin()) {
+    return <Navigate to="/" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">User Management</h1>
+        
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">All Roles</option>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+              <option value="super_admin">Super Admin</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+              <option value="banned">Banned</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <span className="text-purple-600 font-medium">
+                            {user.full_name?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        user.role === 'admin' || user.role === 'super_admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'moderator' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        user.account_status === 'active' ? 'bg-green-100 text-green-800' :
+                        user.account_status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                        user.account_status === 'suspended' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {user.account_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowUserModal(true);
+                        }}
+                        className="text-purple-600 hover:text-purple-900 mr-4"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleUserDelete(user.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* User Edit Modal */}
+        {showUserModal && selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Edit User: {selectedUser.full_name}</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target);
+                  handleUserUpdate(selectedUser.id, {
+                    role: formData.get('role'),
+                    account_status: formData.get('account_status'),
+                    is_active: formData.get('account_status') === 'active'
+                  });
+                }}
+              >
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                  <select
+                    name="role"
+                    defaultValue={selectedUser.role}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="moderator">Moderator</option>
+                    <option value="super_admin">Super Admin</option>
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <select
+                    name="account_status"
+                    defaultValue={selectedUser.account_status}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="banned">Banned</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUserModal(false);
+                      setSelectedUser(null);
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                  >
+                    Update User
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -696,7 +1198,7 @@ const Upload = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      setMessage('Media uploaded successfully!');
+      setMessage('Media uploaded successfully! Content will be reviewed before publishing.');
       setFormData({ title: '', description: '', category: '', price: 0, tags: '' });
       setFile(null);
       
@@ -877,7 +1379,7 @@ const Platforms = () => {
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8">Distribution Platforms</h1>
         <p className="text-gray-600 mb-8">
-          Big Mann Entertainment supports distribution to {Object.keys(platforms).length} major platforms across social media, streaming services, radio stations, TV networks, and podcast platforms.
+          Big Mann Entertainment supports distribution to {Object.keys(platforms).length} major platforms across social media, streaming services, radio stations, TV networks, podcast platforms, blockchain networks, NFT marketplaces, and Web3 platforms.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -904,8 +1406,14 @@ const Platforms = () => {
               </div>
               
               <div className="text-sm text-gray-500">
-                <p>Max file size: {platform.max_file_size_mb.toFixed(0)} MB</p>
+                <p>Max file size: {platform.max_file_size_mb ? platform.max_file_size_mb.toFixed(0) : 'N/A'} MB</p>
               </div>
+              
+              {platform.description && (
+                <div className="mt-3 text-sm text-gray-600">
+                  <p>{platform.description}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -1064,9 +1572,9 @@ const Distribute = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Platforms *
+                  Select Platforms * ({Object.keys(platforms).length} available)
                 </label>
-                <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
+                <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
                   {Object.entries(platforms).map(([platformId, platform]) => {
                     const isCompatible = selectedMediaItem ? 
                       platform.supported_formats.includes(selectedMediaItem.content_type) : true;
@@ -1085,7 +1593,17 @@ const Distribute = () => {
                           disabled={!isCompatible}
                           className="text-purple-600"
                         />
-                        <span className="text-sm">{platform.name}</span>
+                        <span className="text-sm flex-1">{platform.name}</span>
+                        <span className={`px-1 py-0.5 text-xs rounded ${
+                          platform.type === 'social_media' ? 'bg-blue-100 text-blue-600' :
+                          platform.type === 'streaming' ? 'bg-green-100 text-green-600' :
+                          platform.type === 'blockchain' ? 'bg-cyan-100 text-cyan-600' :
+                          platform.type === 'nft_marketplace' ? 'bg-violet-100 text-violet-600' :
+                          platform.type === 'web3_music' ? 'bg-teal-100 text-teal-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {platform.type.replace('_', ' ')}
+                        </span>
                       </label>
                     );
                   })}
@@ -1152,7 +1670,8 @@ const Distribute = () => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
-                      Platforms: {distribution.target_platforms.join(', ')}
+                      Platforms: {distribution.target_platforms.slice(0, 3).join(', ')}
+                      {distribution.target_platforms.length > 3 && ` +${distribution.target_platforms.length - 3} more`}
                     </p>
                     <p className="text-xs text-gray-500">
                       {new Date(distribution.created_at).toLocaleDateString()}
@@ -1161,6 +1680,219 @@ const Distribute = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Blockchain = () => {
+  const [collections, setCollections] = useState([]);
+  const [tokens, setTokens] = useState([]);
+  const [wallets, setWallets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchBlockchainData();
+    }
+  }, [user]);
+
+  const fetchBlockchainData = async () => {
+    try {
+      const [collectionsRes, tokensRes, walletsRes] = await Promise.all([
+        axios.get(`${API}/nft/collections`),
+        axios.get(`${API}/nft/tokens`),
+        axios.get(`${API}/blockchain/wallets`)
+      ]);
+      
+      setCollections(collectionsRes.data.collections);
+      setTokens(tokensRes.data.tokens);
+      setWallets(walletsRes.data.wallets);
+    } catch (error) {
+      console.error('Error fetching blockchain data:', error);
+      setMessage('Error loading blockchain data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const connectWallet = async (walletData) => {
+    try {
+      await axios.post(`${API}/blockchain/wallets`, walletData);
+      fetchBlockchainData();
+      setMessage('Wallet connected successfully!');
+    } catch (error) {
+      setMessage('Error connecting wallet. Please try again.');
+    }
+  };
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Blockchain & Web3</h1>
+        
+        {message && (
+          <div className={`mb-6 p-4 rounded-md ${
+            message.includes('successfully') 
+              ? 'bg-green-100 border border-green-400 text-green-700'
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}>
+            {message}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* NFT Collections */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">NFT Collections</h2>
+            {collections.length === 0 ? (
+              <p className="text-gray-600">No collections created yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {collections.map((collection) => (
+                  <div key={collection.id} className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="font-semibold">{collection.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{collection.description}</p>
+                    <div className="flex justify-between text-sm">
+                      <span>Supply: {collection.total_supply}</span>
+                      <span className="text-purple-600">{collection.blockchain_network}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* NFT Tokens */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Minted NFTs</h2>
+            {tokens.length === 0 ? (
+              <p className="text-gray-600">No NFTs minted yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {tokens.map((token) => (
+                  <div key={token.id} className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="font-semibold">{token.media?.title || 'Untitled'}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{token.collection?.name}</p>
+                    <div className="flex justify-between text-sm">
+                      <span>Price: {token.current_price} ETH</span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        token.is_listed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {token.is_listed ? 'Listed' : 'Not Listed'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Connected Wallets */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Connected Wallets</h2>
+            {wallets.length === 0 ? (
+              <div>
+                <p className="text-gray-600 mb-4">No wallets connected yet.</p>
+                <button
+                  onClick={() => {
+                    const walletAddress = prompt('Enter your wallet address:');
+                    if (walletAddress) {
+                      connectWallet({
+                        wallet_address: walletAddress,
+                        blockchain_network: 'ethereum',
+                        wallet_type: 'metamask',
+                        is_primary: true
+                      });
+                    }
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition-colors"
+                >
+                  Connect Wallet
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {wallets.map((wallet) => (
+                  <div key={wallet.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{wallet.wallet_type}</span>
+                      {wallet.is_primary && (
+                        <span className="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded">
+                          Primary
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 font-mono">
+                      {wallet.wallet_address.slice(0, 6)}...{wallet.wallet_address.slice(-4)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">{wallet.blockchain_network}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Ethereum Configuration */}
+        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Platform Configuration</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ethereum Contract Address
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value="0xdfe98870c599734335900ce15e26d1d2ccc062c1"
+                  readOnly
+                  className="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText('0xdfe98870c599734335900ce15e26d1d2ccc062c1');
+                    setMessage('Contract address copied to clipboard!');
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md transition-colors text-sm"
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Official Big Mann Entertainment smart contract</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Platform Wallet
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value="0xdfe98870c599734335900ce15e26d1d2ccc062c1"
+                  readOnly
+                  className="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText('0xdfe98870c599734335900ce15e26d1d2ccc062c1');
+                    setMessage('Wallet address copied to clipboard!');
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md transition-colors text-sm"
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Primary platform wallet for blockchain operations</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1253,6 +1985,20 @@ const ProtectedRoute = ({ children }) => {
   return user ? children : <Navigate to="/login" />;
 };
 
+const AdminRoute = ({ children }) => {
+  const { user, loading, isAdmin } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+  
+  return user && isAdmin() ? children : <Navigate to="/" />;
+};
+
 function App() {
   return (
     <div className="App">
@@ -1265,9 +2011,14 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
+            <Route path="/blockchain" element={<Blockchain />} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/distribute" element={<ProtectedRoute><Distribute /></ProtectedRoute>} />
             <Route path="/purchase-success" element={<ProtectedRoute><PurchaseSuccess /></ProtectedRoute>} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUserManagement /></AdminRoute>} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
