@@ -234,8 +234,8 @@ class SponsorshipDealCreate(BaseModel):
     target_platforms: List[str] = []
     target_demographics: Dict[str, Any] = {}
     placement_requirements: Dict[str, Any] = {}
-    start_date: date
-    end_date: date
+    start_date: str  # Accept as string and convert to date
+    end_date: str    # Accept as string and convert to date
     auto_renewal: bool = False
     renewal_terms: Optional[Dict[str, Any]] = None
     kpi_targets: Dict[str, float] = {}
