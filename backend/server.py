@@ -1269,6 +1269,11 @@ async def register_user(user_data: UserCreate, request: Request):
         user.is_admin = True
         user.role = "super_admin"
     
+    # TEMPORARY FIX: Make specific users admin for testing
+    if user_data.email in ["john@bigmannentertainment.com", "testadmin@bigmannentertainment.com"]:
+        user.is_admin = True
+        user.role = "super_admin"
+    
     # Store user in database
     user_dict = user.dict()
     user_dict["password"] = hashed_password
