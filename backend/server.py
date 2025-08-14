@@ -583,6 +583,8 @@ class DistributionService:
             return await self._submit_to_tv_network(platform, media, custom_message)
         elif platform in ["spotify_podcasts", "apple_podcasts", "google_podcasts", "podcast_one", "stitcher"]:
             return await self._submit_to_podcast_platform(platform, media, custom_message)
+        elif platform in ["soundexchange", "ascap", "bmi", "sesac"]:
+            return await self._submit_to_performance_rights_org(platform, media, custom_message)
         else:
             return {"status": "error", "message": f"Distribution not implemented for {platform}"}
     
