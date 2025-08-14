@@ -322,25 +322,65 @@ async def get_ddex_messages(
     current_user: User = Depends(get_current_user)
 ):
     """Get user's DDEX messages"""
-    
-    query = {"user_id": current_user.id}
-    if message_type:
-        query["message_type"] = message_type.upper()
-    
-    # Get ERN messages
-    ern_messages = await db.ddex_messages.find(query).skip(skip).limit(limit).to_list(length=limit)
-    
-    # Get CWR registrations
-    cwr_messages = await db.ddex_cwr_registrations.find(query).skip(skip).limit(limit).to_list(length=limit)
-    
-    # Combine and sort
-    all_messages = ern_messages + cwr_messages
-    all_messages.sort(key=lambda x: x["created_at"], reverse=True)
-    
-    return {
-        "messages": all_messages[:limit],
-        "total": len(all_messages)
-    }
+    try:
+        query = {"user_id": current_user.id}
+        if message_type:
+            query["message_type"] = message_type.upper()
+        
+        # Get ERN messages
+        ern_messages = await db.ddex_messages.find(query).skip(skip).limit(limit).to_list(length=limit)
+        
+        # Get CWR registrations
+        cwr_messages = await db.ddex_cwr_registrations.find(query).skip(skip).limit(limit).to_list(length=limit)
+        
+        # Clean and combine messages
+        all_messages = []
+        
+        for msg in ern_messages:
+            clean_msg = {
+                "id": msg.get("id"),
+                "message_type": msg.get("message_type"),
+                "message_id": msg.get("message_id"),
+                "title": msg.get("title"),
+                "artist_name": msg.get("artist_name"),
+                "label_name": msg.get("label_name"),
+                "release_date": msg.get("release_date"),
+                "isrc": msg.get("isrc"),
+                "catalog_number": msg.get("catalog_number"),
+                "status": msg.get("status"),
+                "created_at": msg.get("created_at").isoformat() if msg.get("created_at") else None,
+                "xml_filename": msg.get("xml_filename")
+            }
+            all_messages.append(clean_msg)
+        
+        for msg in cwr_messages:
+            clean_msg = {
+                "id": msg.get("id"),
+                "message_type": msg.get("message_type"),
+                "registration_id": msg.get("registration_id"),
+                "title": msg.get("title"),
+                "composer_name": msg.get("composer_name"),
+                "lyricist_name": msg.get("lyricist_name"),
+                "publisher_name": msg.get("publisher_name"),
+                "performing_rights_org": msg.get("performing_rights_org"),
+                "iswc": msg.get("iswc"),
+                "work_id": msg.get("work_id"),
+                "status": msg.get("status"),
+                "created_at": msg.get("created_at").isoformat() if msg.get("created_at") else None,
+                "xml_filename": msg.get("xml_filename")
+            }
+            all_messages.append(clean_msg)
+        
+        # Sort by creation date
+        all_messages.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        
+        return {
+            "messages": all_messages[:limit],
+            "total": len(all_messages)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve DDEX messages: {str(e)}")
 
 @ddex_router.get("/messages/{message_id}")
 async def get_ddex_message_details(
