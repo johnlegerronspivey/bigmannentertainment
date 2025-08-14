@@ -102,9 +102,11 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <span className="text-xl font-bold">BM</span>
-            </div>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_audio-video-dist/artifacts/zwcs0h0g_Big%20Mann%20Entertainment%20Logo.png" 
+              alt="Big Mann Entertainment Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h1 className="text-xl font-bold">Big Mann Entertainment</h1>
               <p className="text-sm text-gray-300">Digital Media Distribution</p>
