@@ -395,6 +395,422 @@ class BackendTester:
             self.log_result("payments", "Webhook Endpoint", False, f"Exception: {str(e)}")
             return False
     
+    def test_distribution_platforms_endpoint(self) -> bool:
+        """Test the /api/distribution/platforms endpoint to verify all 30+ platforms are configured"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'platforms' in data and isinstance(data['platforms'], dict):
+                    platforms = data['platforms']
+                    
+                    # Check if we have the expected number of platforms (30+)
+                    if len(platforms) >= 30:
+                        # Verify platform categories
+                        social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
+                        streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
+                        radio = [p for p in platforms.values() if p.get('type') == 'radio']
+                        tv = [p for p in platforms.values() if p.get('type') == 'tv']
+                        podcast = [p for p in platforms.values() if p.get('type') == 'podcast']
+                        
+                        # Verify specific platforms exist
+                        expected_platforms = ['instagram', 'twitter', 'facebook', 'tiktok', 'youtube', 
+                                            'spotify', 'apple_music', 'soundcloud', 'iheartradio', 
+                                            'siriusxm', 'cnn', 'fox_news', 'netflix', 'hulu', 
+                                            'spotify_podcasts', 'apple_podcasts']
+                        
+                        missing_platforms = [p for p in expected_platforms if p not in platforms]
+                        
+                        if not missing_platforms:
+                            self.log_result("distribution_platforms", "Distribution Platforms Endpoint", True, 
+                                          f"Found {len(platforms)} platforms across all categories (Social: {len(social_media)}, Streaming: {len(streaming)}, Radio: {len(radio)}, TV: {len(tv)}, Podcast: {len(podcast)})")
+                            return True
+                        else:
+                            self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
+                                          f"Missing expected platforms: {missing_platforms}")
+                            return False
+                    else:
+                        self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
+                                      f"Expected 30+ platforms, found {len(platforms)}")
+                        return False
+                else:
+                    self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
+                                  "Invalid response format - missing platforms data")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_configuration_details(self) -> bool:
+        """Test that platforms have proper configuration details"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Test specific platform configurations
+                test_platforms = ['instagram', 'spotify', 'iheartradio', 'cnn', 'apple_podcasts']
+                all_valid = True
+                
+                for platform_id in test_platforms:
+                    if platform_id in platforms:
+                        platform = platforms[platform_id]
+                        required_fields = ['name', 'type', 'supported_formats', 'max_file_size_mb']
+                        
+                        if all(field in platform for field in required_fields):
+                            # Verify supported formats are valid
+                            formats = platform['supported_formats']
+                            valid_formats = ['audio', 'video', 'image']
+                            if all(fmt in valid_formats for fmt in formats):
+                                continue
+                            else:
+                                all_valid = False
+                                break
+                        else:
+                            all_valid = False
+                            break
+                    else:
+                        all_valid = False
+                        break
+                
+                if all_valid:
+                    self.log_result("distribution_platforms", "Platform Configuration Details", True, 
+                                  f"All test platforms properly configured with required fields")
+                    return True
+                else:
+                    self.log_result("distribution_platforms", "Platform Configuration Details", False, 
+                                  "Some platforms missing required configuration fields")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "Platform Configuration Details", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "Platform Configuration Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_content_distribution_audio_to_streaming(self) -> bool:
+        """Test distributing audio content to streaming platforms"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("content_distribution", "Audio to Streaming Distribution", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test distributing audio to streaming platforms
+            distribution_request = {
+                "media_id": self.test_media_id,
+                "platforms": ["spotify", "apple_music", "soundcloud"],
+                "custom_message": "New track from Big Mann Entertainment",
+                "hashtags": ["BigMannEntertainment", "NewMusic", "Audio"]
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'distribution_id' in data and 'results' in data:
+                    results = data['results']
+                    
+                    # Check if all platforms returned success (mock responses)
+                    successful_platforms = [p for p, r in results.items() if r.get('status') == 'success']
+                    
+                    if len(successful_platforms) == 3:  # All 3 platforms should succeed
+                        self.log_result("content_distribution", "Audio to Streaming Distribution", True, 
+                                      f"Successfully distributed to {len(successful_platforms)} streaming platforms")
+                        return True
+                    else:
+                        self.log_result("content_distribution", "Audio to Streaming Distribution", False, 
+                                      f"Only {len(successful_platforms)}/3 platforms succeeded")
+                        return False
+                else:
+                    self.log_result("content_distribution", "Audio to Streaming Distribution", False, 
+                                  "Missing distribution_id or results in response")
+                    return False
+            else:
+                self.log_result("content_distribution", "Audio to Streaming Distribution", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("content_distribution", "Audio to Streaming Distribution", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_content_distribution_video_to_social(self) -> bool:
+        """Test distributing video content to social media platforms"""
+        try:
+            if not self.auth_token:
+                self.log_result("content_distribution", "Video to Social Distribution", False, 
+                              "No auth token available")
+                return False
+            
+            # First upload a video file for testing
+            content, filename, mime_type = self.create_test_file("video")
+            
+            files = {'file': (filename, content, mime_type)}
+            data = {
+                'title': 'Test Video Content',
+                'description': 'A test video for Big Mann Entertainment distribution',
+                'category': 'entertainment',
+                'price': 0,
+                'tags': 'test, video, entertainment'
+            }
+            
+            upload_response = self.make_request('POST', '/media/upload', files=files, data=data)
+            
+            if upload_response.status_code == 200:
+                video_media_id = upload_response.json()['media_id']
+                
+                # Now test distribution to social media platforms
+                distribution_request = {
+                    "media_id": video_media_id,
+                    "platforms": ["youtube", "tiktok", "facebook"],
+                    "custom_message": "Check out this video from Big Mann Entertainment!",
+                    "hashtags": ["BigMannEntertainment", "Video", "Entertainment"]
+                }
+                
+                response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get('results', {})
+                    
+                    # Check if platforms that support video succeeded
+                    successful_platforms = [p for p, r in results.items() if r.get('status') == 'success']
+                    
+                    if len(successful_platforms) >= 2:  # At least 2 should succeed
+                        self.log_result("content_distribution", "Video to Social Distribution", True, 
+                                      f"Successfully distributed video to {len(successful_platforms)} social platforms")
+                        return True
+                    else:
+                        self.log_result("content_distribution", "Video to Social Distribution", False, 
+                                      f"Only {len(successful_platforms)} platforms succeeded")
+                        return False
+                else:
+                    self.log_result("content_distribution", "Video to Social Distribution", False, 
+                                  f"Distribution failed: {response.status_code}")
+                    return False
+            else:
+                self.log_result("content_distribution", "Video to Social Distribution", False, 
+                              "Failed to upload test video")
+                return False
+                
+        except Exception as e:
+            self.log_result("content_distribution", "Video to Social Distribution", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_compatibility_audio_to_video_only(self) -> bool:
+        """Test that audio files are rejected by video-only platforms"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("platform_compatibility", "Audio to Video-Only Platform", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Try to distribute audio to video-only platforms (TikTok, YouTube)
+            distribution_request = {
+                "media_id": self.test_media_id,  # This is an audio file
+                "platforms": ["tiktok", "youtube"],
+                "custom_message": "This should fail for audio content"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                # Check that both platforms failed due to format incompatibility
+                failed_platforms = [p for p, r in results.items() if r.get('status') == 'error' and 'only supports video' in r.get('message', '')]
+                
+                if len(failed_platforms) == 2:  # Both should fail
+                    self.log_result("platform_compatibility", "Audio to Video-Only Platform", True, 
+                                  "Correctly rejected audio content for video-only platforms")
+                    return True
+                else:
+                    self.log_result("platform_compatibility", "Audio to Video-Only Platform", False, 
+                                  f"Expected 2 failures, got {len(failed_platforms)}")
+                    return False
+            else:
+                self.log_result("platform_compatibility", "Audio to Video-Only Platform", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("platform_compatibility", "Audio to Video-Only Platform", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_compatibility_video_to_audio_only(self) -> bool:
+        """Test that video files are rejected by audio-only platforms"""
+        try:
+            if not self.auth_token:
+                self.log_result("platform_compatibility", "Video to Audio-Only Platform", False, 
+                              "No auth token available")
+                return False
+            
+            # Upload a video file first
+            content, filename, mime_type = self.create_test_file("video")
+            
+            files = {'file': (filename, content, mime_type)}
+            data = {
+                'title': 'Test Video for Compatibility',
+                'description': 'Testing platform compatibility',
+                'category': 'test',
+                'price': 0,
+                'tags': 'test'
+            }
+            
+            upload_response = self.make_request('POST', '/media/upload', files=files, data=data)
+            
+            if upload_response.status_code == 200:
+                video_media_id = upload_response.json()['media_id']
+                
+                # Try to distribute video to audio-only platforms
+                distribution_request = {
+                    "media_id": video_media_id,
+                    "platforms": ["spotify", "iheartradio", "apple_podcasts"],
+                    "custom_message": "This should fail for video content"
+                }
+                
+                response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get('results', {})
+                    
+                    # Check that platforms failed due to format incompatibility
+                    failed_platforms = [p for p, r in results.items() if r.get('status') == 'error' and 'only supports audio' in r.get('message', '')]
+                    
+                    if len(failed_platforms) >= 2:  # At least 2 should fail
+                        self.log_result("platform_compatibility", "Video to Audio-Only Platform", True, 
+                                      f"Correctly rejected video content for {len(failed_platforms)} audio-only platforms")
+                        return True
+                    else:
+                        self.log_result("platform_compatibility", "Video to Audio-Only Platform", False, 
+                                      f"Expected failures, got {len(failed_platforms)}")
+                        return False
+                else:
+                    self.log_result("platform_compatibility", "Video to Audio-Only Platform", False, 
+                                  f"Distribution request failed: {response.status_code}")
+                    return False
+            else:
+                self.log_result("platform_compatibility", "Video to Audio-Only Platform", False, 
+                              "Failed to upload test video")
+                return False
+                
+        except Exception as e:
+            self.log_result("platform_compatibility", "Video to Audio-Only Platform", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_distribution_history_tracking(self) -> bool:
+        """Test the /api/distribution/history endpoint for tracking user distributions"""
+        try:
+            if not self.auth_token:
+                self.log_result("distribution_history", "Distribution History Tracking", False, 
+                              "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/distribution/history')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'distributions' in data and isinstance(data['distributions'], list):
+                    distributions = data['distributions']
+                    
+                    # Check if we have any distributions (from previous tests)
+                    if len(distributions) > 0:
+                        # Verify distribution record structure
+                        first_dist = distributions[0]
+                        required_fields = ['id', 'media_id', 'target_platforms', 'status', 'results', 'created_at']
+                        
+                        if all(field in first_dist for field in required_fields):
+                            self.log_result("distribution_history", "Distribution History Tracking", True, 
+                                          f"Retrieved {len(distributions)} distribution records with proper structure")
+                            return True
+                        else:
+                            self.log_result("distribution_history", "Distribution History Tracking", False, 
+                                          "Distribution records missing required fields")
+                            return False
+                    else:
+                        self.log_result("distribution_history", "Distribution History Tracking", True, 
+                                      "Distribution history endpoint working (no distributions yet)")
+                        return True
+                else:
+                    self.log_result("distribution_history", "Distribution History Tracking", False, 
+                                  "Invalid response format - missing distributions array")
+                    return False
+            else:
+                self.log_result("distribution_history", "Distribution History Tracking", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_history", "Distribution History Tracking", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_distribution_status_retrieval(self) -> bool:
+        """Test retrieving distribution status by ID"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("distribution_history", "Distribution Status Retrieval", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # First create a distribution
+            distribution_request = {
+                "media_id": self.test_media_id,
+                "platforms": ["instagram", "twitter"],
+                "custom_message": "Test distribution for status check"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                distribution_id = data.get('distribution_id')
+                
+                if distribution_id:
+                    # Now retrieve the distribution status
+                    status_response = self.make_request('GET', f'/distribution/{distribution_id}')
+                    
+                    if status_response.status_code == 200:
+                        status_data = status_response.json()
+                        required_fields = ['id', 'media_id', 'target_platforms', 'status', 'results']
+                        
+                        if all(field in status_data for field in required_fields):
+                            self.log_result("distribution_history", "Distribution Status Retrieval", True, 
+                                          f"Successfully retrieved distribution status: {status_data.get('status')}")
+                            return True
+                        else:
+                            self.log_result("distribution_history", "Distribution Status Retrieval", False, 
+                                          "Distribution status missing required fields")
+                            return False
+                    else:
+                        self.log_result("distribution_history", "Distribution Status Retrieval", False, 
+                                      f"Failed to retrieve status: {status_response.status_code}")
+                        return False
+                else:
+                    self.log_result("distribution_history", "Distribution Status Retrieval", False, 
+                                  "No distribution_id returned from distribution request")
+                    return False
+            else:
+                self.log_result("distribution_history", "Distribution Status Retrieval", False, 
+                              f"Failed to create distribution: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_history", "Distribution Status Retrieval", False, f"Exception: {str(e)}")
+            return False
+
     def test_analytics_dashboard(self) -> bool:
         """Test analytics dashboard data retrieval"""
         try:
