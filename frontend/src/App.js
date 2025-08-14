@@ -816,7 +816,8 @@ const Platforms = () => {
     'radio': 'bg-yellow-100 text-yellow-800',
     'tv': 'bg-red-100 text-red-800',
     'streaming_tv': 'bg-purple-100 text-purple-800',
-    'podcast': 'bg-indigo-100 text-indigo-800'
+    'podcast': 'bg-indigo-100 text-indigo-800',
+    'performance_rights': 'bg-orange-100 text-orange-800'
   };
 
   if (loading) {
