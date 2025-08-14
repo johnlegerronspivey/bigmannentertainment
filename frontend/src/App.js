@@ -203,6 +203,7 @@ const Header = () => {
               <Link to="/upload" className="hover:text-purple-400 transition-colors py-2">Upload</Link>
               <Link to="/distribute" className="hover:text-purple-400 transition-colors py-2">Distribute</Link>
               <Link to="/platforms" className="hover:text-purple-400 transition-colors py-2">Platforms</Link>
+              <Link to="/sponsorship" className="hover:text-purple-400 transition-colors py-2">Sponsorship</Link>
               <Link to="/blockchain" className="hover:text-purple-400 transition-colors py-2">Blockchain</Link>
               <Link to="/ddex" className="hover:text-purple-400 transition-colors py-2">DDEX Compliance</Link>
               {isAdmin() && (
