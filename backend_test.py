@@ -814,6 +814,343 @@ class BackendTester:
         except Exception as e:
             self.log_result("distribution_history", "Distribution Status Retrieval", False, f"Exception: {str(e)}")
             return False
+    
+    def test_soundexchange_platform_configuration(self) -> bool:
+        """Test SoundExchange platform configuration and requirements"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                if 'soundexchange' in platforms:
+                    soundexchange = platforms['soundexchange']
+                    
+                    # Verify SoundExchange configuration
+                    required_fields = ['name', 'type', 'supported_formats', 'max_file_size_mb']
+                    if all(field in soundexchange for field in required_fields):
+                        # Verify it's performance_rights type and audio only
+                        if (soundexchange['type'] == 'performance_rights' and 
+                            soundexchange['supported_formats'] == ['audio'] and
+                            soundexchange['name'] == 'SoundExchange'):
+                            
+                            self.log_result("soundexchange_pro", "SoundExchange Platform Configuration", True, 
+                                          f"SoundExchange properly configured as performance_rights platform for audio content")
+                            return True
+                        else:
+                            self.log_result("soundexchange_pro", "SoundExchange Platform Configuration", False, 
+                                          f"SoundExchange configuration incorrect: type={soundexchange.get('type')}, formats={soundexchange.get('supported_formats')}")
+                            return False
+                    else:
+                        self.log_result("soundexchange_pro", "SoundExchange Platform Configuration", False, 
+                                      "SoundExchange missing required configuration fields")
+                        return False
+                else:
+                    self.log_result("soundexchange_pro", "SoundExchange Platform Configuration", False, 
+                                  "SoundExchange platform not found")
+                    return False
+            else:
+                self.log_result("soundexchange_pro", "SoundExchange Platform Configuration", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("soundexchange_pro", "SoundExchange Platform Configuration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_pro_platforms_configuration(self) -> bool:
+        """Test ASCAP, BMI, and SESAC platform configurations"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                pro_platforms = ['ascap', 'bmi', 'sesac']
+                expected_names = {'ascap': 'ASCAP', 'bmi': 'BMI', 'sesac': 'SESAC'}
+                
+                all_configured = True
+                configured_pros = []
+                
+                for pro_id in pro_platforms:
+                    if pro_id in platforms:
+                        pro = platforms[pro_id]
+                        
+                        # Verify PRO configuration
+                        if (pro.get('type') == 'performance_rights' and 
+                            pro.get('supported_formats') == ['audio'] and
+                            pro.get('name') == expected_names[pro_id]):
+                            configured_pros.append(pro_id.upper())
+                        else:
+                            all_configured = False
+                            break
+                    else:
+                        all_configured = False
+                        break
+                
+                if all_configured:
+                    self.log_result("soundexchange_pro", "PRO Platforms Configuration", True, 
+                                  f"All traditional PROs properly configured: {', '.join(configured_pros)}")
+                    return True
+                else:
+                    self.log_result("soundexchange_pro", "PRO Platforms Configuration", False, 
+                                  f"Some PRO platforms missing or misconfigured. Found: {configured_pros}")
+                    return False
+            else:
+                self.log_result("soundexchange_pro", "PRO Platforms Configuration", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("soundexchange_pro", "PRO Platforms Configuration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_soundexchange_registration_workflow(self) -> bool:
+        """Test SoundExchange registration workflow with ISRC code generation"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test SoundExchange registration
+            distribution_request = {
+                "media_id": self.test_media_id,  # Audio file
+                "platforms": ["soundexchange"],
+                "custom_message": "Register for digital performance royalty collection"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                if 'soundexchange' in results:
+                    sx_result = results['soundexchange']
+                    
+                    # Verify SoundExchange specific response fields
+                    if (sx_result.get('status') == 'success' and 
+                        'isrc_code' in sx_result and 
+                        'registration_id' in sx_result and
+                        'eligible_services' in sx_result and
+                        'royalty_collection_territories' in sx_result):
+                        
+                        # Verify ISRC code format (BME prefix for Big Mann Entertainment)
+                        isrc = sx_result['isrc_code']
+                        if isrc.startswith('BME') and len(isrc) == 13:
+                            # Verify eligible services include expected digital radio services
+                            eligible_services = sx_result['eligible_services']
+                            expected_services = ['SiriusXM', 'Pandora', 'iHeartRadio']
+                            
+                            if any(service in str(eligible_services) for service in expected_services):
+                                self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", True, 
+                                              f"SoundExchange registration successful with ISRC: {isrc}, Registration ID: {sx_result['registration_id']}")
+                                return True
+                            else:
+                                self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", False, 
+                                              f"Missing expected eligible services: {eligible_services}")
+                                return False
+                        else:
+                            self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", False, 
+                                          f"Invalid ISRC code format: {isrc}")
+                            return False
+                    else:
+                        self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", False, 
+                                      f"SoundExchange response missing required fields: {sx_result}")
+                        return False
+                else:
+                    self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", False, 
+                                  "No SoundExchange result in distribution response")
+                    return False
+            else:
+                self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", False, 
+                              f"Distribution failed: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("soundexchange_pro", "SoundExchange Registration Workflow", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_traditional_pro_registration_workflow(self) -> bool:
+        """Test ASCAP, BMI, SESAC registration workflow with work IDs"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", False, 
+                              "Missing auth token or media ID")
+                return False
+            
+            # Test traditional PRO registration
+            distribution_request = {
+                "media_id": self.test_media_id,  # Audio file
+                "platforms": ["ascap", "bmi", "sesac"],
+                "custom_message": "Register for traditional performance royalty collection"
+            }
+            
+            response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', {})
+                
+                successful_pros = []
+                
+                for pro in ['ascap', 'bmi', 'sesac']:
+                    if pro in results:
+                        pro_result = results[pro]
+                        
+                        # Verify PRO specific response fields
+                        if (pro_result.get('status') == 'success' and 
+                            'work_registration_id' in pro_result and 
+                            'royalty_collection_services' in pro_result and
+                            'territories' in pro_result):
+                            
+                            # Verify work registration ID format
+                            work_id = pro_result['work_registration_id']
+                            expected_prefix = pro.upper()
+                            
+                            if work_id.startswith(expected_prefix):
+                                # Verify collection services
+                                services = pro_result['royalty_collection_services']
+                                expected_service_types = ['Radio', 'TV', 'Digital']
+                                
+                                if any(service_type in str(services) for service_type in expected_service_types):
+                                    successful_pros.append(f"{pro.upper()}({work_id})")
+                                else:
+                                    self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", False, 
+                                                  f"{pro.upper()} missing expected collection services: {services}")
+                                    return False
+                            else:
+                                self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", False, 
+                                              f"{pro.upper()} invalid work ID format: {work_id}")
+                                return False
+                        else:
+                            self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", False, 
+                                          f"{pro.upper()} response missing required fields: {pro_result}")
+                            return False
+                
+                if len(successful_pros) == 3:
+                    self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", True, 
+                                  f"All PROs registered successfully: {', '.join(successful_pros)}")
+                    return True
+                else:
+                    self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", False, 
+                                  f"Only {len(successful_pros)}/3 PROs registered successfully")
+                    return False
+            else:
+                self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", False, 
+                              f"Distribution failed: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("soundexchange_pro", "Traditional PRO Registration Workflow", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_performance_rights_audio_only_validation(self) -> bool:
+        """Test that performance rights organizations only accept audio content"""
+        try:
+            if not self.auth_token:
+                self.log_result("soundexchange_pro", "Performance Rights Audio-Only Validation", False, 
+                              "No auth token available")
+                return False
+            
+            # Upload a video file for testing
+            content, filename, mime_type = self.create_test_file("video")
+            
+            files = {'file': (filename, content, mime_type)}
+            data = {
+                'title': 'Test Video for PRO Validation',
+                'description': 'Testing PRO audio-only validation',
+                'category': 'test',
+                'price': 0,
+                'tags': 'test'
+            }
+            
+            upload_response = self.make_request('POST', '/media/upload', files=files, data=data)
+            
+            if upload_response.status_code == 200:
+                video_media_id = upload_response.json()['media_id']
+                
+                # Try to distribute video to performance rights organizations
+                distribution_request = {
+                    "media_id": video_media_id,
+                    "platforms": ["soundexchange", "ascap", "bmi", "sesac"],
+                    "custom_message": "This should fail for video content"
+                }
+                
+                response = self.make_request('POST', '/distribution/distribute', json=distribution_request)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get('results', {})
+                    
+                    # Check that all PRO platforms failed due to format incompatibility
+                    failed_pros = []
+                    for pro in ['soundexchange', 'ascap', 'bmi', 'sesac']:
+                        if pro in results:
+                            pro_result = results[pro]
+                            if (pro_result.get('status') == 'error' and 
+                                'only supports audio content' in pro_result.get('message', '')):
+                                failed_pros.append(pro.upper())
+                    
+                    if len(failed_pros) == 4:  # All 4 should fail
+                        self.log_result("soundexchange_pro", "Performance Rights Audio-Only Validation", True, 
+                                      f"Correctly rejected video content for all PROs: {', '.join(failed_pros)}")
+                        return True
+                    else:
+                        self.log_result("soundexchange_pro", "Performance Rights Audio-Only Validation", False, 
+                                      f"Only {len(failed_pros)}/4 PROs correctly rejected video content")
+                        return False
+                else:
+                    self.log_result("soundexchange_pro", "Performance Rights Audio-Only Validation", False, 
+                                  f"Distribution request failed: {response.status_code}")
+                    return False
+            else:
+                self.log_result("soundexchange_pro", "Performance Rights Audio-Only Validation", False, 
+                              "Failed to upload test video")
+                return False
+                
+        except Exception as e:
+            self.log_result("soundexchange_pro", "Performance Rights Audio-Only Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_count_update(self) -> bool:
+        """Test that analytics now shows 37+ total platforms including new PRO platforms"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                total_platforms = len(platforms)
+                
+                if total_platforms >= 37:
+                    # Verify we have performance rights platforms
+                    performance_rights = [p for p in platforms.values() if p.get('type') == 'performance_rights']
+                    
+                    if len(performance_rights) >= 4:  # SoundExchange, ASCAP, BMI, SESAC
+                        self.log_result("soundexchange_pro", "Platform Count Update", True, 
+                                      f"Platform count updated to {total_platforms} total platforms including {len(performance_rights)} performance rights organizations")
+                        return True
+                    else:
+                        self.log_result("soundexchange_pro", "Platform Count Update", False, 
+                                      f"Expected 4+ performance rights platforms, found {len(performance_rights)}")
+                        return False
+                else:
+                    self.log_result("soundexchange_pro", "Platform Count Update", False, 
+                                  f"Expected 37+ platforms, found {total_platforms}")
+                    return False
+            else:
+                self.log_result("soundexchange_pro", "Platform Count Update", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("soundexchange_pro", "Platform Count Update", False, f"Exception: {str(e)}")
+            return False
 
     def test_analytics_dashboard(self) -> bool:
         """Test analytics dashboard data retrieval with enhanced distribution metrics"""
