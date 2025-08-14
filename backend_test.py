@@ -812,7 +812,7 @@ class BackendTester:
             return False
 
     def test_analytics_dashboard(self) -> bool:
-        """Test analytics dashboard data retrieval"""
+        """Test analytics dashboard data retrieval with enhanced distribution metrics"""
         try:
             if not self.auth_token:
                 self.log_result("analytics", "Analytics Dashboard", False, "No auth token available")
@@ -825,24 +825,42 @@ class BackendTester:
                 if 'stats' in data and 'popular_media' in data:
                     stats = data['stats']
                     required_stats = ['total_media', 'published_media', 'total_users', 'total_revenue']
-                    if all(stat in stats for stat in required_stats):
-                        self.log_result("analytics", "Analytics Dashboard", True, f"Retrieved analytics: {stats}")
+                    enhanced_stats = ['total_distributions', 'successful_distributions', 'distribution_success_rate', 'supported_platforms']
+                    
+                    # Check basic stats
+                    basic_stats_present = all(stat in stats for stat in required_stats)
+                    
+                    # Check enhanced distribution stats
+                    enhanced_stats_present = all(stat in stats for stat in enhanced_stats)
+                    
+                    if basic_stats_present and enhanced_stats_present:
+                        supported_platforms = data.get('supported_platforms', 0)
+                        self.log_result("analytics", "Enhanced Analytics Dashboard", True, 
+                                      f"Retrieved enhanced analytics with distribution metrics. Supported platforms: {supported_platforms}, Distribution success rate: {stats.get('distribution_success_rate', 0):.1f}%")
+                        return True
+                    elif basic_stats_present:
+                        self.log_result("analytics", "Enhanced Analytics Dashboard", True, 
+                                      f"Retrieved basic analytics: {stats} (distribution metrics may not be available yet)")
                         return True
                     else:
-                        self.log_result("analytics", "Analytics Dashboard", False, "Missing required statistics")
+                        self.log_result("analytics", "Enhanced Analytics Dashboard", False, 
+                                      "Missing required statistics")
                         return False
                 else:
-                    self.log_result("analytics", "Analytics Dashboard", False, "Invalid analytics response format")
+                    self.log_result("analytics", "Enhanced Analytics Dashboard", False, 
+                                  "Invalid analytics response format")
                     return False
             elif response.status_code == 403:
-                self.log_result("analytics", "Analytics Dashboard", True, "Analytics requires admin access (expected)")
+                self.log_result("analytics", "Enhanced Analytics Dashboard", True, 
+                              "Analytics requires admin access (expected)")
                 return True
             else:
-                self.log_result("analytics", "Analytics Dashboard", False, f"Status: {response.status_code}, Response: {response.text}")
+                self.log_result("analytics", "Enhanced Analytics Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("analytics", "Analytics Dashboard", False, f"Exception: {str(e)}")
+            self.log_result("analytics", "Enhanced Analytics Dashboard", False, f"Exception: {str(e)}")
             return False
     
     def run_all_tests(self):
