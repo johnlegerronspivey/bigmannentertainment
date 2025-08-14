@@ -706,10 +706,7 @@ test_plan:
     - "Administrator User Management Interface" 
     - "Admin Route Protection and Security"
     - "Administrator Blockchain Management Interface"
-  stuck_tasks:
-    - "Administrator Dashboard Interface"
-    - "Administrator User Management Interface"
-    - "Admin Route Protection and Security"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
