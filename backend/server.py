@@ -280,6 +280,158 @@ DISTRIBUTION_PLATFORMS = {
         "credentials_required": ["partner_id", "partner_key"]
     },
     
+    # Traditional FM Broadcast Stations
+    "clear_channel_pop": {
+        "type": "fm_broadcast",
+        "name": "Clear Channel Pop/Top 40",
+        "api_endpoint": "https://api.clearchannel.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["station_group_id", "api_key"],
+        "genre": "pop",
+        "description": "Major market Top 40/Pop FM stations nationwide"
+    },
+    "cumulus_country": {
+        "type": "fm_broadcast",
+        "name": "Cumulus Country Network",
+        "api_endpoint": "https://api.cumulus.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["network_id", "api_key"],
+        "genre": "country",
+        "description": "Country music FM broadcast network"
+    },
+    "entercom_rock": {
+        "type": "fm_broadcast",
+        "name": "Audacy Rock Stations",
+        "api_endpoint": "https://api.audacy.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["station_cluster_id", "api_key"],
+        "genre": "rock",
+        "description": "Rock and Alternative FM broadcast stations"
+    },
+    "urban_one_hiphop": {
+        "type": "fm_broadcast",
+        "name": "Urban One Hip-Hop/R&B",
+        "api_endpoint": "https://api.urban1.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["market_id", "api_key"],
+        "genre": "hip-hop",
+        "description": "Urban contemporary and Hip-Hop FM stations"
+    },
+    "townsquare_adult_contemporary": {
+        "type": "fm_broadcast",
+        "name": "Townsquare Adult Contemporary",
+        "api_endpoint": "https://api.townsquaremedia.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["market_group_id", "api_key"],
+        "genre": "adult_contemporary",
+        "description": "Adult Contemporary and Soft Rock FM stations"
+    },
+    "saga_classic_rock": {
+        "type": "fm_broadcast",
+        "name": "Saga Classic Rock Network",
+        "api_endpoint": "https://api.sagacom.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["network_id", "api_key"],
+        "genre": "classic_rock",
+        "description": "Classic Rock FM broadcast network"
+    },
+    "hubbard_alternative": {
+        "type": "fm_broadcast",
+        "name": "Hubbard Alternative/Indie",
+        "api_endpoint": "https://api.hubbardradio.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["station_id", "api_key"],
+        "genre": "alternative",
+        "description": "Alternative and Indie rock FM stations"
+    },
+    "univision_latin": {
+        "type": "fm_broadcast",
+        "name": "Univision Latin/Spanish",
+        "api_endpoint": "https://api.univision.com/radio/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["market_id", "api_key"],
+        "genre": "latin",
+        "description": "Spanish language and Latin music FM stations"
+    },
+    "salem_christian": {
+        "type": "fm_broadcast",
+        "name": "Salem Christian/Gospel Network",
+        "api_endpoint": "https://api.salemmedia.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["network_id", "api_key"],
+        "genre": "christian",
+        "description": "Christian and Gospel music FM stations"
+    },
+    "beasley_jazz": {
+        "type": "fm_broadcast",
+        "name": "Beasley Jazz/Smooth Jazz",
+        "api_endpoint": "https://api.bbgi.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["station_group_id", "api_key"],
+        "genre": "jazz",
+        "description": "Jazz and Smooth Jazz FM broadcast stations"
+    },
+    "classical_public_radio": {
+        "type": "fm_broadcast",
+        "name": "NPR Classical Network",
+        "api_endpoint": "https://api.npr.org/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["member_station_id", "api_key"],
+        "genre": "classical",
+        "description": "Classical music public radio FM stations"
+    },
+    "emmis_urban": {
+        "type": "fm_broadcast",
+        "name": "Emmis Urban Contemporary",
+        "api_endpoint": "https://api.emmis.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["market_id", "api_key"],
+        "genre": "urban",
+        "description": "Urban Contemporary and R&B FM stations"
+    },
+    "midwest_family_oldies": {
+        "type": "fm_broadcast",
+        "name": "Midwest Family Oldies Network",
+        "api_endpoint": "https://api.mwfradio.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["station_id", "api_key"],
+        "genre": "oldies",
+        "description": "Oldies and Classic Hits FM stations"
+    },
+    "alpha_electronic": {
+        "type": "fm_broadcast",
+        "name": "Alpha Electronic/Dance Network",
+        "api_endpoint": "https://api.alphamedia.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["network_id", "api_key"],
+        "genre": "electronic",
+        "description": "Electronic, Dance, and EDM FM stations"
+    },
+    "regional_indie": {
+        "type": "fm_broadcast",
+        "name": "Regional Independent Stations",
+        "api_endpoint": "https://api.independentradio.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["station_id", "api_key"],
+        "genre": "indie",
+        "description": "Independent and regional FM broadcast stations"
+    },
+    
     # TV and Broadcasting
     "cnn": {
         "type": "tv",
