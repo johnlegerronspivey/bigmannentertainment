@@ -1724,6 +1724,18 @@ class BackendTester:
         self.test_performance_rights_audio_only_validation()
         self.test_platform_count_update()
         
+        # NEW: FM Broadcast Station Tests
+        print("\n📻 TESTING TRADITIONAL FM BROADCAST STATION INTEGRATION")
+        print("-" * 40)
+        self.test_fm_broadcast_platform_count()
+        self.test_major_fm_network_integration()
+        self.test_fm_broadcast_genre_targeting()
+        self.test_clear_channel_network_workflow()
+        self.test_urban_one_network_workflow()
+        self.test_npr_classical_network_workflow()
+        self.test_fm_broadcast_audio_only_validation()
+        self.test_fm_broadcast_programming_metadata()
+        
         # Payment Tests
         print("\n💳 TESTING PAYMENT INTEGRATION")
         print("-" * 40)
