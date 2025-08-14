@@ -292,28 +292,40 @@ const Home = () => {
       {/* Distribution Platforms Preview */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-8">Multi-Platform Distribution & Rights Management</h2>
+          <h2 className="text-3xl font-bold mb-8">Complete Media Distribution Empire</h2>
           <p className="text-xl text-gray-600 mb-12">
-            Distribute your content across 35+ platforms including social media, streaming services, radio stations, TV networks, and collect performance royalties through SoundExchange & PROs
+            Distribute across 50+ platforms: Social Media • Streaming • Traditional FM Radio (All Genres) • TV Networks • Performance Royalties
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {[
-              "Instagram", "Twitter", "Facebook", "TikTok", "YouTube", "Spotify",
-              "Apple Music", "Amazon Music", "SoundCloud", "iHeartRadio", "CNN", "Netflix",
-              "SoundExchange", "ASCAP", "BMI", "SESAC"
+              "Instagram", "Spotify", "Clear Channel Pop", "CNN",
+              "Twitter", "Apple Music", "Cumulus Country", "Netflix", 
+              "TikTok", "SoundCloud", "Audacy Rock", "ESPN",
+              "YouTube", "Pandora", "Urban One Hip-Hop", "HBO Max",
+              "Facebook", "Tidal", "NPR Classical", "SoundExchange",
+              "LinkedIn", "Amazon Music", "Townsquare AC", "ASCAP",
+              "Pinterest", "Deezer", "Regional Indie FM", "BMI",
+              "Snapchat", "Bandcamp", "Salem Christian", "SESAC"
             ].map((platform) => (
-              <div key={platform} className={`p-4 rounded-lg hover:bg-purple-100 transition-colors ${
+              <div key={platform} className={`p-3 rounded-lg hover:bg-purple-100 transition-colors text-center ${
                 ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
                   ? 'bg-orange-100 border-2 border-orange-200' 
+                  : platform.includes('FM') || ['Clear Channel Pop', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Townsquare AC', 'Regional Indie FM', 'Salem Christian'].includes(platform)
+                  ? 'bg-amber-100 border-2 border-amber-200'
                   : 'bg-gray-100'
               }`}>
-                <p className={`font-semibold ${
+                <p className={`font-semibold text-sm ${
                   ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
                     ? 'text-orange-700' 
+                    : platform.includes('FM') || ['Clear Channel Pop', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Townsquare AC', 'Regional Indie FM', 'Salem Christian'].includes(platform)
+                    ? 'text-amber-700'
                     : 'text-gray-700'
                 }`}>{platform}</p>
                 {['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) && (
                   <p className="text-xs text-orange-600 mt-1">Royalties</p>
+                )}
+                {(platform.includes('FM') || ['Clear Channel Pop', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Townsquare AC', 'Regional Indie FM', 'Salem Christian'].includes(platform)) && (
+                  <p className="text-xs text-amber-600 mt-1">FM Radio</p>
                 )}
               </div>
             ))}
