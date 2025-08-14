@@ -283,7 +283,7 @@ async def register_musical_work(
             "work_id": musical_work.work_id,
             "status": "Registered",
             "created_at": datetime.utcnow(),
-            "registration_date": work_registration.registration_date
+            "registration_date": work_registration.registration_date.isoformat()
         }
         
         await db.ddex_cwr_registrations.insert_one(cwr_record)
