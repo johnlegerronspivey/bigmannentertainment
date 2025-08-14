@@ -2482,6 +2482,16 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading DDEX router: {e}")
 
+# Include Sponsorship router
+try:
+    from sponsorship_endpoints import sponsorship_router
+    app.include_router(sponsorship_router)
+    print("✅ Sponsorship router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ Sponsorship router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading Sponsorship router: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
