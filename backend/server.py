@@ -1263,6 +1263,12 @@ async def register_user(user_data: UserCreate, request: Request):
         business_name=user_data.business_name
     )
     
+    # Check if this is the first user - make them an admin
+    total_users = await db.users.count_documents({})
+    if total_users == 0:
+        user.is_admin = True
+        user.role = "super_admin"
+    
     # Store user in database
     user_dict = user.dict()
     user_dict["password"] = hashed_password
