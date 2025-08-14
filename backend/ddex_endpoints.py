@@ -488,7 +488,7 @@ async def get_all_ddex_messages(
         "total": len(all_messages)
     }
 
-@ddx_router.get("/admin/statistics", dependencies=[Depends(get_current_admin_user)])
+@ddex_router.get("/admin/statistics", dependencies=[Depends(get_current_admin_user)])
 async def get_ddex_statistics():
     """Admin: Get DDEX usage statistics"""
     
