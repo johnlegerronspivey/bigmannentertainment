@@ -249,7 +249,7 @@ const Home = () => {
               <p className="text-gray-600">Revenue</p>
             </div>
             <div className="bg-gradient-to-r from-red-100 to-yellow-100 p-6 rounded-lg">
-              <h3 className="text-3xl font-bold text-red-600">{stats.supported_platforms || 0}</h3>
+              <h3 className="text-3xl font-bold text-red-600">{stats.supported_platforms || 52}</h3>
               <p className="text-gray-600">Platforms</p>
             </div>
           </div>
