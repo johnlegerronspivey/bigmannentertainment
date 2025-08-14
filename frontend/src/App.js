@@ -842,7 +842,10 @@ const Platforms = () => {
     'tv': 'bg-red-100 text-red-800',
     'streaming_tv': 'bg-purple-100 text-purple-800',
     'podcast': 'bg-indigo-100 text-indigo-800',
-    'performance_rights': 'bg-orange-100 text-orange-800'
+    'performance_rights': 'bg-orange-100 text-orange-800',
+    'blockchain': 'bg-cyan-100 text-cyan-800',
+    'nft_marketplace': 'bg-violet-100 text-violet-800',
+    'web3_music': 'bg-teal-100 text-teal-800'
   };
 
   if (loading) {
