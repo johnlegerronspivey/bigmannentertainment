@@ -426,7 +426,7 @@ async def generate_identifiers(
     
     for _ in range(min(count, 10)):  # Limit to 10 at a time
         if identifier_type.lower() == "isrc":
-            identifier = ddx_service.create_isrc()
+            identifier = ddex_service.create_isrc()
         elif identifier_type.lower() == "iswc":
             identifier = ddex_service.create_iswc()
         elif identifier_type.lower() == "catalog_number":
