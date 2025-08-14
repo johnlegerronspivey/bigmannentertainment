@@ -896,18 +896,6 @@ async def distribute_content(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/distribution/{distribution_id}")
-async def get_distribution_status(distribution_id: str, current_user: User = Depends(get_current_user)):
-    """Get distribution status"""
-    distribution = await db.content_distributions.find_one({"id": distribution_id})
-    if not distribution:
-        raise HTTPException(status_code=404, detail="Distribution not found")
-    
-    if '_id' in distribution:
-        del distribution['_id']
-    
-    return distribution
-
 @api_router.get("/distribution/history")
 async def get_distribution_history(
     current_user: User = Depends(get_current_user),
@@ -930,6 +918,18 @@ async def get_distribution_history(
             del dist['_id']
     
     return {"distributions": distributions}
+
+@api_router.get("/distribution/{distribution_id}")
+async def get_distribution_status(distribution_id: str, current_user: User = Depends(get_current_user)):
+    """Get distribution status"""
+    distribution = await db.content_distributions.find_one({"id": distribution_id})
+    if not distribution:
+        raise HTTPException(status_code=404, detail="Distribution not found")
+    
+    if '_id' in distribution:
+        del distribution['_id']
+    
+    return distribution
 
 # Payment routes
 @api_router.post("/payments/checkout")
