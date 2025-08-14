@@ -297,10 +297,12 @@ async def get_media_library(
     # Get media
     media_items = await db.media_content.find(query).skip(skip).limit(limit).to_list(limit)
     
-    # Remove file_path from response for security
+    # Remove file_path and _id from response for security and serialization
     for item in media_items:
         if 'file_path' in item:
             del item['file_path']
+        if '_id' in item:
+            del item['_id']
     
     return {"media": media_items}
 
