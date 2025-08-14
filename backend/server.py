@@ -312,9 +312,11 @@ async def get_media_details(media_id: str):
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
     
-    # Remove file_path from response
+    # Remove file_path and _id from response
     if 'file_path' in media:
         del media['file_path']
+    if '_id' in media:
+        del media['_id']
     
     # Increment view count
     await db.media_content.update_one(
