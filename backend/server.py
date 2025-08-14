@@ -537,6 +537,13 @@ async def get_analytics_dashboard(current_user: User = Depends(get_current_admin
     # Get popular media
     popular_media = await db.media_content.find().sort("download_count", -1).limit(5).to_list(5)
     
+    # Remove file_path and _id from popular media for serialization
+    for item in popular_media:
+        if 'file_path' in item:
+            del item['file_path']
+        if '_id' in item:
+            del item['_id']
+    
     return {
         "stats": {
             "total_media": total_media,
