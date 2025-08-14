@@ -5,9 +5,9 @@ import uuid
 import os
 from pathlib import Path
 
-from .server import get_current_user, get_current_admin_user, db, User, log_activity
-from .ddex_models import *
-from .ddex_service import DDEXService
+from server import get_current_user, get_current_admin_user, db, User, log_activity
+from ddex_models import *
+from ddex_service import DDEXService
 
 # Create DDEX router
 ddex_router = APIRouter(prefix="/api/ddex", tags=["DDEX"])
