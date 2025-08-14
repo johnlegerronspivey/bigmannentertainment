@@ -13,7 +13,7 @@ import tempfile
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://mediaflow-bme.preview.emergentagent.com/api"
+BASE_URL = "https://18ee7dbd-3f58-434c-94f4-86f012533518.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "john.spivey@bigmannentertainment.com"
 TEST_USER_PASSWORD = "BigMann2025!"
 TEST_USER_NAME = "John LeGerron Spivey"
