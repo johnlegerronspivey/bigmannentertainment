@@ -1666,8 +1666,8 @@ class BackendTester:
         """Run all backend tests"""
         print("=" * 80)
         print("STARTING BIG MANN ENTERTAINMENT COMPREHENSIVE BACKEND TESTING")
-        print("Testing Distribution Platform with 37+ Media Distribution Channels")
-        print("INCLUDING NEW SOUNDEXCHANGE & PERFORMANCE RIGHTS ORGANIZATIONS")
+        print("Testing Distribution Platform with 52+ Media Distribution Channels")
+        print("INCLUDING NEW FM BROADCAST STATIONS & PERFORMANCE RIGHTS ORGANIZATIONS")
         print("=" * 80)
         
         # Authentication Tests
