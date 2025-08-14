@@ -252,15 +252,24 @@ async def create_sponsorship_deal(
 ):
     """Create new sponsorship deal"""
     try:
+        # Convert string dates to date objects
+        from datetime import datetime
+        deal_dict = deal_data.dict()
+        deal_dict['start_date'] = datetime.strptime(deal_dict['start_date'], '%Y-%m-%d').date()
+        deal_dict['end_date'] = datetime.strptime(deal_dict['end_date'], '%Y-%m-%d').date()
+        
         # Create full deal object with auto-filled fields
         full_deal = SponsorshipDeal(
-            **deal_data.dict(),
+            **deal_dict,
             content_creator_id=current_user.id,
             created_by=current_user.id
         )
         
-        # Store deal in database
+        # Convert to dict and handle date serialization for MongoDB
         deal_dict = full_deal.dict()
+        deal_dict['start_date'] = deal_dict['start_date'].isoformat()
+        deal_dict['end_date'] = deal_dict['end_date'].isoformat()
+        
         await db.sponsorship_deals.insert_one(deal_dict)
         
         # Log activity
