@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 import uuid
 import os
+import aiofiles
 from pathlib import Path
 
 from server import get_current_user, get_current_admin_user, db, User, log_activity
