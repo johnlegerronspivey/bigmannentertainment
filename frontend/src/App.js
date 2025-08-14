@@ -1272,6 +1272,178 @@ const AdminSecurity = () => {
   );
 };
 
+};
+
+const DDEXCompliance = () => {
+  const [activeTab, setActiveTab] = useState('ern');
+  const [refreshMessageList, setRefreshMessageList] = useState(0);
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  const handleSuccess = () => {
+    setRefreshMessageList(prev => prev + 1);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-4">DDEX Compliance</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Generate industry-standard DDEX XML messages for digital music distribution, 
+            works registration, and metadata exchange with streaming platforms, radio stations, 
+            and Performance Rights Organizations.
+          </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-lg shadow-lg p-1 flex">
+            <button
+              onClick={() => setActiveTab('ern')}
+              className={`px-6 py-3 rounded-md transition-colors font-medium ${
+                activeTab === 'ern' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              Create ERN
+            </button>
+            <button
+              onClick={() => setActiveTab('cwr')}
+              className={`px-6 py-3 rounded-md transition-colors font-medium ${
+                activeTab === 'cwr' 
+                  ? 'bg-orange-600 text-white' 
+                  : 'text-gray-600 hover:text-orange-600'
+              }`}
+            >
+              Register Work
+            </button>
+            <button
+              onClick={() => setActiveTab('identifiers')}
+              className={`px-6 py-3 rounded-md transition-colors font-medium ${
+                activeTab === 'identifiers' 
+                  ? 'bg-green-600 text-white' 
+                  : 'text-gray-600 hover:text-green-600'
+              }`}
+            >
+              Generate IDs
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`px-6 py-3 rounded-md transition-colors font-medium ${
+                activeTab === 'messages' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+            >
+              My Messages
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="max-w-4xl mx-auto">
+          {activeTab === 'ern' && (
+            <div>
+              <DDEXERNCreator onSuccess={handleSuccess} />
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">What is ERN (Electronic Release Notification)?</h3>
+                <p className="text-blue-700 text-sm">
+                  ERN is the DDEX standard used to deliver release information and digital assets to 
+                  Digital Service Providers (DSPs) like Spotify, Apple Music, Amazon Music, and others. 
+                  It contains all the metadata needed for proper distribution and display of your music.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {activeTab === 'cwr' && (
+            <div>
+              <DDEXCWRCreator onSuccess={handleSuccess} />
+              <div className="mt-6 p-4 bg-orange-50 rounded-lg">
+                <h3 className="font-semibold text-orange-800 mb-2">What is CWR (Common Works Registration)?</h3>
+                <p className="text-orange-700 text-sm">
+                  CWR is the global standard for registering musical works with Performance Rights 
+                  Organizations (PROs) like ASCAP, BMI, and SESAC. This ensures you receive proper 
+                  royalty payments when your compositions are performed publicly.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {activeTab === 'identifiers' && (
+            <div>
+              <DDEXIdentifierGenerator />
+              <div className="mt-6 p-4 bg-green-50 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">Industry Standard Identifiers</h3>
+                <div className="text-green-700 text-sm space-y-2">
+                  <p><strong>ISRC:</strong> Required for all sound recordings, used by streaming platforms and radio for royalty tracking.</p>
+                  <p><strong>ISWC:</strong> Required for musical compositions, used by PROs for performance royalty distribution.</p>
+                  <p><strong>Catalog Number:</strong> Internal label identifier for organizing and tracking releases.</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {activeTab === 'messages' && (
+            <DDEXMessageList key={refreshMessageList} />
+          )}
+        </div>
+
+        {/* DDEX Standards Information */}
+        <div className="max-w-6xl mx-auto mt-12">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h2 className="text-2xl font-semibold mb-6 text-center">DDEX Standards Supported</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="text-center p-4 border border-purple-200 rounded-lg">
+                <div className="text-purple-600 text-3xl font-bold mb-2">ERN</div>
+                <h4 className="font-semibold mb-2">Electronic Release Notification</h4>
+                <p className="text-sm text-gray-600">v4.1 - Digital distribution to streaming platforms</p>
+              </div>
+              
+              <div className="text-center p-4 border border-orange-200 rounded-lg">
+                <div className="text-orange-600 text-3xl font-bold mb-2">CWR</div>
+                <h4 className="font-semibold mb-2">Common Works Registration</h4>
+                <p className="text-sm text-gray-600">v3.0 - Musical works registration with PROs</p>
+              </div>
+              
+              <div className="text-center p-4 border border-green-200 rounded-lg">
+                <div className="text-green-600 text-3xl font-bold mb-2">DSR</div>
+                <h4 className="font-semibold mb-2">Digital Sales Report</h4>
+                <p className="text-sm text-gray-600">v4.1 - Sales and usage reporting (coming soon)</p>
+              </div>
+              
+              <div className="text-center p-4 border border-blue-200 rounded-lg">
+                <div className="text-blue-600 text-3xl font-bold mb-2">MWN</div>
+                <h4 className="font-semibold mb-2">Musical Work Notification</h4>
+                <p className="text-sm text-gray-600">v4.1 - Works metadata exchange (coming soon)</p>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <p className="text-gray-600 mb-4">
+                Big Mann Entertainment supports full DDEX compliance for professional music distribution 
+                and rights management across all major industry platforms.
+              </p>
+              <div className="flex justify-center space-x-6 text-sm text-gray-500">
+                <span>✓ DDEX Member Standards</span>
+                <span>✓ Industry Compliant XML</span>
+                <span>✓ Automated Identifier Generation</span>
+                <span>✓ Professional Distribution</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
