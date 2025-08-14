@@ -297,12 +297,13 @@ async def get_user_deals(
     if status:
         query["status"] = status
     
-    deals = await db.sponsorship_deals.find(query).skip(skip).limit(limit).sort("created_at", -1).to_list(length=limit)
+    deals_cursor = db.sponsorship_deals.find(query, {"_id": 0}).skip(skip).limit(limit).sort("created_at", -1)
+    deals = await deals_cursor.to_list(length=limit)
     total = await db.sponsorship_deals.count_documents(query)
     
     # Add sponsor information to each deal
     for deal in deals:
-        sponsor = await db.sponsors.find_one({"id": deal["sponsor_id"]}, {"company_name": 1, "brand_name": 1})
+        sponsor = await db.sponsors.find_one({"id": deal["sponsor_id"]}, {"company_name": 1, "brand_name": 1, "_id": 0})
         deal["sponsor"] = sponsor
     
     return {
