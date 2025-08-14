@@ -48,7 +48,13 @@ class BackendTester:
             "admin_blockchain_management": {"passed": 0, "failed": 0, "details": []},
             "admin_security_audit": {"passed": 0, "failed": 0, "details": []},
             "admin_system_config": {"passed": 0, "failed": 0, "details": []},
-            "ethereum_integration": {"passed": 0, "failed": 0, "details": []}
+            "ethereum_integration": {"passed": 0, "failed": 0, "details": []},
+            "ddex_ern": {"passed": 0, "failed": 0, "details": []},
+            "ddex_cwr": {"passed": 0, "failed": 0, "details": []},
+            "ddex_messages": {"passed": 0, "failed": 0, "details": []},
+            "ddex_identifiers": {"passed": 0, "failed": 0, "details": []},
+            "ddex_admin": {"passed": 0, "failed": 0, "details": []},
+            "ddex_xml_validation": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
