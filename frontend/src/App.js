@@ -114,6 +114,8 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/library" className="hover:text-purple-400 transition-colors">Library</Link>
             <Link to="/upload" className="hover:text-purple-400 transition-colors">Upload</Link>
+            <Link to="/distribute" className="hover:text-purple-400 transition-colors">Distribute</Link>
+            <Link to="/platforms" className="hover:text-purple-400 transition-colors">Platforms</Link>
             {user?.is_admin && (
               <Link to="/admin" className="hover:text-purple-400 transition-colors">Admin</Link>
             )}
@@ -198,7 +200,7 @@ const Home = () => {
             Professional Audio, Video & Digital Media Distribution Platform
           </p>
           <p className="text-lg mb-8 text-gray-300">
-            John LeGerron Spivey • Commercial Publishing • Social Media Distribution
+            John LeGerron Spivey • Commercial Publishing • Multi-Platform Distribution
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Link
@@ -220,7 +222,7 @@ const Home = () => {
       {/* Stats Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
             <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-lg">
               <h3 className="text-3xl font-bold text-purple-600">{stats.total_media || 0}</h3>
               <p className="text-gray-600">Total Media</p>
@@ -236,6 +238,10 @@ const Home = () => {
             <div className="bg-gradient-to-r from-yellow-100 to-green-100 p-6 rounded-lg">
               <h3 className="text-3xl font-bold text-yellow-600">${stats.total_revenue || 0}</h3>
               <p className="text-gray-600">Revenue</p>
+            </div>
+            <div className="bg-gradient-to-r from-red-100 to-yellow-100 p-6 rounded-lg">
+              <h3 className="text-3xl font-bold text-red-600">{stats.supported_platforms || 0}</h3>
+              <p className="text-gray-600">Platforms</p>
             </div>
           </div>
         </div>
@@ -268,6 +274,26 @@ const Home = () => {
                     <span>{media.view_count} views</span>
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Distribution Platforms Preview */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-8">Multi-Platform Distribution</h2>
+          <p className="text-xl text-gray-600 mb-12">
+            Distribute your content across 30+ platforms including social media, streaming services, radio stations, and TV networks
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {[
+              "Instagram", "Twitter", "Facebook", "TikTok", "YouTube", "Spotify",
+              "Apple Music", "Amazon Music", "SoundCloud", "iHeartRadio", "CNN", "Netflix"
+            ].map((platform) => (
+              <div key={platform} className="bg-gray-100 p-4 rounded-lg hover:bg-purple-100 transition-colors">
+                <p className="font-semibold text-gray-700">{platform}</p>
               </div>
             ))}
           </div>
@@ -610,13 +636,17 @@ const Upload = () => {
     uploadData.append('tags', formData.tags);
 
     try {
-      await axios.post(`${API}/media/upload`, uploadData, {
+      const response = await axios.post(`${API}/media/upload`, uploadData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       setMessage('Media uploaded successfully!');
       setFormData({ title: '', description: '', category: '', price: 0, tags: '' });
       setFile(null);
+      
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = '';
     } catch (error) {
       setMessage(error.response?.data?.detail || 'Upload failed. Please try again.');
     } finally {
@@ -740,6 +770,343 @@ const Upload = () => {
   );
 };
 
+const Platforms = () => {
+  const [platforms, setPlatforms] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPlatforms();
+  }, []);
+
+  const fetchPlatforms = async () => {
+    try {
+      const response = await axios.get(`${API}/distribution/platforms`);
+      setPlatforms(response.data.platforms);
+    } catch (error) {
+      console.error('Error fetching platforms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const platformTypeColors = {
+    'social_media': 'bg-blue-100 text-blue-800',
+    'streaming': 'bg-green-100 text-green-800',
+    'radio': 'bg-yellow-100 text-yellow-800',
+    'tv': 'bg-red-100 text-red-800',
+    'streaming_tv': 'bg-purple-100 text-purple-800',
+    'podcast': 'bg-indigo-100 text-indigo-800'
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading platforms...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Distribution Platforms</h1>
+        <p className="text-gray-600 mb-8">
+          Big Mann Entertainment supports distribution to {Object.keys(platforms).length} major platforms across social media, streaming services, radio stations, TV networks, and podcast platforms.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Object.entries(platforms).map(([platformId, platform]) => (
+            <div key={platformId} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold">{platform.name}</h3>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  platformTypeColors[platform.type] || 'bg-gray-100 text-gray-800'
+                }`}>
+                  {platform.type.replace('_', ' ').toUpperCase()}
+                </span>
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">Supported Formats:</p>
+                <div className="flex flex-wrap gap-1">
+                  {platform.supported_formats.map((format) => (
+                    <span key={format} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                      {format.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="text-sm text-gray-500">
+                <p>Max file size: {platform.max_file_size_mb.toFixed(0)} MB</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Distribute = () => {
+  const [userMedia, setUserMedia] = useState([]);
+  const [platforms, setPlatforms] = useState({});
+  const [selectedMedia, setSelectedMedia] = useState('');
+  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
+  const [customMessage, setCustomMessage] = useState('');
+  const [hashtags, setHashtags] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [distributionHistory, setDistributionHistory] = useState([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchUserMedia();
+      fetchPlatforms();
+      fetchDistributionHistory();
+    }
+  }, [user]);
+
+  const fetchUserMedia = async () => {
+    try {
+      const response = await axios.get(`${API}/media/library`);
+      setUserMedia(response.data.media);
+    } catch (error) {
+      console.error('Error fetching user media:', error);
+    }
+  };
+
+  const fetchPlatforms = async () => {
+    try {
+      const response = await axios.get(`${API}/distribution/platforms`);
+      setPlatforms(response.data.platforms);
+    } catch (error) {
+      console.error('Error fetching platforms:', error);
+    }
+  };
+
+  const fetchDistributionHistory = async () => {
+    try {
+      const response = await axios.get(`${API}/distribution/history?limit=10`);
+      setDistributionHistory(response.data.distributions);
+    } catch (error) {
+      console.error('Error fetching distribution history:', error);
+    }
+  };
+
+  const handlePlatformToggle = (platformId) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platformId) 
+        ? prev.filter(id => id !== platformId)
+        : [...prev, platformId]
+    );
+  };
+
+  const handleDistribute = async (e) => {
+    e.preventDefault();
+    if (!selectedMedia || selectedPlatforms.length === 0) {
+      setMessage('Please select media and at least one platform.');
+      return;
+    }
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const hashtagArray = hashtags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      
+      const response = await axios.post(`${API}/distribution/distribute`, {
+        media_id: selectedMedia,
+        platforms: selectedPlatforms,
+        custom_message: customMessage || null,
+        hashtags: hashtagArray
+      });
+      
+      setMessage('Content distribution initiated successfully!');
+      setSelectedMedia('');
+      setSelectedPlatforms([]);
+      setCustomMessage('');
+      setHashtags('');
+      
+      // Refresh distribution history
+      fetchDistributionHistory();
+      
+    } catch (error) {
+      setMessage(error.response?.data?.detail || 'Distribution failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  const selectedMediaItem = userMedia.find(media => media.id === selectedMedia);
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <h1 className="text-3xl font-bold mb-8">Content Distribution</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Distribution Form */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold mb-6">Distribute Content</h2>
+            
+            {message && (
+              <div className={`mb-6 p-4 rounded-md ${
+                message.includes('successfully') 
+                  ? 'bg-green-100 border border-green-400 text-green-700'
+                  : 'bg-red-100 border border-red-400 text-red-700'
+              }`}>
+                {message}
+              </div>
+            )}
+            
+            <form onSubmit={handleDistribute} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Media *
+                </label>
+                <select
+                  value={selectedMedia}
+                  onChange={(e) => setSelectedMedia(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="">Choose media to distribute</option>
+                  {userMedia.map((media) => (
+                    <option key={media.id} value={media.id}>
+                      {media.title} ({media.content_type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {selectedMediaItem && (
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <h4 className="font-semibold mb-2">Selected Media Preview</h4>
+                  <p className="text-sm text-gray-600">
+                    <strong>Title:</strong> {selectedMediaItem.title}<br />
+                    <strong>Type:</strong> {selectedMediaItem.content_type}<br />
+                    <strong>Category:</strong> {selectedMediaItem.category}
+                  </p>
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Platforms *
+                </label>
+                <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
+                  {Object.entries(platforms).map(([platformId, platform]) => {
+                    const isCompatible = selectedMediaItem ? 
+                      platform.supported_formats.includes(selectedMediaItem.content_type) : true;
+                    
+                    return (
+                      <label 
+                        key={platformId} 
+                        className={`flex items-center space-x-2 p-2 rounded cursor-pointer ${
+                          isCompatible ? 'hover:bg-gray-100' : 'opacity-50 cursor-not-allowed'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedPlatforms.includes(platformId)}
+                          onChange={() => handlePlatformToggle(platformId)}
+                          disabled={!isCompatible}
+                          className="text-purple-600"
+                        />
+                        <span className="text-sm">{platform.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {selectedPlatforms.length} platforms selected
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Custom Message (Optional)
+                </label>
+                <textarea
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 h-24"
+                  placeholder="Add a custom message for your content..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hashtags (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={hashtags}
+                  onChange={(e) => setHashtags(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="music, entertainment, bigmann (comma separated)"
+                />
+              </div>
+              
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-md transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Distributing...' : `Distribute to ${selectedPlatforms.length} Platform${selectedPlatforms.length !== 1 ? 's' : ''}`}
+              </button>
+            </form>
+          </div>
+          
+          {/* Distribution History */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold mb-6">Distribution History</h2>
+            
+            {distributionHistory.length === 0 ? (
+              <p className="text-gray-600">No distributions yet. Start by distributing your first content!</p>
+            ) : (
+              <div className="space-y-4">
+                {distributionHistory.map((distribution) => (
+                  <div key={distribution.id} className="border border-gray-200 rounded-md p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">Distribution #{distribution.id.slice(0, 8)}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        distribution.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        distribution.status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                        distribution.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {distribution.status.toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Platforms: {distribution.target_platforms.join(', ')}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(distribution.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PurchaseSuccess = () => {
   const [status, setStatus] = useState('checking');
   const location = useLocation();
@@ -836,7 +1203,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/platforms" element={<Platforms />} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+            <Route path="/distribute" element={<ProtectedRoute><Distribute /></ProtectedRoute>} />
             <Route path="/purchase-success" element={<ProtectedRoute><PurchaseSuccess /></ProtectedRoute>} />
           </Routes>
         </AuthProvider>
