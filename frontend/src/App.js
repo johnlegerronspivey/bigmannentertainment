@@ -293,40 +293,50 @@ const Home = () => {
       {/* Distribution Platforms Preview */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-8">Complete Media Distribution Empire</h2>
+          <h2 className="text-3xl font-bold mb-8">Complete Web3 Media Distribution Empire</h2>
           <p className="text-xl text-gray-600 mb-12">
-            Distribute across 50+ platforms: Social Media • Streaming • Traditional FM Radio (All Genres) • TV Networks • Performance Royalties
+            70+ Platforms: Social Media • Streaming • FM Radio • TV • NFTs • Blockchain • Web3 Music • Performance Royalties
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-10 gap-3">
             {[
-              "Instagram", "Spotify", "Clear Channel Pop", "CNN",
-              "Twitter", "Apple Music", "Cumulus Country", "Netflix", 
-              "TikTok", "SoundCloud", "Audacy Rock", "ESPN",
-              "YouTube", "Pandora", "Urban One Hip-Hop", "HBO Max",
-              "Facebook", "Tidal", "NPR Classical", "SoundExchange",
-              "LinkedIn", "Amazon Music", "Townsquare AC", "ASCAP",
-              "Pinterest", "Deezer", "Regional Indie FM", "BMI",
-              "Snapchat", "Bandcamp", "Salem Christian", "SESAC"
+              "Instagram", "Spotify", "Clear Channel", "CNN", "Ethereum",
+              "Twitter", "Apple Music", "Cumulus Country", "Netflix", "OpenSea", 
+              "TikTok", "SoundCloud", "Audacy Rock", "ESPN", "Polygon",
+              "YouTube", "Pandora", "Urban One Hip-Hop", "HBO Max", "Rarible",
+              "Facebook", "Tidal", "NPR Classical", "SoundExchange", "Foundation",
+              "LinkedIn", "Amazon Music", "Regional Indie", "ASCAP", "Magic Eden",
+              "Pinterest", "Deezer", "Salem Christian", "BMI", "Audius",
+              "Snapchat", "Bandcamp", "Townsquare AC", "SESAC", "Catalog"
             ].map((platform) => (
-              <div key={platform} className={`p-3 rounded-lg hover:bg-purple-100 transition-colors text-center ${
+              <div key={platform} className={`p-2 rounded-lg hover:bg-purple-100 transition-colors text-center ${
                 ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
                   ? 'bg-orange-100 border-2 border-orange-200' 
-                  : platform.includes('FM') || ['Clear Channel Pop', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Townsquare AC', 'Regional Indie FM', 'Salem Christian'].includes(platform)
+                  : platform.includes('FM') || ['Clear Channel', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Regional Indie', 'Salem Christian', 'Townsquare AC'].includes(platform)
                   ? 'bg-amber-100 border-2 border-amber-200'
+                  : ['Ethereum', 'Polygon', 'OpenSea', 'Rarible', 'Foundation', 'Magic Eden', 'Audius', 'Catalog'].includes(platform)
+                  ? 'bg-cyan-100 border-2 border-cyan-200'
                   : 'bg-gray-100'
               }`}>
-                <p className={`font-semibold text-sm ${
+                <p className={`font-semibold text-xs ${
                   ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
                     ? 'text-orange-700' 
-                    : platform.includes('FM') || ['Clear Channel Pop', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Townsquare AC', 'Regional Indie FM', 'Salem Christian'].includes(platform)
+                    : platform.includes('FM') || ['Clear Channel', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Regional Indie', 'Salem Christian', 'Townsquare AC'].includes(platform)
                     ? 'text-amber-700'
+                    : ['Ethereum', 'Polygon', 'OpenSea', 'Rarible', 'Foundation', 'Magic Eden', 'Audius', 'Catalog'].includes(platform)
+                    ? 'text-cyan-700'
                     : 'text-gray-700'
                 }`}>{platform}</p>
                 {['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) && (
                   <p className="text-xs text-orange-600 mt-1">Royalties</p>
                 )}
-                {(platform.includes('FM') || ['Clear Channel Pop', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Townsquare AC', 'Regional Indie FM', 'Salem Christian'].includes(platform)) && (
+                {(platform.includes('FM') || ['Clear Channel', 'Cumulus Country', 'Audacy Rock', 'Urban One Hip-Hop', 'NPR Classical', 'Regional Indie', 'Salem Christian', 'Townsquare AC'].includes(platform)) && (
                   <p className="text-xs text-amber-600 mt-1">FM Radio</p>
+                )}
+                {(['Ethereum', 'Polygon', 'OpenSea', 'Rarible', 'Foundation', 'Magic Eden'].includes(platform)) && (
+                  <p className="text-xs text-cyan-600 mt-1">NFT/Web3</p>
+                )}
+                {(['Audius', 'Catalog'].includes(platform)) && (
+                  <p className="text-xs text-teal-600 mt-1">Web3 Music</p>
                 )}
               </div>
             ))}
