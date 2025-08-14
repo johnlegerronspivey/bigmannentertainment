@@ -1272,8 +1272,6 @@ const AdminSecurity = () => {
   );
 };
 
-};
-
 const DDEXCompliance = () => {
   const [activeTab, setActiveTab] = useState('ern');
   const [refreshMessageList, setRefreshMessageList] = useState(0);
