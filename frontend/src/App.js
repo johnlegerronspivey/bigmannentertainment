@@ -2437,6 +2437,11 @@ function App() {
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUserManagement /></AdminRoute>} />
+            <Route path="/admin/content" element={<AdminRoute><AdminContentManagement /></AdminRoute>} />
+            <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
+            <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
+            <Route path="/admin/blockchain" element={<AdminRoute><Blockchain /></AdminRoute>} />
+            <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
