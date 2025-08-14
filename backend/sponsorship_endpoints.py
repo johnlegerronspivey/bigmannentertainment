@@ -1,23 +1,91 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date, timedelta
 import uuid
+import jwt
 from pathlib import Path
-
-# Import from main server module
-import sys
+from pydantic import BaseModel, Field
+from motor.motor_asyncio import AsyncIOMotorClient
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from dotenv import load_dotenv
 
+# Load environment
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# Database setup
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+# Authentication setup
+SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
+ALGORITHM = "HS256"
+security = HTTPBearer()
+
+# User Model (local copy to avoid circular imports)
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    full_name: str
+    business_name: Optional[str] = None
+    is_active: bool = True
+    is_admin: bool = False
+    role: str = "user"  # user, admin, moderator, super_admin
+    last_login: Optional[datetime] = None
+    login_count: int = 0
+    account_status: str = "active"  # active, inactive, suspended, banned
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Authentication functions (local copies)
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    
+    user = await db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user)
+
+async def get_current_admin_user(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin and current_user.role not in ["admin", "moderator", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return current_user
+
+# Activity Log Model (local copy)
+class ActivityLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    action: str
+    resource_type: str
+    resource_id: Optional[str] = None
+    details: Dict[str, Any] = {}
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+async def log_activity(user_id: str, action: str, resource_type: str, resource_id: str = None, details: Dict[str, Any] = None):
+    """Log user activity for auditing purposes"""
+    activity = ActivityLog(
+        user_id=user_id,
+        action=action,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        details=details or {}
+    )
+    await db.activity_logs.insert_one(activity.dict())
+
+# Import sponsorship models and services
 from sponsorship_models import *
 from sponsorship_service import SponsorshipBonusCalculator, SponsorshipAnalytics, SponsorshipRecommendationEngine
-
-# Import server utilities
-try:
-    from server import get_current_user, get_current_admin_user, db, User, log_activity
-except ImportError:
-    # Fallback imports if server module is not available in the expected way
-    print("Warning: Could not import from server module directly")
 
 # Create Sponsorship router
 sponsorship_router = APIRouter(prefix="/api/sponsorship", tags=["Sponsorship"])
