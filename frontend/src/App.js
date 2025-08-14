@@ -292,17 +292,29 @@ const Home = () => {
       {/* Distribution Platforms Preview */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-8">Multi-Platform Distribution</h2>
+          <h2 className="text-3xl font-bold mb-8">Multi-Platform Distribution & Rights Management</h2>
           <p className="text-xl text-gray-600 mb-12">
-            Distribute your content across 30+ platforms including social media, streaming services, radio stations, and TV networks
+            Distribute your content across 35+ platforms including social media, streaming services, radio stations, TV networks, and collect performance royalties through SoundExchange & PROs
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             {[
               "Instagram", "Twitter", "Facebook", "TikTok", "YouTube", "Spotify",
-              "Apple Music", "Amazon Music", "SoundCloud", "iHeartRadio", "CNN", "Netflix"
+              "Apple Music", "Amazon Music", "SoundCloud", "iHeartRadio", "CNN", "Netflix",
+              "SoundExchange", "ASCAP", "BMI", "SESAC"
             ].map((platform) => (
-              <div key={platform} className="bg-gray-100 p-4 rounded-lg hover:bg-purple-100 transition-colors">
-                <p className="font-semibold text-gray-700">{platform}</p>
+              <div key={platform} className={`p-4 rounded-lg hover:bg-purple-100 transition-colors ${
+                ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
+                  ? 'bg-orange-100 border-2 border-orange-200' 
+                  : 'bg-gray-100'
+              }`}>
+                <p className={`font-semibold ${
+                  ['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) 
+                    ? 'text-orange-700' 
+                    : 'text-gray-700'
+                }`}>{platform}</p>
+                {['SoundExchange', 'ASCAP', 'BMI', 'SESAC'].includes(platform) && (
+                  <p className="text-xs text-orange-600 mt-1">Royalties</p>
+                )}
               </div>
             ))}
           </div>
