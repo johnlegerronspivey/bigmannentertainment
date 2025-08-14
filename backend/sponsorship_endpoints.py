@@ -190,19 +190,19 @@ async def get_sponsor_details(
     current_user: User = Depends(get_current_admin_user)
 ):
     """Get detailed sponsor information"""
-    sponsor = await db.sponsors.find_one({"id": sponsor_id})
+    sponsor = await db.sponsors.find_one({"id": sponsor_id}, {"_id": 0})
     if not sponsor:
         raise HTTPException(status_code=404, detail="Sponsor not found")
     
     # Get sponsor's deals
-    deals = await db.sponsorship_deals.find({"sponsor_id": sponsor_id}).to_list(length=None)
+    deals = await db.sponsorship_deals.find({"sponsor_id": sponsor_id}, {"_id": 0}).to_list(length=None)
     
     # Calculate sponsor statistics
     total_deals = len(deals)
     active_deals = len([d for d in deals if d.get("status") == "active"])
     
     # Get total spend
-    payouts = await db.sponsorship_payouts.find({"sponsor_id": sponsor_id}).to_list(length=None)
+    payouts = await db.sponsorship_payouts.find({"sponsor_id": sponsor_id}, {"_id": 0}).to_list(length=None)
     total_spent = sum(p.get("amount", 0) for p in payouts if p.get("status") == "paid")
     
     return {
