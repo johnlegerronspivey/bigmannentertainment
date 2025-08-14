@@ -2472,6 +2472,10 @@ async def get_user_wallets(current_user: User = Depends(get_current_user)):
 # Include the API router
 app.include_router(api_router)
 
+# Include DDEX router
+from .ddex_endpoints import ddex_router
+app.include_router(ddex_router)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
