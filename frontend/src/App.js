@@ -2605,6 +2605,7 @@ function App() {
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/blockchain" element={<Blockchain />} />
+            <Route path="/ddex" element={<ProtectedRoute><DDEXCompliance /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/distribute" element={<ProtectedRoute><Distribute /></ProtectedRoute>} />
             <Route path="/purchase-success" element={<ProtectedRoute><PurchaseSuccess /></ProtectedRoute>} />
