@@ -1092,7 +1092,8 @@ class BackendTester:
                         if pro in results:
                             pro_result = results[pro]
                             if (pro_result.get('status') == 'error' and 
-                                'only supports audio content' in pro_result.get('message', '')):
+                                ('not supported by' in pro_result.get('message', '') or 
+                                 'only supports audio content' in pro_result.get('message', ''))):
                                 failed_pros.append(pro.upper())
                     
                     if len(failed_pros) == 4:  # All 4 should fail
