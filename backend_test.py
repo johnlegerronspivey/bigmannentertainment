@@ -31,6 +31,10 @@ class BackendTester:
             "authentication": {"passed": 0, "failed": 0, "details": []},
             "media_upload": {"passed": 0, "failed": 0, "details": []},
             "media_management": {"passed": 0, "failed": 0, "details": []},
+            "distribution_platforms": {"passed": 0, "failed": 0, "details": []},
+            "content_distribution": {"passed": 0, "failed": 0, "details": []},
+            "distribution_history": {"passed": 0, "failed": 0, "details": []},
+            "platform_compatibility": {"passed": 0, "failed": 0, "details": []},
             "payments": {"passed": 0, "failed": 0, "details": []},
             "analytics": {"passed": 0, "failed": 0, "details": []}
         }
