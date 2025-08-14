@@ -397,7 +397,7 @@ class BackendTester:
             return False
     
     def test_distribution_platforms_endpoint(self) -> bool:
-        """Test the /api/distribution/platforms endpoint to verify all 30+ platforms are configured"""
+        """Test the /api/distribution/platforms endpoint to verify all 37+ platforms including SoundExchange and PROs are configured"""
         try:
             response = self.make_request('GET', '/distribution/platforms')
             
@@ -406,26 +406,28 @@ class BackendTester:
                 if 'platforms' in data and isinstance(data['platforms'], dict):
                     platforms = data['platforms']
                     
-                    # Check if we have the expected number of platforms (30+)
-                    if len(platforms) >= 30:
+                    # Check if we have the expected number of platforms (37+)
+                    if len(platforms) >= 37:
                         # Verify platform categories
                         social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
                         streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
                         radio = [p for p in platforms.values() if p.get('type') == 'radio']
                         tv = [p for p in platforms.values() if p.get('type') == 'tv']
                         podcast = [p for p in platforms.values() if p.get('type') == 'podcast']
+                        performance_rights = [p for p in platforms.values() if p.get('type') == 'performance_rights']
                         
-                        # Verify specific platforms exist
+                        # Verify specific platforms exist including new PRO platforms
                         expected_platforms = ['instagram', 'twitter', 'facebook', 'tiktok', 'youtube', 
                                             'spotify', 'apple_music', 'soundcloud', 'iheartradio', 
                                             'siriusxm', 'cnn', 'fox_news', 'netflix', 'hulu', 
-                                            'spotify_podcasts', 'apple_podcasts']
+                                            'spotify_podcasts', 'apple_podcasts', 'soundexchange', 
+                                            'ascap', 'bmi', 'sesac']
                         
                         missing_platforms = [p for p in expected_platforms if p not in platforms]
                         
                         if not missing_platforms:
                             self.log_result("distribution_platforms", "Distribution Platforms Endpoint", True, 
-                                          f"Found {len(platforms)} platforms across all categories (Social: {len(social_media)}, Streaming: {len(streaming)}, Radio: {len(radio)}, TV: {len(tv)}, Podcast: {len(podcast)})")
+                                          f"Found {len(platforms)} platforms across all categories (Social: {len(social_media)}, Streaming: {len(streaming)}, Radio: {len(radio)}, TV: {len(tv)}, Podcast: {len(podcast)}, Performance Rights: {len(performance_rights)})")
                             return True
                         else:
                             self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
@@ -433,7 +435,7 @@ class BackendTester:
                             return False
                     else:
                         self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
-                                      f"Expected 30+ platforms, found {len(platforms)}")
+                                      f"Expected 37+ platforms, found {len(platforms)}")
                         return False
                 else:
                     self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
