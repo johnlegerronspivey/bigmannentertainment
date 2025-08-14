@@ -176,7 +176,7 @@ async def create_ern_message(
             "xml_filename": xml_filename,
             "isrc": audio_resource.isrc,
             "catalog_number": release.catalog_number,
-            "record_id": ddx_record["id"]
+            "record_id": ddex_record["id"]
         }
         
     except Exception as e:
