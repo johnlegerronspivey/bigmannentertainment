@@ -620,6 +620,165 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 50 * 1024 * 1024,
         "credentials_required": ["writer_id", "publisher_id", "api_key"],
         "description": "Society of European Stage Authors and Composers - Performance rights organization"
+    },
+    
+    # Blockchain & Web3 Platforms
+    "ethereum_mainnet": {
+        "type": "blockchain",
+        "name": "Ethereum Mainnet",
+        "api_endpoint": "https://mainnet.infura.io/v3",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["infura_project_id", "private_key"],
+        "description": "Ethereum blockchain for NFT minting and smart contracts"
+    },
+    "polygon_matic": {
+        "type": "blockchain",
+        "name": "Polygon (MATIC)",
+        "api_endpoint": "https://polygon-mainnet.infura.io/v3",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["infura_project_id", "private_key"],
+        "description": "Low-cost Polygon network for affordable NFT transactions"
+    },
+    "solana_mainnet": {
+        "type": "blockchain",
+        "name": "Solana Mainnet",
+        "api_endpoint": "https://api.mainnet-beta.solana.com",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["solana_private_key", "rpc_url"],
+        "description": "Fast and low-cost Solana blockchain for NFTs"
+    },
+    "binance_smart_chain": {
+        "type": "blockchain",
+        "name": "Binance Smart Chain",
+        "api_endpoint": "https://bsc-dataseed1.binance.org",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["bsc_private_key"],
+        "description": "Binance Smart Chain for cost-effective NFT operations"
+    },
+    "avalanche_c_chain": {
+        "type": "blockchain", 
+        "name": "Avalanche C-Chain",
+        "api_endpoint": "https://api.avax.network/ext/bc/C/rpc",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["avalanche_private_key"],
+        "description": "Avalanche blockchain for fast NFT transactions"
+    },
+    "optimism_layer2": {
+        "type": "blockchain",
+        "name": "Optimism Layer 2",
+        "api_endpoint": "https://mainnet.optimism.io",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["optimism_private_key"],
+        "description": "Ethereum Layer 2 solution for cheaper transactions"
+    },
+    "arbitrum_one": {
+        "type": "blockchain",
+        "name": "Arbitrum One",
+        "api_endpoint": "https://arb1.arbitrum.io/rpc",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["arbitrum_private_key"],
+        "description": "Ethereum Layer 2 scaling solution"
+    },
+    
+    # NFT Marketplaces
+    "opensea": {
+        "type": "nft_marketplace",
+        "name": "OpenSea",
+        "api_endpoint": "https://api.opensea.io/v1",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["opensea_api_key", "wallet_private_key"],
+        "description": "World's largest NFT marketplace"
+    },
+    "rarible": {
+        "type": "nft_marketplace",
+        "name": "Rarible",
+        "api_endpoint": "https://api.rarible.org/v0.1",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["rarible_api_key", "wallet_private_key"],
+        "description": "Community-owned NFT marketplace"
+    },
+    "foundation": {
+        "type": "nft_marketplace",
+        "name": "Foundation",
+        "api_endpoint": "https://api.foundation.app/v1",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["foundation_api_key", "wallet_private_key"],
+        "description": "Curated NFT marketplace for digital art"
+    },
+    "superrare": {
+        "type": "nft_marketplace",
+        "name": "SuperRare",
+        "api_endpoint": "https://api.superrare.co/v1",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["superrare_api_key", "wallet_private_key"],
+        "description": "Digital art NFT marketplace"
+    },
+    "magic_eden": {
+        "type": "nft_marketplace",
+        "name": "Magic Eden",
+        "api_endpoint": "https://api-mainnet.magiceden.dev/v2",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["magic_eden_api_key", "solana_private_key"],
+        "description": "Leading Solana NFT marketplace"
+    },
+    "async_art": {
+        "type": "nft_marketplace",
+        "name": "Async Art",
+        "api_endpoint": "https://api.async.art/v1",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["async_api_key", "wallet_private_key"],
+        "description": "Programmable NFT art platform"
+    },
+    
+    # Web3 Music Platforms
+    "audius": {
+        "type": "web3_music",
+        "name": "Audius",
+        "api_endpoint": "https://api.audius.co/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["audius_private_key", "user_id"],
+        "description": "Decentralized music streaming platform"
+    },
+    "catalog": {
+        "type": "web3_music",
+        "name": "Catalog",
+        "api_endpoint": "https://api.catalog.works/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["catalog_api_key", "wallet_private_key"],
+        "description": "NFT music marketplace for collectors"
+    },
+    "sound_xyz": {
+        "type": "web3_music",
+        "name": "Sound.xyz",
+        "api_endpoint": "https://api.sound.xyz/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["sound_api_key", "wallet_private_key"],
+        "description": "Web3 music platform with fan funding"
+    },
+    "royal": {
+        "type": "web3_music",
+        "name": "Royal",
+        "api_endpoint": "https://api.royal.io/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["royal_api_key", "artist_id"],
+        "description": "Music NFT ownership and royalty sharing"
     }
 }
 
