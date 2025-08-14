@@ -262,7 +262,7 @@ async def register_musical_work(
         xml_filename = f"CWR_{work_registration.registration_id}.xml"
         xml_path = ddex_dir / xml_filename
         
-        async with open(xml_path, "w", encoding="utf-8") as f:
+        async with aiofiles.open(xml_path, "w", encoding="utf-8") as f:
             await f.write(xml_content)
         
         # Store in database
