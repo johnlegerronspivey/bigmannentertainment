@@ -83,14 +83,14 @@ async def log_activity(user_id: str, action: str, resource_type: str, resource_i
     )
     await db.activity_logs.insert_one(activity.dict())
 
-# Import sponsorship models and services with absolute paths
+# Import sponsorship models and services
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from sponsorship_models import *
-    from sponsorship_service import SponsorshipBonusCalculator, SponsorshipAnalytics, SponsorshipRecommendationEngine
+    from .sponsorship_models import *
+    from .sponsorship_service import SponsorshipBonusCalculator, SponsorshipAnalytics, SponsorshipRecommendationEngine
 except ImportError:
     # Fallback: Import using absolute paths
     import importlib.util
