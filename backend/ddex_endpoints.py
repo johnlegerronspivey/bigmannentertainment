@@ -129,7 +129,7 @@ async def create_ern_message(
         xml_filename = f"ERN_{ern_message.message_id}.xml"
         xml_path = ddex_dir / xml_filename
         
-        async with open(xml_path, "w", encoding="utf-8") as f:
+        async with aiofiles.open(xml_path, "w", encoding="utf-8") as f:
             await f.write(xml_content)
         
         # Store in database
