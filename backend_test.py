@@ -630,7 +630,7 @@ class BackendTester:
                 results = data.get('results', {})
                 
                 # Check that both platforms failed due to format incompatibility
-                failed_platforms = [p for p, r in results.items() if r.get('status') == 'error' and 'only supports video' in r.get('message', '')]
+                failed_platforms = [p for p, r in results.items() if r.get('status') == 'error' and 'not supported by' in r.get('message', '')]
                 
                 if len(failed_platforms) == 2:  # Both should fail
                     self.log_result("platform_compatibility", "Audio to Video-Only Platform", True, 
