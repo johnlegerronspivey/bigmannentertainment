@@ -36,6 +36,7 @@ class BackendTester:
             "distribution_history": {"passed": 0, "failed": 0, "details": []},
             "platform_compatibility": {"passed": 0, "failed": 0, "details": []},
             "soundexchange_pro": {"passed": 0, "failed": 0, "details": []},
+            "fm_broadcast": {"passed": 0, "failed": 0, "details": []},
             "payments": {"passed": 0, "failed": 0, "details": []},
             "analytics": {"passed": 0, "failed": 0, "details": []}
         }
