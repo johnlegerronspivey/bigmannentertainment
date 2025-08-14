@@ -1208,7 +1208,8 @@ class BackendTester:
         """Run all backend tests"""
         print("=" * 80)
         print("STARTING BIG MANN ENTERTAINMENT COMPREHENSIVE BACKEND TESTING")
-        print("Testing Distribution Platform with 30+ Media Distribution Channels")
+        print("Testing Distribution Platform with 37+ Media Distribution Channels")
+        print("INCLUDING NEW SOUNDEXCHANGE & PERFORMANCE RIGHTS ORGANIZATIONS")
         print("=" * 80)
         
         # Authentication Tests
@@ -1254,6 +1255,16 @@ class BackendTester:
         print("-" * 40)
         self.test_distribution_history_tracking()
         self.test_distribution_status_retrieval()
+        
+        # NEW: SoundExchange and PRO Tests
+        print("\n🎵 TESTING SOUNDEXCHANGE & PERFORMANCE RIGHTS ORGANIZATIONS")
+        print("-" * 40)
+        self.test_soundexchange_platform_configuration()
+        self.test_pro_platforms_configuration()
+        self.test_soundexchange_registration_workflow()
+        self.test_traditional_pro_registration_workflow()
+        self.test_performance_rights_audio_only_validation()
+        self.test_platform_count_update()
         
         # Payment Tests
         print("\n💳 TESTING PAYMENT INTEGRATION")
