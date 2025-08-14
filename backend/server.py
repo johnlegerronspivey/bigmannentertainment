@@ -152,6 +152,73 @@ class DistributionRequest(BaseModel):
     scheduled_time: Optional[datetime] = None
     hashtags: List[str] = []
 
+class SocialPost(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    media_id: str
+    platform: str  # instagram, tiktok, youtube, twitter, facebook
+    post_content: str
+    scheduled_time: Optional[datetime] = None
+    posted_time: Optional[datetime] = None
+    status: str = "draft"  # draft, scheduled, posted, failed
+    platform_post_id: Optional[str] = None
+    engagement_metrics: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class NFTCollection(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    symbol: str
+    owner_id: str
+    blockchain_network: str  # ethereum, polygon, solana, etc.
+    contract_address: Optional[str] = None
+    total_supply: int = 0
+    royalty_percentage: float = 10.0  # Default 10% royalty
+    floor_price: float = 0.0
+    volume_traded: float = 0.0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class NFTToken(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    collection_id: str
+    media_id: str
+    token_id: Optional[int] = None
+    token_uri: str
+    metadata_uri: str
+    blockchain_network: str
+    contract_address: Optional[str] = None
+    owner_wallet: Optional[str] = None
+    current_price: float = 0.0
+    last_sale_price: float = 0.0
+    is_listed: bool = False
+    marketplace: Optional[str] = None
+    transaction_hash: Optional[str] = None
+    minted_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class SmartContract(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    contract_type: str  # royalty_distribution, licensing, revenue_sharing
+    blockchain_network: str
+    contract_address: str
+    abi: Dict[str, Any] = {}
+    owner_id: str
+    beneficiaries: List[Dict[str, Any]] = []  # {address: str, percentage: float}
+    is_active: bool = True
+    deployed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CryptoWallet(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    wallet_address: str
+    blockchain_network: str
+    wallet_type: str  # metamask, coinbase, phantom, etc.
+    is_primary: bool = False
+    balance: Dict[str, float] = {}  # {token_symbol: balance}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
 # Distribution Platform Configurations
 DISTRIBUTION_PLATFORMS = {
     # Social Media Platforms
