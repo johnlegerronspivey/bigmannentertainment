@@ -2948,6 +2948,717 @@ class BackendTester:
         except Exception as e:
             self.log_result("ddex_xml_validation", "XML Validation", False, f"Exception: {str(e)}")
             return False
+
+    # ==================== SPONSORSHIP SYSTEM TESTS ====================
+    
+    def test_create_sponsor_profile(self) -> bool:
+        """Test creating sponsor profiles (Admin only)"""
+        try:
+            if not self.auth_token:
+                self.log_result("sponsorship_sponsors", "Create Sponsor Profile", False, "No auth token available")
+                return False
+            
+            sponsor_data = {
+                "company_name": "Big Tech Innovations",
+                "brand_name": "TechFlow",
+                "contact_person": "Sarah Johnson",
+                "email": "sarah@bigtechinnovations.com",
+                "phone": "+1-555-0123",
+                "website": "https://bigtechinnovations.com",
+                "industry": "technology",
+                "company_size": "large",
+                "annual_budget": 500000.0,
+                "address": {
+                    "street": "123 Innovation Drive",
+                    "city": "San Francisco",
+                    "state": "CA",
+                    "zip": "94105",
+                    "country": "USA"
+                },
+                "target_audience": ["tech_enthusiasts", "young_professionals", "entrepreneurs"],
+                "preferred_content_types": ["music", "video", "podcast"],
+                "preferred_genres": ["electronic", "pop", "hip-hop"],
+                "tier": "gold",
+                "brand_colors": ["#0066CC", "#FF6600"]
+            }
+            
+            response = self.make_request('POST', '/sponsorship/sponsors', json=sponsor_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'sponsor_id' in result and 'company_name' in result:
+                    self.test_sponsor_id = result['sponsor_id']
+                    self.log_result("sponsorship_sponsors", "Create Sponsor Profile", True, 
+                                  f"Created sponsor: {result['company_name']} (ID: {result['sponsor_id']})")
+                    return True
+                else:
+                    self.log_result("sponsorship_sponsors", "Create Sponsor Profile", False, "Missing sponsor_id in response")
+                    return False
+            else:
+                self.log_result("sponsorship_sponsors", "Create Sponsor Profile", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_sponsors", "Create Sponsor Profile", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_sponsors_list(self) -> bool:
+        """Test retrieving sponsors list with filtering"""
+        try:
+            if not self.auth_token:
+                self.log_result("sponsorship_sponsors", "Get Sponsors List", False, "No auth token available")
+                return False
+            
+            # Test basic list
+            response = self.make_request('GET', '/sponsorship/sponsors')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'sponsors' in result and 'total' in result:
+                    sponsors = result['sponsors']
+                    total = result['total']
+                    
+                    # Test filtering by tier
+                    filter_response = self.make_request('GET', '/sponsorship/sponsors?tier=gold&limit=10')
+                    
+                    if filter_response.status_code == 200:
+                        filter_result = filter_response.json()
+                        gold_sponsors = filter_result.get('sponsors', [])
+                        
+                        # Verify all returned sponsors are gold tier
+                        all_gold = all(sponsor.get('tier') == 'gold' for sponsor in gold_sponsors)
+                        
+                        if all_gold:
+                            self.log_result("sponsorship_sponsors", "Get Sponsors List", True, 
+                                          f"Retrieved {total} total sponsors, {len(gold_sponsors)} gold tier sponsors")
+                            return True
+                        else:
+                            self.log_result("sponsorship_sponsors", "Get Sponsors List", False, 
+                                          "Filtering by tier not working correctly")
+                            return False
+                    else:
+                        self.log_result("sponsorship_sponsors", "Get Sponsors List", False, 
+                                      f"Filter request failed: {filter_response.status_code}")
+                        return False
+                else:
+                    self.log_result("sponsorship_sponsors", "Get Sponsors List", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("sponsorship_sponsors", "Get Sponsors List", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_sponsors", "Get Sponsors List", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_sponsor_details(self) -> bool:
+        """Test retrieving detailed sponsor information"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_sponsor_id'):
+                self.log_result("sponsorship_sponsors", "Get Sponsor Details", False, "No auth token or sponsor ID")
+                return False
+            
+            response = self.make_request('GET', f'/sponsorship/sponsors/{self.test_sponsor_id}')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'sponsor' in result and 'statistics' in result:
+                    sponsor = result['sponsor']
+                    stats = result['statistics']
+                    
+                    # Verify sponsor details
+                    required_fields = ['company_name', 'contact_person', 'email', 'industry', 'tier']
+                    if all(field in sponsor for field in required_fields):
+                        # Verify statistics
+                        stat_fields = ['total_deals', 'active_deals', 'total_spent', 'average_deal_value']
+                        if all(field in stats for field in stat_fields):
+                            self.log_result("sponsorship_sponsors", "Get Sponsor Details", True, 
+                                          f"Retrieved details for {sponsor['company_name']} with {stats['total_deals']} deals")
+                            return True
+                        else:
+                            self.log_result("sponsorship_sponsors", "Get Sponsor Details", False, 
+                                          "Missing statistics fields")
+                            return False
+                    else:
+                        self.log_result("sponsorship_sponsors", "Get Sponsor Details", False, 
+                                      "Missing required sponsor fields")
+                        return False
+                else:
+                    self.log_result("sponsorship_sponsors", "Get Sponsor Details", False, "Missing sponsor or statistics")
+                    return False
+            else:
+                self.log_result("sponsorship_sponsors", "Get Sponsor Details", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_sponsors", "Get Sponsor Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_create_sponsorship_deal(self) -> bool:
+        """Test creating sponsorship deals with bonus rules"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_sponsor_id'):
+                self.log_result("sponsorship_deals", "Create Sponsorship Deal", False, "No auth token or sponsor ID")
+                return False
+            
+            # Create deal with multiple bonus rule types
+            deal_data = {
+                "deal_name": "Music Promotion Campaign Q1 2025",
+                "sponsor_id": self.test_sponsor_id,
+                "deal_type": "content_sponsorship",
+                "description": "Promote TechFlow brand through music content on Big Mann Entertainment platform",
+                "requirements": [
+                    "Include brand mention in track description",
+                    "Use brand colors in visual content",
+                    "Target tech-savvy audience"
+                ],
+                "deliverables": [
+                    "3 sponsored music tracks",
+                    "Social media promotion",
+                    "Performance analytics reports"
+                ],
+                "base_fee": 5000.0,
+                "bonus_rules": [
+                    {
+                        "name": "Performance Bonus",
+                        "bonus_type": "performance",
+                        "metric_type": "views",
+                        "rate": 0.001,
+                        "threshold": 10000,
+                        "cap": 2000.0
+                    },
+                    {
+                        "name": "Milestone Rewards",
+                        "bonus_type": "milestone",
+                        "metric_type": "streams",
+                        "milestones": [
+                            {"target": 50000, "bonus": 500},
+                            {"target": 100000, "bonus": 1000},
+                            {"target": 250000, "bonus": 2500}
+                        ]
+                    },
+                    {
+                        "name": "Revenue Share",
+                        "bonus_type": "revenue_share",
+                        "percentage": 15.0,
+                        "cap": 5000.0
+                    }
+                ],
+                "currency": "USD",
+                "payment_schedule": "monthly",
+                "content_types": ["music", "video"],
+                "brand_integration_level": "moderate",
+                "target_platforms": ["spotify", "youtube", "instagram", "tiktok"],
+                "target_demographics": {
+                    "age_range": "18-35",
+                    "interests": ["technology", "music", "innovation"],
+                    "income_level": "middle_to_high"
+                },
+                "start_date": "2025-01-01",
+                "end_date": "2025-03-31",
+                "kpi_targets": {
+                    "views": 500000,
+                    "streams": 200000,
+                    "engagement": 25000,
+                    "conversions": 1000
+                },
+                "reporting_frequency": "weekly"
+            }
+            
+            response = self.make_request('POST', '/sponsorship/deals', json=deal_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'deal_id' in result and 'deal_name' in result:
+                    self.test_deal_id = result['deal_id']
+                    self.log_result("sponsorship_deals", "Create Sponsorship Deal", True, 
+                                  f"Created deal: {result['deal_name']} (ID: {result['deal_id']})")
+                    return True
+                else:
+                    self.log_result("sponsorship_deals", "Create Sponsorship Deal", False, "Missing deal_id in response")
+                    return False
+            else:
+                self.log_result("sponsorship_deals", "Create Sponsorship Deal", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_deals", "Create Sponsorship Deal", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_user_deals(self) -> bool:
+        """Test retrieving user's sponsorship deals"""
+        try:
+            if not self.auth_token:
+                self.log_result("sponsorship_deals", "Get User Deals", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/sponsorship/deals')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'deals' in result and 'total' in result:
+                    deals = result['deals']
+                    total = result['total']
+                    
+                    # Test filtering by status
+                    filter_response = self.make_request('GET', '/sponsorship/deals?status=draft')
+                    
+                    if filter_response.status_code == 200:
+                        filter_result = filter_response.json()
+                        draft_deals = filter_result.get('deals', [])
+                        
+                        self.log_result("sponsorship_deals", "Get User Deals", True, 
+                                      f"Retrieved {total} total deals, {len(draft_deals)} draft deals")
+                        return True
+                    else:
+                        self.log_result("sponsorship_deals", "Get User Deals", False, 
+                                      f"Filter request failed: {filter_response.status_code}")
+                        return False
+                else:
+                    self.log_result("sponsorship_deals", "Get User Deals", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("sponsorship_deals", "Get User Deals", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_deals", "Get User Deals", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_deal_details(self) -> bool:
+        """Test retrieving detailed deal information"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_deal_id'):
+                self.log_result("sponsorship_deals", "Get Deal Details", False, "No auth token or deal ID")
+                return False
+            
+            response = self.make_request('GET', f'/sponsorship/deals/{self.test_deal_id}')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'deal' in result:
+                    deal = result['deal']
+                    
+                    # Verify deal structure
+                    required_fields = ['deal_name', 'sponsor_id', 'base_fee', 'bonus_rules', 'kpi_targets']
+                    if all(field in deal for field in required_fields):
+                        bonus_rules = deal['bonus_rules']
+                        if len(bonus_rules) >= 2:  # Should have multiple bonus rules
+                            self.log_result("sponsorship_deals", "Get Deal Details", True, 
+                                          f"Retrieved deal details with {len(bonus_rules)} bonus rules")
+                            return True
+                        else:
+                            self.log_result("sponsorship_deals", "Get Deal Details", False, 
+                                          f"Expected multiple bonus rules, got {len(bonus_rules)}")
+                            return False
+                    else:
+                        self.log_result("sponsorship_deals", "Get Deal Details", False, 
+                                      "Missing required deal fields")
+                        return False
+                else:
+                    self.log_result("sponsorship_deals", "Get Deal Details", False, "Missing deal data")
+                    return False
+            else:
+                self.log_result("sponsorship_deals", "Get Deal Details", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_deals", "Get Deal Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_approve_deal(self) -> bool:
+        """Test deal approval workflow"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_deal_id'):
+                self.log_result("sponsorship_deals", "Approve Deal", False, "No auth token or deal ID")
+                return False
+            
+            # Test creator approval
+            response = self.make_request('PUT', f'/sponsorship/deals/{self.test_deal_id}/approve?approval_type=creator')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'message' in result and 'approval' in result['message']:
+                    self.log_result("sponsorship_deals", "Approve Deal", True, 
+                                  f"Creator approval successful: {result['message']}")
+                    return True
+                else:
+                    self.log_result("sponsorship_deals", "Approve Deal", False, "Invalid approval response")
+                    return False
+            else:
+                self.log_result("sponsorship_deals", "Approve Deal", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_deals", "Approve Deal", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_record_performance_metrics(self) -> bool:
+        """Test recording performance metrics for deals"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_deal_id'):
+                self.log_result("sponsorship_metrics", "Record Performance Metrics", False, "No auth token or deal ID")
+                return False
+            
+            # Record multiple types of metrics
+            metrics_to_record = [
+                {
+                    "deal_id": self.test_deal_id,
+                    "metric_type": "views",
+                    "metric_value": 15000.0,
+                    "platform": "youtube",
+                    "source": "sponsored",
+                    "measurement_date": "2025-01-15"
+                },
+                {
+                    "deal_id": self.test_deal_id,
+                    "metric_type": "streams",
+                    "metric_value": 8500.0,
+                    "platform": "spotify",
+                    "source": "organic",
+                    "measurement_date": "2025-01-15"
+                },
+                {
+                    "deal_id": self.test_deal_id,
+                    "metric_type": "engagement",
+                    "metric_value": 1200.0,
+                    "platform": "instagram",
+                    "source": "sponsored",
+                    "measurement_date": "2025-01-15"
+                },
+                {
+                    "deal_id": self.test_deal_id,
+                    "metric_type": "revenue",
+                    "metric_value": 2500.0,
+                    "platform": "multiple",
+                    "source": "sponsored",
+                    "measurement_date": "2025-01-15"
+                }
+            ]
+            
+            successful_metrics = 0
+            for metric_data in metrics_to_record:
+                response = self.make_request('POST', '/sponsorship/metrics', json=metric_data)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if 'metric_id' in result:
+                        successful_metrics += 1
+            
+            if successful_metrics == len(metrics_to_record):
+                self.log_result("sponsorship_metrics", "Record Performance Metrics", True, 
+                              f"Successfully recorded {successful_metrics} performance metrics")
+                return True
+            else:
+                self.log_result("sponsorship_metrics", "Record Performance Metrics", False, 
+                              f"Only {successful_metrics}/{len(metrics_to_record)} metrics recorded successfully")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_metrics", "Record Performance Metrics", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_deal_metrics(self) -> bool:
+        """Test retrieving performance metrics for a deal"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_deal_id'):
+                self.log_result("sponsorship_metrics", "Get Deal Metrics", False, "No auth token or deal ID")
+                return False
+            
+            # Test getting all metrics
+            response = self.make_request('GET', f'/sponsorship/deals/{self.test_deal_id}/metrics?days=30')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'metrics_by_type' in result and 'total_metrics' in result:
+                    metrics_by_type = result['metrics_by_type']
+                    total_metrics = result['total_metrics']
+                    
+                    # Test filtering by metric type
+                    filter_response = self.make_request('GET', f'/sponsorship/deals/{self.test_deal_id}/metrics?metric_type=views&days=30')
+                    
+                    if filter_response.status_code == 200:
+                        filter_result = filter_response.json()
+                        views_metrics = filter_result.get('metrics_by_type', {}).get('views', [])
+                        
+                        self.log_result("sponsorship_metrics", "Get Deal Metrics", True, 
+                                      f"Retrieved {total_metrics} total metrics, {len(views_metrics)} view metrics")
+                        return True
+                    else:
+                        self.log_result("sponsorship_metrics", "Get Deal Metrics", False, 
+                                      f"Filter request failed: {filter_response.status_code}")
+                        return False
+                else:
+                    self.log_result("sponsorship_metrics", "Get Deal Metrics", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("sponsorship_metrics", "Get Deal Metrics", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_metrics", "Get Deal Metrics", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_calculate_bonuses(self) -> bool:
+        """Test bonus calculation system"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_deal_id'):
+                self.log_result("sponsorship_bonuses", "Calculate Bonuses", False, "No auth token or deal ID")
+                return False
+            
+            # Calculate bonuses for a period
+            bonus_data = {
+                "period_start": "2025-01-01",
+                "period_end": "2025-01-31"
+            }
+            
+            response = self.make_request('POST', f'/sponsorship/deals/{self.test_deal_id}/calculate-bonuses', 
+                                       params=bonus_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'total_bonus_amount' in result and 'calculations' in result:
+                    total_bonus = result['total_bonus_amount']
+                    calculations = result['calculations']
+                    
+                    # Verify bonus calculation structure
+                    if len(calculations) > 0:
+                        first_calc = calculations[0]
+                        required_fields = ['bonus_amount', 'calculation_method', 'threshold_met']
+                        
+                        if all(field in first_calc for field in required_fields):
+                            self.log_result("sponsorship_bonuses", "Calculate Bonuses", True, 
+                                          f"Calculated ${total_bonus:.2f} total bonus from {len(calculations)} rules")
+                            return True
+                        else:
+                            self.log_result("sponsorship_bonuses", "Calculate Bonuses", False, 
+                                          "Missing required calculation fields")
+                            return False
+                    else:
+                        self.log_result("sponsorship_bonuses", "Calculate Bonuses", True, 
+                                      f"Bonus calculation completed with ${total_bonus:.2f} (no qualifying bonuses)")
+                        return True
+                else:
+                    self.log_result("sponsorship_bonuses", "Calculate Bonuses", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("sponsorship_bonuses", "Calculate Bonuses", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_bonuses", "Calculate Bonuses", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_deal_bonuses(self) -> bool:
+        """Test retrieving bonus calculation history"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_deal_id'):
+                self.log_result("sponsorship_bonuses", "Get Deal Bonuses", False, "No auth token or deal ID")
+                return False
+            
+            response = self.make_request('GET', f'/sponsorship/deals/{self.test_deal_id}/bonuses?days=30')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'calculations' in result and 'summary' in result:
+                    calculations = result['calculations']
+                    summary = result['summary']
+                    
+                    # Verify summary structure
+                    summary_fields = ['total_calculations', 'total_bonus_amount', 'approved_bonus_amount']
+                    if all(field in summary for field in summary_fields):
+                        self.log_result("sponsorship_bonuses", "Get Deal Bonuses", True, 
+                                      f"Retrieved {summary['total_calculations']} bonus calculations, "
+                                      f"${summary['total_bonus_amount']:.2f} total")
+                        return True
+                    else:
+                        self.log_result("sponsorship_bonuses", "Get Deal Bonuses", False, 
+                                      "Missing required summary fields")
+                        return False
+                else:
+                    self.log_result("sponsorship_bonuses", "Get Deal Bonuses", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("sponsorship_bonuses", "Get Deal Bonuses", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_bonuses", "Get Deal Bonuses", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_campaign_analytics(self) -> bool:
+        """Test comprehensive campaign analytics"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_deal_id'):
+                self.log_result("sponsorship_analytics", "Campaign Analytics", False, "No auth token or deal ID")
+                return False
+            
+            # Test different analytics periods
+            periods = ["weekly", "monthly", "quarterly"]
+            successful_periods = 0
+            
+            for period in periods:
+                response = self.make_request('GET', f'/sponsorship/deals/{self.test_deal_id}/analytics?period={period}')
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if 'analytics' in result:
+                        analytics = result['analytics']
+                        
+                        # Verify analytics structure
+                        required_fields = ['total_views', 'total_streams', 'cpm', 'roi', 'engagement_rate']
+                        if all(field in analytics for field in required_fields):
+                            successful_periods += 1
+            
+            if successful_periods == len(periods):
+                self.log_result("sponsorship_analytics", "Campaign Analytics", True, 
+                              f"Successfully generated analytics for all {len(periods)} periods")
+                return True
+            else:
+                self.log_result("sponsorship_analytics", "Campaign Analytics", False, 
+                              f"Only {successful_periods}/{len(periods)} periods generated successfully")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_analytics", "Campaign Analytics", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_bonus_recommendations(self) -> bool:
+        """Test bonus structure recommendations"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_sponsor_id'):
+                self.log_result("sponsorship_analytics", "Bonus Recommendations", False, "No auth token or sponsor ID")
+                return False
+            
+            response = self.make_request('GET', f'/sponsorship/recommendations/bonus-structure?sponsor_id={self.test_sponsor_id}')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'recommended_rules' in result and 'total_rules' in result:
+                    recommended_rules = result['recommended_rules']
+                    total_rules = result['total_rules']
+                    
+                    # Verify recommendation structure
+                    if len(recommended_rules) > 0:
+                        first_rule = recommended_rules[0]
+                        required_fields = ['name', 'bonus_type', 'metric_type']
+                        
+                        if all(field in first_rule for field in required_fields):
+                            self.log_result("sponsorship_analytics", "Bonus Recommendations", True, 
+                                          f"Generated {total_rules} bonus rule recommendations")
+                            return True
+                        else:
+                            self.log_result("sponsorship_analytics", "Bonus Recommendations", False, 
+                                          "Missing required rule fields")
+                            return False
+                    else:
+                        self.log_result("sponsorship_analytics", "Bonus Recommendations", False, 
+                                      "No recommendations generated")
+                        return False
+                else:
+                    self.log_result("sponsorship_analytics", "Bonus Recommendations", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("sponsorship_analytics", "Bonus Recommendations", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_analytics", "Bonus Recommendations", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_admin_sponsorship_overview(self) -> bool:
+        """Test admin sponsorship system overview"""
+        try:
+            if not self.auth_token:
+                self.log_result("sponsorship_admin", "Admin Overview", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/sponsorship/admin/overview')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'overview' in result and 'recent_activity' in result:
+                    overview = result['overview']
+                    recent_activity = result['recent_activity']
+                    
+                    # Verify overview structure
+                    overview_fields = ['total_sponsors', 'active_sponsors', 'total_deals', 'active_deals', 'total_payouts']
+                    activity_fields = ['new_deals_30_days', 'payouts_30_days']
+                    
+                    if (all(field in overview for field in overview_fields) and 
+                        all(field in recent_activity for field in activity_fields)):
+                        
+                        self.log_result("sponsorship_admin", "Admin Overview", True, 
+                                      f"Overview: {overview['total_sponsors']} sponsors, {overview['total_deals']} deals, "
+                                      f"${overview['total_payouts']:.2f} total payouts")
+                        return True
+                    else:
+                        self.log_result("sponsorship_admin", "Admin Overview", False, 
+                                      "Missing required overview fields")
+                        return False
+                else:
+                    self.log_result("sponsorship_admin", "Admin Overview", False, "Missing required sections")
+                    return False
+            else:
+                self.log_result("sponsorship_admin", "Admin Overview", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_admin", "Admin Overview", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_admin_all_deals(self) -> bool:
+        """Test admin access to all sponsorship deals"""
+        try:
+            if not self.auth_token:
+                self.log_result("sponsorship_admin", "Admin All Deals", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/sponsorship/admin/deals?limit=20')
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'deals' in result and 'total' in result:
+                    deals = result['deals']
+                    total = result['total']
+                    
+                    # Test filtering by status
+                    filter_response = self.make_request('GET', '/sponsorship/admin/deals?status=draft&limit=10')
+                    
+                    if filter_response.status_code == 200:
+                        filter_result = filter_response.json()
+                        draft_deals = filter_result.get('deals', [])
+                        
+                        self.log_result("sponsorship_admin", "Admin All Deals", True, 
+                                      f"Admin access to {total} total deals, {len(draft_deals)} draft deals")
+                        return True
+                    else:
+                        self.log_result("sponsorship_admin", "Admin All Deals", False, 
+                                      f"Filter request failed: {filter_response.status_code}")
+                        return False
+                else:
+                    self.log_result("sponsorship_admin", "Admin All Deals", False, "Missing required fields")
+                    return False
+            else:
+                self.log_result("sponsorship_admin", "Admin All Deals", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("sponsorship_admin", "Admin All Deals", False, f"Exception: {str(e)}")
+            return False
     
     def run_all_tests(self):
         """Run all backend tests"""
