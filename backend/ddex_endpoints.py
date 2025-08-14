@@ -367,7 +367,7 @@ async def get_ddex_message_details(
     return message
 
 @ddex_router.get("/messages/{message_id}/xml")
-async def download_ddx_xml(
+async def download_ddex_xml(
     message_id: str,
     current_user: User = Depends(get_current_user)
 ):
