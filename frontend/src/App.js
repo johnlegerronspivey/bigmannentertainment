@@ -118,6 +118,7 @@ const Header = () => {
             <Link to="/upload" className="hover:text-purple-400 transition-colors">Upload</Link>
             <Link to="/distribute" className="hover:text-purple-400 transition-colors">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-400 transition-colors">Platforms</Link>
+            <Link to="/blockchain" className="hover:text-purple-400 transition-colors">Blockchain</Link>
             {user?.is_admin && (
               <Link to="/admin" className="hover:text-purple-400 transition-colors">Admin</Link>
             )}
