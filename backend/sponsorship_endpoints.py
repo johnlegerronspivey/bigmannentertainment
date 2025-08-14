@@ -216,20 +216,51 @@ async def get_sponsor_details(
         "recent_deals": deals[:5]
     }
 
+# Deal creation model (without auto-filled fields)
+class SponsorshipDealCreate(BaseModel):
+    deal_name: str
+    sponsor_id: str
+    deal_type: str
+    description: str
+    requirements: List[str] = []
+    deliverables: List[str] = []
+    base_fee: float = 0.0
+    bonus_rules: List[BonusRule] = []
+    currency: str = "USD"
+    payment_schedule: str = "monthly"
+    content_ids: List[str] = []
+    content_types: List[str] = []
+    brand_integration_level: str = "light"
+    target_platforms: List[str] = []
+    target_demographics: Dict[str, Any] = {}
+    placement_requirements: Dict[str, Any] = {}
+    start_date: date
+    end_date: date
+    auto_renewal: bool = False
+    renewal_terms: Optional[Dict[str, Any]] = None
+    kpi_targets: Dict[str, float] = {}
+    reporting_frequency: str = "weekly"
+    contract_url: Optional[str] = None
+    notes: Optional[str] = None
+    tags: List[str] = []
+
 # Sponsorship Deal Management
 @sponsorship_router.post("/deals", response_model=Dict[str, Any])
 async def create_sponsorship_deal(
-    deal_data: SponsorshipDeal,
+    deal_data: SponsorshipDealCreate,
     current_user: User = Depends(get_current_user)
 ):
     """Create new sponsorship deal"""
     try:
-        # Set creator and created_by
-        deal_data.content_creator_id = current_user.id
-        deal_data.created_by = current_user.id
+        # Create full deal object with auto-filled fields
+        full_deal = SponsorshipDeal(
+            **deal_data.dict(),
+            content_creator_id=current_user.id,
+            created_by=current_user.id
+        )
         
         # Store deal in database
-        deal_dict = deal_data.dict()
+        deal_dict = full_deal.dict()
         await db.sponsorship_deals.insert_one(deal_dict)
         
         # Log activity
@@ -237,18 +268,18 @@ async def create_sponsorship_deal(
             current_user.id,
             "sponsorship_deal_created",
             "sponsorship_deal",
-            deal_data.id,
+            full_deal.id,
             {
-                "deal_name": deal_data.deal_name,
-                "sponsor_id": deal_data.sponsor_id,
-                "base_fee": deal_data.base_fee
+                "deal_name": full_deal.deal_name,
+                "sponsor_id": full_deal.sponsor_id,
+                "base_fee": full_deal.base_fee
             }
         )
         
         return {
             "message": "Sponsorship deal created successfully",
-            "deal_id": deal_data.id,
-            "deal_name": deal_data.deal_name
+            "deal_id": full_deal.id,
+            "deal_name": full_deal.deal_name
         }
         
     except Exception as e:
