@@ -774,10 +774,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Administrator Dashboard Interface"
-    - "Administrator User Management Interface" 
-    - "Admin Route Protection and Security"
-    - "Administrator Blockchain Management Interface"
+    - "DDEX Compliance System Interface"
+    - "DDEX ERN Creation Interface"
+    - "DDEX CWR Registration Interface"
+    - "DDEX Identifier Generation Interface"
+    - "DDEX Messages List Interface"
+    - "DDEX Admin Dashboard Interface"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
