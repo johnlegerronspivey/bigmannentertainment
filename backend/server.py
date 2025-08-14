@@ -966,6 +966,13 @@ class DistributionService:
             return await self._submit_to_podcast_platform(platform, media, custom_message)
         elif platform in ["soundexchange", "ascap", "bmi", "sesac"]:
             return await self._submit_to_performance_rights_org(platform, media, custom_message)
+        elif platform in ["ethereum_mainnet", "polygon_matic", "solana_mainnet", "binance_smart_chain", 
+                         "avalanche_c_chain", "optimism_layer2", "arbitrum_one"]:
+            return await self._mint_nft_on_blockchain(platform, media, custom_message)
+        elif platform in ["opensea", "rarible", "foundation", "superrare", "magic_eden", "async_art"]:
+            return await self._list_on_nft_marketplace(platform, media, custom_message)
+        elif platform in ["audius", "catalog", "sound_xyz", "royal"]:
+            return await self._distribute_to_web3_music_platform(platform, media, custom_message)
         else:
             return {"status": "error", "message": f"Distribution not implemented for {platform}"}
     
