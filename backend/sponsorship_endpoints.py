@@ -4,9 +4,20 @@ from datetime import datetime, date, timedelta
 import uuid
 from pathlib import Path
 
-from server import get_current_user, get_current_admin_user, db, User, log_activity
+# Import from main server module
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from sponsorship_models import *
 from sponsorship_service import SponsorshipBonusCalculator, SponsorshipAnalytics, SponsorshipRecommendationEngine
+
+# Import server utilities
+try:
+    from server import get_current_user, get_current_admin_user, db, User, log_activity
+except ImportError:
+    # Fallback imports if server module is not available in the expected way
+    print("Warning: Could not import from server module directly")
 
 # Create Sponsorship router
 sponsorship_router = APIRouter(prefix="/api/sponsorship", tags=["Sponsorship"])
