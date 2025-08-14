@@ -54,7 +54,13 @@ class BackendTester:
             "ddex_messages": {"passed": 0, "failed": 0, "details": []},
             "ddex_identifiers": {"passed": 0, "failed": 0, "details": []},
             "ddex_admin": {"passed": 0, "failed": 0, "details": []},
-            "ddex_xml_validation": {"passed": 0, "failed": 0, "details": []}
+            "ddex_xml_validation": {"passed": 0, "failed": 0, "details": []},
+            "sponsorship_sponsors": {"passed": 0, "failed": 0, "details": []},
+            "sponsorship_deals": {"passed": 0, "failed": 0, "details": []},
+            "sponsorship_metrics": {"passed": 0, "failed": 0, "details": []},
+            "sponsorship_bonuses": {"passed": 0, "failed": 0, "details": []},
+            "sponsorship_analytics": {"passed": 0, "failed": 0, "details": []},
+            "sponsorship_admin": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
