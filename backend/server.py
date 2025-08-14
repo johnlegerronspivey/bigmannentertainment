@@ -378,6 +378,58 @@ DISTRIBUTION_PLATFORMS = {
         "supported_formats": ["audio"],
         "max_file_size": 200 * 1024 * 1024,
         "credentials_required": ["api_key", "show_id"]
+    },
+    
+    # Additional Streaming Platforms
+    "deezer": {
+        "type": "streaming",
+        "name": "Deezer",
+        "api_endpoint": "https://api.deezer.com",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["app_id", "secret_key"]
+    },
+    "bandcamp": {
+        "type": "streaming",
+        "name": "Bandcamp",
+        "api_endpoint": "https://bandcamp.com/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"]
+    },
+    "audiomack": {
+        "type": "streaming",
+        "name": "Audiomack",
+        "api_endpoint": "https://api.audiomack.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"]
+    },
+    
+    # Additional Social Media Platforms
+    "linkedin": {
+        "type": "social_media",
+        "name": "LinkedIn",
+        "api_endpoint": "https://api.linkedin.com/v2",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret", "access_token"]
+    },
+    "snapchat": {
+        "type": "social_media",
+        "name": "Snapchat",
+        "api_endpoint": "https://adsapi.snapchat.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"]
+    },
+    "pinterest": {
+        "type": "social_media",
+        "name": "Pinterest",
+        "api_endpoint": "https://api.pinterest.com/v5",
+        "supported_formats": ["image"],
+        "max_file_size": 32 * 1024 * 1024,
+        "credentials_required": ["access_token"]
     }
 }
 
