@@ -4,6 +4,204 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Sponsorship Dashboard - Main hub for users
+export const SponsorshipDashboard = () => {
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({});
+
+  useEffect(() => {
+    fetchUserDeals();
+    fetchUserStats();
+  }, []);
+
+  const fetchUserDeals = async () => {
+    try {
+      const response = await axios.get(`${API}/sponsorship/deals`);
+      setDeals(response.data.deals);
+    } catch (error) {
+      console.error('Error fetching deals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserStats = async () => {
+    try {
+      // Calculate user stats from deals
+      const activeDeals = deals.filter(deal => deal.status === 'active').length;
+      const totalEarnings = deals.reduce((sum, deal) => sum + (deal.base_fee || 0), 0);
+      
+      setStats({
+        totalDeals: deals.length,
+        activeDeals,
+        totalEarnings,
+        avgDealValue: totalEarnings / Math.max(deals.length, 1)
+      });
+    } catch (error) {
+      console.error('Error calculating stats:', error);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'draft': 'bg-gray-100 text-gray-800',
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'active': 'bg-green-100 text-green-800',
+      'paused': 'bg-orange-100 text-orange-800',
+      'completed': 'bg-blue-100 text-blue-800',
+      'cancelled': 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading sponsorship dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Sponsorship Dashboard</h1>
+          <p className="text-gray-600">Manage your sponsorship deals and track your earnings</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Deals</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalDeals || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Active Deals</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.activeDeals || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Earnings</p>
+                <p className="text-2xl font-bold text-gray-900">${(stats.totalEarnings || 0).toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Avg Deal Value</p>
+                <p className="text-2xl font-bold text-gray-900">${(stats.avgDealValue || 0).toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Deals */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Sponsorship Deals</h2>
+              <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition-colors">
+                View All Deals
+              </button>
+            </div>
+          </div>
+          
+          <div className="overflow-x-auto">
+            {deals.length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No sponsorship deals</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by creating your first sponsorship deal.</p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deal Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sponsor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base Fee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {deals.slice(0, 5).map((deal) => (
+                    <tr key={deal.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{deal.deal_name}</div>
+                        <div className="text-sm text-gray-500">{deal.deal_type}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{deal.sponsor?.company_name || 'Unknown'}</div>
+                        <div className="text-sm text-gray-500">{deal.sponsor?.brand_name || ''}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${(deal.base_fee || 0).toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(deal.status)}`}>
+                          {deal.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button className="text-purple-600 hover:text-purple-900 mr-3">View</button>
+                        <button className="text-blue-600 hover:text-blue-900">Edit</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Sponsorship Deal Creator
 export const SponsorshipDealCreator = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -391,435 +589,166 @@ export const SponsorshipDealCreator = ({ onSuccess }) => {
   );
 };
 
-// Sponsorship Deals List
-export const SponsorshipDealsList = () => {
-  const [deals, setDeals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    fetchDeals();
-  }, [filter]);
-
-  const fetchDeals = async () => {
-    try {
-      const params = new URLSearchParams();
-      if (filter) params.append('status', filter);
-      
-      const response = await axios.get(`${API}/sponsorship/deals?${params}`);
-      setDeals(response.data.deals);
-    } catch (error) {
-      console.error('Error fetching deals:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-600';
-      case 'pending': return 'bg-yellow-100 text-yellow-600';
-      case 'completed': return 'bg-blue-100 text-blue-600';
-      case 'cancelled': return 'bg-red-100 text-red-600';
-      case 'paused': return 'bg-gray-100 text-gray-600';
-      default: return 'bg-gray-100 text-gray-600';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-        <p className="text-center mt-4 text-gray-600">Loading sponsorship deals...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">My Sponsorship Deals</h2>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-        >
-          <option value="">All Status</option>
-          <option value="draft">Draft</option>
-          <option value="pending">Pending</option>
-          <option value="active">Active</option>
-          <option value="paused">Paused</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-      </div>
-      
-      {deals.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-6xl mb-4">🤝</div>
-          <p className="text-gray-600">No sponsorship deals found. Create your first deal above.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {deals.map((deal) => (
-            <div key={deal.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold">{deal.deal_name}</h3>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(deal.status)}`}>
-                  {deal.status.toUpperCase()}
-                </span>
-              </div>
-              
-              <div className="text-sm text-gray-600 mb-3">
-                <p><strong>Sponsor:</strong> {deal.sponsor?.company_name || 'Unknown'}</p>
-                <p><strong>Type:</strong> {deal.deal_type.replace('_', ' ')}</p>
-                <p><strong>Base Fee:</strong> ${deal.base_fee}</p>
-              </div>
-
-              <div className="text-xs text-gray-500 mb-3">
-                <p>Start: {new Date(deal.start_date).toLocaleDateString()}</p>
-                <p>End: {new Date(deal.end_date).toLocaleDateString()}</p>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="text-sm">
-                  <span className="font-medium">{deal.bonus_rules?.length || 0}</span> bonus rules
-                </div>
-                <button className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                  View Details
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Performance Metrics Tracker
-export const PerformanceTracker = ({ dealId }) => {
-  const [metrics, setMetrics] = useState({});
-  const [newMetric, setNewMetric] = useState({
+// Performance Metrics Recorder
+export const MetricsRecorder = ({ dealId, onMetricRecorded }) => {
+  const [formData, setFormData] = useState({
     metric_type: 'views',
     metric_value: '',
-    platform: ''
+    platform: '',
+    source: 'organic'
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (dealId) {
-      fetchMetrics();
-    }
-  }, [dealId]);
+  const metricTypes = [
+    { value: 'views', label: 'Views' },
+    { value: 'downloads', label: 'Downloads' },
+    { value: 'streams', label: 'Streams' },
+    { value: 'engagement', label: 'Engagement' },
+    { value: 'clicks', label: 'Clicks' },
+    { value: 'conversions', label: 'Conversions' },
+    { value: 'revenue', label: 'Revenue' },
+    { value: 'shares', label: 'Shares' },
+    { value: 'comments', label: 'Comments' },
+    { value: 'likes', label: 'Likes' }
+  ];
 
-  const fetchMetrics = async () => {
-    try {
-      const response = await axios.get(`${API}/sponsorship/deals/${dealId}/metrics`);
-      setMetrics(response.data.metrics_by_type);
-    } catch (error) {
-      console.error('Error fetching metrics:', error);
-    }
-  };
-
-  const recordMetric = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
+    setSuccess(false);
 
     try {
       const metricData = {
         deal_id: dealId,
-        metric_type: newMetric.metric_type,
-        metric_value: parseFloat(newMetric.metric_value),
-        platform: newMetric.platform || null,
+        metric_type: formData.metric_type,
+        metric_value: parseFloat(formData.metric_value),
+        platform: formData.platform || null,
+        source: formData.source,
         measurement_date: new Date().toISOString().split('T')[0]
       };
 
       await axios.post(`${API}/sponsorship/metrics`, metricData);
       
-      setMessage('Performance metric recorded successfully!');
-      setNewMetric({
+      setSuccess(true);
+      setFormData({
         metric_type: 'views',
         metric_value: '',
-        platform: ''
+        platform: '',
+        source: 'organic'
       });
       
-      fetchMetrics(); // Refresh metrics
-      
+      if (onMetricRecorded) {
+        onMetricRecorded();
+      }
+
+      setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
-      setMessage(error.response?.data?.detail || 'Failed to record metric');
+      console.error('Error recording metric:', error);
+      alert('Failed to record metric. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-semibold mb-6">Performance Tracking</h2>
+    <div className="bg-white rounded-lg shadow p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Record Performance Metric</h3>
       
-      {/* Record New Metric */}
-      <div className="border-b pb-6 mb-6">
-        <h3 className="text-lg font-medium mb-4">Record New Metric</h3>
-        
-        {message && (
-          <div className={`mb-4 p-3 rounded-md text-sm ${
-            message.includes('successfully') 
-              ? 'bg-green-100 border border-green-400 text-green-700'
-              : 'bg-red-100 border border-red-400 text-red-700'
-          }`}>
-            {message}
-          </div>
-        )}
-        
-        <form onSubmit={recordMetric} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {success && (
+        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+          ✅ Performance metric recorded successfully!
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Metric Type
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Metric Type *
             </label>
             <select
-              value={newMetric.metric_type}
-              onChange={(e) => setNewMetric({ ...newMetric, metric_type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              value={formData.metric_type}
+              onChange={(e) => setFormData({ ...formData, metric_type: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              required
             >
-              <option value="views">Views</option>
-              <option value="downloads">Downloads</option>
-              <option value="streams">Streams</option>
-              <option value="engagement">Engagement</option>
-              <option value="clicks">Clicks</option>
-              <option value="conversions">Conversions</option>
+              {metricTypes.map((type) => (
+                <option key={type.value} value={type.value}>{type.label}</option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Value
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Metric Value *
             </label>
             <input
               type="number"
-              value={newMetric.metric_value}
-              onChange={(e) => setNewMetric({ ...newMetric, metric_value: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              min="0"
+              step="0.01"
+              value={formData.metric_value}
+              onChange={(e) => setFormData({ ...formData, metric_value: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter numeric value"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Platform (Optional)
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Platform
             </label>
             <input
               type="text"
-              value={newMetric.platform}
-              onChange={(e) => setNewMetric({ ...newMetric, platform: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-              placeholder="e.g., Instagram"
-            />
-          </div>
-
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors disabled:opacity-50 text-sm"
-            >
-              {loading ? 'Recording...' : 'Record'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Metrics Display */}
-      <div>
-        <h3 className="text-lg font-medium mb-4">Recent Performance</h3>
-        {Object.keys(metrics).length === 0 ? (
-          <p className="text-gray-500">No metrics recorded yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(metrics).map(([metricType, metricData]) => {
-              const totalValue = metricData.reduce((sum, m) => sum + m.metric_value, 0);
-              const latestValue = metricData[metricData.length - 1]?.metric_value || 0;
-              
-              return (
-                <div key={metricType} className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium capitalize mb-2">{metricType}</h4>
-                  <div className="text-2xl font-bold text-purple-600 mb-1">
-                    {totalValue.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Latest: {latestValue.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {metricData.length} data points
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Bonus Calculator and Display
-export const BonusCalculator = ({ dealId }) => {
-  const [bonuses, setBonuses] = useState([]);
-  const [calculationPeriod, setCalculationPeriod] = useState({
-    start_date: '',
-    end_date: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    if (dealId) {
-      fetchBonuses();
-    }
-  }, [dealId]);
-
-  const fetchBonuses = async () => {
-    try {
-      const response = await axios.get(`${API}/sponsorship/deals/${dealId}/bonuses`);
-      setBonuses(response.data.calculations);
-    } catch (error) {
-      console.error('Error fetching bonuses:', error);
-    }
-  };
-
-  const calculateBonuses = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
-
-    try {
-      const response = await axios.post(`${API}/sponsorship/deals/${dealId}/calculate-bonuses`, {
-        period_start: calculationPeriod.start_date,
-        period_end: calculationPeriod.end_date
-      });
-      
-      setMessage(`Bonuses calculated successfully! Total: $${response.data.total_bonus_amount.toFixed(2)}`);
-      fetchBonuses(); // Refresh bonus list
-      
-    } catch (error) {
-      setMessage(error.response?.data?.detail || 'Failed to calculate bonuses');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-semibold mb-6">Bonus Calculator</h2>
-      
-      {/* Calculate New Bonuses */}
-      <div className="border-b pb-6 mb-6">
-        <h3 className="text-lg font-medium mb-4">Calculate Period Bonuses</h3>
-        
-        {message && (
-          <div className={`mb-4 p-3 rounded-md text-sm ${
-            message.includes('successfully') 
-              ? 'bg-green-100 border border-green-400 text-green-700'
-              : 'bg-red-100 border border-red-400 text-red-700'
-          }`}>
-            {message}
-          </div>
-        )}
-        
-        <form onSubmit={calculateBonuses} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Period Start
-            </label>
-            <input
-              type="date"
-              value={calculationPeriod.start_date}
-              onChange={(e) => setCalculationPeriod({ ...calculationPeriod, start_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-              required
+              value={formData.platform}
+              onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="e.g., Instagram, YouTube, Spotify"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Period End
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Source
             </label>
-            <input
-              type="date"
-              value={calculationPeriod.end_date}
-              onChange={(e) => setCalculationPeriod({ ...calculationPeriod, end_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-              required
-            />
-          </div>
-
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors disabled:opacity-50 text-sm"
+            <select
+              value={formData.source}
+              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              {loading ? 'Calculating...' : 'Calculate Bonuses'}
-            </button>
+              <option value="organic">Organic</option>
+              <option value="sponsored">Sponsored</option>
+              <option value="viral">Viral</option>
+              <option value="paid">Paid</option>
+              <option value="referral">Referral</option>
+            </select>
           </div>
-        </form>
-      </div>
+        </div>
 
-      {/* Bonus History */}
-      <div>
-        <h3 className="text-lg font-medium mb-4">Bonus History</h3>
-        {bonuses.length === 0 ? (
-          <p className="text-gray-500">No bonuses calculated yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {bonuses.map((bonus) => (
-              <div key={bonus.id} className="bg-gray-50 rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="font-medium">
-                      ${bonus.bonus_amount?.toFixed(2) || '0.00'}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {new Date(bonus.period_start).toLocaleDateString()} - {new Date(bonus.period_end).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    bonus.is_approved 
-                      ? 'bg-green-100 text-green-600' 
-                      : 'bg-yellow-100 text-yellow-600'
-                  }`}>
-                    {bonus.is_approved ? 'Approved' : 'Pending'}
-                  </span>
-                </div>
-                
-                <div className="text-sm text-gray-500">
-                  Method: {bonus.calculation_method}
-                  {bonus.threshold_met === false && (
-                    <span className="ml-2 text-red-500">• Threshold not met</span>
-                  )}
-                  {bonus.cap_applied && (
-                    <span className="ml-2 text-orange-500">• Cap applied</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-md transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Recording...' : 'Record Metric'}
+        </button>
+      </form>
     </div>
   );
 };
 
 // Admin Sponsorship Overview
-export const SponsorshipAdminDashboard = () => {
+export const AdminSponsorshipOverview = () => {
   const [overview, setOverview] = useState({});
+  const [sponsors, setSponsors] = useState([]);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchOverview();
-    fetchAllDeals();
+    fetchSponsors();
+    fetchRecentDeals();
   }, []);
 
   const fetchOverview = async () => {
@@ -831,7 +760,16 @@ export const SponsorshipAdminDashboard = () => {
     }
   };
 
-  const fetchAllDeals = async () => {
+  const fetchSponsors = async () => {
+    try {
+      const response = await axios.get(`${API}/sponsorship/sponsors?limit=10`);
+      setSponsors(response.data.sponsors);
+    } catch (error) {
+      console.error('Error fetching sponsors:', error);
+    }
+  };
+
+  const fetchRecentDeals = async () => {
     try {
       const response = await axios.get(`${API}/sponsorship/admin/deals?limit=10`);
       setDeals(response.data.deals);
@@ -844,125 +782,146 @@ export const SponsorshipAdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-        <p className="text-center mt-4 text-gray-600">Loading sponsorship overview...</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading sponsorship overview...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Total Sponsors</p>
-              <p className="text-3xl font-bold text-purple-600">{overview.overview?.total_sponsors || 0}</p>
-              <p className="text-sm text-green-600">{overview.overview?.active_sponsors || 0} active</p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Sponsorship Management</h1>
+          <p className="text-gray-600">Overview of all sponsorship activities and performance</p>
+        </div>
+
+        {/* Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Sponsors</p>
+                <p className="text-2xl font-bold text-gray-900">{overview.overview?.total_sponsors || 0}</p>
+              </div>
             </div>
-            <div className="p-3 bg-purple-100 rounded-full">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Active Deals</p>
+                <p className="text-2xl font-bold text-gray-900">{overview.overview?.active_deals || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Payouts</p>
+                <p className="text-2xl font-bold text-gray-900">${(overview.overview?.total_payouts || 0).toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Avg Deal Value</p>
+                <p className="text-2xl font-bold text-gray-900">${(overview.overview?.average_deal_value || 0).toFixed(2)}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Total Deals</p>
-              <p className="text-3xl font-bold text-blue-600">{overview.overview?.total_deals || 0}</p>
-              <p className="text-sm text-green-600">{overview.overview?.active_deals || 0} active</p>
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Top Sponsors */}
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Top Sponsors</h2>
             </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Total Payouts</p>
-              <p className="text-3xl font-bold text-green-600">${overview.overview?.total_payouts?.toFixed(2) || '0.00'}</p>
-              <p className="text-sm text-gray-500">All time</p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Avg Deal Value</p>
-              <p className="text-3xl font-bold text-orange-600">${overview.overview?.average_deal_value?.toFixed(2) || '0.00'}</p>
-              <p className="text-sm text-gray-500">Per deal</p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-full">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
+            <div className="p-6">
+              {sponsors.length === 0 ? (
+                <p className="text-gray-500">No sponsors found.</p>
+              ) : (
+                <div className="space-y-4">
+                  {sponsors.slice(0, 5).map((sponsor) => (
+                    <div key={sponsor.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900">{sponsor.company_name}</p>
+                        <p className="text-sm text-gray-500">{sponsor.industry}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-gray-900">{sponsor.tier}</p>
+                        <p className="text-sm text-gray-500">${(sponsor.total_spent || 0).toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Recent Deals */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Recent Sponsorship Deals</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deal</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sponsor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creator</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {deals.map((deal) => (
-                <tr key={deal.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {deal.deal_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {deal.sponsor?.company_name || 'Unknown'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {deal.creator?.full_name || deal.creator?.email || 'Unknown'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${deal.base_fee}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      deal.status === 'active' ? 'bg-green-100 text-green-800' :
-                      deal.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      deal.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {deal.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(deal.created_at).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* Recent Deals */}
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Deals</h2>
+            </div>
+            <div className="p-6">
+              {deals.length === 0 ? (
+                <p className="text-gray-500">No recent deals found.</p>
+              ) : (
+                <div className="space-y-4">
+                  {deals.slice(0, 5).map((deal) => (
+                    <div key={deal.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900">{deal.deal_name}</p>
+                        <p className="text-sm text-gray-500">{deal.creator?.full_name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-gray-900">${(deal.base_fee || 0).toFixed(2)}</p>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          deal.status === 'active' ? 'bg-green-100 text-green-800' : 
+                          deal.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {deal.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
