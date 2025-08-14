@@ -3,7 +3,7 @@ from xml.dom import minidom
 from datetime import datetime, date
 from typing import List, Optional, Dict, Any
 import os
-from .ddex_models import *
+from ddex_models import *
 
 class DDEXService:
     def __init__(self):
