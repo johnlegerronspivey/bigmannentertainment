@@ -39,14 +39,14 @@ async def create_ern_message(
         
         # Save uploaded files
         audio_path = ddex_dir / f"audio_{uuid.uuid4().hex[:8]}_{audio_file.filename}"
-        async with open(audio_path, "wb") as f:
+        async with aiofiles.open(audio_path, "wb") as f:
             content = await audio_file.read()
             await f.write(content)
         
         cover_path = None
         if cover_image:
             cover_path = ddex_dir / f"cover_{uuid.uuid4().hex[:8]}_{cover_image.filename}"
-            async with open(cover_path, "wb") as f:
+            async with aiofiles.open(cover_path, "wb") as f:
                 content = await cover_image.read()
                 await f.write(content)
         
