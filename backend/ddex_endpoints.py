@@ -142,7 +142,7 @@ async def create_ern_message(
             "title": title,
             "artist_name": artist_name,
             "label_name": label_name,
-            "release_date": parsed_release_date,
+            "release_date": parsed_release_date.isoformat(),
             "xml_filename": xml_filename,
             "xml_path": str(xml_path),
             "audio_path": str(audio_path),
