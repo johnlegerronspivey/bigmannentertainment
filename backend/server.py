@@ -2473,8 +2473,14 @@ async def get_user_wallets(current_user: User = Depends(get_current_user)):
 app.include_router(api_router)
 
 # Include DDEX router
-from .ddex_endpoints import ddex_router
-app.include_router(ddex_router)
+try:
+    from ddex_endpoints import ddex_router
+    app.include_router(ddex_router)
+    print("✅ DDEX router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ DDEX router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading DDEX router: {e}")
 
 if __name__ == "__main__":
     import uvicorn
