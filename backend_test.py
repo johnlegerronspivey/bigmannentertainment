@@ -413,6 +413,7 @@ class BackendTester:
                         social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
                         streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
                         radio = [p for p in platforms.values() if p.get('type') == 'radio']
+                        fm_broadcast = [p for p in platforms.values() if p.get('type') == 'fm_broadcast']
                         tv = [p for p in platforms.values() if p.get('type') == 'tv']
                         podcast = [p for p in platforms.values() if p.get('type') == 'podcast']
                         performance_rights = [p for p in platforms.values() if p.get('type') == 'performance_rights']
