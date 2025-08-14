@@ -338,10 +338,16 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full space-y-8">
-        <div>
+        <div className="text-center">
+          <img 
+            src="https://customer-assets.emergentagent.com/job_audio-video-dist/artifacts/zwcs0h0g_Big%20Mann%20Entertainment%20Logo.png" 
+            alt="Big Mann Entertainment Logo" 
+            className="w-16 h-16 object-contain mx-auto mb-4"
+          />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>
+          <p className="text-gray-600">Big Mann Entertainment</p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
