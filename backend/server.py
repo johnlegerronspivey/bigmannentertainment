@@ -430,6 +430,44 @@ DISTRIBUTION_PLATFORMS = {
         "supported_formats": ["image"],
         "max_file_size": 32 * 1024 * 1024,
         "credentials_required": ["access_token"]
+    },
+    
+    # Digital Performance Rights Organizations
+    "soundexchange": {
+        "type": "performance_rights",
+        "name": "SoundExchange",
+        "api_endpoint": "https://api.soundexchange.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key", "account_id", "client_secret"],
+        "description": "Digital performance royalty collection for satellite radio, internet radio, and cable TV music channels"
+    },
+    "ascap": {
+        "type": "performance_rights",
+        "name": "ASCAP",
+        "api_endpoint": "https://api.ascap.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["member_id", "api_key"],
+        "description": "Performance rights organization for songwriters and publishers"
+    },
+    "bmi": {
+        "type": "performance_rights",
+        "name": "BMI",
+        "api_endpoint": "https://api.bmi.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["affiliate_id", "api_key"],
+        "description": "Broadcast Music Inc. - Performance rights for songwriters and publishers"
+    },
+    "sesac": {
+        "type": "performance_rights",
+        "name": "SESAC",
+        "api_endpoint": "https://api.sesac.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["writer_id", "publisher_id", "api_key"],
+        "description": "Society of European Stage Authors and Composers - Performance rights organization"
     }
 }
 
