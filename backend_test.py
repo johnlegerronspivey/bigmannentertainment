@@ -38,7 +38,17 @@ class BackendTester:
             "soundexchange_pro": {"passed": 0, "failed": 0, "details": []},
             "fm_broadcast": {"passed": 0, "failed": 0, "details": []},
             "payments": {"passed": 0, "failed": 0, "details": []},
-            "analytics": {"passed": 0, "failed": 0, "details": []}
+            "analytics": {"passed": 0, "failed": 0, "details": []},
+            "admin_authentication": {"passed": 0, "failed": 0, "details": []},
+            "admin_user_management": {"passed": 0, "failed": 0, "details": []},
+            "admin_content_management": {"passed": 0, "failed": 0, "details": []},
+            "admin_analytics": {"passed": 0, "failed": 0, "details": []},
+            "admin_platform_management": {"passed": 0, "failed": 0, "details": []},
+            "admin_revenue_management": {"passed": 0, "failed": 0, "details": []},
+            "admin_blockchain_management": {"passed": 0, "failed": 0, "details": []},
+            "admin_security_audit": {"passed": 0, "failed": 0, "details": []},
+            "admin_system_config": {"passed": 0, "failed": 0, "details": []},
+            "ethereum_integration": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
