@@ -3077,6 +3077,35 @@ class BackendTester:
         print("-" * 40)
         self.test_ethereum_address_integration()
         
+        # DDEX Compliance System Tests
+        print("\n🎼 TESTING DDEX COMPLIANCE SYSTEM")
+        print("-" * 40)
+        print("Testing Electronic Release Notification (ERN) System...")
+        self.test_ddex_ern_creation()
+        self.test_ddex_ern_with_cover_image()
+        
+        print("\nTesting Common Works Registration (CWR) System...")
+        self.test_ddex_cwr_registration()
+        self.test_ddex_cwr_minimal_registration()
+        
+        print("\nTesting DDEX Message Management...")
+        self.test_ddex_messages_retrieval()
+        self.test_ddex_messages_filtering()
+        self.test_ddex_message_details()
+        self.test_ddex_xml_download()
+        
+        print("\nTesting DDEX Identifier Generation...")
+        self.test_ddex_isrc_generation()
+        self.test_ddex_iswc_generation()
+        self.test_ddex_catalog_number_generation()
+        
+        print("\nTesting DDEX Admin Features...")
+        self.test_ddex_admin_messages()
+        self.test_ddex_admin_statistics()
+        
+        print("\nTesting DDEX XML Validation...")
+        self.test_ddex_xml_validation()
+        
         # Print Summary
         self.print_summary()
     
