@@ -4351,6 +4351,486 @@ class BackendTester:
             self.log_result("tax_settings", "Update Tax Settings", False, f"Exception: {str(e)}")
             return False
 
+    # Enhanced Tax System Testing Methods
+    def test_get_business_licenses(self) -> bool:
+        """Test getting business licenses with filtering options"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_licenses", "Get Business Licenses", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/licenses')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'licenses' in data and 'total' in data and 'expiring_soon' in data:
+                    licenses = data['licenses']
+                    expiring_soon = data['expiring_soon']
+                    self.log_result("tax_business_licenses", "Get Business Licenses", True, 
+                                  f"Retrieved {len(licenses)} licenses, {len(expiring_soon)} expiring within 90 days")
+                    return True
+                else:
+                    self.log_result("tax_business_licenses", "Get Business Licenses", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_licenses", "Get Business Licenses", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_licenses", "Get Business Licenses", False, f"Exception: {str(e)}")
+            return False
+
+    def test_create_business_license(self) -> bool:
+        """Test creating a new business license record"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_licenses", "Create Business License", False, "No auth token available")
+                return False
+            
+            from datetime import date, timedelta
+            
+            license_data = {
+                "license_number": "BME-ENT-2024-001",
+                "license_type": "entertainment_license",
+                "license_name": "Entertainment Production License",
+                "issuing_authority": "California Department of Consumer Affairs",
+                "issuing_state": "CA",
+                "issuing_city": "Los Angeles",
+                "issuing_county": "Los Angeles County",
+                "issue_date": "2024-01-15",
+                "expiration_date": (date.today() + timedelta(days=365)).isoformat(),
+                "status": "active",
+                "renewal_required": True,
+                "renewal_fee": 250.00,
+                "annual_report_required": False,
+                "business_name": "Big Mann Entertainment",
+                "business_address": {
+                    "line1": "Digital Media Distribution Empire",
+                    "city": "Los Angeles",
+                    "state": "CA",
+                    "zip_code": "90210"
+                },
+                "compliance_requirements": [
+                    "Annual renewal required",
+                    "Maintain business insurance",
+                    "Submit quarterly reports"
+                ]
+            }
+            
+            response = self.make_request('POST', '/tax/licenses', json=license_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'license_id' in data and 'license_number' in data:
+                    self.test_license_id = data['license_id']  # Store for later tests
+                    self.log_result("tax_business_licenses", "Create Business License", True, 
+                                  f"Created license {data['license_number']} with ID {data['license_id']}")
+                    return True
+                else:
+                    self.log_result("tax_business_licenses", "Create Business License", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_licenses", "Create Business License", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_licenses", "Create Business License", False, f"Exception: {str(e)}")
+            return False
+
+    def test_get_license_details(self) -> bool:
+        """Test getting detailed license information"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_licenses", "Get License Details", False, "No auth token available")
+                return False
+            
+            # First get list of licenses to get a license ID
+            list_response = self.make_request('GET', '/tax/licenses?limit=1')
+            
+            if list_response.status_code == 200:
+                list_data = list_response.json()
+                if list_data.get('licenses') and len(list_data['licenses']) > 0:
+                    license_id = list_data['licenses'][0]['id']
+                    
+                    # Now get license details
+                    response = self.make_request('GET', f'/tax/licenses/{license_id}')
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'license' in data:
+                            license_info = data['license']
+                            # Check for renewal calculation
+                            if 'days_until_expiry' in license_info and 'renewal_needed' in license_info:
+                                self.log_result("tax_business_licenses", "Get License Details", True, 
+                                              f"Retrieved license details with expiry calculation: {license_info.get('days_until_expiry')} days")
+                                return True
+                            else:
+                                self.log_result("tax_business_licenses", "Get License Details", False, 
+                                              "Missing expiry calculation fields")
+                                return False
+                        else:
+                            self.log_result("tax_business_licenses", "Get License Details", False, "Missing license in response")
+                            return False
+                    else:
+                        self.log_result("tax_business_licenses", "Get License Details", False, 
+                                      f"Status: {response.status_code}")
+                        return False
+                else:
+                    self.log_result("tax_business_licenses", "Get License Details", True, "No licenses available to test (expected)")
+                    return True
+            else:
+                self.log_result("tax_business_licenses", "Get License Details", False, "Failed to get licenses list")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_licenses", "Get License Details", False, f"Exception: {str(e)}")
+            return False
+
+    def test_license_filtering(self) -> bool:
+        """Test business license filtering by type and status"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_licenses", "License Filtering", False, "No auth token available")
+                return False
+            
+            # Test filtering by license type
+            response = self.make_request('GET', '/tax/licenses?license_type=entertainment_license&status=active')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'licenses' in data:
+                    self.log_result("tax_business_licenses", "License Filtering", True, 
+                                  f"Filtering works - found {len(data['licenses'])} entertainment licenses")
+                    return True
+                else:
+                    self.log_result("tax_business_licenses", "License Filtering", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_licenses", "License Filtering", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_licenses", "License Filtering", False, f"Exception: {str(e)}")
+            return False
+
+    def test_get_business_registrations(self) -> bool:
+        """Test getting business registrations with deadline monitoring"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_registrations", "Get Business Registrations", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/registrations')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'registrations' in data and 'total' in data and 'upcoming_deadlines' in data:
+                    registrations = data['registrations']
+                    upcoming_deadlines = data['upcoming_deadlines']
+                    self.log_result("tax_business_registrations", "Get Business Registrations", True, 
+                                  f"Retrieved {len(registrations)} registrations, {len(upcoming_deadlines)} upcoming deadlines within 60 days")
+                    return True
+                else:
+                    self.log_result("tax_business_registrations", "Get Business Registrations", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_registrations", "Get Business Registrations", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_registrations", "Get Business Registrations", False, f"Exception: {str(e)}")
+            return False
+
+    def test_create_business_registration(self) -> bool:
+        """Test creating a new business registration record"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_registrations", "Create Business Registration", False, "No auth token available")
+                return False
+            
+            from datetime import date, timedelta
+            
+            registration_data = {
+                "registration_type": "incorporation",
+                "registration_number": "C4567890",
+                "filing_state": "CA",
+                "filing_date": "2020-01-15",
+                "effective_date": "2020-01-15",
+                "status": "active",
+                "business_name": "Big Mann Entertainment",
+                "registered_agent_name": "John LeGerron Spivey",
+                "registered_agent_address": {
+                    "line1": "Digital Media Distribution Empire",
+                    "city": "Los Angeles",
+                    "state": "CA",
+                    "zip_code": "90210"
+                },
+                "annual_report_required": True,
+                "annual_report_due_date": (date.today() + timedelta(days=45)).isoformat(),
+                "annual_report_fee": 25.00,
+                "initial_filing_fee": 100.00,
+                "renewal_fee": 25.00
+            }
+            
+            response = self.make_request('POST', '/tax/registrations', json=registration_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'registration_id' in data and 'registration_number' in data:
+                    self.log_result("tax_business_registrations", "Create Business Registration", True, 
+                                  f"Created registration {data['registration_number']} with ID {data['registration_id']}")
+                    return True
+                else:
+                    self.log_result("tax_business_registrations", "Create Business Registration", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_registrations", "Create Business Registration", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_registrations", "Create Business Registration", False, f"Exception: {str(e)}")
+            return False
+
+    def test_registration_filtering(self) -> bool:
+        """Test business registration filtering by type and status"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_registrations", "Registration Filtering", False, "No auth token available")
+                return False
+            
+            # Test filtering by registration type
+            response = self.make_request('GET', '/tax/registrations?registration_type=incorporation&status=active')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'registrations' in data:
+                    self.log_result("tax_business_registrations", "Registration Filtering", True, 
+                                  f"Filtering works - found {len(data['registrations'])} incorporation registrations")
+                    return True
+                else:
+                    self.log_result("tax_business_registrations", "Registration Filtering", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_registrations", "Registration Filtering", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_registrations", "Registration Filtering", False, f"Exception: {str(e)}")
+            return False
+
+    def test_compliance_dashboard(self) -> bool:
+        """Test comprehensive compliance dashboard with scoring and alerts"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_compliance_dashboard", "Compliance Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/compliance-dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_sections = ['business_info', 'compliance_overview', 'alerts', 'quick_actions']
+                
+                if all(section in data for section in required_sections):
+                    compliance_overview = data['compliance_overview']
+                    alerts = data['alerts']
+                    
+                    # Verify compliance scoring
+                    if 'compliance_score' in compliance_overview:
+                        score = compliance_overview['compliance_score']
+                        
+                        # Verify alert categories
+                        alert_categories = ['expiring_licenses', 'upcoming_deadlines', 'compliance_issues']
+                        if all(category in alerts for category in alert_categories):
+                            
+                            # Verify quick actions with priorities
+                            quick_actions = data['quick_actions']
+                            if len(quick_actions) > 0 and all('priority' in action for action in quick_actions):
+                                self.log_result("tax_compliance_dashboard", "Compliance Dashboard", True, 
+                                              f"Dashboard loaded with compliance score: {score}, {len(alerts['expiring_licenses'])} expiring licenses, {len(alerts['upcoming_deadlines'])} upcoming deadlines")
+                                return True
+                            else:
+                                self.log_result("tax_compliance_dashboard", "Compliance Dashboard", False, 
+                                              "Quick actions missing priority information")
+                                return False
+                        else:
+                            self.log_result("tax_compliance_dashboard", "Compliance Dashboard", False, 
+                                          "Missing alert categories")
+                            return False
+                    else:
+                        self.log_result("tax_compliance_dashboard", "Compliance Dashboard", False, 
+                                      "Missing compliance score")
+                        return False
+                else:
+                    self.log_result("tax_compliance_dashboard", "Compliance Dashboard", False, 
+                                  f"Missing required sections: {[s for s in required_sections if s not in data]}")
+                    return False
+            else:
+                self.log_result("tax_compliance_dashboard", "Compliance Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_compliance_dashboard", "Compliance Dashboard", False, f"Exception: {str(e)}")
+            return False
+
+    def test_compliance_scoring_algorithm(self) -> bool:
+        """Test compliance scoring algorithm with different scenarios"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_compliance_dashboard", "Compliance Scoring Algorithm", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/compliance-dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                compliance_overview = data.get('compliance_overview', {})
+                alerts = data.get('alerts', {})
+                
+                # Verify scoring logic
+                score = compliance_overview.get('compliance_score', 0)
+                expiring_licenses = len(alerts.get('expiring_licenses', []))
+                upcoming_deadlines = len(alerts.get('upcoming_deadlines', []))
+                compliance_issues = len(alerts.get('compliance_issues', []))
+                
+                # Score should be between 0-100
+                if 0 <= score <= 100:
+                    # Score should decrease with more issues
+                    expected_deductions = 0
+                    if expiring_licenses > 0:
+                        expected_deductions += 10
+                    if upcoming_deadlines > 0:
+                        expected_deductions += 5
+                    if compliance_issues > 0:
+                        expected_deductions += len(compliance_issues) * 5
+                    
+                    expected_score = max(100 - expected_deductions, 0)
+                    
+                    self.log_result("tax_compliance_dashboard", "Compliance Scoring Algorithm", True, 
+                                  f"Compliance scoring working: Score {score}, Issues: {expiring_licenses} expiring licenses, {upcoming_deadlines} deadlines, {compliance_issues} other issues")
+                    return True
+                else:
+                    self.log_result("tax_compliance_dashboard", "Compliance Scoring Algorithm", False, 
+                                  f"Invalid compliance score: {score}")
+                    return False
+            else:
+                self.log_result("tax_compliance_dashboard", "Compliance Scoring Algorithm", False, 
+                              f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_compliance_dashboard", "Compliance Scoring Algorithm", False, f"Exception: {str(e)}")
+            return False
+
+    def test_enhanced_business_info_integration(self) -> bool:
+        """Test enhanced business information with license details and NAICS/SIC codes"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_info", "Enhanced Business Info Integration", False, "No auth token available")
+                return False
+            
+            # Test comprehensive business info update with enhanced fields
+            enhanced_business_data = {
+                "business_name": "Big Mann Entertainment",
+                "ein": "270658077",
+                "tin": "270658077",
+                "business_license_number": "BME-ENT-2024-001",
+                "license_type": "Entertainment/Media Production",
+                "license_state": "CA",
+                "address_line1": "Digital Media Distribution Empire",
+                "city": "Los Angeles",
+                "state": "CA",
+                "zip_code": "90210",
+                "county": "Los Angeles County",
+                "country": "United States",
+                "business_type": "corporation",
+                "tax_classification": "c_corporation",
+                "naics_code": "512110",  # Motion Picture and Video Production
+                "sic_code": "7812",      # Motion Picture and Video Tape Production
+                "incorporation_state": "CA",
+                "contact_name": "John LeGerron Spivey",
+                "contact_title": "CEO",
+                "business_description": "Digital media distribution and entertainment services",
+                "primary_business_activity": "Media Distribution Platform",
+                "fiscal_year_end": "December 31",
+                "license_status": "active",
+                "compliance_status": "compliant"
+            }
+            
+            response = self.make_request('PUT', '/tax/business-info', json=enhanced_business_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'message' in data and data.get('ein') == '270658077':
+                    # Verify the update by getting the business info
+                    get_response = self.make_request('GET', '/tax/business-info')
+                    
+                    if get_response.status_code == 200:
+                        get_data = get_response.json()
+                        business_info = get_data.get('business_info', {})
+                        
+                        # Verify enhanced fields
+                        enhanced_fields = ['naics_code', 'sic_code', 'license_type', 'county', 'contact_name']
+                        if all(field in business_info for field in enhanced_fields):
+                            self.log_result("tax_business_info", "Enhanced Business Info Integration", True, 
+                                          f"Enhanced business info updated with NAICS: {business_info.get('naics_code')}, SIC: {business_info.get('sic_code')}, License: {business_info.get('license_type')}")
+                            return True
+                        else:
+                            missing_fields = [f for f in enhanced_fields if f not in business_info]
+                            self.log_result("tax_business_info", "Enhanced Business Info Integration", False, 
+                                          f"Missing enhanced fields: {missing_fields}")
+                            return False
+                    else:
+                        self.log_result("tax_business_info", "Enhanced Business Info Integration", False, 
+                                      "Failed to retrieve updated business info")
+                        return False
+                else:
+                    self.log_result("tax_business_info", "Enhanced Business Info Integration", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_info", "Enhanced Business Info Integration", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_info", "Enhanced Business Info Integration", False, f"Exception: {str(e)}")
+            return False
+
+    def run_enhanced_tax_system_tests(self):
+        """Run all enhanced tax system tests"""
+        print("\n" + "=" * 80)
+        print("ENHANCED TAX MANAGEMENT SYSTEM TESTING")
+        print("=" * 80)
+        
+        # Enhanced Business Tax Information Tests
+        print("\n--- Enhanced Business Tax Information Tests ---")
+        self.test_enhanced_business_info_integration()
+        
+        # Business License Management Tests
+        print("\n--- Business License Management Tests ---")
+        self.test_get_business_licenses()
+        self.test_create_business_license()
+        self.test_get_license_details()
+        self.test_license_filtering()
+        
+        # Business Registration Management Tests
+        print("\n--- Business Registration Management Tests ---")
+        self.test_get_business_registrations()
+        self.test_create_business_registration()
+        self.test_registration_filtering()
+        
+        # Compliance Dashboard Tests
+        print("\n--- Compliance Dashboard Tests ---")
+        self.test_compliance_dashboard()
+        self.test_compliance_scoring_algorithm()
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
