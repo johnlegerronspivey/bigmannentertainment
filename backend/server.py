@@ -1439,16 +1439,41 @@ async def register_user(user_data: UserCreate, request: Request):
 async def login_user(user_credentials: UserLogin, request: Request):
     # Find user
     user_doc = await db.users.find_one({"email": user_credentials.email})
-    if not user_doc or not verify_password(user_credentials.password, user_doc["password"]):
+    if not user_doc:
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     
     user = User(**user_doc)
     
-    # Update login statistics
+    # Check if account is locked
+    if user.locked_until and user.locked_until > datetime.utcnow():
+        raise HTTPException(status_code=401, detail=f"Account locked until {user.locked_until}")
+    
+    # Verify password
+    if not verify_password(user_credentials.password, user_doc["password"]):
+        # Increment failed login attempts
+        failed_attempts = user.failed_login_attempts + 1
+        update_data = {
+            "$set": {"failed_login_attempts": failed_attempts, "updated_at": datetime.utcnow()}
+        }
+        
+        # Lock account if max attempts reached  
+        if failed_attempts >= MAX_LOGIN_ATTEMPTS:
+            lock_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+            update_data["$set"]["locked_until"] = lock_until
+            
+        await db.users.update_one({"id": user.id}, update_data)
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+    
+    # Reset failed login attempts on successful authentication
     await db.users.update_one(
         {"id": user.id},
         {
-            "$set": {"last_login": datetime.utcnow(), "updated_at": datetime.utcnow()},
+            "$set": {
+                "last_login": datetime.utcnow(), 
+                "updated_at": datetime.utcnow(),
+                "failed_login_attempts": 0,
+                "locked_until": None
+            },
             "$inc": {"login_count": 1}
         }
     )
@@ -1456,13 +1481,32 @@ async def login_user(user_credentials: UserLogin, request: Request):
     # Log activity
     await log_activity(user.id, "user_login", "user", user.id, {"email": user_credentials.email}, request)
     
-    # Create access token
+    # Create tokens
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.id}, expires_delta=access_token_expires
+        data={"sub": user.id, "email": user.email, "is_admin": user.is_admin}, 
+        expires_delta=access_token_expires
     )
+    refresh_token = create_refresh_token()
     
-    return Token(access_token=access_token, token_type="bearer", user=user)
+    # Store session
+    session = UserSession(
+        user_id=user.id,
+        session_token=access_token,
+        refresh_token=refresh_token,
+        expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        user_agent=request.headers.get("User-Agent"),
+        ip_address=request.client.host
+    )
+    await db.user_sessions.insert_one(session.dict())
+    
+    return Token(
+        access_token=access_token, 
+        refresh_token=refresh_token,
+        token_type="bearer", 
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60, 
+        user=user
+    )
 
 @api_router.get("/auth/me", response_model=User)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
