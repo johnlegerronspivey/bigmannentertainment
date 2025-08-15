@@ -62,7 +62,13 @@ class BackendTester:
             "sponsorship_metrics": {"passed": 0, "failed": 0, "details": []},
             "sponsorship_bonuses": {"passed": 0, "failed": 0, "details": []},
             "sponsorship_analytics": {"passed": 0, "failed": 0, "details": []},
-            "sponsorship_admin": {"passed": 0, "failed": 0, "details": []}
+            "sponsorship_admin": {"passed": 0, "failed": 0, "details": []},
+            "tax_business_info": {"passed": 0, "failed": 0, "details": []},
+            "tax_payments": {"passed": 0, "failed": 0, "details": []},
+            "tax_1099_generation": {"passed": 0, "failed": 0, "details": []},
+            "tax_reporting": {"passed": 0, "failed": 0, "details": []},
+            "tax_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "tax_settings": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
