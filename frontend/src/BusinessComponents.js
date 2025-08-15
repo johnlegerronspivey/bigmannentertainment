@@ -142,9 +142,11 @@ export const BusinessIdentifiers = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-700">
-                <strong>Your UPC Range:</strong> {businessInfo?.upc_company_prefix}00000 - {businessInfo?.upc_company_prefix}99999
+                <strong>Your UPC Range:</strong> {businessInfo?.upc_company_prefix}00000 - {businessInfo?.upc_company_prefix}99999 (100,000 unique product codes)
                 <br />
-                This gives you 100,000 unique product codes for your media products.
+                <strong>Your ISRC Format:</strong> US-{businessInfo?.isrc_prefix}-YY-NNNNN (unlimited sound recording codes)
+                <br />
+                These identifiers enable global distribution and tracking of your media products.
               </p>
             </div>
           </div>
