@@ -104,38 +104,60 @@ class BackendTester:
             raise
     
     def test_user_registration(self) -> bool:
-        """Test user registration"""
+        """Test enhanced user registration with required fields and age validation"""
         try:
-            # First, try to register a new user
+            from datetime import datetime, timedelta
+            
+            # Test with complete required fields
             user_data = {
                 "email": TEST_USER_EMAIL,
                 "password": TEST_USER_PASSWORD,
                 "full_name": TEST_USER_NAME,
-                "business_name": TEST_BUSINESS_NAME
+                "business_name": TEST_BUSINESS_NAME,
+                "date_of_birth": (datetime.utcnow() - timedelta(days=25*365)).isoformat(),  # 25 years old
+                "address_line1": "1314 Lincoln Heights Street",
+                "city": "Alexander City",
+                "state_province": "Alabama",
+                "postal_code": "35010",
+                "country": "United States"
             }
             
             response = self.make_request('POST', '/auth/register', json=user_data)
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
-                if 'access_token' in data and 'user' in data:
+                if 'access_token' in data and 'refresh_token' in data and 'user' in data:
                     self.auth_token = data['access_token']
                     self.test_user_id = data['user']['id']
-                    self.log_result("authentication", "User Registration", True, "Successfully registered new user")
-                    return True
+                    user = data['user']
+                    
+                    # Verify all required fields are present in user object
+                    required_fields = ['email', 'full_name', 'date_of_birth', 'address_line1', 'city', 'state_province', 'postal_code', 'country']
+                    missing_fields = [field for field in required_fields if field not in user or not user[field]]
+                    
+                    if not missing_fields:
+                        self.log_result("authentication", "Enhanced User Registration", True, 
+                                      f"Successfully registered user with all required fields. Token expires in: {data.get('expires_in', 'N/A')} seconds")
+                        return True
+                    else:
+                        self.log_result("authentication", "Enhanced User Registration", False, 
+                                      f"Missing required fields in user object: {missing_fields}")
+                        return False
                 else:
-                    self.log_result("authentication", "User Registration", False, f"Missing token or user data in response")
+                    self.log_result("authentication", "Enhanced User Registration", False, 
+                                  f"Missing token or user data in response. Keys: {list(data.keys())}")
                     return False
             elif response.status_code == 400 and "already registered" in response.text:
                 # User already exists, try to login instead
-                self.log_result("authentication", "User Registration", True, "User already exists (expected)")
+                self.log_result("authentication", "Enhanced User Registration", True, "User already exists (expected)")
                 return True
             else:
-                self.log_result("authentication", "User Registration", False, f"Status: {response.status_code}, Response: {response.text}")
+                self.log_result("authentication", "Enhanced User Registration", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("authentication", "User Registration", False, f"Exception: {str(e)}")
+            self.log_result("authentication", "Enhanced User Registration", False, f"Exception: {str(e)}")
             return False
     
     def test_user_login(self) -> bool:
