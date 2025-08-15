@@ -608,7 +608,17 @@ export const ProductManagement = () => {
                   value={newProduct.upc_full_code}
                   onChange={(e) => setNewProduct({ ...newProduct, upc_full_code: e.target.value, gtin: e.target.value })}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="123456789012"
+                  placeholder="860004340200"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">ISRC Code (for audio recordings)</label>
+                <input
+                  type="text"
+                  value={newProduct.isrc_code}
+                  onChange={(e) => setNewProduct({ ...newProduct, isrc_code: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="US-QZ9H8-25-00001"
                 />
               </div>
               <div>
