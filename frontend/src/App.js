@@ -3813,6 +3813,8 @@ function App() {
             <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
             <Route path="/admin/blockchain" element={<AdminRoute><Blockchain /></AdminRoute>} />
             <Route path="/admin/ddex" element={<AdminRoute><DDEXAdminDashboard /></AdminRoute>} />
+            <Route path="/admin/industry" element={<AdminRoute><IndustryDashboard /></AdminRoute>} />
+            <Route path="/admin/industry/ipi" element={<AdminRoute><IPIManagement /></AdminRoute>} />
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
         </AuthProvider>
