@@ -3,14 +3,25 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
 
-# IPI (Interested Parties Information) Models
-class IPINumber(BaseModel):
+# Industry Identifiers Models (IPI, ISNI, AARC)
+class IndustryIdentifier(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    ipi_number: str  # IPI number (e.g., 813048171, 578413032)
     entity_name: str  # Name of the person or organization
     entity_type: str  # "company", "individual", "band", "organization"
-    role: str  # "songwriter", "composer", "lyricist", "publisher", "performer", "producer"
-    territory: str = "US"  # Territory where IPI is registered
+    
+    # IPI (Interested Parties Information) Numbers
+    ipi_number: Optional[str] = None  # IPI number (e.g., 813048171, 578413032)
+    ipi_role: Optional[str] = None  # "songwriter", "composer", "lyricist", "publisher", "performer", "producer"
+    
+    # ISNI (International Standard Name Identifier) Numbers  
+    isni_number: Optional[str] = None  # ISNI number (e.g., 0000000491551894)
+    isni_status: Optional[str] = "active"  # active, inactive, pending
+    
+    # AARC (Alliance of Artists and Recording Companies) Numbers
+    aarc_number: Optional[str] = None  # AARC number (e.g., RC00002057, FA02933539)
+    aarc_type: Optional[str] = None  # "record_company", "featured_artist", "performer"
+    
+    territory: str = "US"  # Territory where identifiers are registered
     status: str = "active"  # active, inactive, pending, suspended
     contact_info: Dict[str, Any] = {}
     metadata: Dict[str, Any] = {}
