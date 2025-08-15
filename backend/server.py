@@ -2267,8 +2267,10 @@ async def get_business_overview(admin_user: User = Depends(get_admin_user)):
                 "upc_company_prefix": UPC_COMPANY_PREFIX,
                 "global_location_number": GLOBAL_LOCATION_NUMBER,
                 "isrc_prefix": ISRC_PREFIX,
+                "publisher_number": PUBLISHER_NUMBER,
                 "available_upc_range": f"{UPC_COMPANY_PREFIX}00000 - {UPC_COMPANY_PREFIX}99999",
-                "isrc_format": f"US-{ISRC_PREFIX}-YY-NNNNN (where YY=year, NNNNN=recording number)"
+                "isrc_format": f"US-{ISRC_PREFIX}-YY-NNNNN (where YY=year, NNNNN=recording number)",
+                "publisher_format": f"{PUBLISHER_NUMBER} (music publishing rights identifier)"
             },
             "product_statistics": {
                 "total_products": total_products,
