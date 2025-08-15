@@ -188,7 +188,7 @@ class BusinessTaxInfo(BaseModel):
     # Business Details
     business_type: str = "corporation"  # corporation, llc, partnership, sole_proprietorship
     tax_classification: str = "c_corporation"
-    naics_code: Optional[str] = "512110"  # Motion Picture and Video Production
+    naics_code: Optional[str] = "512200"  # Sound Recording Industries
     sic_code: Optional[str] = "7812"  # Motion Picture and Video Tape Production
     
     # Incorporation/Formation Details
