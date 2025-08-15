@@ -192,14 +192,14 @@ class BusinessTaxInfo(BaseModel):
     sic_code: Optional[str] = "7812"  # Motion Picture and Video Tape Production
     
     # Incorporation/Formation Details
-    incorporation_state: str = "CA"
+    incorporation_state: str = "AL"
     incorporation_date: Optional[date] = None
     state_id_number: Optional[str] = None  # State corporation/LLC ID
     
     # Contact information
     contact_name: str = "John LeGerron Spivey"
     contact_title: str = "CEO"
-    contact_phone: Optional[str] = None
+    contact_phone: Optional[str] = "334-669-8638"
     contact_email: Optional[str] = None
     
     # Business Operations
