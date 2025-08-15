@@ -5,6 +5,7 @@ import axios from "axios";
 import { DDEXERNCreator, DDEXCWRCreator, DDEXMessageList, DDEXIdentifierGenerator, DDEXAdminDashboard } from "./DDEXComponents";
 import { SponsorshipDashboard, SponsorshipDealCreator, MetricsRecorder, AdminSponsorshipOverview } from "./SponsorshipComponents";
 import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, BusinessLicenseManagement, ComplianceDashboard } from "./TaxComponents";
+import { BusinessIdentifiers, UPCGenerator, ProductManagement } from "./BusinessComponents";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
