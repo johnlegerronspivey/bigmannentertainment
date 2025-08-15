@@ -103,6 +103,7 @@ BUSINESS_TIN = os.environ.get('BUSINESS_TIN', '270658077')
 UPC_COMPANY_PREFIX = os.environ.get('UPC_COMPANY_PREFIX', '8600043402')
 GLOBAL_LOCATION_NUMBER = os.environ.get('GLOBAL_LOCATION_NUMBER', '0860004340201')
 ISRC_PREFIX = os.environ.get('ISRC_PREFIX', 'QZ9H8')
+PUBLISHER_NUMBER = os.environ.get('PUBLISHER_NUMBER', 'PA04UV')
 BUSINESS_LEGAL_NAME = os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment LLC')
 
 # Create the main app without a prefix
