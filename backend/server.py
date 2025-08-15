@@ -51,9 +51,27 @@ uploads_dir.mkdir(exist_ok=True)
 SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
+MAX_LOGIN_ATTEMPTS = 5  
+LOCKOUT_DURATION_MINUTES = 30
+PASSWORD_RESET_TOKEN_EXPIRE_HOURS = 24
+
+# WebAuthn configuration
+RP_ID = os.environ.get("RP_ID", "localhost")
+RP_NAME = "Big Mann Entertainment Media Platform"
+ORIGIN = os.environ.get("ORIGIN", "http://localhost:3000")
+
+# Email configuration for password reset
+SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+EMAIL_USERNAME = os.environ.get("EMAIL_USERNAME", "")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
+
+# Session storage for WebAuthn challenges (in production, use Redis)
+webauthn_challenges = {}
 
 # Stripe setup
 stripe_api_key = os.environ.get('STRIPE_API_KEY')
