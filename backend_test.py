@@ -3952,11 +3952,18 @@ class BackendTester:
         print("=" * 80)
         
         # Authentication Tests
-        print("\n🔐 TESTING AUTHENTICATION SYSTEM")
+        print("\n🔐 TESTING ENHANCED AUTHENTICATION SYSTEM")
         print("-" * 40)
         self.test_user_registration()
         self.test_user_login()
         self.test_protected_route()
+        self.test_age_validation()
+        self.test_webauthn_registration_begin()
+        self.test_webauthn_authentication_begin()
+        self.test_webauthn_credentials_list()
+        self.test_forgot_password()
+        self.test_reset_password()
+        self.test_logout_session_invalidation()
         
         # Media Upload Tests
         print("\n📁 TESTING MEDIA UPLOAD AND STORAGE")
