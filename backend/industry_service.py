@@ -8,7 +8,8 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from industry_models import (
     IndustryPartner, StreamingPlatform, RecordLabel, RadioStation, 
     TVNetwork, Venue, BookingAgency, ContentDistribution, 
-    IndustryAnalytics, RevenueTracking, INDUSTRY_PARTNERS
+    IndustryAnalytics, RevenueTracking, INDUSTRY_PARTNERS,
+    IPINumber, BIG_MANN_IPI_NUMBERS
 )
 
 logger = logging.getLogger(__name__)
