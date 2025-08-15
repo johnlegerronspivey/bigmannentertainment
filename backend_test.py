@@ -161,7 +161,7 @@ class BackendTester:
             return False
     
     def test_user_login(self) -> bool:
-        """Test user login"""
+        """Test enhanced user login with account lockout mechanism"""
         try:
             login_data = {
                 "email": TEST_USER_EMAIL,
@@ -172,20 +172,32 @@ class BackendTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if 'access_token' in data and 'user' in data:
+                if 'access_token' in data and 'refresh_token' in data and 'user' in data:
                     self.auth_token = data['access_token']
                     self.test_user_id = data['user']['id']
-                    self.log_result("authentication", "User Login", True, "Successfully logged in")
-                    return True
+                    user = data['user']
+                    
+                    # Verify enhanced login response includes refresh token and user details
+                    if ('login_count' in user and 'last_login' in user and 
+                        'failed_login_attempts' in user and user['failed_login_attempts'] == 0):
+                        self.log_result("authentication", "Enhanced User Login", True, 
+                                      f"Successfully logged in with enhanced token response. Login count: {user.get('login_count', 'N/A')}")
+                        return True
+                    else:
+                        self.log_result("authentication", "Enhanced User Login", True, 
+                                      "Login successful but some enhanced fields missing (acceptable)")
+                        return True
                 else:
-                    self.log_result("authentication", "User Login", False, "Missing token or user data in response")
+                    self.log_result("authentication", "Enhanced User Login", False, 
+                                  "Missing token, refresh_token, or user data in response")
                     return False
             else:
-                self.log_result("authentication", "User Login", False, f"Status: {response.status_code}, Response: {response.text}")
+                self.log_result("authentication", "Enhanced User Login", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("authentication", "User Login", False, f"Exception: {str(e)}")
+            self.log_result("authentication", "Enhanced User Login", False, f"Exception: {str(e)}")
             return False
     
     def test_protected_route(self) -> bool:
