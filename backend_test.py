@@ -85,7 +85,13 @@ class BackendTester:
             "publisher_admin_overview": {"passed": 0, "failed": 0, "details": []},
             "publisher_product_management": {"passed": 0, "failed": 0, "details": []},
             "publisher_complete_integration": {"passed": 0, "failed": 0, "details": []},
-            "publisher_authentication": {"passed": 0, "failed": 0, "details": []}
+            "publisher_authentication": {"passed": 0, "failed": 0, "details": []},
+            "ipi_database_initialization": {"passed": 0, "failed": 0, "details": []},
+            "ipi_number_retrieval": {"passed": 0, "failed": 0, "details": []},
+            "ipi_filtering": {"passed": 0, "failed": 0, "details": []},
+            "ipi_details": {"passed": 0, "failed": 0, "details": []},
+            "ipi_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "ipi_authentication": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
