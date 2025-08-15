@@ -518,7 +518,311 @@ async def get_tax_dashboard(
         ]
     }
 
-# Tax Settings Management
+# Business License Management
+@tax_router.get("/licenses", response_model=Dict[str, Any])
+async def get_business_licenses(
+    license_type: Optional[str] = Query(None, description="Filter by license type"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    skip: int = Query(0, description="Number of records to skip"),
+    limit: int = Query(20, description="Number of records to return"),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get business licenses with filtering options"""
+    
+    query = {}
+    if license_type:
+        query["license_type"] = license_type
+    if status:
+        query["status"] = status
+    
+    licenses_cursor = db.business_licenses.find(query, {"_id": 0}).skip(skip).limit(limit).sort("expiration_date", 1)
+    licenses = await licenses_cursor.to_list(length=limit)
+    total = await db.business_licenses.count_documents(query)
+    
+    # Check for expiring licenses (within 90 days)
+    expiring_soon = []
+    for license in licenses:
+        if license.get("expiration_date"):
+            exp_date = datetime.strptime(license["expiration_date"], "%Y-%m-%d").date()
+            days_until_expiry = (exp_date - date.today()).days
+            if days_until_expiry <= 90:
+                expiring_soon.append({
+                    "license_id": license["id"],
+                    "license_name": license["license_name"],
+                    "days_until_expiry": days_until_expiry
+                })
+    
+    return {
+        "licenses": licenses,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "expiring_soon": expiring_soon
+    }
+
+@tax_router.post("/licenses", response_model=Dict[str, Any])
+async def create_business_license(
+    license_data: BusinessLicense,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Create new business license record"""
+    try:
+        license_data.created_by = current_user.id
+        
+        # Convert dates to strings for MongoDB storage
+        license_dict = license_data.dict()
+        license_dict['issue_date'] = license_dict['issue_date'].isoformat()
+        license_dict['expiration_date'] = license_dict['expiration_date'].isoformat()
+        if license_dict.get('renewal_date'):
+            license_dict['renewal_date'] = license_dict['renewal_date'].isoformat()
+        
+        await db.business_licenses.insert_one(license_dict)
+        
+        # Log activity
+        await log_activity(
+            current_user.id,
+            "business_license_created",
+            "business_license",
+            license_data.id,
+            {
+                "license_number": license_data.license_number,
+                "license_type": license_data.license_type,
+                "issuing_authority": license_data.issuing_authority
+            }
+        )
+        
+        return {
+            "message": "Business license created successfully",
+            "license_id": license_data.id,
+            "license_number": license_data.license_number
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create business license: {str(e)}")
+
+@tax_router.get("/licenses/{license_id}", response_model=Dict[str, Any])
+async def get_license_details(
+    license_id: str,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get detailed license information"""
+    license = await db.business_licenses.find_one({"id": license_id}, {"_id": 0})
+    if not license:
+        raise HTTPException(status_code=404, detail="License not found")
+    
+    # Calculate days until expiration
+    if license.get("expiration_date"):
+        exp_date = datetime.strptime(license["expiration_date"], "%Y-%m-%d").date()
+        days_until_expiry = (exp_date - date.today()).days
+        license["days_until_expiry"] = days_until_expiry
+        license["renewal_needed"] = days_until_expiry <= 90
+    
+    return {"license": license}
+
+@tax_router.put("/licenses/{license_id}", response_model=Dict[str, Any])
+async def update_business_license(
+    license_id: str,
+    license_data: BusinessLicense,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Update business license information"""
+    try:
+        license_data.updated_at = datetime.utcnow()
+        
+        # Convert dates to strings for MongoDB storage
+        license_dict = license_data.dict()
+        license_dict['issue_date'] = license_dict['issue_date'].isoformat()
+        license_dict['expiration_date'] = license_dict['expiration_date'].isoformat()
+        if license_dict.get('renewal_date'):
+            license_dict['renewal_date'] = license_dict['renewal_date'].isoformat()
+        
+        result = await db.business_licenses.replace_one({"id": license_id}, license_dict)
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="License not found")
+        
+        # Log activity
+        await log_activity(
+            current_user.id,
+            "business_license_updated",
+            "business_license",
+            license_id,
+            {
+                "license_number": license_data.license_number,
+                "status": license_data.status
+            }
+        )
+        
+        return {
+            "message": "Business license updated successfully",
+            "license_id": license_id
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update business license: {str(e)}")
+
+# Business Registration Management
+@tax_router.get("/registrations", response_model=Dict[str, Any])
+async def get_business_registrations(
+    registration_type: Optional[str] = Query(None, description="Filter by registration type"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get business registrations"""
+    
+    query = {}
+    if registration_type:
+        query["registration_type"] = registration_type
+    if status:
+        query["status"] = status
+    
+    registrations_cursor = db.business_registrations.find(query, {"_id": 0}).sort("filing_date", -1)
+    registrations = await registrations_cursor.to_list(length=None)
+    
+    # Check for upcoming annual report deadlines
+    upcoming_deadlines = []
+    for reg in registrations:
+        if reg.get("annual_report_due_date") and reg.get("status") == "active":
+            due_date = datetime.strptime(reg["annual_report_due_date"], "%Y-%m-%d").date()
+            days_until_due = (due_date - date.today()).days
+            if 0 <= days_until_due <= 60:  # Due within 60 days
+                upcoming_deadlines.append({
+                    "registration_id": reg["id"],
+                    "registration_type": reg["registration_type"],
+                    "due_date": reg["annual_report_due_date"],
+                    "days_until_due": days_until_due
+                })
+    
+    return {
+        "registrations": registrations,
+        "total": len(registrations),
+        "upcoming_deadlines": upcoming_deadlines
+    }
+
+@tax_router.post("/registrations", response_model=Dict[str, Any])
+async def create_business_registration(
+    registration_data: BusinessRegistration,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Create new business registration record"""
+    try:
+        registration_data.created_by = current_user.id
+        
+        # Convert dates to strings for MongoDB storage
+        reg_dict = registration_data.dict()
+        reg_dict['filing_date'] = reg_dict['filing_date'].isoformat()
+        reg_dict['effective_date'] = reg_dict['effective_date'].isoformat()
+        if reg_dict.get('annual_report_due_date'):
+            reg_dict['annual_report_due_date'] = reg_dict['annual_report_due_date'].isoformat()
+        if reg_dict.get('last_annual_report_filed'):
+            reg_dict['last_annual_report_filed'] = reg_dict['last_annual_report_filed'].isoformat()
+        
+        await db.business_registrations.insert_one(reg_dict)
+        
+        # Log activity
+        await log_activity(
+            current_user.id,
+            "business_registration_created",
+            "business_registration",
+            registration_data.id,
+            {
+                "registration_number": registration_data.registration_number,
+                "registration_type": registration_data.registration_type,
+                "filing_state": registration_data.filing_state
+            }
+        )
+        
+        return {
+            "message": "Business registration created successfully",
+            "registration_id": registration_data.id,
+            "registration_number": registration_data.registration_number
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create business registration: {str(e)}")
+
+# Compliance Dashboard
+@tax_router.get("/compliance-dashboard", response_model=Dict[str, Any])
+async def get_compliance_dashboard(
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get comprehensive compliance dashboard"""
+    
+    # Get business info
+    business_info = await db.business_tax_info.find_one({}, {"_id": 0})
+    
+    # Get licenses
+    licenses = await db.business_licenses.find({}, {"_id": 0}).to_list(length=None)
+    
+    # Get registrations
+    registrations = await db.business_registrations.find({}, {"_id": 0}).to_list(length=None)
+    
+    # Calculate compliance metrics
+    total_licenses = len(licenses)
+    active_licenses = len([l for l in licenses if l.get("status") == "active"])
+    expiring_licenses = []
+    
+    for license in licenses:
+        if license.get("expiration_date") and license.get("status") == "active":
+            exp_date = datetime.strptime(license["expiration_date"], "%Y-%m-%d").date()
+            days_until_expiry = (exp_date - date.today()).days
+            if days_until_expiry <= 90:
+                expiring_licenses.append({
+                    "license_name": license["license_name"],
+                    "expiration_date": license["expiration_date"],
+                    "days_until_expiry": days_until_expiry
+                })
+    
+    # Registration compliance
+    active_registrations = len([r for r in registrations if r.get("status") == "active"])
+    upcoming_deadlines = []
+    
+    for reg in registrations:
+        if reg.get("annual_report_due_date") and reg.get("status") == "active":
+            due_date = datetime.strptime(reg["annual_report_due_date"], "%Y-%m-%d").date()
+            days_until_due = (due_date - date.today()).days
+            if 0 <= days_until_due <= 60:
+                upcoming_deadlines.append({
+                    "registration_type": reg["registration_type"],
+                    "due_date": reg["annual_report_due_date"],
+                    "days_until_due": days_until_due
+                })
+    
+    # Overall compliance score
+    compliance_score = 100
+    compliance_issues = []
+    
+    if expiring_licenses:
+        compliance_score -= 10
+        compliance_issues.append(f"{len(expiring_licenses)} licenses expiring within 90 days")
+    
+    if upcoming_deadlines:
+        compliance_score -= 5
+        compliance_issues.append(f"{len(upcoming_deadlines)} annual reports due within 60 days")
+    
+    if not business_info:
+        compliance_score -= 20
+        compliance_issues.append("Business tax information not complete")
+    
+    return {
+        "business_info": business_info,
+        "compliance_overview": {
+            "compliance_score": max(compliance_score, 0),
+            "total_licenses": total_licenses,
+            "active_licenses": active_licenses,
+            "expiring_licenses": len(expiring_licenses),
+            "active_registrations": active_registrations,
+            "upcoming_deadlines": len(upcoming_deadlines)
+        },
+        "alerts": {
+            "expiring_licenses": expiring_licenses,
+            "upcoming_deadlines": upcoming_deadlines,
+            "compliance_issues": compliance_issues
+        },
+        "quick_actions": [
+            {"label": "Update Business Information", "action": "update_business_info", "priority": "medium"},
+            {"label": "Renew Expiring Licenses", "action": "renew_licenses", "priority": "high" if expiring_licenses else "low"},
+            {"label": "File Annual Reports", "action": "file_annual_reports", "priority": "high" if upcoming_deadlines else "low"},
+            {"label": "Generate Tax Reports", "action": "generate_tax_reports", "priority": "medium"}
+        ]
+    }
 @tax_router.get("/settings", response_model=Dict[str, Any])
 async def get_tax_settings(
     current_user: User = Depends(get_current_admin_user)
