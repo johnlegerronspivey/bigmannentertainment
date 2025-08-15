@@ -9,7 +9,7 @@ from industry_models import (
     IndustryPartner, StreamingPlatform, RecordLabel, RadioStation, 
     TVNetwork, Venue, BookingAgency, ContentDistribution, 
     IndustryAnalytics, RevenueTracking, INDUSTRY_PARTNERS,
-    IndustryIdentifier, BIG_MANN_IPI_NUMBERS
+    IndustryIdentifier, BIG_MANN_INDUSTRY_IDENTIFIERS
 )
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,7 @@ class IndustryIntegrationService:
             total_ipi = 0
             
             # Add Big Mann Entertainment IPI numbers
-            for ipi_data in BIG_MANN_IPI_NUMBERS:
+            for ipi_data in BIG_MANN_INDUSTRY_IDENTIFIERS:
                 ipi = IndustryIdentifier(**ipi_data)
                 await self.db.ipi_numbers.insert_one(ipi.dict())
                 total_ipi += 1
