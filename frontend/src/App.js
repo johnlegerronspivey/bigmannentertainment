@@ -2746,6 +2746,7 @@ const BusinessManagement = () => {
   const tabs = [
     { id: 'identifiers', name: 'Business Identifiers', icon: '🏢' },
     { id: 'upc', name: 'UPC Generator', icon: '📊' },
+    { id: 'isrc', name: 'ISRC Generator', icon: '🎵' },
     { id: 'products', name: 'Product Management', icon: '📦' }
   ];
 
