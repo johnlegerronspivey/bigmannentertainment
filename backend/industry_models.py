@@ -315,13 +315,24 @@ INDUSTRY_PARTNERS = {
     }
 }
 
-# Big Mann Entertainment IPI Numbers
-BIG_MANN_IPI_NUMBERS = [
+# Big Mann Entertainment Industry Identifiers (IPI, ISNI, AARC)
+BIG_MANN_INDUSTRY_IDENTIFIERS = [
     {
-        "ipi_number": "813048171",
         "entity_name": "Big Mann Entertainment",
         "entity_type": "company",
-        "role": "publisher",
+        
+        # IPI Information
+        "ipi_number": "813048171",
+        "ipi_role": "publisher",
+        
+        # ISNI Information (not applicable for companies typically)
+        "isni_number": None,
+        "isni_status": None,
+        
+        # AARC Information  
+        "aarc_number": "RC00002057",
+        "aarc_type": "record_company",
+        
         "territory": "US",
         "status": "active",
         "contact_info": {
@@ -336,10 +347,21 @@ BIG_MANN_IPI_NUMBERS = [
         }
     },
     {
-        "ipi_number": "578413032",
         "entity_name": "John LeGerron Spivey",
         "entity_type": "individual",
-        "role": "songwriter",
+        
+        # IPI Information
+        "ipi_number": "578413032",
+        "ipi_role": "songwriter",
+        
+        # ISNI Information
+        "isni_number": "0000000491551894",
+        "isni_status": "active",
+        
+        # AARC Information
+        "aarc_number": "FA02933539", 
+        "aarc_type": "featured_artist",
+        
         "territory": "US",
         "status": "active",
         "contact_info": {
