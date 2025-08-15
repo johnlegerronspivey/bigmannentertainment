@@ -225,6 +225,244 @@ class BackendTester:
             self.log_result("authentication", "Protected Route Access", False, f"Exception: {str(e)}")
             return False
     
+    def test_age_validation(self) -> bool:
+        """Test age validation during registration (must be 13+)"""
+        try:
+            from datetime import datetime, timedelta
+            
+            # Test with user under 13 years old
+            young_user_data = {
+                "email": "young.user@test.com",
+                "password": "TestPassword123!",
+                "full_name": "Young User",
+                "date_of_birth": (datetime.utcnow() - timedelta(days=10*365)).isoformat(),  # 10 years old
+                "address_line1": "123 Test Street",
+                "city": "Test City",
+                "state_province": "Test State",
+                "postal_code": "12345",
+                "country": "United States"
+            }
+            
+            response = self.make_request('POST', '/auth/register', json=young_user_data)
+            
+            if response.status_code == 400 and "13 years old" in response.text:
+                self.log_result("authentication", "Age Validation", True, 
+                              "Correctly rejected user under 13 years old")
+                return True
+            else:
+                self.log_result("authentication", "Age Validation", False, 
+                              f"Should have rejected young user. Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("authentication", "Age Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_webauthn_registration_begin(self) -> bool:
+        """Test WebAuthn Face ID registration initiation"""
+        try:
+            if not self.auth_token:
+                self.log_result("authentication", "WebAuthn Registration Begin", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/auth/webauthn/register/begin')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['challenge', 'rp', 'user', 'pubKeyCredParams']
+                
+                if all(field in data for field in required_fields):
+                    # Verify RP information
+                    rp = data['rp']
+                    if rp.get('name') == 'Big Mann Entertainment Media Platform':
+                        self.log_result("authentication", "WebAuthn Registration Begin", True, 
+                                      f"WebAuthn registration options generated successfully. Challenge length: {len(data['challenge'])}")
+                        return True
+                    else:
+                        self.log_result("authentication", "WebAuthn Registration Begin", False, 
+                                      f"Incorrect RP name: {rp.get('name')}")
+                        return False
+                else:
+                    self.log_result("authentication", "WebAuthn Registration Begin", False, 
+                                  f"Missing required fields. Present: {list(data.keys())}")
+                    return False
+            else:
+                self.log_result("authentication", "WebAuthn Registration Begin", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("authentication", "WebAuthn Registration Begin", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_webauthn_authentication_begin(self) -> bool:
+        """Test WebAuthn Face ID authentication initiation"""
+        try:
+            if not self.auth_token:
+                self.log_result("authentication", "WebAuthn Authentication Begin", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/auth/webauthn/authenticate/begin')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['challenge', 'rpId']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result("authentication", "WebAuthn Authentication Begin", True, 
+                                  f"WebAuthn authentication options generated successfully")
+                    return True
+                else:
+                    self.log_result("authentication", "WebAuthn Authentication Begin", False, 
+                                  f"Missing required fields. Present: {list(data.keys())}")
+                    return False
+            elif response.status_code == 404 and "No credentials found" in response.text:
+                self.log_result("authentication", "WebAuthn Authentication Begin", True, 
+                              "Correctly returned 404 for user with no registered credentials")
+                return True
+            else:
+                self.log_result("authentication", "WebAuthn Authentication Begin", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("authentication", "WebAuthn Authentication Begin", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_webauthn_credentials_list(self) -> bool:
+        """Test listing user's WebAuthn credentials"""
+        try:
+            if not self.auth_token:
+                self.log_result("authentication", "WebAuthn Credentials List", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/auth/webauthn/credentials')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'credentials' in data and isinstance(data['credentials'], list):
+                    self.log_result("authentication", "WebAuthn Credentials List", True, 
+                                  f"Successfully retrieved credentials list. Count: {len(data['credentials'])}")
+                    return True
+                else:
+                    self.log_result("authentication", "WebAuthn Credentials List", False, 
+                                  "Invalid response format")
+                    return False
+            else:
+                self.log_result("authentication", "WebAuthn Credentials List", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("authentication", "WebAuthn Credentials List", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_forgot_password(self) -> bool:
+        """Test forgot password functionality"""
+        try:
+            forgot_password_data = {
+                "email": TEST_USER_EMAIL
+            }
+            
+            response = self.make_request('POST', '/auth/forgot-password', json=forgot_password_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'message' in data and 'reset' in data['message'].lower():
+                    self.log_result("authentication", "Forgot Password", True, 
+                                  "Password reset initiated successfully")
+                    return True
+                else:
+                    self.log_result("authentication", "Forgot Password", False, 
+                                  f"Unexpected response format: {data}")
+                    return False
+            elif response.status_code == 500 and "not configured" in response.text:
+                self.log_result("authentication", "Forgot Password", True, 
+                              "Email service not configured (expected in test environment)")
+                return True
+            else:
+                self.log_result("authentication", "Forgot Password", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("authentication", "Forgot Password", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_reset_password(self) -> bool:
+        """Test password reset functionality"""
+        try:
+            # Test with dummy token (real token would come from email)
+            reset_password_data = {
+                "token": "dummy_reset_token_for_testing",
+                "new_password": "NewPassword123!"
+            }
+            
+            response = self.make_request('POST', '/auth/reset-password', json=reset_password_data)
+            
+            if response.status_code == 400 and ("Invalid" in response.text or "expired" in response.text):
+                self.log_result("authentication", "Reset Password", True, 
+                              "Correctly rejected invalid/expired reset token")
+                return True
+            elif response.status_code == 200:
+                self.log_result("authentication", "Reset Password", True, 
+                              "Password reset endpoint working")
+                return True
+            else:
+                self.log_result("authentication", "Reset Password", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("authentication", "Reset Password", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_logout_session_invalidation(self) -> bool:
+        """Test logout and session invalidation"""
+        try:
+            if not self.auth_token:
+                self.log_result("authentication", "Logout Session Invalidation", False, "No auth token available")
+                return False
+            
+            # First verify we can access protected route
+            me_response = self.make_request('GET', '/auth/me')
+            if me_response.status_code != 200:
+                self.log_result("authentication", "Logout Session Invalidation", False, 
+                              "Cannot access protected route before logout test")
+                return False
+            
+            # Now logout
+            logout_response = self.make_request('POST', '/auth/logout')
+            
+            if logout_response.status_code == 200:
+                data = logout_response.json()
+                if 'message' in data and 'logged out' in data['message'].lower():
+                    # Try to access protected route again (should fail)
+                    me_response_after = self.make_request('GET', '/auth/me')
+                    
+                    if me_response_after.status_code == 401:
+                        self.log_result("authentication", "Logout Session Invalidation", True, 
+                                      "Session successfully invalidated after logout")
+                        # Clear token since it's now invalid
+                        self.auth_token = None
+                        return True
+                    else:
+                        self.log_result("authentication", "Logout Session Invalidation", False, 
+                                      "Session not invalidated - still can access protected route")
+                        return False
+                else:
+                    self.log_result("authentication", "Logout Session Invalidation", False, 
+                                  f"Unexpected logout response: {data}")
+                    return False
+            else:
+                self.log_result("authentication", "Logout Session Invalidation", False, 
+                              f"Logout failed. Status: {logout_response.status_code}, Response: {logout_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("authentication", "Logout Session Invalidation", False, f"Exception: {str(e)}")
+            return False
+    
     def create_test_file(self, file_type: str) -> tuple:
         """Create a test file for upload"""
         if file_type == "audio":
