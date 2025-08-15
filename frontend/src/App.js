@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation 
 import axios from "axios";
 import { DDEXERNCreator, DDEXCWRCreator, DDEXMessageList, DDEXIdentifierGenerator, DDEXAdminDashboard } from "./DDEXComponents";
 import { SponsorshipDashboard, SponsorshipDealCreator, MetricsRecorder, AdminSponsorshipOverview } from "./SponsorshipComponents";
-import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo } from "./TaxComponents";
+import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, BusinessLicenseManagement, ComplianceDashboard } from "./TaxComponents";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
