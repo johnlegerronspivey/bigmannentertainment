@@ -2737,6 +2737,58 @@ const ProfileSettings = () => {
   );
 };
 
+// Business Management Dashboard
+const BusinessManagement = () => {
+  const [activeTab, setActiveTab] = useState('identifiers');
+
+  const tabs = [
+    { id: 'identifiers', name: 'Business Identifiers', icon: '🏢' },
+    { id: 'upc', name: 'UPC Generator', icon: '📊' },
+    { id: 'products', name: 'Product Management', icon: '📦' }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Business Management</h1>
+          <p className="text-gray-600 mt-2">
+            Manage your business identifiers, UPC codes, and product catalog
+          </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white shadow rounded-lg mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-purple-500 text-purple-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.name}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {activeTab === 'identifiers' && <BusinessIdentifiers />}
+            {activeTab === 'upc' && <UPCGenerator />}
+            {activeTab === 'products' && <ProductManagement />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Library = () => {
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
