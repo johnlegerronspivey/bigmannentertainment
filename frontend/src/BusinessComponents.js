@@ -131,6 +131,15 @@ export const BusinessIdentifiers = () => {
               International Standard Recording Code prefix for sound recordings
             </p>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Publisher Number</label>
+            <p className="mt-1 text-lg text-purple-600 font-mono bg-purple-50 p-3 rounded border-2 border-purple-200">
+              {businessInfo?.publisher_number}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Music publishing rights identification number
+            </p>
+          </div>
         </div>
         
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
