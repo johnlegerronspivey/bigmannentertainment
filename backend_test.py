@@ -4973,6 +4973,25 @@ class BackendTester:
         print("\nTesting ISRC Authentication...")
         self.test_isrc_authentication_required()
         
+        # NEW: Publisher Number PA04UV Integration Tests
+        print("\n📚 TESTING PUBLISHER NUMBER PA04UV INTEGRATION")
+        print("-" * 70)
+        
+        print("\nTesting Publisher Business Identifiers...")
+        self.test_publisher_business_identifiers_with_pa04uv()
+        
+        print("\nTesting Publisher Admin Overview...")
+        self.test_publisher_admin_business_overview()
+        
+        print("\nTesting Publisher Product Management...")
+        self.test_publisher_enhanced_product_management()
+        
+        print("\nTesting Complete Identifier Integration...")
+        self.test_publisher_complete_identifier_integration()
+        
+        print("\nTesting Publisher Authentication...")
+        self.test_publisher_authentication_requirements()
+        
         # Print Summary
         self.print_summary()
     
