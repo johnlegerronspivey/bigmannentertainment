@@ -122,6 +122,15 @@ export const BusinessIdentifiers = () => {
               Legal entity identification for global commerce
             </p>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">ISRC Prefix</label>
+            <p className="mt-1 text-lg text-purple-600 font-mono bg-purple-50 p-3 rounded border-2 border-purple-200">
+              US-{businessInfo?.isrc_prefix}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              International Standard Recording Code prefix for sound recordings
+            </p>
+          </div>
         </div>
         
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
