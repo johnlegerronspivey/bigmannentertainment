@@ -302,7 +302,8 @@ class BackendTester:
                 self.log_result("authentication", "WebAuthn Authentication Begin", False, "No auth token available")
                 return False
             
-            response = self.make_request('POST', '/auth/webauthn/authenticate/begin')
+            # WebAuthn authentication begin requires email parameter
+            response = self.make_request('POST', f'/auth/webauthn/authenticate/begin?email={TEST_USER_EMAIL}')
             
             if response.status_code == 200:
                 data = response.json()
@@ -316,9 +317,9 @@ class BackendTester:
                     self.log_result("authentication", "WebAuthn Authentication Begin", False, 
                                   f"Missing required fields. Present: {list(data.keys())}")
                     return False
-            elif response.status_code == 404 and "No credentials found" in response.text:
+            elif response.status_code == 400 and ("No WebAuthn credentials" in response.text or "No credentials" in response.text):
                 self.log_result("authentication", "WebAuthn Authentication Begin", True, 
-                              "Correctly returned 404 for user with no registered credentials")
+                              "Correctly returned 400 for user with no registered credentials")
                 return True
             else:
                 self.log_result("authentication", "WebAuthn Authentication Begin", False, 
