@@ -851,15 +851,31 @@ export const ProductManagement = () => {
                       {product.artist_name && (
                         <div className="text-sm text-gray-500">by {product.artist_name}</div>
                       )}
+                      {product.songwriter_credits && (
+                        <div className="text-xs text-gray-400">♪ {product.songwriter_credits}</div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-mono text-gray-900">{product.upc_full_code}</div>
+                    <div className="space-y-1">
+                      <div className="text-xs font-mono text-gray-900">UPC: {product.upc_full_code}</div>
+                      {product.isrc_code && (
+                        <div className="text-xs font-mono text-gray-700">ISRC: {product.isrc_code}</div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
                       {product.product_category}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {product.publisher_name || 'Big Mann Entertainment LLC'}
+                    </div>
+                    {product.publisher_number && (
+                      <div className="text-xs font-mono text-gray-500">{product.publisher_number}</div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(product.created_at).toLocaleDateString()}
