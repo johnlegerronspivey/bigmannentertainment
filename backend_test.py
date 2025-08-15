@@ -3958,6 +3958,386 @@ class BackendTester:
             self.log_result("sponsorship_admin", "Admin All Deals", False, f"Exception: {str(e)}")
             return False
     
+    # ISRC Integration Tests
+    def test_isrc_business_identifiers(self) -> bool:
+        """Test business identifiers endpoint includes ISRC prefix QZ9H8"""
+        try:
+            if not self.auth_token:
+                self.log_result("isrc_business_identifiers", "ISRC Business Identifiers", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/business/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for all required identifiers including ISRC
+                required_fields = [
+                    'business_legal_name', 'business_ein', 'business_tin', 
+                    'business_address', 'business_phone', 'business_naics_code',
+                    'upc_company_prefix', 'global_location_number', 'isrc_prefix'
+                ]
+                
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    # Verify specific values
+                    if (data['isrc_prefix'] == 'QZ9H8' and 
+                        data['upc_company_prefix'] == '8600043402' and
+                        data['global_location_number'] == '0860004340201' and
+                        data['business_legal_name'] == 'Big Mann Entertainment LLC'):
+                        
+                        self.log_result("isrc_business_identifiers", "ISRC Business Identifiers", True, 
+                                      f"All identifiers present: ISRC Prefix: {data['isrc_prefix']}, UPC: {data['upc_company_prefix']}, GLN: {data['global_location_number']}")
+                        return True
+                    else:
+                        self.log_result("isrc_business_identifiers", "ISRC Business Identifiers", False, 
+                                      f"Incorrect identifier values: ISRC={data.get('isrc_prefix')}, UPC={data.get('upc_company_prefix')}")
+                        return False
+                else:
+                    self.log_result("isrc_business_identifiers", "ISRC Business Identifiers", False, 
+                                  f"Missing required fields: {missing_fields}")
+                    return False
+            else:
+                self.log_result("isrc_business_identifiers", "ISRC Business Identifiers", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("isrc_business_identifiers", "ISRC Business Identifiers", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_isrc_code_generation_valid(self) -> bool:
+        """Test ISRC code generation with valid inputs"""
+        try:
+            if not self.auth_token:
+                self.log_result("isrc_code_generation", "ISRC Valid Generation", False, "No auth token available")
+                return False
+            
+            # Test valid combinations
+            test_cases = [
+                ("25", "00001"),  # Year 2025, designation 00001
+                ("24", "12345"),  # Year 2024, designation 12345
+                ("26", "99999")   # Year 2026, designation 99999
+            ]
+            
+            all_passed = True
+            generated_isrcs = []
+            
+            for year, designation in test_cases:
+                response = self.make_request('GET', f'/business/isrc/generate/{year}/{designation}')
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Verify response structure
+                    required_fields = [
+                        'country_code', 'registrant_code', 'year_of_reference', 
+                        'designation_code', 'full_isrc_code', 'display_format', 
+                        'compact_format', 'description'
+                    ]
+                    
+                    if all(field in data for field in required_fields):
+                        # Verify ISRC format: US-QZ9H8-YY-NNNNN
+                        expected_full = f"US-QZ9H8-{year}-{designation}"
+                        expected_compact = f"USQZ9H8{year}{designation}"
+                        
+                        if (data['full_isrc_code'] == expected_full and
+                            data['display_format'] == expected_full and
+                            data['compact_format'] == expected_compact and
+                            data['country_code'] == 'US' and
+                            data['registrant_code'] == 'QZ9H8'):
+                            
+                            generated_isrcs.append(expected_full)
+                        else:
+                            all_passed = False
+                            self.log_result("isrc_code_generation", "ISRC Valid Generation", False, 
+                                          f"Incorrect ISRC format for {year}/{designation}: got {data['full_isrc_code']}, expected {expected_full}")
+                            break
+                    else:
+                        all_passed = False
+                        missing = [f for f in required_fields if f not in data]
+                        self.log_result("isrc_code_generation", "ISRC Valid Generation", False, 
+                                      f"Missing fields for {year}/{designation}: {missing}")
+                        break
+                else:
+                    all_passed = False
+                    self.log_result("isrc_code_generation", "ISRC Valid Generation", False, 
+                                  f"Failed for {year}/{designation}: Status {response.status_code}")
+                    break
+            
+            if all_passed:
+                self.log_result("isrc_code_generation", "ISRC Valid Generation", True, 
+                              f"Successfully generated {len(generated_isrcs)} valid ISRCs: {', '.join(generated_isrcs)}")
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.log_result("isrc_code_generation", "ISRC Valid Generation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_isrc_code_generation_invalid(self) -> bool:
+        """Test ISRC code generation with invalid inputs"""
+        try:
+            if not self.auth_token:
+                self.log_result("isrc_code_generation", "ISRC Invalid Input Validation", False, "No auth token available")
+                return False
+            
+            # Test invalid combinations
+            invalid_cases = [
+                ("2025", "00001", "Year must be exactly 2 digits"),  # 4-digit year
+                ("5", "00001", "Year must be exactly 2 digits"),     # 1-digit year
+                ("25", "123", "Designation code must be exactly 5 digits"),  # 3-digit designation
+                ("25", "1234567", "Designation code must be exactly 5 digits"),  # 7-digit designation
+                ("ab", "00001", "Year must be exactly 2 digits"),    # Non-numeric year
+                ("25", "abcde", "Designation code must be exactly 5 digits")  # Non-numeric designation
+            ]
+            
+            all_passed = True
+            
+            for year, designation, expected_error in invalid_cases:
+                response = self.make_request('GET', f'/business/isrc/generate/{year}/{designation}')
+                
+                if response.status_code == 400:
+                    # Check if error message contains expected text
+                    if expected_error.lower() in response.text.lower():
+                        continue  # This case passed
+                    else:
+                        all_passed = False
+                        self.log_result("isrc_code_generation", "ISRC Invalid Input Validation", False, 
+                                      f"Wrong error message for {year}/{designation}: got '{response.text}', expected '{expected_error}'")
+                        break
+                else:
+                    all_passed = False
+                    self.log_result("isrc_code_generation", "ISRC Invalid Input Validation", False, 
+                                  f"Expected 400 for {year}/{designation}, got {response.status_code}")
+                    break
+            
+            if all_passed:
+                self.log_result("isrc_code_generation", "ISRC Invalid Input Validation", True, 
+                              f"Correctly validated all {len(invalid_cases)} invalid input cases")
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.log_result("isrc_code_generation", "ISRC Invalid Input Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_isrc_product_creation(self) -> bool:
+        """Test enhanced product creation with ISRC codes"""
+        try:
+            if not self.auth_token:
+                self.log_result("isrc_product_management", "ISRC Product Creation", False, "No auth token available")
+                return False
+            
+            # Create a product with ISRC code and enhanced fields
+            product_data = {
+                "product_name": "Big Mann Entertainment - New Track 2025",
+                "upc_full_code": "860004340200001",  # UPC with check digit
+                "gtin": "0860004340200001",
+                "isrc_code": "US-QZ9H8-25-00001",
+                "product_category": "music",
+                "artist_name": "John LeGerron Spivey",
+                "album_title": "Big Mann Entertainment Album",
+                "track_title": "New Track 2025",
+                "duration_seconds": 240,  # 4 minutes
+                "record_label": "Big Mann Entertainment LLC"
+            }
+            
+            response = self.make_request('POST', '/business/products', json=product_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if 'product_id' in result and 'message' in result:
+                    product_id = result['product_id']
+                    
+                    # Verify the product was created with ISRC data
+                    get_response = self.make_request('GET', f'/business/products/{product_id}')
+                    
+                    if get_response.status_code == 200:
+                        product = get_response.json()
+                        
+                        # Check all ISRC-related fields
+                        if (product.get('isrc_code') == "US-QZ9H8-25-00001" and
+                            product.get('duration_seconds') == 240 and
+                            product.get('record_label') == "Big Mann Entertainment LLC" and
+                            product.get('artist_name') == "John LeGerron Spivey"):
+                            
+                            self.log_result("isrc_product_management", "ISRC Product Creation", True, 
+                                          f"Successfully created product with ISRC: {product['isrc_code']}, Duration: {product['duration_seconds']}s, Label: {product['record_label']}")
+                            return True
+                        else:
+                            self.log_result("isrc_product_management", "ISRC Product Creation", False, 
+                                          f"ISRC fields not properly stored: ISRC={product.get('isrc_code')}, Duration={product.get('duration_seconds')}")
+                            return False
+                    else:
+                        self.log_result("isrc_product_management", "ISRC Product Creation", False, 
+                                      f"Failed to retrieve created product: {get_response.status_code}")
+                        return False
+                else:
+                    self.log_result("isrc_product_management", "ISRC Product Creation", False, 
+                                  "Missing product_id or message in response")
+                    return False
+            else:
+                self.log_result("isrc_product_management", "ISRC Product Creation", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("isrc_product_management", "ISRC Product Creation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_isrc_product_listing(self) -> bool:
+        """Test product listing shows ISRC information"""
+        try:
+            if not self.auth_token:
+                self.log_result("isrc_product_management", "ISRC Product Listing", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/business/products')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'products' in data and isinstance(data['products'], list):
+                    products = data['products']
+                    
+                    # Look for products with ISRC codes
+                    isrc_products = [p for p in products if p.get('isrc_code')]
+                    
+                    if len(isrc_products) > 0:
+                        # Verify ISRC product structure
+                        sample_product = isrc_products[0]
+                        isrc_fields = ['isrc_code', 'duration_seconds', 'record_label', 'artist_name']
+                        present_fields = [field for field in isrc_fields if field in sample_product and sample_product[field]]
+                        
+                        if len(present_fields) >= 2:  # At least ISRC code and one other field
+                            self.log_result("isrc_product_management", "ISRC Product Listing", True, 
+                                          f"Found {len(isrc_products)} products with ISRC codes. Sample ISRC: {sample_product.get('isrc_code')}")
+                            return True
+                        else:
+                            self.log_result("isrc_product_management", "ISRC Product Listing", False, 
+                                          f"ISRC products missing enhanced fields: {present_fields}")
+                            return False
+                    else:
+                        self.log_result("isrc_product_management", "ISRC Product Listing", True, 
+                                      "Product listing working (no ISRC products found yet)")
+                        return True
+                else:
+                    self.log_result("isrc_product_management", "ISRC Product Listing", False, 
+                                  "Invalid response format")
+                    return False
+            else:
+                self.log_result("isrc_product_management", "ISRC Product Listing", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("isrc_product_management", "ISRC Product Listing", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_isrc_admin_overview(self) -> bool:
+        """Test admin business overview includes ISRC information"""
+        try:
+            if not self.auth_token:
+                self.log_result("isrc_admin_overview", "ISRC Admin Overview", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/admin/business/overview')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for ISRC information in global identifiers
+                if 'global_identifiers' in data:
+                    global_ids = data['global_identifiers']
+                    
+                    required_fields = ['isrc_prefix', 'isrc_format', 'upc_company_prefix', 'global_location_number']
+                    missing_fields = [field for field in required_fields if field not in global_ids]
+                    
+                    if not missing_fields:
+                        # Verify ISRC-specific values
+                        if (global_ids['isrc_prefix'] == 'QZ9H8' and
+                            'US-QZ9H8-YY-NNNNN' in global_ids['isrc_format'] and
+                            global_ids['upc_company_prefix'] == '8600043402'):
+                            
+                            self.log_result("isrc_admin_overview", "ISRC Admin Overview", True, 
+                                          f"Admin overview includes ISRC info: Prefix={global_ids['isrc_prefix']}, Format={global_ids['isrc_format']}")
+                            return True
+                        else:
+                            self.log_result("isrc_admin_overview", "ISRC Admin Overview", False, 
+                                          f"Incorrect ISRC values: Prefix={global_ids.get('isrc_prefix')}, Format={global_ids.get('isrc_format')}")
+                            return False
+                    else:
+                        self.log_result("isrc_admin_overview", "ISRC Admin Overview", False, 
+                                      f"Missing ISRC fields: {missing_fields}")
+                        return False
+                else:
+                    self.log_result("isrc_admin_overview", "ISRC Admin Overview", False, 
+                                  "Missing global_identifiers section")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("isrc_admin_overview", "ISRC Admin Overview", True, 
+                              "Admin endpoint properly protected (403 Forbidden)")
+                return True
+            else:
+                self.log_result("isrc_admin_overview", "ISRC Admin Overview", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("isrc_admin_overview", "ISRC Admin Overview", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_isrc_authentication_required(self) -> bool:
+        """Test that all ISRC endpoints require proper authentication"""
+        try:
+            # Save current token
+            original_token = self.auth_token
+            
+            # Test without authentication
+            self.auth_token = None
+            
+            endpoints_to_test = [
+                ('/business/identifiers', 'Business Identifiers'),
+                ('/business/isrc/generate/25/00001', 'ISRC Generation'),
+                ('/admin/business/overview', 'Admin Business Overview')
+            ]
+            
+            all_protected = True
+            
+            for endpoint, name in endpoints_to_test:
+                response = self.make_request('GET', endpoint)
+                
+                if response.status_code == 401:
+                    continue  # Properly protected
+                elif response.status_code == 403:
+                    continue  # Also properly protected (admin endpoint)
+                else:
+                    all_protected = False
+                    self.log_result("isrc_authentication", "ISRC Authentication Required", False, 
+                                  f"{name} endpoint not protected: Status {response.status_code}")
+                    break
+            
+            # Restore token
+            self.auth_token = original_token
+            
+            if all_protected:
+                self.log_result("isrc_authentication", "ISRC Authentication Required", True, 
+                              f"All {len(endpoints_to_test)} ISRC endpoints properly require authentication")
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            # Restore token in case of exception
+            self.auth_token = original_token
+            self.log_result("isrc_authentication", "ISRC Authentication Required", False, f"Exception: {str(e)}")
+            return False
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("=" * 80)
