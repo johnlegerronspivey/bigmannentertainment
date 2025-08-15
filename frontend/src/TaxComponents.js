@@ -570,7 +570,7 @@ export const BusinessTaxInfo = () => {
   const [businessInfo, setBusinessInfo] = useState({
     business_name: 'Big Mann Entertainment',
     ein: '270658077',
-    tin: '270658077',
+    tin: '12800',
     business_license_number: '',
     license_type: 'Entertainment/Media Production',
     license_state: 'AL',
