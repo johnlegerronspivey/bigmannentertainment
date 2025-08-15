@@ -1,21 +1,52 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Dict, Any, Optional
 import logging
 from datetime import datetime
+import jwt
+import os
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from industry_service import IndustryIntegrationService
 from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IndustryIdentifier
 
-# Import from server.py to get dependencies
-import sys
-import os
-sys.path.append(os.path.dirname(__file__))
-
-# Import dependencies from server
-from server import get_current_user, get_admin_user, User, db
-
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/industry", tags=["Industry Integration"])
+
+# Database connection
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+# Authentication setup
+SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
+ALGORITHM = "HS256"
+security = HTTPBearer()
+
+class User:
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    
+    user = await db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user)
+
+async def get_admin_user(current_user: User = Depends(get_current_user)):
+    if not getattr(current_user, 'is_admin', False) and getattr(current_user, 'role', '') not in ["admin", "moderator", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return current_user
 
 # Industry Connection and Management Endpoints
 @router.post("/initialize")
