@@ -597,7 +597,7 @@ export const BusinessTaxInfo = () => {
     // Business Details
     business_type: 'corporation',
     tax_classification: 'c_corporation',
-    naics_code: '512110',
+    naics_code: '512200',
     sic_code: '7812',
     
     // Incorporation Details
