@@ -21,9 +21,9 @@ import asyncio
 import aiohttp
 import secrets
 import base64
-import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+# import smtplib
+# from email.mime.text import MimeText
+# from email.mime.multipart import MimeMultipart
 
 # WebAuthn imports
 from webauthn import generate_registration_options, verify_registration_response
