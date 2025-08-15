@@ -4703,6 +4703,409 @@ class BackendTester:
             self.log_result("publisher_authentication", "Publisher Authentication Requirements", False, f"Exception: {str(e)}")
             return False
     
+    def test_ipi_database_initialization(self) -> bool:
+        """Test IPI database initialization endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("ipi_database_initialization", "IPI Database Initialization", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/industry/initialize')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'total_partners' in data:
+                    self.log_result("ipi_database_initialization", "IPI Database Initialization", True, 
+                                  f"Successfully initialized industry partners including IPI numbers. Total partners: {data['total_partners']}")
+                    return True
+                else:
+                    self.log_result("ipi_database_initialization", "IPI Database Initialization", False, 
+                                  f"Unexpected response format: {data}")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("ipi_database_initialization", "IPI Database Initialization", True, 
+                              "Correctly requires admin privileges (403 Forbidden)")
+                return True
+            else:
+                self.log_result("ipi_database_initialization", "IPI Database Initialization", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ipi_database_initialization", "IPI Database Initialization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ipi_number_retrieval(self) -> bool:
+        """Test IPI number retrieval endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/ipi')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'ipi_numbers' in data and isinstance(data['ipi_numbers'], list):
+                    ipi_numbers = data['ipi_numbers']
+                    
+                    # Check for expected IPI numbers
+                    big_mann_ipi = None
+                    john_spivey_ipi = None
+                    
+                    for ipi in ipi_numbers:
+                        if ipi.get('ipi_number') == '813048171':
+                            big_mann_ipi = ipi
+                        elif ipi.get('ipi_number') == '578413032':
+                            john_spivey_ipi = ipi
+                    
+                    if big_mann_ipi and john_spivey_ipi:
+                        # Verify Big Mann Entertainment IPI
+                        if (big_mann_ipi.get('entity_name') == 'Big Mann Entertainment' and 
+                            big_mann_ipi.get('entity_type') == 'company' and 
+                            big_mann_ipi.get('role') == 'publisher'):
+                            
+                            # Verify John LeGerron Spivey IPI
+                            if (john_spivey_ipi.get('entity_name') == 'John LeGerron Spivey' and 
+                                john_spivey_ipi.get('entity_type') == 'individual' and 
+                                john_spivey_ipi.get('role') == 'songwriter'):
+                                
+                                # Verify contact information
+                                big_mann_contact = big_mann_ipi.get('contact_info', {})
+                                john_contact = john_spivey_ipi.get('contact_info', {})
+                                
+                                expected_address = "1314 Lincoln Heights Street, Alexander City, AL 35010"
+                                expected_phone = "334-669-8638"
+                                
+                                if (expected_address in big_mann_contact.get('address', '') and 
+                                    expected_phone in big_mann_contact.get('phone', '') and
+                                    expected_address in john_contact.get('address', '') and 
+                                    expected_phone in john_contact.get('phone', '')):
+                                    
+                                    self.log_result("ipi_number_retrieval", "IPI Number Retrieval", True, 
+                                                  f"Successfully retrieved both IPI numbers with correct metadata. Big Mann Entertainment (813048171) as company/publisher, John LeGerron Spivey (578413032) as individual/songwriter, both with correct Alabama address and phone")
+                                    return True
+                                else:
+                                    self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, 
+                                                  "IPI numbers found but contact information incorrect")
+                                    return False
+                            else:
+                                self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, 
+                                              "John LeGerron Spivey IPI metadata incorrect")
+                                return False
+                        else:
+                            self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, 
+                                          "Big Mann Entertainment IPI metadata incorrect")
+                            return False
+                    else:
+                        self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, 
+                                      f"Expected IPI numbers not found. Found {len(ipi_numbers)} IPI numbers but missing 813048171 or 578413032")
+                        return False
+                else:
+                    self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, 
+                                  "Invalid response format - missing ipi_numbers array")
+                    return False
+            else:
+                self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ipi_number_retrieval", "IPI Number Retrieval", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ipi_filtering(self) -> bool:
+        """Test IPI filtering by entity_type and role"""
+        try:
+            if not self.auth_token:
+                self.log_result("ipi_filtering", "IPI Filtering", False, "No auth token available")
+                return False
+            
+            # Test filtering by entity_type=company
+            company_response = self.make_request('GET', '/industry/ipi?entity_type=company')
+            
+            if company_response.status_code == 200:
+                company_data = company_response.json()
+                company_ipis = company_data.get('ipi_numbers', [])
+                
+                # Should find Big Mann Entertainment
+                big_mann_found = any(ipi.get('ipi_number') == '813048171' for ipi in company_ipis)
+                john_found = any(ipi.get('ipi_number') == '578413032' for ipi in company_ipis)
+                
+                if big_mann_found and not john_found:
+                    # Test filtering by entity_type=individual
+                    individual_response = self.make_request('GET', '/industry/ipi?entity_type=individual')
+                    
+                    if individual_response.status_code == 200:
+                        individual_data = individual_response.json()
+                        individual_ipis = individual_data.get('ipi_numbers', [])
+                        
+                        # Should find John LeGerron Spivey
+                        john_found_individual = any(ipi.get('ipi_number') == '578413032' for ipi in individual_ipis)
+                        big_mann_found_individual = any(ipi.get('ipi_number') == '813048171' for ipi in individual_ipis)
+                        
+                        if john_found_individual and not big_mann_found_individual:
+                            # Test filtering by role=publisher
+                            publisher_response = self.make_request('GET', '/industry/ipi?role=publisher')
+                            
+                            if publisher_response.status_code == 200:
+                                publisher_data = publisher_response.json()
+                                publisher_ipis = publisher_data.get('ipi_numbers', [])
+                                
+                                # Should find Big Mann Entertainment
+                                big_mann_publisher = any(ipi.get('ipi_number') == '813048171' for ipi in publisher_ipis)
+                                
+                                # Test filtering by role=songwriter
+                                songwriter_response = self.make_request('GET', '/industry/ipi?role=songwriter')
+                                
+                                if songwriter_response.status_code == 200:
+                                    songwriter_data = songwriter_response.json()
+                                    songwriter_ipis = songwriter_data.get('ipi_numbers', [])
+                                    
+                                    # Should find John LeGerron Spivey
+                                    john_songwriter = any(ipi.get('ipi_number') == '578413032' for ipi in songwriter_ipis)
+                                    
+                                    if big_mann_publisher and john_songwriter:
+                                        self.log_result("ipi_filtering", "IPI Filtering", True, 
+                                                      "All IPI filtering working correctly: entity_type (company/individual) and role (publisher/songwriter)")
+                                        return True
+                                    else:
+                                        self.log_result("ipi_filtering", "IPI Filtering", False, 
+                                                      "Role filtering not working correctly")
+                                        return False
+                                else:
+                                    self.log_result("ipi_filtering", "IPI Filtering", False, 
+                                                  f"Songwriter filtering failed: {songwriter_response.status_code}")
+                                    return False
+                            else:
+                                self.log_result("ipi_filtering", "IPI Filtering", False, 
+                                              f"Publisher filtering failed: {publisher_response.status_code}")
+                                return False
+                        else:
+                            self.log_result("ipi_filtering", "IPI Filtering", False, 
+                                          "Individual entity_type filtering not working correctly")
+                            return False
+                    else:
+                        self.log_result("ipi_filtering", "IPI Filtering", False, 
+                                      f"Individual filtering failed: {individual_response.status_code}")
+                        return False
+                else:
+                    self.log_result("ipi_filtering", "IPI Filtering", False, 
+                                  "Company entity_type filtering not working correctly")
+                    return False
+            else:
+                self.log_result("ipi_filtering", "IPI Filtering", False, 
+                              f"Company filtering failed: {company_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ipi_filtering", "IPI Filtering", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ipi_details(self) -> bool:
+        """Test IPI number details endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("ipi_details", "IPI Details", False, "No auth token available")
+                return False
+            
+            # Test Big Mann Entertainment IPI details
+            big_mann_response = self.make_request('GET', '/industry/ipi/813048171')
+            
+            if big_mann_response.status_code == 200:
+                big_mann_data = big_mann_response.json()
+                if 'ipi_number' in big_mann_data:
+                    ipi_info = big_mann_data['ipi_number']
+                    
+                    # Verify Big Mann Entertainment details
+                    if (ipi_info.get('ipi_number') == '813048171' and 
+                        ipi_info.get('entity_name') == 'Big Mann Entertainment' and
+                        ipi_info.get('entity_type') == 'company' and
+                        ipi_info.get('role') == 'publisher' and
+                        ipi_info.get('status') == 'active'):
+                        
+                        # Test John LeGerron Spivey IPI details
+                        john_response = self.make_request('GET', '/industry/ipi/578413032')
+                        
+                        if john_response.status_code == 200:
+                            john_data = john_response.json()
+                            if 'ipi_number' in john_data:
+                                john_ipi_info = john_data['ipi_number']
+                                
+                                # Verify John LeGerron Spivey details
+                                if (john_ipi_info.get('ipi_number') == '578413032' and 
+                                    john_ipi_info.get('entity_name') == 'John LeGerron Spivey' and
+                                    john_ipi_info.get('entity_type') == 'individual' and
+                                    john_ipi_info.get('role') == 'songwriter' and
+                                    john_ipi_info.get('status') == 'active'):
+                                    
+                                    # Test non-existent IPI number
+                                    nonexistent_response = self.make_request('GET', '/industry/ipi/999999999')
+                                    
+                                    if nonexistent_response.status_code == 404:
+                                        self.log_result("ipi_details", "IPI Details", True, 
+                                                      "IPI details endpoint working correctly for both existing IPI numbers and properly returns 404 for non-existent IPI")
+                                        return True
+                                    else:
+                                        self.log_result("ipi_details", "IPI Details", False, 
+                                                      "Non-existent IPI should return 404")
+                                        return False
+                                else:
+                                    self.log_result("ipi_details", "IPI Details", False, 
+                                                  "John LeGerron Spivey IPI details incorrect")
+                                    return False
+                            else:
+                                self.log_result("ipi_details", "IPI Details", False, 
+                                              "John LeGerron Spivey response missing ipi_number field")
+                                return False
+                        else:
+                            self.log_result("ipi_details", "IPI Details", False, 
+                                          f"John LeGerron Spivey IPI lookup failed: {john_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("ipi_details", "IPI Details", False, 
+                                      "Big Mann Entertainment IPI details incorrect")
+                        return False
+                else:
+                    self.log_result("ipi_details", "IPI Details", False, 
+                                  "Big Mann Entertainment response missing ipi_number field")
+                    return False
+            else:
+                self.log_result("ipi_details", "IPI Details", False, 
+                              f"Big Mann Entertainment IPI lookup failed: {big_mann_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ipi_details", "IPI Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ipi_dashboard(self) -> bool:
+        """Test IPI dashboard analytics endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("ipi_dashboard", "IPI Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/ipi/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'dashboard' in data:
+                    dashboard = data['dashboard']
+                    
+                    # Verify dashboard structure
+                    required_fields = ['total_ipi_numbers', 'by_entity_type', 'by_role', 'big_mann_entertainment']
+                    
+                    if all(field in dashboard for field in required_fields):
+                        # Verify Big Mann Entertainment specific data
+                        big_mann_data = dashboard['big_mann_entertainment']
+                        
+                        if (big_mann_data.get('company_ipi') == '813048171' and 
+                            big_mann_data.get('individual_ipi') == '578413032' and
+                            big_mann_data.get('status') == 'active'):
+                            
+                            # Verify counts
+                            entity_counts = dashboard['by_entity_type']
+                            role_counts = dashboard['by_role']
+                            
+                            if (entity_counts.get('company', 0) >= 1 and 
+                                entity_counts.get('individual', 0) >= 1 and
+                                role_counts.get('publisher', 0) >= 1 and
+                                role_counts.get('songwriter', 0) >= 1):
+                                
+                                self.log_result("ipi_dashboard", "IPI Dashboard", True, 
+                                              f"IPI dashboard working correctly with {dashboard['total_ipi_numbers']} total IPI numbers, proper entity/role breakdowns, and Big Mann Entertainment data")
+                                return True
+                            else:
+                                self.log_result("ipi_dashboard", "IPI Dashboard", False, 
+                                              "IPI dashboard counts incorrect")
+                                return False
+                        else:
+                            self.log_result("ipi_dashboard", "IPI Dashboard", False, 
+                                          "Big Mann Entertainment IPI data incorrect in dashboard")
+                            return False
+                    else:
+                        self.log_result("ipi_dashboard", "IPI Dashboard", False, 
+                                      f"Dashboard missing required fields. Present: {list(dashboard.keys())}")
+                        return False
+                else:
+                    self.log_result("ipi_dashboard", "IPI Dashboard", False, 
+                                  "Response missing dashboard field")
+                    return False
+            else:
+                self.log_result("ipi_dashboard", "IPI Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ipi_dashboard", "IPI Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ipi_authentication(self) -> bool:
+        """Test IPI endpoints authentication requirements"""
+        try:
+            # Test without authentication
+            old_token = self.auth_token
+            self.auth_token = None
+            
+            # Test endpoints that should require authentication
+            endpoints_to_test = [
+                '/industry/ipi',
+                '/industry/ipi/813048171',
+                '/industry/ipi/dashboard'
+            ]
+            
+            all_protected = True
+            
+            for endpoint in endpoints_to_test:
+                response = self.make_request('GET', endpoint)
+                if response.status_code not in [401, 403]:
+                    all_protected = False
+                    break
+            
+            # Restore token
+            self.auth_token = old_token
+            
+            if all_protected:
+                # Test admin-only endpoints
+                admin_endpoints = [
+                    ('/industry/initialize', 'POST'),
+                    ('/industry/ipi', 'POST')
+                ]
+                
+                admin_protected = True
+                
+                for endpoint, method in admin_endpoints:
+                    if method == 'POST':
+                        response = self.make_request('POST', endpoint, json={"test": "data"})
+                    else:
+                        response = self.make_request('GET', endpoint)
+                    
+                    # Should return 403 for non-admin users
+                    if response.status_code != 403:
+                        admin_protected = False
+                        break
+                
+                if admin_protected:
+                    self.log_result("ipi_authentication", "IPI Authentication", True, 
+                                  "All IPI endpoints properly protected - GET endpoints require authentication, admin endpoints require admin privileges")
+                    return True
+                else:
+                    self.log_result("ipi_authentication", "IPI Authentication", False, 
+                                  "Admin endpoints not properly protected")
+                    return False
+            else:
+                self.log_result("ipi_authentication", "IPI Authentication", False, 
+                              "Some IPI endpoints not properly protected")
+                return False
+                
+        except Exception as e:
+            # Restore token in case of exception
+            if 'old_token' in locals():
+                self.auth_token = old_token
+            self.log_result("ipi_authentication", "IPI Authentication", False, f"Exception: {str(e)}")
+            return False
+    
     
     def run_all_tests(self):
         """Run all backend tests"""
