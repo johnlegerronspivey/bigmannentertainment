@@ -435,6 +435,7 @@ const Header = () => {
             <Link to="/upload" className="hover:text-purple-400 transition-colors">Upload</Link>
             <Link to="/distribute" className="hover:text-purple-400 transition-colors">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-400 transition-colors">Platforms</Link>
+            <Link to="/business" className="hover:text-purple-400 transition-colors">Business</Link>
             <Link to="/sponsorship" className="hover:text-purple-400 transition-colors">Sponsorship</Link>
             <Link to="/blockchain" className="hover:text-purple-400 transition-colors">Blockchain</Link>
             <Link to="/ddex" className="hover:text-purple-400 transition-colors">DDEX Compliance</Link>
