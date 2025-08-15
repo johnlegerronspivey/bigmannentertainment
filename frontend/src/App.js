@@ -6,7 +6,7 @@ import { DDEXERNCreator, DDEXCWRCreator, DDEXMessageList, DDEXIdentifierGenerato
 import { SponsorshipDashboard, SponsorshipDealCreator, MetricsRecorder, AdminSponsorshipOverview } from "./SponsorshipComponents";
 import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, BusinessLicenseManagement, ComplianceDashboard } from "./TaxComponents";
 import { BusinessIdentifiers, UPCGenerator, ISRCGenerator, ProductManagement } from "./BusinessComponents";
-import { IndustryDashboard, IndustryPartners, GlobalDistribution, IndustryCoverage } from "./IndustryComponents";
+import { IndustryDashboard, IndustryPartners, GlobalDistribution, IndustryCoverage, IPIManagement } from "./IndustryComponents";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
