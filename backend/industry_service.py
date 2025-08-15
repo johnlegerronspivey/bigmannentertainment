@@ -573,3 +573,90 @@ class IndustryIntegrationService:
         except Exception as e:
             logger.error(f"Error getting dashboard data: {str(e)}")
             return {}
+    
+    # IPI Number Management Methods
+    async def get_ipi_numbers(self, entity_type: Optional[str] = None, role: Optional[str] = None) -> List[Dict]:
+        """Get IPI numbers with optional filtering"""
+        try:
+            query = {"status": "active"}
+            if entity_type:
+                query["entity_type"] = entity_type
+            if role:
+                query["role"] = role
+            
+            cursor = self.db.ipi_numbers.find(query)
+            ipi_numbers = await cursor.to_list(None)
+            return ipi_numbers
+            
+        except Exception as e:
+            logger.error(f"Error retrieving IPI numbers: {str(e)}")
+            return []
+    
+    async def add_ipi_number(self, ipi_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add a new IPI number"""
+        try:
+            # Check if IPI number already exists
+            existing = await self.db.ipi_numbers.find_one({"ipi_number": ipi_data.get("ipi_number")})
+            if existing:
+                raise ValueError(f"IPI number {ipi_data.get('ipi_number')} already exists")
+            
+            ipi = IPINumber(**ipi_data)
+            await self.db.ipi_numbers.insert_one(ipi.dict())
+            
+            return {"success": True, "ipi": ipi.dict()}
+            
+        except Exception as e:
+            logger.error(f"Error adding IPI number: {str(e)}")
+            raise
+    
+    async def update_ipi_number(self, ipi_number: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update an existing IPI number"""
+        try:
+            update_data["updated_at"] = datetime.utcnow()
+            
+            result = await self.db.ipi_numbers.update_one(
+                {"ipi_number": ipi_number},
+                {"$set": update_data}
+            )
+            
+            if result.matched_count == 0:
+                raise ValueError(f"IPI number {ipi_number} not found")
+            
+            return {"success": True, "message": "IPI number updated successfully"}
+            
+        except Exception as e:
+            logger.error(f"Error updating IPI number: {str(e)}")
+            raise
+    
+    async def get_ipi_dashboard_data(self) -> Dict[str, Any]:
+        """Get comprehensive IPI dashboard data"""
+        try:
+            # Get all IPI numbers
+            ipi_numbers = await self.get_ipi_numbers()
+            
+            # Count by entity type
+            entity_counts = {}
+            role_counts = {}
+            
+            for ipi in ipi_numbers:
+                entity_type = ipi.get("entity_type", "unknown")
+                role = ipi.get("role", "unknown")
+                
+                entity_counts[entity_type] = entity_counts.get(entity_type, 0) + 1
+                role_counts[role] = role_counts.get(role, 0) + 1
+            
+            return {
+                "total_ipi_numbers": len(ipi_numbers),
+                "by_entity_type": entity_counts,
+                "by_role": role_counts,
+                "big_mann_entertainment": {
+                    "company_ipi": "813048171",
+                    "individual_ipi": "578413032",
+                    "status": "active"
+                },
+                "recent_ipi_numbers": ipi_numbers[-5:] if ipi_numbers else []
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting IPI dashboard data: {str(e)}")
+            return {}
