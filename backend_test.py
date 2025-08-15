@@ -5113,6 +5113,405 @@ class BackendTester:
             self.log_result("ipi_authentication", "IPI Authentication", False, f"Exception: {str(e)}")
             return False
     
+    # Industry Identifiers Integration Testing Methods (IPI, ISNI, AARC)
+    def test_industry_identifiers_initialization(self) -> bool:
+        """Test POST /api/industry/initialize to ensure all identifiers are loaded"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_identifiers_initialization", "Industry Identifiers Initialization", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/industry/initialize')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'total_partners' in data:
+                    self.log_result("industry_identifiers_initialization", "Industry Identifiers Initialization", True, 
+                                  f"Successfully initialized industry connections with {data['total_partners']} partners")
+                    return True
+                else:
+                    self.log_result("industry_identifiers_initialization", "Industry Identifiers Initialization", False, 
+                                  f"Unexpected response format: {data}")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("industry_identifiers_initialization", "Industry Identifiers Initialization", True, 
+                              "Correctly requires admin privileges (403 Forbidden)")
+                return True
+            else:
+                self.log_result("industry_identifiers_initialization", "Industry Identifiers Initialization", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_identifiers_initialization", "Industry Identifiers Initialization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_industry_identifiers_retrieval(self) -> bool:
+        """Test GET /api/industry/identifiers to retrieve all industry identifiers"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_identifiers_retrieval", "Industry Identifiers Retrieval", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'identifiers' in data and 'big_mann_entertainment' in data:
+                    identifiers = data['identifiers']
+                    big_mann = data['big_mann_entertainment']
+                    
+                    # Verify Big Mann Entertainment data is present
+                    company = big_mann.get('company', {})
+                    individual = big_mann.get('individual', {})
+                    
+                    expected_company_data = {
+                        'name': 'Big Mann Entertainment',
+                        'ipi': '813048171',
+                        'aarc': 'RC00002057'
+                    }
+                    
+                    expected_individual_data = {
+                        'name': 'John LeGerron Spivey',
+                        'ipi': '578413032',
+                        'isni': '0000000491551894',
+                        'aarc': 'FA02933539'
+                    }
+                    
+                    company_valid = all(company.get(k) == v for k, v in expected_company_data.items())
+                    individual_valid = all(individual.get(k) == v for k, v in expected_individual_data.items())
+                    
+                    if company_valid and individual_valid:
+                        self.log_result("industry_identifiers_retrieval", "Industry Identifiers Retrieval", True, 
+                                      f"Retrieved {len(identifiers)} identifiers with correct Big Mann Entertainment data")
+                        return True
+                    else:
+                        self.log_result("industry_identifiers_retrieval", "Industry Identifiers Retrieval", False, 
+                                      f"Big Mann Entertainment data incorrect. Company: {company}, Individual: {individual}")
+                        return False
+                else:
+                    self.log_result("industry_identifiers_retrieval", "Industry Identifiers Retrieval", False, 
+                                  "Missing required response fields")
+                    return False
+            else:
+                self.log_result("industry_identifiers_retrieval", "Industry Identifiers Retrieval", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_identifiers_retrieval", "Industry Identifiers Retrieval", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_industry_identifiers_filtering(self) -> bool:
+        """Test filtering by entity_type and identifier_type"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, "No auth token available")
+                return False
+            
+            # Test filtering by entity_type=company
+            response = self.make_request('GET', '/industry/identifiers?entity_type=company')
+            
+            if response.status_code == 200:
+                data = response.json()
+                identifiers = data.get('identifiers', [])
+                
+                # Should only return company entities
+                company_entities = [i for i in identifiers if i.get('entity_type') == 'company']
+                if len(company_entities) == len(identifiers) and len(identifiers) > 0:
+                    # Test filtering by identifier_type=ipi
+                    response2 = self.make_request('GET', '/industry/identifiers?identifier_type=ipi')
+                    
+                    if response2.status_code == 200:
+                        data2 = response2.json()
+                        identifiers2 = data2.get('identifiers', [])
+                        
+                        # Should only return entities with IPI numbers
+                        ipi_entities = [i for i in identifiers2 if i.get('ipi_number')]
+                        if len(ipi_entities) == len(identifiers2) and len(identifiers2) > 0:
+                            # Test combined filtering
+                            response3 = self.make_request('GET', '/industry/identifiers?entity_type=individual&identifier_type=isni')
+                            
+                            if response3.status_code == 200:
+                                data3 = response3.json()
+                                identifiers3 = data3.get('identifiers', [])
+                                
+                                # Should only return individuals with ISNI numbers
+                                individual_isni = [i for i in identifiers3 if i.get('entity_type') == 'individual' and i.get('isni_number')]
+                                if len(individual_isni) == len(identifiers3):
+                                    self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", True, 
+                                                  f"All filtering tests passed: company({len(identifiers)}), ipi({len(identifiers2)}), individual+isni({len(identifiers3)})")
+                                    return True
+                                else:
+                                    self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, 
+                                                  "Combined filtering failed")
+                                    return False
+                            else:
+                                self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, 
+                                              f"Combined filter failed: {response3.status_code}")
+                                return False
+                        else:
+                            self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, 
+                                          "IPI filtering failed")
+                            return False
+                    else:
+                        self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, 
+                                      f"IPI filter failed: {response2.status_code}")
+                        return False
+                else:
+                    self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, 
+                                  "Company filtering failed")
+                    return False
+            else:
+                self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_identifiers_filtering", "Industry Identifiers Filtering", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_industry_identifiers_dashboard(self) -> bool:
+        """Test GET /api/industry/identifiers/dashboard for comprehensive analytics"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_identifiers_dashboard", "Industry Identifiers Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/identifiers/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'dashboard' in data:
+                    dashboard = data['dashboard']
+                    
+                    # Verify required dashboard fields
+                    required_fields = ['total_entities', 'by_entity_type', 'identifier_counts', 'big_mann_entertainment']
+                    if all(field in dashboard for field in required_fields):
+                        
+                        # Verify Big Mann Entertainment specific data
+                        big_mann = dashboard['big_mann_entertainment']
+                        expected_data = {
+                            'company_ipi': '813048171',
+                            'company_aarc': 'RC00002057',
+                            'individual_ipi': '578413032',
+                            'individual_isni': '0000000491551894',
+                            'individual_aarc': 'FA02933539',
+                            'status': 'active'
+                        }
+                        
+                        if all(big_mann.get(k) == v for k, v in expected_data.items()):
+                            identifier_counts = dashboard['identifier_counts']
+                            self.log_result("industry_identifiers_dashboard", "Industry Identifiers Dashboard", True, 
+                                          f"Dashboard loaded: {dashboard['total_entities']} entities, "
+                                          f"IPI: {identifier_counts.get('ipi', 0)}, "
+                                          f"ISNI: {identifier_counts.get('isni', 0)}, "
+                                          f"AARC: {identifier_counts.get('aarc', 0)}")
+                            return True
+                        else:
+                            self.log_result("industry_identifiers_dashboard", "Industry Identifiers Dashboard", False, 
+                                          f"Big Mann Entertainment data incorrect: {big_mann}")
+                            return False
+                    else:
+                        self.log_result("industry_identifiers_dashboard", "Industry Identifiers Dashboard", False, 
+                                      f"Missing required dashboard fields: {list(dashboard.keys())}")
+                        return False
+                else:
+                    self.log_result("industry_identifiers_dashboard", "Industry Identifiers Dashboard", False, 
+                                  "Missing dashboard data in response")
+                    return False
+            else:
+                self.log_result("industry_identifiers_dashboard", "Industry Identifiers Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_identifiers_dashboard", "Industry Identifiers Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_industry_identifiers_entity_details(self) -> bool:
+        """Test GET /api/industry/identifiers/{entity_name} for entity-specific details"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", False, "No auth token available")
+                return False
+            
+            # Test Big Mann Entertainment entity details
+            response = self.make_request('GET', '/industry/identifiers/Big Mann Entertainment')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'identifier' in data:
+                    identifier = data['identifier']
+                    
+                    # Verify Big Mann Entertainment data
+                    expected_fields = {
+                        'entity_name': 'Big Mann Entertainment',
+                        'entity_type': 'company',
+                        'ipi_number': '813048171',
+                        'aarc_number': 'RC00002057',
+                        'territory': 'US',
+                        'status': 'active'
+                    }
+                    
+                    if all(identifier.get(k) == v for k, v in expected_fields.items()):
+                        # Test John LeGerron Spivey entity details
+                        response2 = self.make_request('GET', '/industry/identifiers/John LeGerron Spivey')
+                        
+                        if response2.status_code == 200:
+                            data2 = response2.json()
+                            identifier2 = data2.get('identifier', {})
+                            
+                            expected_fields2 = {
+                                'entity_name': 'John LeGerron Spivey',
+                                'entity_type': 'individual',
+                                'ipi_number': '578413032',
+                                'isni_number': '0000000491551894',
+                                'aarc_number': 'FA02933539',
+                                'territory': 'US',
+                                'status': 'active'
+                            }
+                            
+                            if all(identifier2.get(k) == v for k, v in expected_fields2.items()):
+                                self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", True, 
+                                              "Both Big Mann Entertainment and John LeGerron Spivey entity details retrieved correctly")
+                                return True
+                            else:
+                                self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", False, 
+                                              f"John LeGerron Spivey data incorrect: {identifier2}")
+                                return False
+                        else:
+                            self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", False, 
+                                          f"John LeGerron Spivey request failed: {response2.status_code}")
+                            return False
+                    else:
+                        self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", False, 
+                                      f"Big Mann Entertainment data incorrect: {identifier}")
+                        return False
+                else:
+                    self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", False, 
+                                  "Missing identifier data in response")
+                    return False
+            else:
+                self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_identifiers_entity_details", "Industry Identifiers Entity Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_industry_identifiers_authentication(self) -> bool:
+        """Test that all GET endpoints require JWT authentication"""
+        try:
+            # Store current token
+            old_token = self.auth_token
+            self.auth_token = None
+            
+            # Test endpoints without authentication
+            endpoints_to_test = [
+                '/industry/identifiers',
+                '/industry/identifiers/dashboard',
+                '/industry/identifiers/Big Mann Entertainment'
+            ]
+            
+            all_protected = True
+            for endpoint in endpoints_to_test:
+                response = self.make_request('GET', endpoint)
+                if response.status_code != 401:
+                    all_protected = False
+                    break
+            
+            # Restore token
+            self.auth_token = old_token
+            
+            if all_protected:
+                # Test admin endpoints require admin privileges
+                response = self.make_request('POST', '/industry/initialize')
+                
+                if response.status_code in [403, 401]:  # Either forbidden or unauthorized is acceptable
+                    self.log_result("industry_identifiers_authentication", "Industry Identifiers Authentication", True, 
+                                  "All endpoints properly protected with authentication")
+                    return True
+                else:
+                    self.log_result("industry_identifiers_authentication", "Industry Identifiers Authentication", False, 
+                                  "Admin endpoints not properly protected")
+                    return False
+            else:
+                self.log_result("industry_identifiers_authentication", "Industry Identifiers Authentication", False, 
+                              "Some endpoints not properly protected")
+                return False
+                
+        except Exception as e:
+            # Restore token in case of exception
+            if 'old_token' in locals():
+                self.auth_token = old_token
+            self.log_result("industry_identifiers_authentication", "Industry Identifiers Authentication", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_legacy_ipi_compatibility(self) -> bool:
+        """Test existing GET /api/industry/ipi endpoints still work"""
+        try:
+            if not self.auth_token:
+                self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, "No auth token available")
+                return False
+            
+            # Test legacy IPI endpoints
+            response = self.make_request('GET', '/industry/ipi')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'ipi_numbers' in data:
+                    ipi_numbers = data['ipi_numbers']
+                    
+                    # Should contain both Big Mann Entertainment and John LeGerron Spivey IPI numbers
+                    big_mann_ipi = next((ipi for ipi in ipi_numbers if ipi.get('ipi_number') == '813048171'), None)
+                    john_ipi = next((ipi for ipi in ipi_numbers if ipi.get('ipi_number') == '578413032'), None)
+                    
+                    if big_mann_ipi and john_ipi:
+                        # Test legacy IPI dashboard
+                        response2 = self.make_request('GET', '/industry/ipi/dashboard')
+                        
+                        if response2.status_code == 200:
+                            data2 = response2.json()
+                            if 'dashboard' in data2:
+                                dashboard = data2['dashboard']
+                                big_mann_data = dashboard.get('big_mann_entertainment', {})
+                                
+                                if (big_mann_data.get('company_ipi') == '813048171' and 
+                                    big_mann_data.get('individual_ipi') == '578413032'):
+                                    self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", True, 
+                                                  f"Legacy IPI endpoints working: {len(ipi_numbers)} IPI numbers, dashboard functional")
+                                    return True
+                                else:
+                                    self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, 
+                                                  f"Legacy dashboard data incorrect: {big_mann_data}")
+                                    return False
+                            else:
+                                self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, 
+                                              "Legacy dashboard missing data")
+                                return False
+                        else:
+                            self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, 
+                                          f"Legacy dashboard failed: {response2.status_code}")
+                            return False
+                    else:
+                        self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, 
+                                      "Missing expected IPI numbers in legacy endpoint")
+                        return False
+                else:
+                    self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, 
+                                  "Legacy IPI endpoint missing data")
+                    return False
+            else:
+                self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, 
+                              f"Legacy IPI endpoint failed: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, f"Exception: {str(e)}")
+            return False
+    
     
     def run_all_tests(self):
         """Run all backend tests"""
