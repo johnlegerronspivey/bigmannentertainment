@@ -565,24 +565,75 @@ export const TaxReports = () => {
   );
 };
 
-// Business Tax Information Management
+// Business Tax Information Management with License Details
 export const BusinessTaxInfo = () => {
   const [businessInfo, setBusinessInfo] = useState({
     business_name: 'Big Mann Entertainment',
     ein: '270658077',
+    tin: '270658077',
+    business_license_number: '',
+    license_type: 'Entertainment/Media Production',
+    license_state: 'CA',
+    license_expiration: '',
+    
+    // Primary Business Address
     address_line1: 'Digital Media Distribution Empire',
     address_line2: '',
-    city: 'Nationwide',
-    state: 'USA',
-    zip_code: '00000',
+    city: 'Los Angeles',
+    state: 'CA',
+    zip_code: '90210',
+    county: 'Los Angeles County',
     country: 'United States',
+    
+    // Mailing Address
+    mailing_address_same: true,
+    mailing_address_line1: '',
+    mailing_address_line2: '',
+    mailing_city: '',
+    mailing_state: '',
+    mailing_zip_code: '',
+    mailing_country: '',
+    
+    // Business Details
     business_type: 'corporation',
     tax_classification: 'c_corporation',
+    naics_code: '512110',
+    sic_code: '7812',
+    
+    // Incorporation Details
+    incorporation_state: 'CA',
+    incorporation_date: '',
+    state_id_number: '',
+    
+    // Contact Information
     contact_name: 'John LeGerron Spivey',
     contact_title: 'CEO',
     contact_phone: '',
-    contact_email: ''
+    contact_email: '',
+    
+    // Business Operations
+    business_description: 'Digital media distribution and entertainment services',
+    primary_business_activity: 'Media Distribution Platform',
+    date_business_started: '',
+    fiscal_year_end: 'December 31',
+    
+    // Tax Settings
+    default_backup_withholding: false,
+    auto_generate_1099s: true,
+    quarterly_filing_required: true,
+    
+    // License Status
+    license_status: 'active',
+    compliance_status: 'compliant',
+    
+    // Additional Registrations
+    dba_names: [],
+    federal_tax_deposits: true,
+    state_tax_registration: true,
+    sales_tax_permit: ''
   });
+
+  const [activeTab, setActiveTab] = useState('basic');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -610,12 +661,27 @@ export const BusinessTaxInfo = () => {
 
     try {
       await axios.put(`${API}/tax/business-info`, businessInfo);
-      setMessage('Business tax information updated successfully!');
+      setMessage('Business tax and license information updated successfully!');
     } catch (error) {
       setMessage('Failed to update business information. Please try again.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleMailingAddressToggle = (checked) => {
+    setBusinessInfo(prev => ({
+      ...prev,
+      mailing_address_same: checked,
+      ...(checked ? {
+        mailing_address_line1: '',
+        mailing_address_line2: '',
+        mailing_city: '',
+        mailing_state: '',
+        mailing_zip_code: '',
+        mailing_country: ''
+      } : {})
+    }));
   };
 
   if (loading) {
@@ -636,8 +702,8 @@ export const BusinessTaxInfo = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Business Tax Information</h1>
-          <p className="text-gray-600">Manage your business tax details and contact information</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Business Tax & License Information</h1>
+          <p className="text-gray-600">Manage comprehensive business details, tax information, and licensing</p>
         </div>
 
         {message && (
@@ -650,153 +716,598 @@ export const BusinessTaxInfo = () => {
           </div>
         )}
 
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              {[
+                { id: 'basic', label: 'Basic Information', icon: '🏢' },
+                { id: 'address', label: 'Address Details', icon: '📍' },
+                { id: 'license', label: 'License & Registration', icon: '📋' },
+                { id: 'tax', label: 'Tax Configuration', icon: '💼' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-purple-500 text-purple-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Business Details */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Name *
-                </label>
-                <input
-                  type="text"
-                  value={businessInfo.business_name}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, business_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+            {/* Basic Information Tab */}
+            {activeTab === 'basic' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">Basic Business Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Business Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={businessInfo.business_name}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, business_name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  EIN (Employer Identification Number) *
-                </label>
-                <input
-                  type="text"
-                  value={businessInfo.ein}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, ein: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      EIN (Employer Identification Number) *
+                    </label>
+                    <input
+                      type="text"
+                      value={businessInfo.ein}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, ein: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address Line 1 *
-                </label>
-                <input
-                  type="text"
-                  value={businessInfo.address_line1}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, address_line1: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      TIN (Taxpayer Identification Number) *
+                    </label>
+                    <input
+                      type="text"
+                      value={businessInfo.tin}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, tin: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
-                </label>
-                <input
-                  type="text"
-                  value={businessInfo.city}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, city: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Business Type *
+                    </label>
+                    <select
+                      value={businessInfo.business_type}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, business_type: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="corporation">Corporation</option>
+                      <option value="llc">LLC</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="sole_proprietorship">Sole Proprietorship</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State *
-                </label>
-                <input
-                  type="text"
-                  value={businessInfo.state}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, state: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tax Classification
+                    </label>
+                    <select
+                      value={businessInfo.tax_classification}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, tax_classification: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="c_corporation">C Corporation</option>
+                      <option value="s_corporation">S Corporation</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="llc">LLC</option>
+                      <option value="sole_proprietorship">Sole Proprietorship</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Type
-                </label>
-                <select
-                  value={businessInfo.business_type}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, business_type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="corporation">Corporation</option>
-                  <option value="llc">LLC</option>
-                  <option value="partnership">Partnership</option>
-                  <option value="sole_proprietorship">Sole Proprietorship</option>
-                </select>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      NAICS Code
+                    </label>
+                    <input
+                      type="text"
+                      value={businessInfo.naics_code}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, naics_code: e.target.value })}
+                      placeholder="512110 - Motion Picture and Video Production"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tax Classification
-                </label>
-                <select
-                  value={businessInfo.tax_classification}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, tax_classification: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="c_corporation">C Corporation</option>
-                  <option value="s_corporation">S Corporation</option>
-                  <option value="partnership">Partnership</option>
-                  <option value="llc">LLC</option>
-                  <option value="sole_proprietorship">Sole Proprietorship</option>
-                </select>
-              </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Business Description
+                    </label>
+                    <textarea
+                      value={businessInfo.business_description}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, business_description: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 h-24"
+                    />
+                  </div>
 
-              {/* Contact Information */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Name *
-                </label>
-                <input
-                  type="text"
-                  value={businessInfo.contact_name}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, contact_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Primary Business Activity
+                    </label>
+                    <input
+                      type="text"
+                      value={businessInfo.primary_business_activity}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, primary_business_activity: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Title
-                </label>
-                <input
-                  type="text"
-                  value={businessInfo.contact_title}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, contact_title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date Business Started
+                    </label>
+                    <input
+                      type="date"
+                      value={businessInfo.date_business_started}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, date_business_started: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Phone
-                </label>
-                <input
-                  type="tel"
-                  value={businessInfo.contact_phone}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, contact_phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                {/* Contact Information */}
+                <div className="border-t pt-6 mt-6">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4">Contact Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.contact_name}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, contact_name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Email
-                </label>
-                <input
-                  type="email"
-                  value={businessInfo.contact_email}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, contact_email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Title
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.contact_title}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, contact_title: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
 
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={businessInfo.contact_phone}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, contact_phone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Email
+                      </label>
+                      <input
+                        type="email"
+                        value={businessInfo.contact_email}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, contact_email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Address Details Tab */}
+            {activeTab === 'address' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">Address Information</h3>
+                
+                {/* Primary Business Address */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4">Primary Business Address</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Address Line 1 *
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.address_line1}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, address_line1: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Address Line 2
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.address_line2}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, address_line2: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        City *
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.city}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, city: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        State *
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.state}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, state: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ZIP Code *
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.zip_code}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, zip_code: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        County
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.county}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, county: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mailing Address */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-semibold text-gray-900">Mailing Address</h4>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={businessInfo.mailing_address_same}
+                        onChange={(e) => handleMailingAddressToggle(e.target.checked)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-600">Same as business address</span>
+                    </label>
+                  </div>
+                  
+                  {!businessInfo.mailing_address_same && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Mailing Address Line 1
+                        </label>
+                        <input
+                          type="text"
+                          value={businessInfo.mailing_address_line1}
+                          onChange={(e) => setBusinessInfo({ ...businessInfo, mailing_address_line1: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          value={businessInfo.mailing_city}
+                          onChange={(e) => setBusinessInfo({ ...businessInfo, mailing_city: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          State
+                        </label>
+                        <input
+                          type="text"
+                          value={businessInfo.mailing_state}
+                          onChange={(e) => setBusinessInfo({ ...businessInfo, mailing_state: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* License & Registration Tab */}
+            {activeTab === 'license' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">License & Registration Information</h3>
+                
+                {/* Business License */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4">Primary Business License</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        License Number
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.business_license_number}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, business_license_number: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        License Type
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.license_type}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, license_type: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        License State
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.license_state}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, license_state: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        License Expiration
+                      </label>
+                      <input
+                        type="date"
+                        value={businessInfo.license_expiration}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, license_expiration: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        License Status
+                      </label>
+                      <select
+                        value={businessInfo.license_status}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, license_status: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="pending_renewal">Pending Renewal</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Compliance Status
+                      </label>
+                      <select
+                        value={businessInfo.compliance_status}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, compliance_status: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="compliant">Compliant</option>
+                        <option value="non_compliant">Non-Compliant</option>
+                        <option value="under_review">Under Review</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Incorporation Details */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4">Incorporation Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Incorporation State
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.incorporation_state}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, incorporation_state: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Incorporation Date
+                      </label>
+                      <input
+                        type="date"
+                        value={businessInfo.incorporation_date}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, incorporation_date: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        State ID Number
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.state_id_number}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, state_id_number: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Registrations */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-4">Additional Registrations</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sales Tax Permit
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.sales_tax_permit}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, sales_tax_permit: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        SIC Code
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.sic_code}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, sic_code: e.target.value })}
+                        placeholder="7812 - Motion Picture Production"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Checkboxes for registrations */}
+                  <div className="mt-4 space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={businessInfo.federal_tax_deposits}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, federal_tax_deposits: e.target.checked })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">Federal Tax Deposits Registered</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={businessInfo.state_tax_registration}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, state_tax_registration: e.target.checked })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">State Tax Registration Active</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tax Configuration Tab */}
+            {activeTab === 'tax' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">Tax Configuration</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Fiscal Year End
+                    </label>
+                    <input
+                      type="text"
+                      value={businessInfo.fiscal_year_end}
+                      onChange={(e) => setBusinessInfo({ ...businessInfo, fiscal_year_end: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={businessInfo.default_backup_withholding}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, default_backup_withholding: e.target.checked })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">Default Backup Withholding</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={businessInfo.auto_generate_1099s}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, auto_generate_1099s: e.target.checked })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">Auto Generate 1099s</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={businessInfo.quarterly_filing_required}
+                        onChange={(e) => setBusinessInfo({ ...businessInfo, quarterly_filing_required: e.target.checked })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">Quarterly Filing Required</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Save Button */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <button
                 onClick={handleSave}
