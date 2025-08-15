@@ -4186,6 +4186,27 @@ class BackendTester:
         # Enhanced Tax Management System Tests
         self.run_enhanced_tax_system_tests()
         
+        # NEW: Business Identifiers and Product Code Management Tests
+        print("\n🏢 TESTING BUSINESS IDENTIFIERS AND PRODUCT CODE MANAGEMENT")
+        print("-" * 60)
+        
+        print("\nTesting Business Identifiers...")
+        self.test_business_identifiers_endpoint()
+        self.test_authentication_requirements()
+        
+        print("\nTesting UPC Code Generation...")
+        self.test_upc_generation_valid_codes()
+        self.test_upc_generation_invalid_codes()
+        
+        print("\nTesting Product Management...")
+        self.test_product_creation()
+        self.test_product_listing_and_filtering()
+        self.test_product_details_retrieval()
+        self.test_product_deletion()
+        
+        print("\nTesting Admin Business Overview...")
+        self.test_admin_business_overview()
+        
         # Print Summary
         self.print_summary()
     
