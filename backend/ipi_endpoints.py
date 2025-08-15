@@ -1,8 +1,53 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Optional
 import motor.motor_asyncio
 import os
 from datetime import datetime
+import jwt
+
+# Database connection
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
+db = client.big_mann_entertainment
+
+# JWT Configuration
+SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+ALGORITHM = "HS256"
+
+# Simple authentication dependency
+async def get_current_user(request: Request):
+    """Simple authentication check"""
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+        
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Get user from database
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Authentication failed")
+
+async def get_admin_user(request: Request):
+    """Admin authentication check"""
+    user = await get_current_user(request)
+    if not user.get("is_admin", False):
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    return user
 
 # Database connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
