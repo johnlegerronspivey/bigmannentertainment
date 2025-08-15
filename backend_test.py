@@ -71,7 +71,11 @@ class BackendTester:
             "tax_settings": {"passed": 0, "failed": 0, "details": []},
             "tax_business_licenses": {"passed": 0, "failed": 0, "details": []},
             "tax_business_registrations": {"passed": 0, "failed": 0, "details": []},
-            "tax_compliance_dashboard": {"passed": 0, "failed": 0, "details": []}
+            "tax_compliance_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "business_identifiers": {"passed": 0, "failed": 0, "details": []},
+            "upc_generation": {"passed": 0, "failed": 0, "details": []},
+            "product_management": {"passed": 0, "failed": 0, "details": []},
+            "admin_business_overview": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
