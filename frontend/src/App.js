@@ -3776,6 +3776,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+            <Route path="/business" element={<ProtectedRoute><BusinessManagement /></ProtectedRoute>} />
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/blockchain" element={<Blockchain />} />
