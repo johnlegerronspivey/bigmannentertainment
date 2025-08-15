@@ -114,24 +114,24 @@ class IndustryIntegrationService:
             raise
     
     async def initialize_ipi_numbers(self):
-        """Initialize IPI numbers for Big Mann Entertainment"""
+        """Initialize industry identifiers for Big Mann Entertainment (IPI, ISNI, AARC)"""
         try:
-            # Clear existing IPI numbers
-            await self.db.ipi_numbers.delete_many({})
+            # Clear existing industry identifiers
+            await self.db.industry_identifiers.delete_many({})
             
-            total_ipi = 0
+            total_identifiers = 0
             
-            # Add Big Mann Entertainment IPI numbers
-            for ipi_data in BIG_MANN_INDUSTRY_IDENTIFIERS:
-                ipi = IndustryIdentifier(**ipi_data)
-                await self.db.ipi_numbers.insert_one(ipi.dict())
-                total_ipi += 1
+            # Add Big Mann Entertainment industry identifiers
+            for identifier_data in BIG_MANN_INDUSTRY_IDENTIFIERS:
+                identifier = IndustryIdentifier(**identifier_data)
+                await self.db.industry_identifiers.insert_one(identifier.dict())
+                total_identifiers += 1
             
-            logger.info(f"Initialized {total_ipi} IPI numbers")
-            return total_ipi
+            logger.info(f"Initialized {total_identifiers} industry identifiers")
+            return total_identifiers
             
         except Exception as e:
-            logger.error(f"Error initializing IPI numbers: {str(e)}")
+            logger.error(f"Error initializing industry identifiers: {str(e)}")
             raise
     
     async def get_industry_partners(self, category: Optional[str] = None, tier: Optional[str] = None) -> List[Dict]:
