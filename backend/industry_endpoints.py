@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 import logging
 from datetime import datetime
 
-from database import get_db
 from industry_service import IndustryIntegrationService
 from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IPINumber
+
+# Import from server.py to get dependencies
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
+# Import dependencies from server
 from server import get_current_user, get_admin_user, User, db
 
 logger = logging.getLogger(__name__)
