@@ -1222,7 +1222,7 @@ export const BusinessTaxInfo = () => {
                         type="text"
                         value={businessInfo.sic_code}
                         onChange={(e) => setBusinessInfo({ ...businessInfo, sic_code: e.target.value })}
-                        placeholder="7812 - Motion Picture Production"
+                        placeholder="7812 - Sound Recording and Production"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
