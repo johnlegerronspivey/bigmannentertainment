@@ -75,7 +75,12 @@ class BackendTester:
             "business_identifiers": {"passed": 0, "failed": 0, "details": []},
             "upc_generation": {"passed": 0, "failed": 0, "details": []},
             "product_management": {"passed": 0, "failed": 0, "details": []},
-            "admin_business_overview": {"passed": 0, "failed": 0, "details": []}
+            "admin_business_overview": {"passed": 0, "failed": 0, "details": []},
+            "isrc_business_identifiers": {"passed": 0, "failed": 0, "details": []},
+            "isrc_code_generation": {"passed": 0, "failed": 0, "details": []},
+            "isrc_product_management": {"passed": 0, "failed": 0, "details": []},
+            "isrc_admin_overview": {"passed": 0, "failed": 0, "details": []},
+            "isrc_authentication": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
