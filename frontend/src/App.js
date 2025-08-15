@@ -9,18 +9,166 @@ import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, Business
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Auth Context
+// WebAuthn Service for Face ID authentication
+class WebAuthnService {
+  constructor(apiBaseUrl) {
+    this.apiBaseUrl = apiBaseUrl;
+  }
+
+  // Check if WebAuthn is supported
+  isWebAuthnSupported() {
+    return window.PublicKeyCredential !== undefined;
+  }
+
+  // Register a new WebAuthn credential
+  async registerCredential(accessToken) {
+    try {
+      // Step 1: Get registration options from backend
+      const optionsResponse = await axios.post(`${this.apiBaseUrl}/webauthn/register/begin`, {}, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+
+      const options = optionsResponse.data;
+
+      // Step 2: Convert base64url strings to ArrayBuffers
+      const credentialCreationOptions = {
+        publicKey: {
+          challenge: this.base64urlToBuffer(options.challenge),
+          rp: options.rp,
+          user: {
+            id: this.base64urlToBuffer(options.user.id),
+            name: options.user.name,
+            displayName: options.user.displayName
+          },
+          pubKeyCredParams: options.pubKeyCredParams,
+          authenticatorSelection: options.authenticatorSelection,
+          timeout: options.timeout,
+          attestation: options.attestation,
+          excludeCredentials: options.excludeCredentials?.map(cred => ({
+            id: this.base64urlToBuffer(cred.id),
+            type: cred.type
+          }))
+        }
+      };
+
+      // Step 3: Create credential using WebAuthn API
+      const credential = await navigator.credentials.create(credentialCreationOptions);
+
+      // Step 4: Send credential to backend for verification
+      const registrationResponse = {
+        id: credential.id,
+        rawId: this.bufferToBase64url(credential.rawId),
+        response: {
+          clientDataJSON: this.bufferToBase64url(credential.response.clientDataJSON),
+          attestationObject: this.bufferToBase64url(credential.response.attestationObject)
+        },
+        type: credential.type
+      };
+
+      const verificationResponse = await axios.post(`${this.apiBaseUrl}/webauthn/register/complete`, registrationResponse, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+
+      return verificationResponse.data;
+
+    } catch (error) {
+      console.error('WebAuthn registration error:', error);
+      throw error;
+    }
+  }
+
+  // Authenticate using WebAuthn
+  async authenticateWithWebAuthn(email) {
+    try {
+      // Step 1: Get authentication options from backend
+      const optionsResponse = await axios.post(`${this.apiBaseUrl}/webauthn/authenticate/begin`, { email });
+      const options = optionsResponse.data;
+
+      // Step 2: Convert base64url strings to ArrayBuffers
+      const credentialRequestOptions = {
+        publicKey: {
+          challenge: this.base64urlToBuffer(options.challenge),
+          rpId: options.rpId,
+          allowCredentials: options.allowCredentials?.map(cred => ({
+            id: this.base64urlToBuffer(cred.id),
+            type: cred.type,
+            transports: cred.transports
+          })),
+          userVerification: options.userVerification,
+          timeout: options.timeout
+        }
+      };
+
+      // Step 3: Get credential using WebAuthn API
+      const assertion = await navigator.credentials.get(credentialRequestOptions);
+
+      // Step 4: Send assertion to backend for verification
+      const authenticationResponse = {
+        id: assertion.id,
+        rawId: this.bufferToBase64url(assertion.rawId),
+        response: {
+          authenticatorData: this.bufferToBase64url(assertion.response.authenticatorData),
+          clientDataJSON: this.bufferToBase64url(assertion.response.clientDataJSON),
+          signature: this.bufferToBase64url(assertion.response.signature),
+          userHandle: assertion.response.userHandle ? this.bufferToBase64url(assertion.response.userHandle) : null
+        },
+        type: assertion.type
+      };
+
+      const verificationResponse = await axios.post(`${this.apiBaseUrl}/webauthn/authenticate/complete`, {
+        email,
+        ...authenticationResponse
+      });
+
+      return verificationResponse.data;
+
+    } catch (error) {
+      console.error('WebAuthn authentication error:', error);
+      throw error;
+    }
+  }
+
+  // Utility methods for base64url encoding/decoding
+  base64urlToBuffer(base64url) {
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = base64.length % 4;
+    const padded = padding ? base64 + '='.repeat(4 - padding) : base64;
+    const binary = atob(padded);
+    const buffer = new ArrayBuffer(binary.length);
+    const view = new Uint8Array(buffer);
+    for (let i = 0; i < binary.length; i++) {
+      view[i] = binary.charCodeAt(i);
+    }
+    return buffer;
+  }
+
+  bufferToBase64url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  }
+}
+
+// Enhanced Auth Context
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [webAuthnService] = useState(new WebAuthnService(`${API}/auth`));
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const refreshToken = localStorage.getItem('refreshToken');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUserProfile();
+    } else if (refreshToken) {
+      refreshAccessToken();
     } else {
       setLoading(false);
     }
@@ -31,19 +179,55 @@ const AuthProvider = ({ children }) => {
       const response = await axios.get(`${API}/auth/me`);
       setUser(response.data);
     } catch (error) {
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
+      // Try to refresh token if profile fetch fails
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        await refreshAccessToken();
+      } else {
+        clearAuth();
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await axios.post(`${API}/auth/refresh`, { 
+        refresh_token: refreshToken 
+      });
+      
+      const { access_token, refresh_token: newRefreshToken } = response.data;
+      
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('refreshToken', newRefreshToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      await fetchUserProfile();
+    } catch (error) {
+      clearAuth();
+    }
+  };
+
+  const clearAuth = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+  };
+
   const login = async (email, password) => {
     try {
       const response = await axios.post(`${API}/auth/login`, { email, password });
-      const { access_token, user: userData } = response.data;
+      const { access_token, refresh_token, user: userData } = response.data;
       
       localStorage.setItem('token', access_token);
+      localStorage.setItem('refreshToken', refresh_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(userData);
       
@@ -56,12 +240,37 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  // WebAuthn Face ID Login
+  const loginWithFaceID = async (email) => {
+    try {
+      if (!webAuthnService.isWebAuthnSupported()) {
+        throw new Error('WebAuthn is not supported on this device');
+      }
+
+      const authResult = await webAuthnService.authenticateWithWebAuthn(email);
+      const { access_token, refresh_token, user: userData } = authResult;
+      
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('refreshToken', refresh_token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      setUser(userData);
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.message || 'Face ID authentication failed' 
+      };
+    }
+  };
+
   const register = async (userData) => {
     try {
       const response = await axios.post(`${API}/auth/register`, userData);
-      const { access_token, user: newUser } = response.data;
+      const { access_token, refresh_token, user: newUser } = response.data;
       
       localStorage.setItem('token', access_token);
+      localStorage.setItem('refreshToken', refresh_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(newUser);
       
@@ -74,18 +283,116 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
+  // Enroll Face ID after successful login/registration
+  const enrollFaceID = async () => {
+    try {
+      if (!webAuthnService.isWebAuthnSupported()) {
+        throw new Error('WebAuthn is not supported on this device');
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('User must be logged in to enroll Face ID');
+      }
+
+      const result = await webAuthnService.registerCredential(token);
+      return { success: true, data: result };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.message || 'Face ID enrollment failed' 
+      };
+    }
+  };
+
+  // Get user's WebAuthn credentials
+  const getWebAuthnCredentials = async () => {
+    try {
+      const response = await axios.get(`${API}/auth/webauthn/credentials`);
+      return response.data.credentials;
+    } catch (error) {
+      console.error('Error fetching WebAuthn credentials:', error);
+      return [];
+    }
+  };
+
+  // Delete WebAuthn credential
+  const deleteWebAuthnCredential = async (credentialId) => {
+    try {
+      await axios.delete(`${API}/auth/webauthn/credentials/${credentialId}`);
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to delete credential' 
+      };
+    }
+  };
+
+  // Forgot password
+  const forgotPassword = async (email) => {
+    try {
+      const response = await axios.post(`${API}/auth/forgot-password`, { email });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to send reset email' 
+      };
+    }
+  };
+
+  // Reset password
+  const resetPassword = async (token, newPassword) => {
+    try {
+      const response = await axios.post(`${API}/auth/reset-password`, { 
+        token, 
+        new_password: newPassword 
+      });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Password reset failed' 
+      };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      // Call backend logout endpoint
+      await axios.post(`${API}/auth/logout`);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      clearAuth();
+    }
   };
 
   const isAdmin = () => {
     return user && (user.is_admin || ['admin', 'super_admin', 'moderator'].includes(user.role));
   };
 
+  const isWebAuthnSupported = () => {
+    return webAuthnService.isWebAuthnSupported();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, isAdmin }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      loginWithFaceID,
+      register, 
+      enrollFaceID,
+      getWebAuthnCredentials,
+      deleteWebAuthnCredential,
+      forgotPassword,
+      resetPassword,
+      logout, 
+      loading, 
+      isAdmin,
+      isWebAuthnSupported
+    }}>
       {children}
     </AuthContext.Provider>
   );
