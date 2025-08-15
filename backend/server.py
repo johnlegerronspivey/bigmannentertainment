@@ -1084,6 +1084,11 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
 
+async def get_admin_user(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin and current_user.role not in ["admin", "moderator", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return current_user
+
 async def log_activity(user_id: str, action: str, resource_type: str, resource_id: str = None, details: Dict[str, Any] = None, request: Request = None):
     """Log user activity for auditing purposes"""
     activity = ActivityLog(
