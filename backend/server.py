@@ -3534,13 +3534,13 @@ except Exception as e:
 
 # Include Industry router
 try:
-    from industry_endpoints import router as industry_router
-    app.include_router(industry_router)
-    print("✅ Industry router successfully loaded")
+    from ipi_endpoints import router as ipi_router
+    app.include_router(ipi_router)
+    print("✅ IPI router successfully loaded")
 except ImportError as e:
-    print(f"⚠️ Industry router not available: {e}")
+    print(f"⚠️ IPI router not available: {e}")
 except Exception as e:
-    print(f"❌ Error loading Industry router: {e}")
+    print(f"❌ Error loading IPI router: {e}")
 
 if __name__ == "__main__":
     import uvicorn
