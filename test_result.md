@@ -153,6 +153,21 @@ backend:
         agent: "testing"
         comment: "✅ FULLY TESTED: All 15 Traditional FM Broadcast stations working correctly across every music genre. Platform count expanded to 52+ total platforms. Major network integrations verified: Clear Channel/iHeartMedia (CC_ submission IDs, 5 target markets), Cumulus Media (CUM_ IDs, regional coverage), Audacy Rock stations (AUD_ IDs, digital integration), Urban One Hip-Hop network (UO_ IDs, urban demographics), NPR Classical network (NPR_ IDs, public radio standards). Genre-specific targeting working with proper mood determination, daypart suitability analysis, and programming standards. Audio-only validation correctly rejects video content. All network-specific workflows include submission IDs, market testing protocols, airplay reporting integration, and radio edit format requirements. Comprehensive FM broadcast coverage ensures mainstream audience reach across every genre and demographic as requested."
 
+  - task: "Business Identifiers and Product Code Management"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive Business Identifiers and Product Code Management system with 4 main endpoints: GET /api/business/identifiers (returns business legal name, EIN, TIN, address, phone, NAICS code, UPC company prefix, and global location number), GET /api/business/upc/generate/{product_code} (generates full UPC codes with check digit calculation), POST/GET/DELETE /api/business/products (full CRUD operations for product management with UPC codes), and GET /api/admin/business/overview (comprehensive business overview with statistics). System includes proper UPC-A barcode generation algorithm, product categorization, search and filtering capabilities, and admin-level business analytics. All endpoints integrated with existing authentication system and MongoDB collections."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUES FOUND IN BUSINESS IDENTIFIERS SYSTEM: Comprehensive testing revealed significant problems requiring immediate attention. ✅ WORKING COMPONENTS: Business identifiers endpoint correctly returns all expected values (EIN: 270658077, UPC Prefix: 8600043402, GLN: 0860004340201, Legal Name: Big Mann Entertainment LLC, Address: 1314 Lincoln Heights Street, Alexander City, Alabama 35010, Phone: 334-669-8638, NAICS: 512200). Product creation successfully works and creates products with UPC codes. Admin business overview endpoint provides comprehensive business information with product statistics and utilization metrics. ❌ CRITICAL FAILURES: 1) SECURITY VULNERABILITY: Business endpoints do not require authentication - all 4 endpoints accessible without JWT tokens, creating major security risk. 2) UPC GENERATION ALGORITHM BROKEN: UPC generation fails for valid 5-digit codes (tested 00001, 12345, 99999) - algorithm not producing correct UPC structure or check digits. 3) UPC VALIDATION BROKEN: Invalid input validation fails - empty strings return 404 instead of 400 validation errors. 4) PRODUCT MANAGEMENT ENDPOINTS FAILING: GET /api/business/products, GET /api/business/products/{id}, and DELETE /api/business/products/{id} all return 500 Internal Server Error, indicating backend database or query issues. IMMEDIATE ACTION REQUIRED: Fix authentication middleware, repair UPC generation algorithm, implement proper input validation, and resolve product management database errors. Core business identifier data is correct but system has critical security and functionality issues preventing production use."
+
 
 frontend:
   - task: "Tax Management Interface"
