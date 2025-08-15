@@ -738,6 +738,47 @@ export const ProductManagement = () => {
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Publisher Name</label>
+                <input
+                  type="text"
+                  value={newProduct.publisher_name}
+                  onChange={(e) => setNewProduct({ ...newProduct, publisher_name: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Publisher Number</label>
+                <input
+                  type="text"
+                  value={newProduct.publisher_number}
+                  onChange={(e) => setNewProduct({ ...newProduct, publisher_number: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Songwriter Credits</label>
+                <input
+                  type="text"
+                  value={newProduct.songwriter_credits}
+                  onChange={(e) => setNewProduct({ ...newProduct, songwriter_credits: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Songwriter(s) / Composer(s)"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Publishing Rights</label>
+                <select
+                  value={newProduct.publishing_rights}
+                  onChange={(e) => setNewProduct({ ...newProduct, publishing_rights: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="All rights reserved">All rights reserved</option>
+                  <option value="Creative Commons">Creative Commons</option>
+                  <option value="Public Domain">Public Domain</option>
+                  <option value="Licensed">Licensed</option>
+                </select>
+              </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">Release Date</label>
                 <input
