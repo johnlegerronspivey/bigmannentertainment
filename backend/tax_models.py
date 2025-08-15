@@ -153,22 +153,48 @@ class TaxReport(BaseModel):
     created_by: str
 
 class BusinessTaxInfo(BaseModel):
-    """Model for business tax information"""
+    """Model for business tax and license information"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     business_name: str = "Big Mann Entertainment"
-    ein: str = "270658077"
     
-    # Business address
+    # Tax Identification
+    ein: str = "270658077"  # Employer Identification Number
+    tin: str = "270658077"  # Taxpayer Identification Number (same as EIN for business)
+    
+    # Business License Information
+    business_license_number: Optional[str] = None
+    license_type: str = "Entertainment/Media Production"
+    license_state: str = "CA"  # State where business is licensed
+    license_expiration: Optional[date] = None
+    
+    # Primary Business Address
     address_line1: str = "Digital Media Distribution Empire"
     address_line2: Optional[str] = None
-    city: str = "Nationwide"
-    state: str = "USA"
-    zip_code: str = "00000"
+    city: str = "Los Angeles"
+    state: str = "CA"
+    zip_code: str = "90210"
+    county: Optional[str] = "Los Angeles County"
     country: str = "United States"
     
-    # Business details
+    # Mailing Address (if different)
+    mailing_address_same: bool = True
+    mailing_address_line1: Optional[str] = None
+    mailing_address_line2: Optional[str] = None
+    mailing_city: Optional[str] = None
+    mailing_state: Optional[str] = None
+    mailing_zip_code: Optional[str] = None
+    mailing_country: Optional[str] = None
+    
+    # Business Details
     business_type: str = "corporation"  # corporation, llc, partnership, sole_proprietorship
     tax_classification: str = "c_corporation"
+    naics_code: Optional[str] = "512110"  # Motion Picture and Video Production
+    sic_code: Optional[str] = "7812"  # Motion Picture and Video Tape Production
+    
+    # Incorporation/Formation Details
+    incorporation_state: str = "CA"
+    incorporation_date: Optional[date] = None
+    state_id_number: Optional[str] = None  # State corporation/LLC ID
     
     # Contact information
     contact_name: str = "John LeGerron Spivey"
@@ -176,14 +202,114 @@ class BusinessTaxInfo(BaseModel):
     contact_phone: Optional[str] = None
     contact_email: Optional[str] = None
     
+    # Business Operations
+    business_description: str = "Digital media distribution and entertainment services"
+    primary_business_activity: str = "Media Distribution Platform"
+    date_business_started: Optional[date] = None
+    fiscal_year_end: str = "December 31"
+    
     # Tax settings
     default_backup_withholding: bool = False
     auto_generate_1099s: bool = True
+    quarterly_filing_required: bool = True
+    
+    # License Status
+    license_status: str = "active"  # active, expired, suspended, pending_renewal
+    compliance_status: str = "compliant"  # compliant, non_compliant, under_review
+    
+    # Additional Business Registrations
+    dba_names: List[str] = []  # Doing Business As names
+    federal_tax_deposits: bool = True
+    state_tax_registration: bool = True
+    sales_tax_permit: Optional[str] = None
+    
+    # Professional Licenses (if applicable)
+    professional_licenses: List[Dict[str, str]] = []  # [{license_type, number, state, expiration}]
     
     # Metadata
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     updated_by: str
+
+class BusinessLicense(BaseModel):
+    """Model for individual business licenses"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    license_number: str
+    license_type: str  # business_license, entertainment_license, resale_permit, etc.
+    license_name: str
+    
+    # Issuing Authority
+    issuing_authority: str  # City, County, State, Federal
+    issuing_state: str
+    issuing_city: Optional[str] = None
+    issuing_county: Optional[str] = None
+    
+    # License Details
+    issue_date: date
+    expiration_date: date
+    renewal_date: Optional[date] = None
+    
+    # Status
+    status: str = "active"  # active, expired, suspended, revoked, pending
+    
+    # Requirements
+    renewal_required: bool = True
+    renewal_fee: Optional[float] = None
+    annual_report_required: bool = False
+    
+    # Business Information
+    business_name: str = "Big Mann Entertainment"
+    business_address: Dict[str, str] = {}
+    
+    # Compliance
+    compliance_requirements: List[str] = []
+    last_compliance_check: Optional[date] = None
+    
+    # Documents
+    license_document_path: Optional[str] = None
+    
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: str
+
+class BusinessRegistration(BaseModel):
+    """Model for business registrations and filings"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    registration_type: str  # incorporation, llc_formation, dba, trademark, etc.
+    registration_number: str
+    
+    # Filing Details
+    filing_state: str
+    filing_date: date
+    effective_date: date
+    
+    # Status
+    status: str = "active"  # active, dissolved, suspended, merged
+    
+    # Business Details
+    business_name: str = "Big Mann Entertainment"
+    registered_agent_name: Optional[str] = None
+    registered_agent_address: Dict[str, str] = {}
+    
+    # Annual Requirements
+    annual_report_required: bool = True
+    annual_report_due_date: Optional[date] = None
+    annual_report_fee: Optional[float] = None
+    last_annual_report_filed: Optional[date] = None
+    
+    # Fees and Payments
+    initial_filing_fee: Optional[float] = None
+    renewal_fee: Optional[float] = None
+    
+    # Documents
+    certificate_path: Optional[str] = None
+    articles_of_incorporation_path: Optional[str] = None
+    
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: str
 
 class TaxSettings(BaseModel):
     """Model for system-wide tax settings and configurations"""
