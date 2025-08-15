@@ -2626,6 +2626,10 @@ function App() {
             <Route path="/admin/users" element={<AdminRoute><AdminUserManagement /></AdminRoute>} />
             <Route path="/admin/content" element={<AdminRoute><AdminContentManagement /></AdminRoute>} />
             <Route path="/admin/sponsorship" element={<AdminRoute><AdminSponsorshipOverview /></AdminRoute>} />
+            <Route path="/admin/tax" element={<AdminRoute><TaxDashboard /></AdminRoute>} />
+            <Route path="/admin/tax/1099s" element={<AdminRoute><Form1099Management /></AdminRoute>} />
+            <Route path="/admin/tax/reports" element={<AdminRoute><TaxReports /></AdminRoute>} />
+            <Route path="/admin/tax/business" element={<AdminRoute><BusinessTaxInfo /></AdminRoute>} />
             <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
             <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
             <Route path="/admin/blockchain" element={<AdminRoute><Blockchain /></AdminRoute>} />
