@@ -3818,6 +3818,7 @@ function App() {
             <Route path="/admin/ddex" element={<AdminRoute><DDEXAdminDashboard /></AdminRoute>} />
             <Route path="/admin/industry" element={<AdminRoute><IndustryDashboard /></AdminRoute>} />
             <Route path="/admin/industry/ipi" element={<AdminRoute><IPIManagement /></AdminRoute>} />
+            <Route path="/admin/industry/identifiers" element={<AdminRoute><IndustryIdentifiersManagement /></AdminRoute>} />
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
         </AuthProvider>
