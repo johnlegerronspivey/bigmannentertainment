@@ -163,6 +163,58 @@ export const BusinessIdentifiers = () => {
           </div>
         </div>
       </div>
+
+      {/* Music Publishing & Rights Management */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Music Publishing & Rights Management
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Publisher Number</label>
+            <p className="mt-1 text-lg text-green-600 font-mono bg-green-50 p-3 rounded border-2 border-green-200">
+              {businessInfo?.publisher_number}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Unique identifier for music publishing rights management
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Publishing Entity</label>
+            <p className="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded">
+              {businessInfo?.business_legal_name}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Legal entity responsible for publishing rights
+            </p>
+          </div>
+        </div>
+        
+        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-700">
+                <strong>Publisher Rights Capabilities:</strong>
+                <br />
+                • Mechanical royalty collection
+                <br />
+                • Performance royalty management
+                <br />
+                • Synchronization licensing
+                <br />
+                • International rights administration
+                <br />
+                • Digital streaming royalties
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
