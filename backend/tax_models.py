@@ -161,10 +161,10 @@ class BusinessTaxInfo(BaseModel):
     ein: str = "270658077"  # Employer Identification Number
     tin: str = "270658077"  # Taxpayer Identification Number (same as EIN for business)
     
-    # Business License Information
+    # License Information
     business_license_number: Optional[str] = None
     license_type: str = "Entertainment/Media Production"
-    license_state: str = "CA"  # State where business is licensed
+    license_state: str = "AL"  # State where business is licensed
     license_expiration: Optional[date] = None
     
     # Primary Business Address
