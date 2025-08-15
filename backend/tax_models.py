@@ -159,7 +159,7 @@ class BusinessTaxInfo(BaseModel):
     
     # Tax Identification
     ein: str = "270658077"  # Employer Identification Number
-    tin: str = "270658077"  # Taxpayer Identification Number (same as EIN for business)
+    tin: str = "12800"  # Taxpayer Identification Number
     
     # License Information
     business_license_number: Optional[str] = None
