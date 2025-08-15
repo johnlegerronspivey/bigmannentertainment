@@ -2067,6 +2067,47 @@ async def generate_upc_code(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate UPC code: {str(e)}")
 
+@api_router.get("/business/isrc/generate/{year}/{designation_code}")
+async def generate_isrc_code(
+    year: str,
+    designation_code: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate ISRC code for sound recordings"""
+    try:
+        # Validate year (2 digits)
+        if len(year) != 2 or not year.isdigit():
+            raise HTTPException(status_code=400, detail="Year must be exactly 2 digits (e.g., 25 for 2025)")
+        
+        # Validate designation code (5 digits)
+        if len(designation_code) != 5 or not designation_code.isdigit():
+            raise HTTPException(status_code=400, detail="Designation code must be exactly 5 digits")
+        
+        # ISRC format: CC-XXX-YY-NNNNN
+        # For Big Mann Entertainment: US-QZ9H8-YY-NNNNN
+        # Extract country code and registrant code from ISRC_PREFIX
+        country_code = "US"  # Assuming US-based
+        registrant_code = ISRC_PREFIX  # QZ9H8
+        
+        # Generate full ISRC code
+        full_isrc = f"{country_code}-{registrant_code}-{year}-{designation_code}"
+        
+        return {
+            "country_code": country_code,
+            "registrant_code": registrant_code,
+            "year_of_reference": year,
+            "designation_code": designation_code,
+            "full_isrc_code": full_isrc,
+            "display_format": full_isrc,
+            "compact_format": f"{country_code}{registrant_code}{year}{designation_code}",
+            "description": "International Standard Recording Code for sound recordings and music videos"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate ISRC code: {str(e)}")
+
 @api_router.post("/business/products")
 async def create_product_identifier(
     product_data: ProductIdentifier,
