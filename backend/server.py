@@ -1024,6 +1024,10 @@ def create_refresh_token():
     """Create a refresh token"""
     return secrets.token_urlsafe(32)
 
+def create_refresh_token():
+    """Create a refresh token"""
+    return secrets.token_urlsafe(32)
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         token = credentials.credentials
