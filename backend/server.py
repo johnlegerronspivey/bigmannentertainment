@@ -3529,6 +3529,16 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading Tax Management router: {e}")
 
+# Include Industry router
+try:
+    from industry_endpoints import industry_router
+    app.include_router(industry_router)
+    print("✅ Industry router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ Industry router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading Industry router: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
