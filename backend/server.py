@@ -19,6 +19,21 @@ from passlib.context import CryptContext
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import asyncio
 import aiohttp
+import secrets
+import base64
+import smtplib
+from email.mime.text import MimeText
+from email.mime.multipart import MimeMultipart
+
+# WebAuthn imports
+from webauthn import generate_registration_options, verify_registration_response
+from webauthn import generate_authentication_options, verify_authentication_response
+from webauthn.helpers.structs import (
+    AuthenticatorSelectionCriteria, UserVerificationRequirement,
+    RegistrationCredential, AuthenticationCredential,
+    PublicKeyCredentialDescriptor, AuthenticatorTransport
+)
+from webauthn.helpers.cose import COSEAlgorithmIdentifier
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
