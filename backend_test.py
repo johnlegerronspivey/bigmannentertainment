@@ -4592,6 +4592,27 @@ class BackendTester:
         print("\nTesting Admin Business Overview...")
         self.test_admin_business_overview()
         
+        # NEW: ISRC Integration Tests
+        print("\n🎵 TESTING ISRC (INTERNATIONAL STANDARD RECORDING CODE) INTEGRATION")
+        print("-" * 70)
+        
+        print("\nTesting ISRC Business Identifiers...")
+        self.test_isrc_business_identifiers()
+        
+        print("\nTesting ISRC Code Generation...")
+        self.test_isrc_code_generation_valid()
+        self.test_isrc_code_generation_invalid()
+        
+        print("\nTesting ISRC Product Management...")
+        self.test_isrc_product_creation()
+        self.test_isrc_product_listing()
+        
+        print("\nTesting ISRC Admin Features...")
+        self.test_isrc_admin_overview()
+        
+        print("\nTesting ISRC Authentication...")
+        self.test_isrc_authentication_required()
+        
         # Print Summary
         self.print_summary()
     
