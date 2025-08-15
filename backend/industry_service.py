@@ -574,47 +574,111 @@ class IndustryIntegrationService:
             logger.error(f"Error getting dashboard data: {str(e)}")
             return {}
     
-    # IPI Number Management Methods
-    async def get_ipi_numbers(self, entity_type: Optional[str] = None, role: Optional[str] = None) -> List[Dict]:
-        """Get IPI numbers with optional filtering"""
+    # Industry Identifiers Management Methods (IPI, ISNI, AARC)
+    async def get_industry_identifiers(self, entity_type: Optional[str] = None, identifier_type: Optional[str] = None) -> List[Dict]:
+        """Get industry identifiers with optional filtering"""
         try:
             query = {"status": "active"}
             if entity_type:
                 query["entity_type"] = entity_type
-            if role:
-                query["role"] = role
             
-            cursor = self.db.ipi_numbers.find(query)
-            ipi_numbers = await cursor.to_list(None)
-            return ipi_numbers
+            cursor = self.db.industry_identifiers.find(query)
+            identifiers = await cursor.to_list(None)
+            
+            # Filter by identifier type if specified
+            if identifier_type:
+                filtered_identifiers = []
+                for identifier in identifiers:
+                    if identifier_type == "ipi" and identifier.get("ipi_number"):
+                        filtered_identifiers.append(identifier)
+                    elif identifier_type == "isni" and identifier.get("isni_number"):
+                        filtered_identifiers.append(identifier)
+                    elif identifier_type == "aarc" and identifier.get("aarc_number"):
+                        filtered_identifiers.append(identifier)
+                identifiers = filtered_identifiers
+            
+            return identifiers
+            
+        except Exception as e:
+            logger.error(f"Error retrieving industry identifiers: {str(e)}")
+            return []
+    
+    async def get_ipi_numbers(self, entity_type: Optional[str] = None, role: Optional[str] = None) -> List[Dict]:
+        """Get IPI numbers with optional filtering (legacy method)"""
+        try:
+            query = {"status": "active", "ipi_number": {"$ne": None}}
+            if entity_type:
+                query["entity_type"] = entity_type
+            if role:
+                query["ipi_role"] = role
+            
+            cursor = self.db.industry_identifiers.find(query)
+            identifiers = await cursor.to_list(None)
+            return identifiers
             
         except Exception as e:
             logger.error(f"Error retrieving IPI numbers: {str(e)}")
             return []
     
+    async def add_industry_identifier(self, identifier_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add a new industry identifier"""
+        try:
+            # Check if entity already exists
+            existing = await self.db.industry_identifiers.find_one({"entity_name": identifier_data.get("entity_name")})
+            if existing:
+                raise ValueError(f"Entity {identifier_data.get('entity_name')} already exists")
+            
+            identifier = IndustryIdentifier(**identifier_data)
+            await self.db.industry_identifiers.insert_one(identifier.dict())
+            
+            return {"success": True, "identifier": identifier.dict()}
+            
+        except Exception as e:
+            logger.error(f"Error adding industry identifier: {str(e)}")
+            raise
+    
     async def add_ipi_number(self, ipi_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Add a new IPI number"""
+        """Add a new IPI number (legacy method)"""
         try:
             # Check if IPI number already exists
-            existing = await self.db.ipi_numbers.find_one({"ipi_number": ipi_data.get("ipi_number")})
+            existing = await self.db.industry_identifiers.find_one({"ipi_number": ipi_data.get("ipi_number")})
             if existing:
                 raise ValueError(f"IPI number {ipi_data.get('ipi_number')} already exists")
             
-            ipi = IndustryIdentifier(**ipi_data)
-            await self.db.ipi_numbers.insert_one(ipi.dict())
+            identifier = IndustryIdentifier(**ipi_data)
+            await self.db.industry_identifiers.insert_one(identifier.dict())
             
-            return {"success": True, "ipi": ipi.dict()}
+            return {"success": True, "ipi": identifier.dict()}
             
         except Exception as e:
             logger.error(f"Error adding IPI number: {str(e)}")
             raise
     
-    async def update_ipi_number(self, ipi_number: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Update an existing IPI number"""
+    async def update_industry_identifier(self, entity_name: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update an existing industry identifier"""
         try:
             update_data["updated_at"] = datetime.utcnow()
             
-            result = await self.db.ipi_numbers.update_one(
+            result = await self.db.industry_identifiers.update_one(
+                {"entity_name": entity_name},
+                {"$set": update_data}
+            )
+            
+            if result.matched_count == 0:
+                raise ValueError(f"Entity {entity_name} not found")
+            
+            return {"success": True, "message": "Industry identifier updated successfully"}
+            
+        except Exception as e:
+            logger.error(f"Error updating industry identifier: {str(e)}")
+            raise
+    
+    async def update_ipi_number(self, ipi_number: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update an existing IPI number (legacy method)"""
+        try:
+            update_data["updated_at"] = datetime.utcnow()
+            
+            result = await self.db.industry_identifiers.update_one(
                 {"ipi_number": ipi_number},
                 {"$set": update_data}
             )
@@ -628,8 +692,54 @@ class IndustryIntegrationService:
             logger.error(f"Error updating IPI number: {str(e)}")
             raise
     
+    async def get_industry_identifiers_dashboard_data(self) -> Dict[str, Any]:
+        """Get comprehensive industry identifiers dashboard data"""
+        try:
+            # Get all industry identifiers
+            identifiers = await self.get_industry_identifiers()
+            
+            # Count by entity type and identifier types
+            entity_counts = {}
+            ipi_count = 0
+            isni_count = 0
+            aarc_count = 0
+            
+            for identifier in identifiers:
+                entity_type = identifier.get("entity_type", "unknown")
+                entity_counts[entity_type] = entity_counts.get(entity_type, 0) + 1
+                
+                if identifier.get("ipi_number"):
+                    ipi_count += 1
+                if identifier.get("isni_number"):
+                    isni_count += 1
+                if identifier.get("aarc_number"):
+                    aarc_count += 1
+            
+            return {
+                "total_entities": len(identifiers),
+                "by_entity_type": entity_counts,
+                "identifier_counts": {
+                    "ipi": ipi_count,
+                    "isni": isni_count,
+                    "aarc": aarc_count
+                },
+                "big_mann_entertainment": {
+                    "company_ipi": "813048171",
+                    "company_aarc": "RC00002057",
+                    "individual_ipi": "578413032", 
+                    "individual_isni": "0000000491551894",
+                    "individual_aarc": "FA02933539",
+                    "status": "active"
+                },
+                "recent_identifiers": identifiers[-5:] if identifiers else []
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting industry identifiers dashboard data: {str(e)}")
+            return {}
+    
     async def get_ipi_dashboard_data(self) -> Dict[str, Any]:
-        """Get comprehensive IPI dashboard data"""
+        """Get comprehensive IPI dashboard data (legacy method)"""
         try:
             # Get all IPI numbers
             ipi_numbers = await self.get_ipi_numbers()
@@ -640,7 +750,7 @@ class IndustryIntegrationService:
             
             for ipi in ipi_numbers:
                 entity_type = ipi.get("entity_type", "unknown")
-                role = ipi.get("role", "unknown")
+                role = ipi.get("ipi_role", "unknown")
                 
                 entity_counts[entity_type] = entity_counts.get(entity_type, 0) + 1
                 role_counts[role] = role_counts.get(role, 0) + 1
