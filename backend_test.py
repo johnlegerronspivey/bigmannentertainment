@@ -5829,6 +5829,31 @@ class BackendTester:
         print("\nTesting IPI Authentication...")
         self.test_ipi_authentication()
         
+        # NEW: Enhanced Industry Identifiers Integration Tests (IPI, ISNI, AARC)
+        print("\n🏢 TESTING ENHANCED INDUSTRY IDENTIFIERS INTEGRATION (IPI, ISNI, AARC)")
+        print("-" * 80)
+        
+        print("\nTesting Industry Identifiers Database Initialization...")
+        self.test_industry_identifiers_initialization()
+        
+        print("\nTesting Industry Identifiers Retrieval...")
+        self.test_industry_identifiers_retrieval()
+        
+        print("\nTesting Industry Identifiers Filtering...")
+        self.test_industry_identifiers_filtering()
+        
+        print("\nTesting Industry Identifiers Dashboard...")
+        self.test_industry_identifiers_dashboard()
+        
+        print("\nTesting Industry Identifiers Entity Details...")
+        self.test_industry_identifiers_entity_details()
+        
+        print("\nTesting Industry Identifiers Authentication...")
+        self.test_industry_identifiers_authentication()
+        
+        print("\nTesting Legacy IPI Compatibility...")
+        self.test_legacy_ipi_compatibility()
+        
         # Print Summary
         self.print_summary()
     
