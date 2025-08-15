@@ -453,3 +453,130 @@ async def get_industry_coverage(current_user: User = Depends(get_current_user)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to analyze industry coverage: {str(e)}")
+
+# IPI Number Management Endpoints
+@router.get("/ipi")
+async def get_ipi_numbers(
+    entity_type: Optional[str] = None,
+    role: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all IPI numbers with optional filtering"""
+    try:
+        service = IndustryIntegrationService(db)
+        ipi_numbers = await service.get_ipi_numbers(entity_type=entity_type, role=role)
+        
+        return {
+            "ipi_numbers": ipi_numbers,
+            "total_count": len(ipi_numbers),
+            "filters_applied": {
+                "entity_type": entity_type,
+                "role": role
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error retrieving IPI numbers: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve IPI numbers: {str(e)}")
+
+@router.post("/ipi")
+async def add_ipi_number(
+    ipi_data: IPINumber,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Add a new IPI number"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.add_ipi_number(ipi_data.dict())
+        
+        return {
+            "success": True,
+            "message": f"Successfully added IPI number {ipi_data.ipi_number} for {ipi_data.entity_name}",
+            "ipi_number": result["ipi"]
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add IPI number: {str(e)}")
+
+@router.put("/ipi/{ipi_number}")
+async def update_ipi_number(
+    ipi_number: str,
+    update_data: Dict[str, Any],
+    admin_user: User = Depends(get_admin_user)
+):
+    """Update an IPI number"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.update_ipi_number(ipi_number, update_data)
+        
+        return {
+            "success": True,
+            "message": f"Successfully updated IPI number {ipi_number}"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update IPI number: {str(e)}")
+
+@router.get("/ipi/{ipi_number}")
+async def get_ipi_number_details(
+    ipi_number: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get detailed information about a specific IPI number"""
+    try:
+        ipi = await db.ipi_numbers.find_one({"ipi_number": ipi_number})
+        if not ipi:
+            raise HTTPException(status_code=404, detail="IPI number not found")
+        
+        return {
+            "ipi_number": ipi,
+            "message": f"IPI number {ipi_number} details retrieved successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve IPI number details: {str(e)}")
+
+@router.get("/ipi/dashboard")
+async def get_ipi_dashboard(current_user: User = Depends(get_current_user)):
+    """Get comprehensive IPI dashboard data"""
+    try:
+        service = IndustryIntegrationService(db)
+        dashboard_data = await service.get_ipi_dashboard_data()
+        
+        return {
+            "dashboard": dashboard_data,
+            "last_updated": datetime.utcnow().isoformat(),
+            "user": current_user.email,
+            "message": "IPI dashboard data retrieved successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve IPI dashboard data: {str(e)}")
+
+@router.delete("/ipi/{ipi_number}")
+async def remove_ipi_number(
+    ipi_number: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Remove an IPI number"""
+    try:
+        result = await db.ipi_numbers.delete_one({"ipi_number": ipi_number})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="IPI number not found")
+        
+        return {
+            "success": True,
+            "message": f"IPI number {ipi_number} removed successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove IPI number: {str(e)}")
