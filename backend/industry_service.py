@@ -35,7 +35,7 @@ class IndustryIntegrationService:
             # Clear existing partners
             await self.db.industry_partners.delete_many({})
             
-            # Initialize IPI numbers first
+            # Initialize industry identifiers first
             await self.initialize_ipi_numbers()
             
             total_partners = 0
