@@ -492,11 +492,14 @@ export const ProductManagement = () => {
         product_name: '',
         upc_full_code: '',
         gtin: '',
+        isrc_code: '',
         product_category: 'Album',
         artist_name: '',
         album_title: '',
         track_title: '',
-        release_date: ''
+        release_date: '',
+        duration_seconds: '',
+        record_label: 'Big Mann Entertainment LLC'
       });
       fetchProducts();
     } catch (error) {
