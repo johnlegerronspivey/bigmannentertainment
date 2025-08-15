@@ -2264,7 +2264,9 @@ async def get_business_overview(admin_user: User = Depends(get_admin_user)):
             "global_identifiers": {
                 "upc_company_prefix": UPC_COMPANY_PREFIX,
                 "global_location_number": GLOBAL_LOCATION_NUMBER,
-                "available_upc_range": f"{UPC_COMPANY_PREFIX}00000 - {UPC_COMPANY_PREFIX}99999"
+                "isrc_prefix": ISRC_PREFIX,
+                "available_upc_range": f"{UPC_COMPANY_PREFIX}00000 - {UPC_COMPANY_PREFIX}99999",
+                "isrc_format": f"US-{ISRC_PREFIX}-YY-NNNNN (where YY=year, NNNNN=recording number)"
             },
             "product_statistics": {
                 "total_products": total_products,
