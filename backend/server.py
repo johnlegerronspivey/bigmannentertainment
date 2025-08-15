@@ -104,7 +104,10 @@ UPC_COMPANY_PREFIX = os.environ.get('UPC_COMPANY_PREFIX', '8600043402')
 GLOBAL_LOCATION_NUMBER = os.environ.get('GLOBAL_LOCATION_NUMBER', '0860004340201')
 ISRC_PREFIX = os.environ.get('ISRC_PREFIX', 'QZ9H8')
 PUBLISHER_NUMBER = os.environ.get('PUBLISHER_NUMBER', 'PA04UV')
+IPI_BUSINESS = os.environ.get('IPI_BUSINESS', '813048171')
+IPI_PRINCIPAL = os.environ.get('IPI_PRINCIPAL', '578413032')
 BUSINESS_LEGAL_NAME = os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment LLC')
+PRINCIPAL_NAME = os.environ.get('PRINCIPAL_NAME', 'John LeGerron Spivey')
 
 # Create the main app without a prefix
 app = FastAPI(title="Big Mann Entertainment API", version="1.0.0")
