@@ -612,8 +612,8 @@ export const BusinessTaxInfo = () => {
     contact_email: '',
     
     // Business Operations
-    business_description: 'Digital media distribution and entertainment services',
-    primary_business_activity: 'Media Distribution Platform',
+    business_description: 'Digital media distribution and sound recording services',
+    primary_business_activity: 'Sound Recording and Media Distribution Platform',
     date_business_started: '',
     fiscal_year_end: 'December 31',
     
