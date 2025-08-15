@@ -601,14 +601,14 @@ export const BusinessTaxInfo = () => {
     sic_code: '7812',
     
     // Incorporation Details
-    incorporation_state: 'CA',
+    incorporation_state: 'AL',
     incorporation_date: '',
     state_id_number: '',
     
     // Contact Information
     contact_name: 'John LeGerron Spivey',
     contact_title: 'CEO',
-    contact_phone: '',
+    contact_phone: '334-669-8638',
     contact_email: '',
     
     // Business Operations
