@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 from industry_service import IndustryIntegrationService
-from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IPINumber
+from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IndustryIdentifier
 
 # Import from server.py to get dependencies
 import sys
@@ -486,7 +486,7 @@ async def get_ipi_numbers(
 
 @router.post("/ipi")
 async def add_ipi_number(
-    ipi_data: IPINumber,
+    ipi_data: IndustryIdentifier,
     admin_user: User = Depends(get_admin_user)
 ):
     """Add a new IPI number"""
