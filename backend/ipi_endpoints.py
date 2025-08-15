@@ -92,7 +92,7 @@ BIG_MANN_IPI_NUMBERS = [
 ]
 
 @router.post("/initialize")
-async def initialize_industry_connections():
+async def initialize_industry_connections(request: Request, admin_user = Depends(get_admin_user)):
     """Initialize all industry partner connections including IPI numbers"""
     try:
         # Initialize IPI numbers
@@ -113,8 +113,10 @@ async def initialize_industry_connections():
 
 @router.get("/ipi")
 async def get_ipi_numbers(
+    request: Request,
     entity_type: Optional[str] = None,
-    role: Optional[str] = None
+    role: Optional[str] = None,
+    current_user = Depends(get_current_user)
 ):
     """Get all IPI numbers with optional filtering"""
     try:
@@ -145,7 +147,7 @@ async def get_ipi_numbers(
         raise HTTPException(status_code=500, detail=f"Failed to retrieve IPI numbers: {str(e)}")
 
 @router.get("/ipi/{ipi_number}")
-async def get_ipi_number_details(ipi_number: str):
+async def get_ipi_number_details(ipi_number: str, request: Request, current_user = Depends(get_current_user)):
     """Get detailed information about a specific IPI number"""
     try:
         ipi = await db.ipi_numbers.find_one({"ipi_number": ipi_number})
@@ -167,7 +169,7 @@ async def get_ipi_number_details(ipi_number: str):
         raise HTTPException(status_code=500, detail=f"Failed to retrieve IPI number details: {str(e)}")
 
 @router.get("/ipi/dashboard")
-async def get_ipi_dashboard():
+async def get_ipi_dashboard(request: Request, current_user = Depends(get_current_user)):
     """Get comprehensive IPI dashboard data"""
     try:
         # Get all IPI numbers
@@ -210,7 +212,7 @@ async def get_ipi_dashboard():
         raise HTTPException(status_code=500, detail=f"Failed to retrieve IPI dashboard data: {str(e)}")
 
 @router.post("/ipi")
-async def add_ipi_number(ipi_data: dict):
+async def add_ipi_number(ipi_data: dict, request: Request, admin_user = Depends(get_admin_user)):
     """Add a new IPI number"""
     try:
         # Check if IPI number already exists
