@@ -3782,6 +3782,11 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/business" element={<ProtectedRoute><BusinessManagement /></ProtectedRoute>} />
+            <Route path="/industry" element={<ProtectedRoute><IndustryDashboard /></ProtectedRoute>} />
+            <Route path="/industry/partners" element={<ProtectedRoute><IndustryPartners /></ProtectedRoute>} />
+            <Route path="/industry/distribute" element={<ProtectedRoute><GlobalDistribution /></ProtectedRoute>} />
+            <Route path="/industry/coverage" element={<ProtectedRoute><IndustryCoverage /></ProtectedRoute>} />
+            <Route path="/industry/ipi" element={<ProtectedRoute><IPIManagement /></ProtectedRoute>} />
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/blockchain" element={<Blockchain />} />
