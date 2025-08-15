@@ -155,7 +155,9 @@ export const BusinessIdentifiers = () => {
                 <br />
                 <strong>Your ISRC Format:</strong> US-{businessInfo?.isrc_prefix}-YY-NNNNN (unlimited sound recording codes)
                 <br />
-                These identifiers enable global distribution and tracking of your media products.
+                <strong>Your Publisher Number:</strong> {businessInfo?.publisher_number} (music publishing rights identifier)
+                <br />
+                These identifiers enable complete global distribution, tracking, and rights management of your media products.
               </p>
             </div>
           </div>
