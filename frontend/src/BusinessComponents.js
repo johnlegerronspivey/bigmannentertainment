@@ -648,6 +648,25 @@ export const ProductManagement = () => {
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Duration (seconds)</label>
+                <input
+                  type="number"
+                  value={newProduct.duration_seconds}
+                  onChange={(e) => setNewProduct({ ...newProduct, duration_seconds: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="240"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Record Label</label>
+                <input
+                  type="text"
+                  value={newProduct.record_label}
+                  onChange={(e) => setNewProduct({ ...newProduct, record_label: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">Release Date</label>
                 <input
