@@ -72,20 +72,65 @@ class User(BaseModel):
     email: str
     full_name: str
     business_name: Optional[str] = None
+    date_of_birth: Optional[datetime] = None
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    state_province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
     is_active: bool = True
     is_admin: bool = False
+    is_verified: bool = False
     role: str = "user"  # user, admin, moderator, super_admin
     last_login: Optional[datetime] = None
     login_count: int = 0
     account_status: str = "active"  # active, inactive, suspended, banned
+    failed_login_attempts: int = 0
+    locked_until: Optional[datetime] = None
+    password_reset_token: Optional[str] = None
+    password_reset_expires: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class WebAuthnCredential(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    credential_id: str  # Base64 encoded credential ID
+    public_key: str     # Base64 encoded public key
+    sign_count: int = 0
+    credential_name: Optional[str] = None  # User-friendly name like "iPhone Face ID"
+    aaguid: Optional[str] = None
+    credential_type: str = "public-key"
+    transports: Optional[List[str]] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_used: Optional[datetime] = None
+
+class UserSession(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    session_token: str
+    refresh_token: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    expires_at: datetime
+    last_accessed: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = True
+    user_agent: Optional[str] = None
+    ip_address: Optional[str] = None
+    device_fingerprint: Optional[str] = None
 
 class UserCreate(BaseModel):
     email: str
     password: str
     full_name: str
     business_name: Optional[str] = None
+    date_of_birth: datetime
+    address_line1: str
+    address_line2: Optional[str] = None
+    city: str
+    state_province: str
+    postal_code: str
+    country: str
 
 class UserLogin(BaseModel):
     email: str
@@ -93,8 +138,34 @@ class UserLogin(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
+    expires_in: int
     user: User
+
+class TokenRefresh(BaseModel):
+    refresh_token: str
+
+class WebAuthnRegistrationResponse(BaseModel):
+    id: str
+    rawId: str
+    response: Dict[str, Any]
+    type: str
+    clientExtensionResults: Optional[Dict[str, Any]] = {}
+
+class WebAuthnAuthenticationResponse(BaseModel):
+    id: str
+    rawId: str
+    response: Dict[str, Any]
+    type: str
+    clientExtensionResults: Optional[Dict[str, Any]] = {}
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
