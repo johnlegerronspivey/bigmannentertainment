@@ -2532,6 +2532,203 @@ const ResetPassword = () => {
   );
 };
 
+// Profile Settings Component for managing Face ID credentials
+const ProfileSettings = () => {
+  const [credentials, setCredentials] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const { user, enrollFaceID, getWebAuthnCredentials, deleteWebAuthnCredential, isWebAuthnSupported } = useAuth();
+
+  useEffect(() => {
+    fetchCredentials();
+  }, []);
+
+  const fetchCredentials = async () => {
+    try {
+      const creds = await getWebAuthnCredentials();
+      setCredentials(creds);
+    } catch (error) {
+      console.error('Error fetching credentials:', error);
+    }
+  };
+
+  const handleEnrollFaceID = async () => {
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    const result = await enrollFaceID();
+    
+    if (result.success) {
+      setMessage('Face ID enrolled successfully!');
+      fetchCredentials();
+    } else {
+      setError(result.error);
+    }
+    
+    setLoading(false);
+  };
+
+  const handleDeleteCredential = async (credentialId) => {
+    if (!window.confirm('Are you sure you want to delete this Face ID credential?')) {
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    const result = await deleteWebAuthnCredential(credentialId);
+    
+    if (result.success) {
+      setMessage('Face ID credential deleted successfully');
+      fetchCredentials();
+    } else {
+      setError(result.error);
+    }
+    
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-6">
+              Profile Settings
+            </h3>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {error}
+              </div>
+            )}
+            
+            {message && (
+              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                {message}
+              </div>
+            )}
+
+            {/* User Information */}
+            <div className="mb-8">
+              <h4 className="text-md font-medium text-gray-900 mb-4">Account Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                  <p className="mt-1 text-sm text-gray-900">{user?.full_name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <p className="mt-1 text-sm text-gray-900">{user?.email}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Address</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {user?.address_line1}
+                    {user?.address_line2 && `, ${user.address_line2}`}
+                    <br />
+                    {user?.city}, {user?.state_province} {user?.postal_code}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Member Since</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Face ID Settings */}
+            {isWebAuthnSupported() && (
+              <div className="mb-8">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Face ID Authentication</h4>
+                
+                {credentials.length === 0 ? (
+                  <div className="text-center py-6">
+                    <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-gray-500 mb-4">No Face ID credentials enrolled</p>
+                    <button
+                      onClick={handleEnrollFaceID}
+                      disabled={loading}
+                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
+                    >
+                      {loading ? 'Enrolling...' : '🔒 Enroll Face ID'}
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="space-y-3">
+                      {credentials.map((credential) => (
+                        <div key={credential.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                          <div>
+                            <p className="font-medium text-gray-900">{credential.name}</p>
+                            <p className="text-sm text-gray-500">
+                              Created: {new Date(credential.created_at).toLocaleDateString()}
+                              {credential.last_used && (
+                                <span className="mx-2">•</span>
+                              )}
+                              {credential.last_used && (
+                                <>Last used: {new Date(credential.last_used).toLocaleDateString()}</>
+                              )}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteCredential(credential.id)}
+                            disabled={loading}
+                            className="text-red-600 hover:text-red-800 font-medium text-sm disabled:opacity-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-4">
+                      <button
+                        onClick={handleEnrollFaceID}
+                        disabled={loading}
+                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
+                      >
+                        {loading ? 'Enrolling...' : '➕ Add Another Face ID'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!isWebAuthnSupported() && (
+              <div className="mb-8">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Face ID Authentication</h4>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">
+                        Face ID authentication is not supported on this device or browser. 
+                        Please use a device with WebAuthn support to enable Face ID login.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Library = () => {
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
