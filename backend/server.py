@@ -218,6 +218,31 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
     account_status: Optional[str] = None
 
+class BusinessIdentifiers(BaseModel):
+    business_legal_name: str
+    business_ein: str
+    business_tin: str
+    business_address: str
+    business_phone: str
+    business_naics_code: str
+    upc_company_prefix: str
+    global_location_number: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ProductIdentifier(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    product_name: str
+    upc_full_code: str  # UPC Company Prefix + Product Code + Check Digit
+    gtin: str  # Global Trade Item Number
+    product_category: str
+    artist_name: Optional[str] = None
+    album_title: Optional[str] = None
+    track_title: Optional[str] = None
+    release_date: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
 class MediaContent(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
