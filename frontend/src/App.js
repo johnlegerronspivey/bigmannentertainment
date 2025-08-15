@@ -1763,10 +1763,33 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [showPasswordLogin, setShowPasswordLogin] = useState(false);
+  const { login, loginWithFaceID, isWebAuthnSupported } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleFaceIDLogin = async () => {
+    if (!formData.email) {
+      setError('Please enter your email address first');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    const result = await loginWithFaceID(formData.email);
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error);
+      // If Face ID fails, show password option
+      setShowPasswordLogin(true);
+    }
+    
+    setLoading(false);
+  };
+
+  const handlePasswordLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -1796,12 +1819,15 @@ const Login = () => {
           </h2>
           <p className="text-gray-600">Big Mann Entertainment</p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+
+        <div className="mt-8 space-y-6">
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               {error}
             </div>
           )}
+
+          {/* Email Input (always visible) */}
           <div>
             <input
               type="email"
@@ -1812,24 +1838,105 @@ const Login = () => {
               placeholder="Email address"
             />
           </div>
-          <div>
-            <input
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Password"
-            />
+
+          {/* Face ID Login (Primary Method) */}
+          {isWebAuthnSupported() && !showPasswordLogin && (
+            <div className="space-y-4">
+              <button
+                onClick={handleFaceIDLogin}
+                disabled={loading || !formData.email}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Authenticating with Face ID...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    🔒 Sign in with Face ID
+                  </>
+                )}
+              </button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordLogin(true)}
+                  className="text-purple-600 hover:text-purple-500 text-sm"
+                >
+                  Use password instead
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Password Login (Fallback or when WebAuthn is not supported) */}
+          {(showPasswordLogin || !isWebAuthnSupported()) && (
+            <form onSubmit={handlePasswordLogin} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign in with Password'
+                )}
+              </button>
+
+              {isWebAuthnSupported() && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordLogin(false)}
+                    className="text-purple-600 hover:text-purple-500 text-sm"
+                  >
+                    Use Face ID instead
+                  </button>
+                </div>
+              )}
+            </form>
+          )}
+
+          {/* Links */}
+          <div className="text-center space-y-2">
+            <div>
+              <Link to="/forgot-password" className="text-purple-600 hover:text-purple-500 text-sm">
+                Forgot your password?
+              </Link>
+            </div>
+            <div>
+              <Link to="/register" className="text-purple-600 hover:text-purple-500">
+                Don't have an account? Sign up
+              </Link>
+            </div>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
