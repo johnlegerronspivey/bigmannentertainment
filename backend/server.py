@@ -2192,7 +2192,7 @@ async def delete_product_identifier(
 
 # Admin-only business management endpoints
 @api_router.get("/admin/business/overview")
-async def get_business_overview(admin_user: User = Depends(get_current_admin_user)):
+async def get_business_overview(admin_user: User = Depends(get_admin_user)):
     """Get comprehensive business overview including all identifiers"""
     try:
         # Get product counts by category
