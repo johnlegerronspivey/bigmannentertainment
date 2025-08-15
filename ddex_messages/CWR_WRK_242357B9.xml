@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ns0:CWRMessage xmlns:ns0="http://ddex.net/xml/cwr/30" xmlns="http://ddex.net/xml/cwr/30" MessageSchemaVersionId="30" LanguageAndScriptCode="en">
+  <ns0:MessageHeader>
+    <ns0:MessageId>WRK_242357B9</ns0:MessageId>
+    <ns0:MessageCreatedDateTime>2025-08-15T13:30:09</ns0:MessageCreatedDateTime>
+    <ns0:MessageSender>John LeGerron Spivey</ns0:MessageSender>
+  </ns0:MessageHeader>
+  <ns0:WorkRegistration>
+    <ns0:MusicalWork>
+      <ns0:WorkId>
+        <ns0:ISWC>T-835.DE9.3C2-2</ns0:ISWC>
+      </ns0:WorkId>
+      <ns0:WorkTitle>
+        <ns0:TitleText>Big Mann Entertainment Instrumental</ns0:TitleText>
+      </ns0:WorkTitle>
+      <ns0:Contributor>
+        <ns0:ContributorName>John LeGerron Spivey</ns0:ContributorName>
+        <ns0:ContributorRole>Composer</ns0:ContributorRole>
+        <ns0:IPI>0000000076B</ns0:IPI>
+      </ns0:Contributor>
+      <ns0:PerformingRightsSociety>BMI</ns0:PerformingRightsSociety>
+    </ns0:MusicalWork>
+    <ns0:RegistrationTerritory>US</ns0:RegistrationTerritory>
+    <ns0:RegistrationDate>2025-08-15</ns0:RegistrationDate>
+  </ns0:WorkRegistration>
+</ns0:CWRMessage>
