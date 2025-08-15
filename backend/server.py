@@ -2012,6 +2012,7 @@ async def get_business_identifiers(current_user: User = Depends(get_current_user
             "business_naics_code": BUSINESS_NAICS_CODE,
             "upc_company_prefix": UPC_COMPANY_PREFIX,
             "global_location_number": GLOBAL_LOCATION_NUMBER,
+            "isrc_prefix": ISRC_PREFIX,
             "naics_description": "Sound Recording Industries"
         }
         
