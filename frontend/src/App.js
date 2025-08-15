@@ -2784,6 +2784,7 @@ const BusinessManagement = () => {
           <div className="p-6">
             {activeTab === 'identifiers' && <BusinessIdentifiers />}
             {activeTab === 'upc' && <UPCGenerator />}
+            {activeTab === 'isrc' && <ISRCGenerator />}
             {activeTab === 'products' && <ProductManagement />}
           </div>
         </div>
