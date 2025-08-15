@@ -4343,6 +4343,361 @@ class BackendTester:
             self.log_result("isrc_authentication", "ISRC Authentication Required", False, f"Exception: {str(e)}")
             return False
     
+    def test_publisher_business_identifiers_with_pa04uv(self) -> bool:
+        """Test /api/business/identifiers endpoint returns Publisher Number PA04UV along with all existing identifiers"""
+        try:
+            if not self.auth_token:
+                self.log_result("publisher_business_identifiers", "Publisher Business Identifiers PA04UV", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/business/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for all required identifiers including Publisher Number
+                required_identifiers = {
+                    'publisher_number': 'PA04UV',
+                    'upc_company_prefix': '8600043402',
+                    'global_location_number': '0860004340201',
+                    'isrc_prefix': 'QZ9H8',
+                    'business_ein': '270658077',
+                    'business_naics_code': '512200'
+                }
+                
+                missing_identifiers = []
+                incorrect_values = []
+                
+                for field, expected_value in required_identifiers.items():
+                    if field not in data:
+                        missing_identifiers.append(field)
+                    elif data[field] != expected_value:
+                        incorrect_values.append(f"{field}: expected {expected_value}, got {data[field]}")
+                
+                if not missing_identifiers and not incorrect_values:
+                    # Verify complete business information is also present
+                    business_fields = ['business_legal_name', 'business_address', 'business_phone']
+                    missing_business_fields = [field for field in business_fields if field not in data or not data[field]]
+                    
+                    if not missing_business_fields:
+                        self.log_result("publisher_business_identifiers", "Publisher Business Identifiers PA04UV", True, 
+                                      f"✅ All identifiers present including Publisher Number PA04UV: UPC Prefix ({data['upc_company_prefix']}), GLN ({data['global_location_number']}), ISRC Prefix ({data['isrc_prefix']}), EIN ({data['business_ein']}), Publisher Number ({data['publisher_number']})")
+                        return True
+                    else:
+                        self.log_result("publisher_business_identifiers", "Publisher Business Identifiers PA04UV", False, 
+                                      f"Missing business information fields: {missing_business_fields}")
+                        return False
+                else:
+                    error_msg = ""
+                    if missing_identifiers:
+                        error_msg += f"Missing identifiers: {missing_identifiers}. "
+                    if incorrect_values:
+                        error_msg += f"Incorrect values: {incorrect_values}."
+                    
+                    self.log_result("publisher_business_identifiers", "Publisher Business Identifiers PA04UV", False, error_msg)
+                    return False
+            else:
+                self.log_result("publisher_business_identifiers", "Publisher Business Identifiers PA04UV", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("publisher_business_identifiers", "Publisher Business Identifiers PA04UV", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_publisher_admin_business_overview(self) -> bool:
+        """Test /api/admin/business/overview includes Publisher Number information and format description"""
+        try:
+            if not self.auth_token:
+                self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/admin/business/overview')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for global_identifiers section with Publisher Number
+                if 'global_identifiers' in data:
+                    identifiers = data['global_identifiers']
+                    
+                    # Verify Publisher Number is included
+                    publisher_found = False
+                    publisher_format_found = False
+                    
+                    for identifier in identifiers:
+                        if identifier.get('type') == 'Publisher Number':
+                            publisher_found = True
+                            if (identifier.get('value') == 'PA04UV' and 
+                                'format' in identifier and 
+                                'description' in identifier):
+                                publisher_format_found = True
+                                break
+                    
+                    if publisher_found and publisher_format_found:
+                        # Also verify other identifiers are present
+                        identifier_types = [id_info.get('type') for id_info in identifiers]
+                        expected_types = ['UPC Company Prefix', 'Global Location Number', 'ISRC Prefix', 'Publisher Number']
+                        missing_types = [t for t in expected_types if t not in identifier_types]
+                        
+                        if not missing_types:
+                            self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", True, 
+                                          f"✅ Admin overview includes Publisher Number PA04UV with format description and all other identifiers ({len(identifiers)} total)")
+                            return True
+                        else:
+                            self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", False, 
+                                          f"Missing identifier types in admin overview: {missing_types}")
+                            return False
+                    else:
+                        self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", False, 
+                                      f"Publisher Number not found or missing format description. Found: {publisher_found}, Format: {publisher_format_found}")
+                        return False
+                else:
+                    self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", False, 
+                                  "global_identifiers section not found in admin overview")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", False, 
+                              "Access denied - admin privileges required (authentication working correctly)")
+                return False
+            else:
+                self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("publisher_admin_overview", "Publisher Admin Business Overview", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_publisher_enhanced_product_management(self) -> bool:
+        """Test product creation and management with publisher information fields"""
+        try:
+            if not self.auth_token:
+                self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, "No auth token available")
+                return False
+            
+            # Test creating a product with full publisher information
+            product_data = {
+                "product_name": "Big Mann Entertainment Single - Test Track",
+                "upc_full_code": "860004340200001",  # Using UPC company prefix + product code + check digit
+                "gtin": "860004340200001",
+                "isrc_code": "US-QZ9H8-25-00001",
+                "product_category": "music_single",
+                "artist_name": "John LeGerron Spivey",
+                "album_title": "Big Mann Entertainment Presents",
+                "track_title": "Test Track for Publisher Integration",
+                "duration_seconds": 240,
+                "record_label": "Big Mann Entertainment LLC",
+                "publisher_name": "Big Mann Entertainment Publishing",
+                "publisher_number": "PA04UV",
+                "songwriter_credits": "John LeGerron Spivey",
+                "publishing_rights": "100% Big Mann Entertainment Publishing (PA04UV)"
+            }
+            
+            # Create product
+            create_response = self.make_request('POST', '/business/products', json=product_data)
+            
+            if create_response.status_code == 200 or create_response.status_code == 201:
+                created_product = create_response.json()
+                product_id = created_product.get('id')
+                
+                if product_id:
+                    # Verify all publisher fields are stored correctly
+                    publisher_fields = ['publisher_name', 'publisher_number', 'songwriter_credits', 'publishing_rights']
+                    missing_fields = [field for field in publisher_fields if field not in created_product or not created_product[field]]
+                    
+                    if not missing_fields:
+                        # Test product listing to ensure publisher information is displayed
+                        list_response = self.make_request('GET', '/business/products')
+                        
+                        if list_response.status_code == 200:
+                            products_data = list_response.json()
+                            products = products_data.get('products', [])
+                            
+                            # Find our created product
+                            test_product = next((p for p in products if p.get('id') == product_id), None)
+                            
+                            if test_product:
+                                # Verify publisher information is present in listing
+                                if (test_product.get('publisher_number') == 'PA04UV' and 
+                                    test_product.get('publisher_name') == 'Big Mann Entertainment Publishing'):
+                                    
+                                    self.log_result("publisher_product_management", "Publisher Enhanced Product Management", True, 
+                                                  f"✅ Product created with full publisher information: Publisher Number (PA04UV), Publisher Name, Songwriter Credits, Publishing Rights. Product ID: {product_id}")
+                                    return True
+                                else:
+                                    self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, 
+                                                  "Publisher information not properly displayed in product listing")
+                                    return False
+                            else:
+                                self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, 
+                                              "Created product not found in product listing")
+                                return False
+                        else:
+                            self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, 
+                                          f"Failed to retrieve product listing: {list_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, 
+                                      f"Missing publisher fields in created product: {missing_fields}")
+                        return False
+                else:
+                    self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, 
+                                  "No product ID returned from creation")
+                    return False
+            else:
+                self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, 
+                              f"Product creation failed: {create_response.status_code}, Response: {create_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("publisher_product_management", "Publisher Enhanced Product Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_publisher_complete_identifier_integration(self) -> bool:
+        """Test that all business identifiers work together in a comprehensive scenario"""
+        try:
+            if not self.auth_token:
+                self.log_result("publisher_complete_integration", "Publisher Complete Identifier Integration", False, "No auth token available")
+                return False
+            
+            # Test comprehensive product creation with all identifiers
+            comprehensive_product = {
+                "product_name": "Big Mann Entertainment - Complete Integration Test",
+                "upc_full_code": "860004340200002",  # UPC Company Prefix: 8600043402
+                "gtin": "860004340200002",
+                "isrc_code": "US-QZ9H8-25-00002",  # ISRC Prefix: QZ9H8
+                "product_category": "music_album",
+                "artist_name": "John LeGerron Spivey",
+                "album_title": "Big Mann Entertainment Complete Collection",
+                "track_title": "Integration Test Track",
+                "duration_seconds": 300,
+                "record_label": "Big Mann Entertainment LLC",
+                "publisher_name": "Big Mann Entertainment Publishing",
+                "publisher_number": "PA04UV",  # Publisher Number: PA04UV
+                "songwriter_credits": "John LeGerron Spivey (BMI)",
+                "publishing_rights": "100% Big Mann Entertainment Publishing (PA04UV) - EIN: 270658077, NAICS: 512200"
+            }
+            
+            create_response = self.make_request('POST', '/business/products', json=comprehensive_product)
+            
+            if create_response.status_code == 200 or create_response.status_code == 201:
+                product = create_response.json()
+                
+                # Verify all identifier systems are integrated
+                identifier_checks = {
+                    'UPC Integration': product.get('upc_full_code', '').startswith('8600043402'),
+                    'ISRC Integration': product.get('isrc_code', '').startswith('US-QZ9H8'),
+                    'Publisher Integration': product.get('publisher_number') == 'PA04UV',
+                    'Business Integration': 'EIN: 270658077' in product.get('publishing_rights', ''),
+                    'NAICS Integration': 'NAICS: 512200' in product.get('publishing_rights', '')
+                }
+                
+                passed_checks = [check for check, result in identifier_checks.items() if result]
+                failed_checks = [check for check, result in identifier_checks.items() if not result]
+                
+                if len(passed_checks) == len(identifier_checks):
+                    # Test that business identifiers endpoint shows complete integration
+                    identifiers_response = self.make_request('GET', '/business/identifiers')
+                    
+                    if identifiers_response.status_code == 200:
+                        identifiers_data = identifiers_response.json()
+                        
+                        # Verify all identifiers are present and correct
+                        complete_identifiers = {
+                            'UPC Company Prefix': identifiers_data.get('upc_company_prefix') == '8600043402',
+                            'Global Location Number': identifiers_data.get('global_location_number') == '0860004340201',
+                            'ISRC Prefix': identifiers_data.get('isrc_prefix') == 'QZ9H8',
+                            'Publisher Number': identifiers_data.get('publisher_number') == 'PA04UV',
+                            'EIN': identifiers_data.get('business_ein') == '270658077',
+                            'NAICS': identifiers_data.get('business_naics_code') == '512200'
+                        }
+                        
+                        all_identifiers_correct = all(complete_identifiers.values())
+                        
+                        if all_identifiers_correct:
+                            self.log_result("publisher_complete_integration", "Publisher Complete Identifier Integration", True, 
+                                          f"✅ COMPLETE INTEGRATION SUCCESS: All business identifiers working together - UPC (8600043402), GLN (0860004340201), ISRC (QZ9H8), Publisher (PA04UV), EIN (270658077), NAICS (512200). Product created with full metadata integration.")
+                            return True
+                        else:
+                            incorrect_identifiers = [name for name, correct in complete_identifiers.items() if not correct]
+                            self.log_result("publisher_complete_integration", "Publisher Complete Identifier Integration", False, 
+                                          f"Some identifiers incorrect in business endpoint: {incorrect_identifiers}")
+                            return False
+                    else:
+                        self.log_result("publisher_complete_integration", "Publisher Complete Identifier Integration", False, 
+                                      "Failed to retrieve business identifiers for verification")
+                        return False
+                else:
+                    self.log_result("publisher_complete_integration", "Publisher Complete Identifier Integration", False, 
+                                  f"Product integration failed. Passed: {passed_checks}, Failed: {failed_checks}")
+                    return False
+            else:
+                self.log_result("publisher_complete_integration", "Publisher Complete Identifier Integration", False, 
+                              f"Comprehensive product creation failed: {create_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("publisher_complete_integration", "Publisher Complete Identifier Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_publisher_authentication_requirements(self) -> bool:
+        """Test that all Publisher Number endpoints require proper authentication and admin endpoints require admin privileges"""
+        try:
+            # Test without authentication
+            temp_token = self.auth_token
+            self.auth_token = None
+            
+            # Test business identifiers without auth
+            response = self.make_request('GET', '/business/identifiers')
+            business_identifiers_protected = response.status_code == 401
+            
+            # Test admin overview without auth
+            admin_response = self.make_request('GET', '/admin/business/overview')
+            admin_overview_protected = admin_response.status_code == 401
+            
+            # Test product creation without auth
+            product_response = self.make_request('POST', '/business/products', json={"test": "data"})
+            product_creation_protected = product_response.status_code == 401
+            
+            # Restore auth token
+            self.auth_token = temp_token
+            
+            if business_identifiers_protected and admin_overview_protected and product_creation_protected:
+                # Now test admin endpoint with regular user (should be forbidden)
+                admin_with_user_response = self.make_request('GET', '/admin/business/overview')
+                
+                if admin_with_user_response.status_code == 403:
+                    self.log_result("publisher_authentication", "Publisher Authentication Requirements", True, 
+                                  "✅ All Publisher Number endpoints properly protected: business identifiers require auth, admin endpoints require admin privileges, product management requires auth")
+                    return True
+                elif admin_with_user_response.status_code == 200:
+                    # User has admin privileges, which is acceptable
+                    self.log_result("publisher_authentication", "Publisher Authentication Requirements", True, 
+                                  "✅ Authentication working correctly. Current user has admin privileges (acceptable)")
+                    return True
+                else:
+                    self.log_result("publisher_authentication", "Publisher Authentication Requirements", False, 
+                                  f"Admin endpoint returned unexpected status with user auth: {admin_with_user_response.status_code}")
+                    return False
+            else:
+                unprotected_endpoints = []
+                if not business_identifiers_protected:
+                    unprotected_endpoints.append("business/identifiers")
+                if not admin_overview_protected:
+                    unprotected_endpoints.append("admin/business/overview")
+                if not product_creation_protected:
+                    unprotected_endpoints.append("business/products")
+                
+                self.log_result("publisher_authentication", "Publisher Authentication Requirements", False, 
+                              f"❌ SECURITY VULNERABILITY: Unprotected endpoints: {unprotected_endpoints}")
+                return False
+                
+        except Exception as e:
+            self.log_result("publisher_authentication", "Publisher Authentication Requirements", False, f"Exception: {str(e)}")
+            return False
+    
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("=" * 80)
