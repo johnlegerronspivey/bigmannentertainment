@@ -91,7 +91,14 @@ class BackendTester:
             "ipi_filtering": {"passed": 0, "failed": 0, "details": []},
             "ipi_details": {"passed": 0, "failed": 0, "details": []},
             "ipi_dashboard": {"passed": 0, "failed": 0, "details": []},
-            "ipi_authentication": {"passed": 0, "failed": 0, "details": []}
+            "ipi_authentication": {"passed": 0, "failed": 0, "details": []},
+            "industry_identifiers_initialization": {"passed": 0, "failed": 0, "details": []},
+            "industry_identifiers_retrieval": {"passed": 0, "failed": 0, "details": []},
+            "industry_identifiers_filtering": {"passed": 0, "failed": 0, "details": []},
+            "industry_identifiers_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "industry_identifiers_entity_details": {"passed": 0, "failed": 0, "details": []},
+            "industry_identifiers_authentication": {"passed": 0, "failed": 0, "details": []},
+            "legacy_ipi_compatibility": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
