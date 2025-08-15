@@ -3,6 +3,20 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
 
+# IPI (Interested Parties Information) Models
+class IPINumber(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    ipi_number: str  # IPI number (e.g., 813048171, 578413032)
+    entity_name: str  # Name of the person or organization
+    entity_type: str  # "company", "individual", "band", "organization"
+    role: str  # "songwriter", "composer", "lyricist", "publisher", "performer", "producer"
+    territory: str = "US"  # Territory where IPI is registered
+    status: str = "active"  # active, inactive, pending, suspended
+    contact_info: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
 # Industry Partner Models
 class IndustryPartner(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -21,6 +35,7 @@ class IndustryPartner(BaseModel):
     revenue_share: Optional[float] = None
     contact_info: Dict[str, Any] = {}
     metadata: Dict[str, Any] = {}
+    ipi_numbers: List[str] = []  # Associated IPI numbers
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
