@@ -1992,6 +1992,236 @@ async def logout_user(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")
 
+# Business Identifiers and Product Code Management Endpoints
+@api_router.get("/business/identifiers")
+async def get_business_identifiers(current_user: User = Depends(get_current_user)):
+    """Get business identifiers and global location information"""
+    try:
+        business_info = {
+            "business_legal_name": BUSINESS_LEGAL_NAME,
+            "business_ein": BUSINESS_EIN,
+            "business_tin": BUSINESS_TIN,
+            "business_address": BUSINESS_ADDRESS,
+            "business_phone": BUSINESS_PHONE,
+            "business_naics_code": BUSINESS_NAICS_CODE,
+            "upc_company_prefix": UPC_COMPANY_PREFIX,
+            "global_location_number": GLOBAL_LOCATION_NUMBER,
+            "naics_description": "Sound Recording Industries"
+        }
+        
+        return business_info
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve business identifiers: {str(e)}")
+
+@api_router.get("/business/upc/generate/{product_code}")
+async def generate_upc_code(
+    product_code: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate full UPC code from product code"""
+    try:
+        if len(product_code) != 5:
+            raise HTTPException(status_code=400, detail="Product code must be exactly 5 digits")
+        
+        if not product_code.isdigit():
+            raise HTTPException(status_code=400, detail="Product code must contain only digits")
+        
+        # Combine company prefix + product code
+        partial_upc = UPC_COMPANY_PREFIX + product_code
+        
+        # Calculate check digit using UPC algorithm
+        def calculate_upc_check_digit(upc_without_check):
+            odd_sum = sum(int(upc_without_check[i]) for i in range(0, len(upc_without_check), 2))
+            even_sum = sum(int(upc_without_check[i]) for i in range(1, len(upc_without_check), 2))
+            total = (odd_sum * 3) + even_sum
+            check_digit = (10 - (total % 10)) % 10
+            return str(check_digit)
+        
+        check_digit = calculate_upc_check_digit(partial_upc)
+        full_upc = partial_upc + check_digit
+        
+        return {
+            "upc_company_prefix": UPC_COMPANY_PREFIX,
+            "product_code": product_code,
+            "check_digit": check_digit,
+            "full_upc_code": full_upc,
+            "gtin": full_upc,  # For products, GTIN-12 is the same as UPC
+            "barcode_format": "UPC-A"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate UPC code: {str(e)}")
+
+@api_router.post("/business/products")
+async def create_product_identifier(
+    product_data: ProductIdentifier,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new product with UPC identifier"""
+    try:
+        # Store product in database
+        product_dict = product_data.dict()
+        await db.product_identifiers.insert_one(product_dict)
+        
+        # Log activity
+        await log_activity(
+            current_user.id, 
+            "product_created", 
+            "product", 
+            product_data.id, 
+            {"product_name": product_data.product_name, "upc": product_data.upc_full_code}, 
+            None
+        )
+        
+        return {
+            "success": True,
+            "message": "Product identifier created successfully",
+            "product": product_data
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create product identifier: {str(e)}")
+
+@api_router.get("/business/products")
+async def get_product_identifiers(
+    page: int = 1,
+    limit: int = 20,
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all product identifiers with pagination and filtering"""
+    try:
+        skip = (page - 1) * limit
+        
+        # Build query
+        query = {}
+        if search:
+            query["$or"] = [
+                {"product_name": {"$regex": search, "$options": "i"}},
+                {"artist_name": {"$regex": search, "$options": "i"}},
+                {"album_title": {"$regex": search, "$options": "i"}},
+                {"track_title": {"$regex": search, "$options": "i"}},
+                {"upc_full_code": {"$regex": search, "$options": "i"}}
+            ]
+        
+        if category:
+            query["product_category"] = category
+        
+        products_cursor = db.product_identifiers.find(query).sort("created_at", -1).skip(skip).limit(limit)
+        products = await products_cursor.to_list(None)
+        
+        total_count = await db.product_identifiers.count_documents(query)
+        
+        return {
+            "products": products,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total_count,
+                "pages": (total_count + limit - 1) // limit
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve product identifiers: {str(e)}")
+
+@api_router.get("/business/products/{product_id}")
+async def get_product_identifier(
+    product_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific product identifier"""
+    try:
+        product = await db.product_identifiers.find_one({"id": product_id})
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        return product
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve product identifier: {str(e)}")
+
+@api_router.delete("/business/products/{product_id}")
+async def delete_product_identifier(
+    product_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a product identifier"""
+    try:
+        product = await db.product_identifiers.find_one({"id": product_id})
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        result = await db.product_identifiers.delete_one({"id": product_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Log activity
+        await log_activity(
+            current_user.id, 
+            "product_deleted", 
+            "product", 
+            product_id, 
+            {"product_name": product.get("product_name"), "upc": product.get("upc_full_code")}, 
+            None
+        )
+        
+        return {"message": "Product identifier deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete product identifier: {str(e)}")
+
+# Admin-only business management endpoints
+@api_router.get("/admin/business/overview")
+async def get_business_overview(admin_user: User = Depends(get_current_admin_user)):
+    """Get comprehensive business overview including all identifiers"""
+    try:
+        # Get product counts by category
+        pipeline = [
+            {"$group": {"_id": "$product_category", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        product_stats_cursor = db.product_identifiers.aggregate(pipeline)
+        product_stats = await product_stats_cursor.to_list(None)
+        
+        total_products = await db.product_identifiers.count_documents({})
+        
+        business_overview = {
+            "business_identifiers": {
+                "legal_name": BUSINESS_LEGAL_NAME,
+                "ein": BUSINESS_EIN,
+                "tin": BUSINESS_TIN,
+                "address": BUSINESS_ADDRESS,
+                "phone": BUSINESS_PHONE,
+                "naics_code": BUSINESS_NAICS_CODE,
+                "naics_description": "Sound Recording Industries"
+            },
+            "global_identifiers": {
+                "upc_company_prefix": UPC_COMPANY_PREFIX,
+                "global_location_number": GLOBAL_LOCATION_NUMBER,
+                "available_upc_range": f"{UPC_COMPANY_PREFIX}00000 - {UPC_COMPANY_PREFIX}99999"
+            },
+            "product_statistics": {
+                "total_products": total_products,
+                "products_by_category": {stat["_id"]: stat["count"] for stat in product_stats},
+                "upc_utilization": f"{total_products}/100000 ({(total_products/100000)*100:.2f}%)"
+            }
+        }
+        
+        return business_overview
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve business overview: {str(e)}")
+
 # Helper function for sending password reset emails
 async def send_password_reset_email(email: str, reset_token: str):
     """Send password reset email to user"""
