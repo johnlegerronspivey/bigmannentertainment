@@ -3791,6 +3791,7 @@ function App() {
             <Route path="/industry/distribute" element={<ProtectedRoute><GlobalDistribution /></ProtectedRoute>} />
             <Route path="/industry/coverage" element={<ProtectedRoute><IndustryCoverage /></ProtectedRoute>} />
             <Route path="/industry/ipi" element={<ProtectedRoute><IPIManagement /></ProtectedRoute>} />
+            <Route path="/industry/identifiers" element={<ProtectedRoute><IndustryIdentifiersManagement /></ProtectedRoute>} />
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/blockchain" element={<Blockchain />} />
