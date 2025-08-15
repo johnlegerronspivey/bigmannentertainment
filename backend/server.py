@@ -2492,6 +2492,16 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading Sponsorship router: {e}")
 
+# Include Tax Management router
+try:
+    from tax_endpoints import tax_router
+    app.include_router(tax_router)
+    print("✅ Tax Management router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ Tax Management router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading Tax Management router: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
