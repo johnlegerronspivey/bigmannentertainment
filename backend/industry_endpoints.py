@@ -6,17 +6,24 @@ from datetime import datetime
 import jwt
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+from pathlib import Path
 
 from industry_service import IndustryIntegrationService
 from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IndustryIdentifier
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/industry", tags=["Industry Integration"])
 
 # Database connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+db_name = os.environ.get('DB_NAME', 'big_mann_entertainment')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[db_name]
 
 # Authentication setup
 SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
