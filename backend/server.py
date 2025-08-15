@@ -245,6 +245,10 @@ class ProductIdentifier(BaseModel):
     release_date: Optional[datetime] = None
     duration_seconds: Optional[int] = None  # Track duration for audio recordings
     record_label: Optional[str] = None
+    publisher_name: Optional[str] = None  # Music publisher name
+    publisher_number: Optional[str] = None  # Publisher identification number
+    songwriter_credits: Optional[str] = None  # Songwriter/composer credits
+    publishing_rights: Optional[str] = None  # Publishing rights information
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
