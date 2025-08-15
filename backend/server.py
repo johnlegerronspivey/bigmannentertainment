@@ -236,11 +236,14 @@ class ProductIdentifier(BaseModel):
     product_name: str
     upc_full_code: str  # UPC Company Prefix + Product Code + Check Digit
     gtin: str  # Global Trade Item Number
+    isrc_code: Optional[str] = None  # International Standard Recording Code
     product_category: str
     artist_name: Optional[str] = None
     album_title: Optional[str] = None
     track_title: Optional[str] = None
     release_date: Optional[datetime] = None
+    duration_seconds: Optional[int] = None  # Track duration for audio recordings
+    record_label: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
