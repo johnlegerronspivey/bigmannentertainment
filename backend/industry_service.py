@@ -35,6 +35,9 @@ class IndustryIntegrationService:
             # Clear existing partners
             await self.db.industry_partners.delete_many({})
             
+            # Initialize IPI numbers first
+            await self.initialize_ipi_numbers()
+            
             total_partners = 0
             
             # Add streaming platforms
@@ -108,6 +111,27 @@ class IndustryIntegrationService:
             
         except Exception as e:
             logger.error(f"Error initializing industry partners: {str(e)}")
+            raise
+    
+    async def initialize_ipi_numbers(self):
+        """Initialize IPI numbers for Big Mann Entertainment"""
+        try:
+            # Clear existing IPI numbers
+            await self.db.ipi_numbers.delete_many({})
+            
+            total_ipi = 0
+            
+            # Add Big Mann Entertainment IPI numbers
+            for ipi_data in BIG_MANN_IPI_NUMBERS:
+                ipi = IPINumber(**ipi_data)
+                await self.db.ipi_numbers.insert_one(ipi.dict())
+                total_ipi += 1
+            
+            logger.info(f"Initialized {total_ipi} IPI numbers")
+            return total_ipi
+            
+        except Exception as e:
+            logger.error(f"Error initializing IPI numbers: {str(e)}")
             raise
     
     async def get_industry_partners(self, category: Optional[str] = None, tier: Optional[str] = None) -> List[Dict]:
