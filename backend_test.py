@@ -5401,6 +5401,28 @@ class BackendTester:
         print("\nTesting Publisher Authentication...")
         self.test_publisher_authentication_requirements()
         
+        # NEW: IPI Numbers Integration Tests
+        print("\n🎭 TESTING IPI NUMBERS INTEGRATION FOR BIG MANN ENTERTAINMENT")
+        print("-" * 70)
+        
+        print("\nTesting IPI Database Initialization...")
+        self.test_ipi_database_initialization()
+        
+        print("\nTesting IPI Number Retrieval...")
+        self.test_ipi_number_retrieval()
+        
+        print("\nTesting IPI Filtering...")
+        self.test_ipi_filtering()
+        
+        print("\nTesting IPI Details...")
+        self.test_ipi_details()
+        
+        print("\nTesting IPI Dashboard...")
+        self.test_ipi_dashboard()
+        
+        print("\nTesting IPI Authentication...")
+        self.test_ipi_authentication()
+        
         # Print Summary
         self.print_summary()
     
