@@ -303,3 +303,42 @@ INDUSTRY_PARTNERS = {
         ]
     }
 }
+
+# Big Mann Entertainment IPI Numbers
+BIG_MANN_IPI_NUMBERS = [
+    {
+        "ipi_number": "813048171",
+        "entity_name": "Big Mann Entertainment",
+        "entity_type": "company",
+        "role": "publisher",
+        "territory": "US",
+        "status": "active",
+        "contact_info": {
+            "address": "1314 Lincoln Heights Street, Alexander City, AL 35010",
+            "phone": "334-669-8638",
+            "email": "info@bigmannentertainment.com"
+        },
+        "metadata": {
+            "registered_date": "2024-01-01",
+            "business_type": "Sound Recording Industries",
+            "naics_code": "512200"
+        }
+    },
+    {
+        "ipi_number": "578413032",
+        "entity_name": "John LeGerron Spivey",
+        "entity_type": "individual",
+        "role": "songwriter",
+        "territory": "US",
+        "status": "active",
+        "contact_info": {
+            "address": "1314 Lincoln Heights Street, Alexander City, AL 35010",
+            "phone": "334-669-8638"
+        },
+        "metadata": {
+            "registered_date": "2024-01-01",
+            "performing_rights_org": "ASCAP",
+            "primary_instrument": "vocals"
+        }
+    }
+]
