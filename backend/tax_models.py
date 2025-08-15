@@ -168,12 +168,12 @@ class BusinessTaxInfo(BaseModel):
     license_expiration: Optional[date] = None
     
     # Primary Business Address
-    address_line1: str = "Digital Media Distribution Empire"
+    address_line1: str = "1314 Lincoln Heights Street"
     address_line2: Optional[str] = None
-    city: str = "Los Angeles"
-    state: str = "CA"
-    zip_code: str = "90210"
-    county: Optional[str] = "Los Angeles County"
+    city: str = "Alexander City"
+    state: str = "AL"
+    zip_code: str = "35010"
+    county: Optional[str] = "Tallapoosa County"
     country: str = "United States"
     
     # Mailing Address (if different)
