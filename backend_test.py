@@ -5123,6 +5123,543 @@ class BackendTester:
         self.test_compliance_dashboard()
         self.test_compliance_scoring_algorithm()
 
+    # ===== BUSINESS IDENTIFIERS AND PRODUCT CODE MANAGEMENT TESTS =====
+    
+    def test_business_identifiers_endpoint(self) -> bool:
+        """Test /api/business/identifiers endpoint to verify business information"""
+        try:
+            if not self.auth_token:
+                self.log_result("business_identifiers", "Business Identifiers Endpoint", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/business/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify expected business identifiers
+                expected_values = {
+                    'business_legal_name': 'Big Mann Entertainment LLC',
+                    'business_ein': '270658077',
+                    'business_tin': '270658077',
+                    'business_address': '1314 Lincoln Heights Street, Alexander City, Alabama 35010',
+                    'business_phone': '334-669-8638',
+                    'business_naics_code': '512200',
+                    'upc_company_prefix': '8600043402',
+                    'global_location_number': '0860004340201',
+                    'naics_description': 'Sound Recording Industries'
+                }
+                
+                # Check all expected values
+                missing_fields = []
+                incorrect_values = []
+                
+                for field, expected_value in expected_values.items():
+                    if field not in data:
+                        missing_fields.append(field)
+                    elif data[field] != expected_value:
+                        incorrect_values.append(f"{field}: expected '{expected_value}', got '{data[field]}'")
+                
+                if not missing_fields and not incorrect_values:
+                    self.log_result("business_identifiers", "Business Identifiers Endpoint", True, 
+                                  f"All business identifiers correct - EIN: {data['business_ein']}, UPC Prefix: {data['upc_company_prefix']}, GLN: {data['global_location_number']}")
+                    return True
+                else:
+                    error_msg = ""
+                    if missing_fields:
+                        error_msg += f"Missing fields: {missing_fields}. "
+                    if incorrect_values:
+                        error_msg += f"Incorrect values: {incorrect_values}"
+                    
+                    self.log_result("business_identifiers", "Business Identifiers Endpoint", False, error_msg)
+                    return False
+            else:
+                self.log_result("business_identifiers", "Business Identifiers Endpoint", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("business_identifiers", "Business Identifiers Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_upc_generation_valid_codes(self) -> bool:
+        """Test UPC code generation with valid 5-digit product codes"""
+        try:
+            if not self.auth_token:
+                self.log_result("upc_generation", "UPC Generation Valid Codes", False, "No auth token available")
+                return False
+            
+            # Test multiple valid product codes
+            test_codes = ['00001', '12345', '99999', '00123', '54321']
+            successful_generations = 0
+            
+            for product_code in test_codes:
+                response = self.make_request('GET', f'/business/upc/generate/{product_code}')
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Verify response structure
+                    required_fields = ['upc_company_prefix', 'product_code', 'check_digit', 'full_upc_code', 'gtin', 'barcode_format']
+                    if all(field in data for field in required_fields):
+                        # Verify values
+                        if (data['upc_company_prefix'] == '8600043402' and 
+                            data['product_code'] == product_code and
+                            len(data['full_upc_code']) == 12 and
+                            data['full_upc_code'].startswith('8600043402') and
+                            data['barcode_format'] == 'UPC-A'):
+                            
+                            # Verify check digit calculation
+                            partial_upc = '8600043402' + product_code
+                            odd_sum = sum(int(partial_upc[i]) for i in range(0, len(partial_upc), 2))
+                            even_sum = sum(int(partial_upc[i]) for i in range(1, len(partial_upc), 2))
+                            total = (odd_sum * 3) + even_sum
+                            expected_check_digit = str((10 - (total % 10)) % 10)
+                            
+                            if data['check_digit'] == expected_check_digit:
+                                successful_generations += 1
+                            else:
+                                self.log_result("upc_generation", "UPC Generation Valid Codes", False, 
+                                              f"Incorrect check digit for {product_code}: expected {expected_check_digit}, got {data['check_digit']}")
+                                return False
+                        else:
+                            self.log_result("upc_generation", "UPC Generation Valid Codes", False, 
+                                          f"Invalid UPC structure for {product_code}")
+                            return False
+                    else:
+                        self.log_result("upc_generation", "UPC Generation Valid Codes", False, 
+                                      f"Missing required fields for {product_code}")
+                        return False
+                else:
+                    self.log_result("upc_generation", "UPC Generation Valid Codes", False, 
+                                  f"Failed to generate UPC for {product_code}: {response.status_code}")
+                    return False
+            
+            if successful_generations == len(test_codes):
+                self.log_result("upc_generation", "UPC Generation Valid Codes", True, 
+                              f"Successfully generated UPC codes for all {len(test_codes)} test product codes with correct check digits")
+                return True
+            else:
+                self.log_result("upc_generation", "UPC Generation Valid Codes", False, 
+                              f"Only {successful_generations}/{len(test_codes)} codes generated successfully")
+                return False
+                
+        except Exception as e:
+            self.log_result("upc_generation", "UPC Generation Valid Codes", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_upc_generation_invalid_codes(self) -> bool:
+        """Test UPC code generation with invalid product codes"""
+        try:
+            if not self.auth_token:
+                self.log_result("upc_generation", "UPC Generation Invalid Codes", False, "No auth token available")
+                return False
+            
+            # Test invalid product codes
+            invalid_codes = [
+                ('1234', 'Too short (4 digits)'),
+                ('123456', 'Too long (6 digits)'),
+                ('abcde', 'Non-numeric'),
+                ('1234a', 'Mixed alphanumeric'),
+                ('12 34', 'Contains space'),
+                ('', 'Empty string')
+            ]
+            
+            successful_rejections = 0
+            
+            for invalid_code, description in invalid_codes:
+                response = self.make_request('GET', f'/business/upc/generate/{invalid_code}')
+                
+                if response.status_code == 400:
+                    data = response.json()
+                    if 'detail' in data:
+                        # Check for appropriate error messages
+                        detail = data['detail'].lower()
+                        if ('5 digits' in detail or 'digits' in detail or 'numeric' in detail):
+                            successful_rejections += 1
+                        else:
+                            self.log_result("upc_generation", "UPC Generation Invalid Codes", False, 
+                                          f"Unexpected error message for {invalid_code}: {data['detail']}")
+                            return False
+                    else:
+                        self.log_result("upc_generation", "UPC Generation Invalid Codes", False, 
+                                      f"Missing error detail for {invalid_code}")
+                        return False
+                else:
+                    self.log_result("upc_generation", "UPC Generation Invalid Codes", False, 
+                                  f"Should have rejected {invalid_code} ({description}), got status: {response.status_code}")
+                    return False
+            
+            if successful_rejections == len(invalid_codes):
+                self.log_result("upc_generation", "UPC Generation Invalid Codes", True, 
+                              f"Correctly rejected all {len(invalid_codes)} invalid product codes with appropriate error messages")
+                return True
+            else:
+                self.log_result("upc_generation", "UPC Generation Invalid Codes", False, 
+                              f"Only {successful_rejections}/{len(invalid_codes)} invalid codes rejected properly")
+                return False
+                
+        except Exception as e:
+            self.log_result("upc_generation", "UPC Generation Invalid Codes", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_product_creation(self) -> bool:
+        """Test creating products with UPC codes"""
+        try:
+            if not self.auth_token:
+                self.log_result("product_management", "Product Creation", False, "No auth token available")
+                return False
+            
+            # Create test products
+            test_products = [
+                {
+                    "product_name": "Big Mann Entertainment - Digital Single",
+                    "upc_full_code": "860004340200017",  # Generated with product code 00001
+                    "gtin": "860004340200017",
+                    "product_category": "music",
+                    "artist_name": "John LeGerron Spivey",
+                    "track_title": "Digital Dreams",
+                    "release_date": "2025-01-15T00:00:00Z"
+                },
+                {
+                    "product_name": "Big Mann Entertainment - Album Collection",
+                    "upc_full_code": "860004340212349",  # Generated with product code 12345
+                    "gtin": "860004340212349",
+                    "product_category": "music",
+                    "artist_name": "Big Mann Entertainment",
+                    "album_title": "The Complete Collection",
+                    "release_date": "2025-02-01T00:00:00Z"
+                }
+            ]
+            
+            created_products = []
+            
+            for product_data in test_products:
+                response = self.make_request('POST', '/business/products', json=product_data)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if 'success' in result and result['success'] and 'product' in result:
+                        product = result['product']
+                        if 'id' in product and product['product_name'] == product_data['product_name']:
+                            created_products.append(product['id'])
+                        else:
+                            self.log_result("product_management", "Product Creation", False, 
+                                          f"Invalid product structure for {product_data['product_name']}")
+                            return False
+                    else:
+                        self.log_result("product_management", "Product Creation", False, 
+                                      f"Invalid response structure for {product_data['product_name']}")
+                        return False
+                else:
+                    self.log_result("product_management", "Product Creation", False, 
+                                  f"Failed to create {product_data['product_name']}: {response.status_code}")
+                    return False
+            
+            if len(created_products) == len(test_products):
+                # Store first product ID for later tests
+                self.test_product_id = created_products[0]
+                self.log_result("product_management", "Product Creation", True, 
+                              f"Successfully created {len(created_products)} products with UPC codes")
+                return True
+            else:
+                self.log_result("product_management", "Product Creation", False, 
+                              f"Only {len(created_products)}/{len(test_products)} products created successfully")
+                return False
+                
+        except Exception as e:
+            self.log_result("product_management", "Product Creation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_product_listing_and_filtering(self) -> bool:
+        """Test product listing with pagination and filtering"""
+        try:
+            if not self.auth_token:
+                self.log_result("product_management", "Product Listing and Filtering", False, "No auth token available")
+                return False
+            
+            # Test basic product listing
+            response = self.make_request('GET', '/business/products?page=1&limit=10')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'products' in data and 'pagination' in data:
+                    products = data['products']
+                    pagination = data['pagination']
+                    
+                    # Verify pagination structure
+                    pagination_fields = ['page', 'limit', 'total', 'pages']
+                    if all(field in pagination for field in pagination_fields):
+                        # Test search functionality
+                        search_response = self.make_request('GET', '/business/products?search=Big Mann&limit=5')
+                        
+                        if search_response.status_code == 200:
+                            search_data = search_response.json()
+                            search_products = search_data.get('products', [])
+                            
+                            # Verify search results contain the search term
+                            search_matches = 0
+                            for product in search_products:
+                                if ('Big Mann' in product.get('product_name', '') or 
+                                    'Big Mann' in product.get('artist_name', '') or
+                                    'Big Mann' in product.get('album_title', '')):
+                                    search_matches += 1
+                            
+                            # Test category filtering
+                            category_response = self.make_request('GET', '/business/products?category=music&limit=5')
+                            
+                            if category_response.status_code == 200:
+                                category_data = category_response.json()
+                                category_products = category_data.get('products', [])
+                                
+                                # Verify all products are music category
+                                music_products = [p for p in category_products if p.get('product_category') == 'music']
+                                
+                                if len(music_products) == len(category_products):
+                                    self.log_result("product_management", "Product Listing and Filtering", True, 
+                                                  f"Product listing working - Total: {pagination['total']}, Search matches: {search_matches}, Music products: {len(music_products)}")
+                                    return True
+                                else:
+                                    self.log_result("product_management", "Product Listing and Filtering", False, 
+                                                  "Category filtering not working correctly")
+                                    return False
+                            else:
+                                self.log_result("product_management", "Product Listing and Filtering", False, 
+                                              f"Category filter failed: {category_response.status_code}")
+                                return False
+                        else:
+                            self.log_result("product_management", "Product Listing and Filtering", False, 
+                                          f"Search failed: {search_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("product_management", "Product Listing and Filtering", False, 
+                                      "Missing pagination fields")
+                        return False
+                else:
+                    self.log_result("product_management", "Product Listing and Filtering", False, 
+                                  "Missing products or pagination in response")
+                    return False
+            else:
+                self.log_result("product_management", "Product Listing and Filtering", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("product_management", "Product Listing and Filtering", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_product_details_retrieval(self) -> bool:
+        """Test retrieving specific product details"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_product_id'):
+                self.log_result("product_management", "Product Details Retrieval", False, "No auth token or product ID")
+                return False
+            
+            response = self.make_request('GET', f'/business/products/{self.test_product_id}')
+            
+            if response.status_code == 200:
+                product = response.json()
+                
+                # Verify product structure
+                required_fields = ['id', 'product_name', 'upc_full_code', 'gtin', 'product_category', 'created_at']
+                if all(field in product for field in required_fields):
+                    # Verify UPC code format
+                    upc_code = product['upc_full_code']
+                    if len(upc_code) == 12 and upc_code.startswith('8600043402'):
+                        self.log_result("product_management", "Product Details Retrieval", True, 
+                                      f"Retrieved product details - Name: {product['product_name']}, UPC: {upc_code}")
+                        return True
+                    else:
+                        self.log_result("product_management", "Product Details Retrieval", False, 
+                                      f"Invalid UPC code format: {upc_code}")
+                        return False
+                else:
+                    self.log_result("product_management", "Product Details Retrieval", False, 
+                                  "Missing required product fields")
+                    return False
+            elif response.status_code == 404:
+                self.log_result("product_management", "Product Details Retrieval", False, 
+                              "Product not found - may have been deleted in previous tests")
+                return False
+            else:
+                self.log_result("product_management", "Product Details Retrieval", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("product_management", "Product Details Retrieval", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_product_deletion(self) -> bool:
+        """Test deleting products"""
+        try:
+            if not self.auth_token or not hasattr(self, 'test_product_id'):
+                self.log_result("product_management", "Product Deletion", False, "No auth token or product ID")
+                return False
+            
+            # First verify product exists
+            check_response = self.make_request('GET', f'/business/products/{self.test_product_id}')
+            
+            if check_response.status_code == 200:
+                # Delete the product
+                response = self.make_request('DELETE', f'/business/products/{self.test_product_id}')
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if 'message' in result and 'deleted' in result['message'].lower():
+                        # Verify product is actually deleted
+                        verify_response = self.make_request('GET', f'/business/products/{self.test_product_id}')
+                        
+                        if verify_response.status_code == 404:
+                            self.log_result("product_management", "Product Deletion", True, 
+                                          f"Successfully deleted product {self.test_product_id}")
+                            return True
+                        else:
+                            self.log_result("product_management", "Product Deletion", False, 
+                                          "Product still exists after deletion")
+                            return False
+                    else:
+                        self.log_result("product_management", "Product Deletion", False, 
+                                      "Invalid deletion response message")
+                        return False
+                else:
+                    self.log_result("product_management", "Product Deletion", False, 
+                                  f"Deletion failed: {response.status_code}")
+                    return False
+            elif check_response.status_code == 404:
+                self.log_result("product_management", "Product Deletion", True, 
+                              "Product already deleted (acceptable)")
+                return True
+            else:
+                self.log_result("product_management", "Product Deletion", False, 
+                              f"Cannot verify product exists: {check_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("product_management", "Product Deletion", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_admin_business_overview(self) -> bool:
+        """Test admin business overview endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("admin_business_overview", "Admin Business Overview", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/admin/business/overview')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify response structure
+                required_sections = ['business_identifiers', 'global_identifiers', 'product_statistics']
+                if all(section in data for section in required_sections):
+                    business_ids = data['business_identifiers']
+                    global_ids = data['global_identifiers']
+                    product_stats = data['product_statistics']
+                    
+                    # Verify business identifiers
+                    business_fields = ['legal_name', 'ein', 'tin', 'address', 'phone', 'naics_code', 'naics_description']
+                    if all(field in business_ids for field in business_fields):
+                        # Verify expected values
+                        if (business_ids['ein'] == '270658077' and 
+                            business_ids['legal_name'] == 'Big Mann Entertainment LLC' and
+                            business_ids['naics_code'] == '512200'):
+                            
+                            # Verify global identifiers
+                            global_fields = ['upc_company_prefix', 'global_location_number', 'available_upc_range']
+                            if all(field in global_ids for field in global_fields):
+                                if (global_ids['upc_company_prefix'] == '8600043402' and
+                                    global_ids['global_location_number'] == '0860004340201'):
+                                    
+                                    # Verify product statistics
+                                    stats_fields = ['total_products', 'products_by_category', 'upc_utilization']
+                                    if all(field in product_stats for field in stats_fields):
+                                        total_products = product_stats['total_products']
+                                        utilization = product_stats['upc_utilization']
+                                        
+                                        self.log_result("admin_business_overview", "Admin Business Overview", True, 
+                                                      f"Complete business overview - EIN: {business_ids['ein']}, UPC Prefix: {global_ids['upc_company_prefix']}, "
+                                                      f"GLN: {global_ids['global_location_number']}, Products: {total_products}, Utilization: {utilization}")
+                                        return True
+                                    else:
+                                        self.log_result("admin_business_overview", "Admin Business Overview", False, 
+                                                      "Missing product statistics fields")
+                                        return False
+                                else:
+                                    self.log_result("admin_business_overview", "Admin Business Overview", False, 
+                                                  "Incorrect global identifier values")
+                                    return False
+                            else:
+                                self.log_result("admin_business_overview", "Admin Business Overview", False, 
+                                              "Missing global identifier fields")
+                                return False
+                        else:
+                            self.log_result("admin_business_overview", "Admin Business Overview", False, 
+                                          "Incorrect business identifier values")
+                            return False
+                    else:
+                        self.log_result("admin_business_overview", "Admin Business Overview", False, 
+                                      "Missing business identifier fields")
+                        return False
+                else:
+                    self.log_result("admin_business_overview", "Admin Business Overview", False, 
+                                  f"Missing required sections: {[s for s in required_sections if s not in data]}")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("admin_business_overview", "Admin Business Overview", True, 
+                              "Admin access required (expected for non-admin users)")
+                return True
+            else:
+                self.log_result("admin_business_overview", "Admin Business Overview", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("admin_business_overview", "Admin Business Overview", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_authentication_requirements(self) -> bool:
+        """Test that all business endpoints require proper authentication"""
+        try:
+            # Test without authentication
+            temp_token = self.auth_token
+            self.auth_token = None
+            
+            endpoints_to_test = [
+                '/business/identifiers',
+                '/business/upc/generate/12345',
+                '/business/products',
+                '/admin/business/overview'
+            ]
+            
+            unauthorized_responses = 0
+            
+            for endpoint in endpoints_to_test:
+                response = self.make_request('GET', endpoint)
+                if response.status_code == 401:
+                    unauthorized_responses += 1
+            
+            # Restore token
+            self.auth_token = temp_token
+            
+            if unauthorized_responses == len(endpoints_to_test):
+                self.log_result("business_identifiers", "Authentication Requirements", True, 
+                              f"All {len(endpoints_to_test)} business endpoints properly require authentication")
+                return True
+            else:
+                self.log_result("business_identifiers", "Authentication Requirements", False, 
+                              f"Only {unauthorized_responses}/{len(endpoints_to_test)} endpoints require authentication")
+                return False
+                
+        except Exception as e:
+            # Restore token in case of exception
+            if 'temp_token' in locals():
+                self.auth_token = temp_token
+            self.log_result("business_identifiers", "Authentication Requirements", False, f"Exception: {str(e)}")
+            return False
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
