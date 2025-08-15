@@ -203,8 +203,8 @@ class BusinessTaxInfo(BaseModel):
     contact_email: Optional[str] = None
     
     # Business Operations
-    business_description: str = "Digital media distribution and entertainment services"
-    primary_business_activity: str = "Media Distribution Platform"
+    business_description: str = "Digital media distribution and sound recording services"
+    primary_business_activity: str = "Sound Recording and Media Distribution Platform"
     date_business_started: Optional[date] = None
     fiscal_year_end: str = "December 31"
     
