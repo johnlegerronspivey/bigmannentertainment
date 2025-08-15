@@ -573,16 +573,16 @@ export const BusinessTaxInfo = () => {
     tin: '270658077',
     business_license_number: '',
     license_type: 'Entertainment/Media Production',
-    license_state: 'CA',
+    license_state: 'AL',
     license_expiration: '',
     
     // Primary Business Address
-    address_line1: 'Digital Media Distribution Empire',
+    address_line1: '1314 Lincoln Heights Street',
     address_line2: '',
-    city: 'Los Angeles',
-    state: 'CA',
-    zip_code: '90210',
-    county: 'Los Angeles County',
+    city: 'Alexander City',
+    state: 'AL',
+    zip_code: '35010',
+    county: 'Tallapoosa County',
     country: 'United States',
     
     // Mailing Address
