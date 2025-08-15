@@ -478,6 +478,12 @@ const Header = () => {
                   <div className="text-sm font-medium">{user.full_name}</div>
                   {isAdmin() && <div className="text-xs text-purple-300">Administrator</div>}
                 </div>
+                <Link
+                  to="/profile"
+                  className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors"
+                >
+                  Profile
+                </Link>
                 <button
                   onClick={logout}
                   className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
