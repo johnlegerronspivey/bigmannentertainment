@@ -634,29 +634,29 @@ export const IndustryCoverage = () => {
   );
 };
 
-// IPI Numbers Management Component
-export const IPIManagement = () => {
-  const [ipiNumbers, setIpiNumbers] = useState([]);
+// Industry Identifiers Management Component (IPI, ISNI, AARC)
+export const IndustryIdentifiersManagement = () => {
+  const [identifiers, setIdentifiers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedEntityType, setSelectedEntityType] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedIdentifierType, setSelectedIdentifierType] = useState('');
 
   useEffect(() => {
-    fetchIPINumbers();
-  }, [selectedEntityType, selectedRole]);
+    fetchIndustryIdentifiers();
+  }, [selectedEntityType, selectedIdentifierType]);
 
-  const fetchIPINumbers = async () => {
+  const fetchIndustryIdentifiers = async () => {
     try {
       const params = new URLSearchParams();
       if (selectedEntityType) params.append('entity_type', selectedEntityType);
-      if (selectedRole) params.append('role', selectedRole);
+      if (selectedIdentifierType) params.append('identifier_type', selectedIdentifierType);
 
-      const response = await axios.get(`${API}/industry/ipi?${params}`);
-      setIpiNumbers(response.data.ipi_numbers);
+      const response = await axios.get(`${API}/industry/identifiers?${params}`);
+      setIdentifiers(response.data.identifiers);
     } catch (error) {
-      setError('Failed to load IPI numbers');
-      console.error('Error fetching IPI numbers:', error);
+      setError('Failed to load industry identifiers');
+      console.error('Error fetching industry identifiers:', error);
     } finally {
       setLoading(false);
     }
@@ -669,66 +669,127 @@ export const IPIManagement = () => {
     { value: 'organization', label: 'Organization' }
   ];
 
-  const roles = [
-    { value: 'songwriter', label: 'Songwriter' },
-    { value: 'composer', label: 'Composer' },
-    { value: 'lyricist', label: 'Lyricist' },
-    { value: 'publisher', label: 'Publisher' },
-    { value: 'performer', label: 'Performer' },
-    { value: 'producer', label: 'Producer' }
+  const identifierTypes = [
+    { value: 'ipi', label: 'IPI Numbers' },
+    { value: 'isni', label: 'ISNI Numbers' },
+    { value: 'aarc', label: 'AARC Numbers' }
   ];
 
   return (
     <div className="space-y-6">
-      {/* IPI Numbers Overview */}
+      {/* Industry Identifiers Overview */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-6">
         <div className="flex items-center">
           <div className="p-3 bg-white bg-opacity-20 rounded-full mr-4">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V4a2 2 0 114 0v2m-4 0a2 2 0 104 0m-2 5.586l-1.293-1.293a1 1 0 00-1.414 1.414L9 12.414l2.293-2.293a1 1 0 011.414 1.414L11.414 12l1.293 1.293a1 1 0 01-1.414 1.414L9 11.414z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
           <div>
-            <h2 className="text-2xl font-bold">IPI Numbers Management</h2>
-            <p className="text-purple-100">Interested Parties Information for Big Mann Entertainment</p>
+            <h2 className="text-2xl font-bold">Industry Identifiers Management</h2>
+            <p className="text-purple-100">IPI, ISNI, and AARC identifiers for Big Mann Entertainment</p>
           </div>
         </div>
       </div>
 
-      {/* Big Mann Entertainment IPI Cards */}
+      {/* Big Mann Entertainment Comprehensive Identifier Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white shadow rounded-lg p-6 border-l-4 border-purple-500">
-          <div className="flex items-center justify-between">
+        {/* Big Mann Entertainment Company Card */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-purple-500">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Big Mann Entertainment</h3>
-              <p className="text-sm text-gray-600">Company Publisher</p>
+              <p className="text-sm text-gray-600">Company - Record Label & Publisher</p>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-purple-600">813048171</div>
-              <div className="text-xs text-gray-500">IPI Number</div>
+            <div className="text-purple-600">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
             </div>
           </div>
+          
+          <div className="space-y-3">
+            {/* IPI Number */}
+            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-gray-700">IPI Number</div>
+                <div className="text-lg font-bold text-purple-600">813048171</div>
+              </div>
+              <div className="text-xs text-gray-500">Publisher Rights</div>
+            </div>
+            
+            {/* AARC Number */}
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-gray-700">AARC Number</div>
+                <div className="text-lg font-bold text-blue-600">RC00002057</div>
+              </div>
+              <div className="text-xs text-gray-500">Record Company</div>
+            </div>
+            
+            {/* ISNI - Not Applicable */}
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-gray-700">ISNI Number</div>
+                <div className="text-sm text-gray-500">Not Applicable</div>
+              </div>
+              <div className="text-xs text-gray-400">Company Entity</div>
+            </div>
+          </div>
+          
           <div className="mt-4 text-sm text-gray-600">
             <div>📍 1314 Lincoln Heights Street, Alexander City, AL 35010</div>
             <div>📞 334-669-8638</div>
             <div>🏢 Sound Recording Industries (NAICS: 512200)</div>
           </div>
           <div className="mt-3">
-            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Active Publisher</span>
+            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Active Status</span>
           </div>
         </div>
 
-        <div className="bg-white shadow rounded-lg p-6 border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
+        {/* John LeGerron Spivey Individual Card */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-blue-500">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">John LeGerron Spivey</h3>
-              <p className="text-sm text-gray-600">Individual Songwriter</p>
+              <p className="text-sm text-gray-600">Individual - Songwriter & Artist</p>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">578413032</div>
-              <div className="text-xs text-gray-500">IPI Number</div>
+            <div className="text-blue-600">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </div>
           </div>
+          
+          <div className="space-y-3">
+            {/* IPI Number */}
+            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-gray-700">IPI Number</div>
+                <div className="text-lg font-bold text-green-600">578413032</div>
+              </div>
+              <div className="text-xs text-gray-500">Songwriter</div>
+            </div>
+            
+            {/* ISNI Number */}
+            <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-gray-700">ISNI Number</div>
+                <div className="text-lg font-bold text-indigo-600">0000000491551894</div>
+              </div>
+              <div className="text-xs text-gray-500">Name Identifier</div>
+            </div>
+            
+            {/* AARC Number */}
+            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-gray-700">AARC Number</div>
+                <div className="text-lg font-bold text-orange-600">FA02933539</div>
+              </div>
+              <div className="text-xs text-gray-500">Featured Artist</div>
+            </div>
+          </div>
+          
           <div className="mt-4 text-sm text-gray-600">
             <div>📍 1314 Lincoln Heights Street, Alexander City, AL 35010</div>
             <div>📞 334-669-8638</div>
@@ -743,8 +804,8 @@ export const IPIManagement = () => {
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Filter IPI Numbers</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Filter Industry Identifiers</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
             value={selectedEntityType}
             onChange={(e) => setSelectedEntityType(e.target.value)}
@@ -757,24 +818,31 @@ export const IPIManagement = () => {
           </select>
           
           <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
+            value={selectedIdentifierType}
+            onChange={(e) => setSelectedIdentifierType(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value="">All Roles</option>
-            {roles.map(role => (
-              <option key={role.value} value={role.value}>{role.label}</option>
+            <option value="">All Identifier Types</option>
+            {identifierTypes.map(type => (
+              <option key={type.value} value={type.value}>{type.label}</option>
             ))}
           </select>
 
           <button
             onClick={() => {
               setSelectedEntityType('');
-              setSelectedRole('');
+              setSelectedIdentifierType('');
             }}
             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
           >
             Clear Filters
+          </button>
+          
+          <button
+            onClick={fetchIndustryIdentifiers}
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+          >
+            Refresh Data
           </button>
         </div>
       </div>
@@ -785,14 +853,14 @@ export const IPIManagement = () => {
         </div>
       )}
 
-      {/* IPI Numbers List */}
+      {/* Industry Identifiers List */}
       {loading ? (
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
-      ) : ipiNumbers.length === 0 ? (
+      ) : identifiers.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No IPI numbers found with current filters</p>
+          <p className="text-gray-500">No industry identifiers found with current filters</p>
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -800,19 +868,19 @@ export const IPIManagement = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  IPI Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Entity
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                  IPI Number
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Territory
+                  ISNI Number
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  AARC Number
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -820,42 +888,53 @@ export const IPIManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {ipiNumbers.map((ipi) => (
-                <tr key={ipi.id} className="hover:bg-gray-50">
+              {identifiers.map((identifier) => (
+                <tr key={identifier.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-bold text-purple-600">{ipi.ipi_number}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{ipi.entity_name}</div>
-                    {ipi.contact_info?.phone && (
-                      <div className="text-xs text-gray-500">📞 {ipi.contact_info.phone}</div>
+                    <div className="text-sm font-medium text-gray-900">{identifier.entity_name}</div>
+                    {identifier.contact_info?.phone && (
+                      <div className="text-xs text-gray-500">📞 {identifier.contact_info.phone}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {ipi.entity_type}
+                      {identifier.entity_type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      ipi.role === 'publisher' ? 'bg-purple-100 text-purple-800' :
-                      ipi.role === 'songwriter' ? 'bg-green-100 text-green-800' :
-                      ipi.role === 'composer' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {ipi.role}
-                    </span>
+                    {identifier.ipi_number ? (
+                      <div>
+                        <div className="text-sm font-bold text-purple-600">{identifier.ipi_number}</div>
+                        <div className="text-xs text-gray-500">{identifier.ipi_role}</div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {ipi.territory}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {identifier.isni_number ? (
+                      <div className="text-sm font-bold text-indigo-600">{identifier.isni_number}</div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {identifier.aarc_number ? (
+                      <div>
+                        <div className="text-sm font-bold text-orange-600">{identifier.aarc_number}</div>
+                        <div className="text-xs text-gray-500">{identifier.aarc_type}</div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      ipi.status === 'active' ? 'bg-green-100 text-green-800' :
-                      ipi.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      identifier.status === 'active' ? 'bg-green-100 text-green-800' :
+                      identifier.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
-                      {ipi.status}
+                      {identifier.status}
                     </span>
                   </td>
                 </tr>
@@ -865,32 +944,64 @@ export const IPIManagement = () => {
         </div>
       )}
 
-      {/* IPI Information */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
-              About IPI Numbers
-            </h3>
-            <div className="mt-2 text-sm text-blue-700">
-              <p>
-                IPI (Interested Parties Information) numbers are unique identifiers assigned to writers, 
-                composers, publishers, and other parties involved in the creation of musical works. 
-                They help ensure proper attribution and royalty distribution in the music industry.
-              </p>
-              <div className="mt-2">
-                <strong>Big Mann Entertainment IPI Numbers:</strong>
-                <ul className="list-disc list-inside mt-1">
-                  <li>813048171 - Big Mann Entertainment (Publisher)</li>
-                  <li>578413032 - John LeGerron Spivey (Songwriter)</li>
-                </ul>
-              </div>
+      {/* Industry Identifiers Information */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* IPI Information */}
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <div className="flex items-center mb-3">
+            <div className="p-2 bg-purple-100 rounded-full mr-3">
+              <svg className="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
             </div>
+            <h3 className="text-sm font-medium text-purple-800">IPI Numbers</h3>
+          </div>
+          <div className="text-sm text-purple-700">
+            <p>Interested Parties Information numbers identify writers, composers, publishers, and other parties involved in musical works for proper royalty distribution.</p>
+            <div className="mt-2 font-medium">Big Mann Entertainment IPI Numbers:</div>
+            <ul className="list-disc list-inside mt-1 text-xs">
+              <li>813048171 - Big Mann Entertainment (Publisher)</li>
+              <li>578413032 - John LeGerron Spivey (Songwriter)</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* ISNI Information */}
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+          <div className="flex items-center mb-3">
+            <div className="p-2 bg-indigo-100 rounded-full mr-3">
+              <svg className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-medium text-indigo-800">ISNI Numbers</h3>
+          </div>
+          <div className="text-sm text-indigo-700">
+            <p>International Standard Name Identifier provides unique identification for contributors to creative works across multiple domains including music, literature, and film.</p>
+            <div className="mt-2 font-medium">John LeGerron Spivey ISNI:</div>
+            <ul className="list-disc list-inside mt-1 text-xs">
+              <li>0000000491551894 - Individual Creator Identifier</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* AARC Information */}
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+          <div className="flex items-center mb-3">
+            <div className="p-2 bg-orange-100 rounded-full mr-3">
+              <svg className="h-5 w-5 text-orange-600" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 className="text-sm font-medium text-orange-800">AARC Numbers</h3>
+          </div>
+          <div className="text-sm text-orange-700">
+            <p>Alliance of Artists and Recording Companies identifiers manage neighboring rights for performers and record companies in sound recordings.</p>
+            <div className="mt-2 font-medium">Big Mann Entertainment AARC:</div>
+            <ul className="list-disc list-inside mt-1 text-xs">
+              <li>RC00002057 - Big Mann Entertainment (Record Company)</li>
+              <li>FA02933539 - John LeGerron Spivey (Featured Artist)</li>
+            </ul>
           </div>
         </div>
       </div>
