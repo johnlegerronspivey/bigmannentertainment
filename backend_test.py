@@ -3894,6 +3894,460 @@ class BackendTester:
         # Print Summary
         self.print_summary()
     
+    # ===== TAX MANAGEMENT SYSTEM TESTS =====
+    
+    def test_get_business_tax_info(self) -> bool:
+        """Test getting business tax information with EIN 270658077"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_info", "Get Business Tax Info", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/business-info')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'business_info' in data:
+                    business_info = data['business_info']
+                    # Verify EIN integration
+                    if business_info.get('ein') == '270658077' and business_info.get('business_name') == 'Big Mann Entertainment':
+                        self.log_result("tax_business_info", "Get Business Tax Info", True, 
+                                      f"Retrieved business info with EIN {business_info.get('ein')} for {business_info.get('business_name')}")
+                        return True
+                    else:
+                        self.log_result("tax_business_info", "Get Business Tax Info", False, 
+                                      f"EIN mismatch: expected 270658077, got {business_info.get('ein')}")
+                        return False
+                else:
+                    self.log_result("tax_business_info", "Get Business Tax Info", False, "Missing business_info in response")
+                    return False
+            else:
+                self.log_result("tax_business_info", "Get Business Tax Info", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_info", "Get Business Tax Info", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_update_business_tax_info(self) -> bool:
+        """Test updating business tax information"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_business_info", "Update Business Tax Info", False, "No auth token available")
+                return False
+            
+            business_data = {
+                "business_name": "Big Mann Entertainment",
+                "ein": "270658077",
+                "address_line1": "Digital Media Distribution Empire",
+                "city": "Los Angeles",
+                "state": "CA",
+                "zip_code": "90210",
+                "country": "United States",
+                "business_type": "corporation",
+                "tax_classification": "c_corporation",
+                "contact_name": "John LeGerron Spivey",
+                "contact_title": "CEO",
+                "contact_email": "john@bigmannentertainment.com",
+                "default_backup_withholding": False,
+                "auto_generate_1099s": True
+            }
+            
+            response = self.make_request('PUT', '/tax/business-info', json=business_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'message' in data and data.get('ein') == '270658077':
+                    self.log_result("tax_business_info", "Update Business Tax Info", True, 
+                                  f"Successfully updated business info for EIN {data.get('ein')}")
+                    return True
+                else:
+                    self.log_result("tax_business_info", "Update Business Tax Info", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_business_info", "Update Business Tax Info", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_business_info", "Update Business Tax Info", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_record_tax_payment(self) -> bool:
+        """Test recording a tax payment with automatic calculations"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_payments", "Record Tax Payment", False, "No auth token available")
+                return False
+            
+            payment_data = {
+                "payee_id": "test-payee-001",
+                "payee_name": "Test Artist",
+                "payee_ein_ssn": "123-45-6789",
+                "payee_address": {
+                    "line1": "123 Artist Street",
+                    "city": "Nashville",
+                    "state": "TN",
+                    "zip_code": "37201"
+                },
+                "amount": 1500.00,
+                "payment_type": "sponsorship_bonus",
+                "payment_date": "2024-12-01",
+                "tax_year": 2024,
+                "description": "Sponsorship bonus payment for Q4 2024"
+            }
+            
+            response = self.make_request('POST', '/tax/payments', json=payment_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'payment_id' in data and 'tax_calculations' in data:
+                    tax_calc = data['tax_calculations']
+                    # Verify automatic tax calculations
+                    if tax_calc.get('requires_1099') and tax_calc.get('tax_category') == 'nonemployee_compensation':
+                        self.log_result("tax_payments", "Record Tax Payment", True, 
+                                      f"Payment recorded with ID {data['payment_id']}, requires 1099: {tax_calc.get('requires_1099')}")
+                        return True
+                    else:
+                        self.log_result("tax_payments", "Record Tax Payment", False, "Tax calculations incorrect")
+                        return False
+                else:
+                    self.log_result("tax_payments", "Record Tax Payment", False, "Missing payment_id or tax_calculations")
+                    return False
+            else:
+                self.log_result("tax_payments", "Record Tax Payment", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_payments", "Record Tax Payment", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_tax_payments(self) -> bool:
+        """Test retrieving tax payments"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_payments", "Get Tax Payments", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/payments')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'payments' in data and 'total' in data:
+                    self.log_result("tax_payments", "Get Tax Payments", True, 
+                                  f"Retrieved {len(data['payments'])} payments, total: {data['total']}")
+                    return True
+                else:
+                    self.log_result("tax_payments", "Get Tax Payments", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_payments", "Get Tax Payments", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_payments", "Get Tax Payments", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_tax_payment_filtering(self) -> bool:
+        """Test tax payment filtering by tax year and payment type"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_payments", "Tax Payment Filtering", False, "No auth token available")
+                return False
+            
+            # Test filtering by tax year
+            response = self.make_request('GET', '/tax/payments?tax_year=2024&payment_type=sponsorship_bonus')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'payments' in data:
+                    self.log_result("tax_payments", "Tax Payment Filtering", True, 
+                                  f"Filtering works - found {len(data['payments'])} payments for 2024 sponsorship bonuses")
+                    return True
+                else:
+                    self.log_result("tax_payments", "Tax Payment Filtering", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_payments", "Tax Payment Filtering", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_payments", "Tax Payment Filtering", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_generate_1099_forms(self) -> bool:
+        """Test generating 1099 forms for qualifying payments ($600+ threshold)"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_1099_generation", "Generate 1099 Forms", False, "No auth token available")
+                return False
+            
+            tax_year = 2024
+            response = self.make_request('POST', f'/tax/generate-1099s/{tax_year}')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'forms_generated' in data and 'recipients' in data:
+                    self.log_result("tax_1099_generation", "Generate 1099 Forms", True, 
+                                  f"Generated {data['forms_generated']} 1099 forms for {data['recipients']} recipients in {tax_year}")
+                    return True
+                else:
+                    self.log_result("tax_1099_generation", "Generate 1099 Forms", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_1099_generation", "Generate 1099 Forms", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_1099_generation", "Generate 1099 Forms", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_1099_forms(self) -> bool:
+        """Test retrieving 1099 forms with filtering"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_1099_generation", "Get 1099 Forms", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/1099s?tax_year=2024')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'forms' in data and 'total' in data:
+                    self.log_result("tax_1099_generation", "Get 1099 Forms", True, 
+                                  f"Retrieved {len(data['forms'])} 1099 forms, total: {data['total']}")
+                    return True
+                else:
+                    self.log_result("tax_1099_generation", "Get 1099 Forms", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_1099_generation", "Get 1099 Forms", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_1099_generation", "Get 1099 Forms", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_1099_form_details(self) -> bool:
+        """Test getting detailed 1099 form information"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_1099_generation", "Get 1099 Form Details", False, "No auth token available")
+                return False
+            
+            # First get list of forms to get a form ID
+            list_response = self.make_request('GET', '/tax/1099s?limit=1')
+            
+            if list_response.status_code == 200:
+                list_data = list_response.json()
+                if list_data.get('forms') and len(list_data['forms']) > 0:
+                    form_id = list_data['forms'][0]['id']
+                    
+                    # Now get form details
+                    response = self.make_request('GET', f'/tax/1099s/{form_id}')
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'form' in data:
+                            form = data['form']
+                            # Verify EIN is included
+                            if form.get('payer_ein') == '270658077':
+                                self.log_result("tax_1099_generation", "Get 1099 Form Details", True, 
+                                              f"Retrieved form details with EIN {form.get('payer_ein')}")
+                                return True
+                            else:
+                                self.log_result("tax_1099_generation", "Get 1099 Form Details", False, 
+                                              f"EIN mismatch in form: {form.get('payer_ein')}")
+                                return False
+                        else:
+                            self.log_result("tax_1099_generation", "Get 1099 Form Details", False, "Missing form in response")
+                            return False
+                    else:
+                        self.log_result("tax_1099_generation", "Get 1099 Form Details", False, 
+                                      f"Status: {response.status_code}")
+                        return False
+                else:
+                    self.log_result("tax_1099_generation", "Get 1099 Form Details", True, "No forms available to test (expected)")
+                    return True
+            else:
+                self.log_result("tax_1099_generation", "Get 1099 Form Details", False, "Failed to get forms list")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_1099_generation", "Get 1099 Form Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_generate_annual_tax_report(self) -> bool:
+        """Test generating comprehensive annual tax report"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_reporting", "Generate Annual Tax Report", False, "No auth token available")
+                return False
+            
+            tax_year = 2024
+            response = self.make_request('POST', f'/tax/reports/annual/{tax_year}')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'report_id' in data and 'summary' in data:
+                    summary = data['summary']
+                    self.log_result("tax_reporting", "Generate Annual Tax Report", True, 
+                                  f"Generated annual report for {tax_year}: ${summary.get('total_payments', 0):.2f} total payments, {summary.get('total_recipients', 0)} recipients")
+                    return True
+                else:
+                    self.log_result("tax_reporting", "Generate Annual Tax Report", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_reporting", "Generate Annual Tax Report", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_reporting", "Generate Annual Tax Report", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_tax_reports(self) -> bool:
+        """Test retrieving tax reports with filtering"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_reporting", "Get Tax Reports", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/reports?tax_year=2024')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'reports' in data and 'total' in data:
+                    self.log_result("tax_reporting", "Get Tax Reports", True, 
+                                  f"Retrieved {len(data['reports'])} tax reports, total: {data['total']}")
+                    return True
+                else:
+                    self.log_result("tax_reporting", "Get Tax Reports", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_reporting", "Get Tax Reports", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_reporting", "Get Tax Reports", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_tax_dashboard(self) -> bool:
+        """Test tax dashboard with key metrics and compliance status"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_dashboard", "Get Tax Dashboard", False, "No auth token available")
+                return False
+            
+            tax_year = 2024
+            response = self.make_request('GET', f'/tax/dashboard/{tax_year}')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'business_ein' in data and 'overview' in data and 'compliance' in data:
+                    # Verify EIN integration
+                    if data.get('business_ein') == '270658077':
+                        overview = data['overview']
+                        compliance = data['compliance']
+                        self.log_result("tax_dashboard", "Get Tax Dashboard", True, 
+                                      f"Dashboard loaded for EIN {data.get('business_ein')}: ${overview.get('total_payments', 0):.2f} total, compliance score: {compliance.get('compliance_score', 0)}")
+                        return True
+                    else:
+                        self.log_result("tax_dashboard", "Get Tax Dashboard", False, 
+                                      f"EIN mismatch: expected 270658077, got {data.get('business_ein')}")
+                        return False
+                else:
+                    self.log_result("tax_dashboard", "Get Tax Dashboard", False, "Missing required dashboard sections")
+                    return False
+            else:
+                self.log_result("tax_dashboard", "Get Tax Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_dashboard", "Get Tax Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_tax_settings(self) -> bool:
+        """Test getting tax system settings"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_settings", "Get Tax Settings", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/tax/settings')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'settings' in data:
+                    settings = data['settings']
+                    # Verify default settings
+                    if settings.get('form_1099_threshold') == 600.0 and settings.get('backup_withholding_rate') == 0.24:
+                        self.log_result("tax_settings", "Get Tax Settings", True, 
+                                      f"Settings loaded: 1099 threshold ${settings.get('form_1099_threshold')}, withholding rate {settings.get('backup_withholding_rate')*100}%")
+                        return True
+                    else:
+                        self.log_result("tax_settings", "Get Tax Settings", False, "Incorrect default settings")
+                        return False
+                else:
+                    self.log_result("tax_settings", "Get Tax Settings", False, "Missing settings in response")
+                    return False
+            else:
+                self.log_result("tax_settings", "Get Tax Settings", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_settings", "Get Tax Settings", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_update_tax_settings(self) -> bool:
+        """Test updating tax system settings"""
+        try:
+            if not self.auth_token:
+                self.log_result("tax_settings", "Update Tax Settings", False, "No auth token available")
+                return False
+            
+            settings_data = {
+                "current_tax_year": 2024,
+                "form_1099_threshold": 600.0,
+                "backup_withholding_rate": 0.24,
+                "auto_track_sponsorship_payments": True,
+                "auto_generate_tax_documents": True,
+                "auto_send_1099s": False,
+                "notify_1099_threshold": True,
+                "notify_tax_deadlines": True,
+                "require_w9_collection": True,
+                "backup_withholding_threshold": 600.0
+            }
+            
+            response = self.make_request('PUT', '/tax/settings', json=settings_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'message' in data and 'settings_id' in data:
+                    self.log_result("tax_settings", "Update Tax Settings", True, 
+                                  f"Settings updated successfully with ID {data.get('settings_id')}")
+                    return True
+                else:
+                    self.log_result("tax_settings", "Update Tax Settings", False, "Invalid response format")
+                    return False
+            else:
+                self.log_result("tax_settings", "Update Tax Settings", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("tax_settings", "Update Tax Settings", False, f"Exception: {str(e)}")
+            return False
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
