@@ -1008,3 +1008,6 @@ export const IndustryIdentifiersManagement = () => {
     </div>
   );
 };
+
+// Backward compatibility - IPIManagement is now an alias for IndustryIdentifiersManagement  
+export const IPIManagement = IndustryIdentifiersManagement;
