@@ -156,6 +156,157 @@ export const BusinessIdentifiers = () => {
   );
 };
 
+// ISRC Code Generator Component
+export const ISRCGenerator = () => {
+  const [year, setYear] = useState(new Date().getFullYear().toString().slice(-2));
+  const [designationCode, setDesignationCode] = useState('');
+  const [generatedISRC, setGeneratedISRC] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const generateISRC = async () => {
+    if (!year || year.length !== 2 || !/^\d+$/.test(year)) {
+      setError('Year must be exactly 2 digits (e.g., 25 for 2025)');
+      return;
+    }
+
+    if (!designationCode || designationCode.length !== 5 || !/^\d+$/.test(designationCode)) {
+      setError('Designation code must be exactly 5 digits');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await axios.get(`${API}/business/isrc/generate/${year}/${designationCode}`);
+      setGeneratedISRC(response.data);
+    } catch (error) {
+      setError(error.response?.data?.detail || 'Failed to generate ISRC code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white shadow rounded-lg p-6">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">
+        ISRC Code Generator
+      </h3>
+      
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Year of Reference (2 digits)
+            </label>
+            <input
+              type="text"
+              value={year}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 2);
+                setYear(value);
+                setGeneratedISRC(null);
+                setError('');
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="25"
+              maxLength="2"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Current year: {new Date().getFullYear().toString().slice(-2)}
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Designation Code (5 digits)
+            </label>
+            <input
+              type="text"
+              value={designationCode}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                setDesignationCode(value);
+                setGeneratedISRC(null);
+                setError('');
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="00001"
+              maxLength="5"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Unique recording number (e.g., 00001, 12345)
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={generateISRC}
+          disabled={loading || year.length !== 2 || designationCode.length !== 5}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Generating...' : 'Generate ISRC Code'}
+        </button>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
+        {generatedISRC && (
+          <div className="mt-6 p-6 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="text-md font-medium text-green-800 mb-4">Generated ISRC Code</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Country Code</label>
+                <p className="mt-1 text-sm text-gray-900 font-mono bg-white p-2 rounded border">
+                  {generatedISRC.country_code}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Registrant Code</label>
+                <p className="mt-1 text-sm text-gray-900 font-mono bg-white p-2 rounded border">
+                  {generatedISRC.registrant_code}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Year of Reference</label>
+                <p className="mt-1 text-sm text-gray-900 font-mono bg-white p-2 rounded border">
+                  {generatedISRC.year_of_reference}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Designation Code</label>
+                <p className="mt-1 text-sm text-gray-900 font-mono bg-white p-2 rounded border">
+                  {generatedISRC.designation_code}
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700">Complete ISRC Code</label>
+              <p className="mt-1 text-2xl text-green-600 font-mono bg-white p-4 rounded border-2 border-green-300 text-center">
+                {generatedISRC.full_isrc_code}
+              </p>
+              <p className="text-xs text-gray-600 text-center mt-2">
+                Compact Format: {generatedISRC.compact_format}
+              </p>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-sm text-blue-700">
+                <strong>Ready for use:</strong> This ISRC code uniquely identifies your sound recording 
+                globally and can be used for digital distribution, royalty collection, and music tracking.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // UPC Code Generator Component
 export const UPCGenerator = () => {
   const [productCode, setProductCode] = useState('');
