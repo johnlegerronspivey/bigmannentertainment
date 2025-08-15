@@ -1512,6 +1512,507 @@ async def login_user(user_credentials: UserLogin, request: Request):
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return current_user
 
+# WebAuthn Face ID Authentication Endpoints
+@api_router.post("/auth/webauthn/register/begin")
+async def begin_webauthn_registration(request: Request, current_user: User = Depends(get_current_user)):
+    """Begin WebAuthn credential registration process"""
+    try:
+        # Get existing credentials to exclude them
+        existing_credentials_cursor = db.webauthn_credentials.find({"user_id": current_user.id})
+        existing_credentials = await existing_credentials_cursor.to_list(None)
+        
+        exclude_credentials = []
+        for cred in existing_credentials:
+            exclude_credentials.append(
+                PublicKeyCredentialDescriptor(
+                    id=base64.urlsafe_b64decode(cred["credential_id"]),
+                    type="public-key"
+                )
+            )
+        
+        options = generate_registration_options(
+            rp_id=RP_ID,
+            rp_name=RP_NAME,
+            user_id=current_user.id.encode(),
+            user_name=current_user.email,
+            user_display_name=current_user.full_name,
+            exclude_credentials=exclude_credentials,
+            authenticator_selection=AuthenticatorSelectionCriteria(
+                authenticator_attachment="platform",
+                user_verification=UserVerificationRequirement.REQUIRED
+            ),
+            supported_pub_key_algs=[
+                COSEAlgorithmIdentifier.ECDSA_SHA_256,
+                COSEAlgorithmIdentifier.RSASSA_PKCS1_v1_5_SHA_256,
+            ]
+        )
+        
+        # Store challenge for verification
+        challenge_key = f"reg_{current_user.id}"
+        webauthn_challenges[challenge_key] = base64.urlsafe_b64encode(options.challenge).decode('utf-8')
+        
+        return {
+            "challenge": base64.urlsafe_b64encode(options.challenge).decode('utf-8'),
+            "rp": {"id": options.rp.id, "name": options.rp.name},
+            "user": {
+                "id": base64.urlsafe_b64encode(options.user.id).decode('utf-8'),
+                "name": options.user.name,
+                "displayName": options.user.display_name
+            },
+            "pubKeyCredParams": [
+                {"alg": param.alg, "type": param.type} for param in options.pub_key_cred_params
+            ],
+            "timeout": options.timeout,
+            "attestation": options.attestation,
+            "authenticatorSelection": {
+                "authenticatorAttachment": options.authenticator_selection.authenticator_attachment,
+                "userVerification": options.authenticator_selection.user_verification
+            },
+            "excludeCredentials": [
+                {
+                    "id": base64.urlsafe_b64encode(cred.id).decode('utf-8'),
+                    "type": cred.type
+                } for cred in (options.exclude_credentials or [])
+            ]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initiate WebAuthn registration: {str(e)}")
+
+@api_router.post("/auth/webauthn/register/complete")
+async def complete_webauthn_registration(
+    credential_data: WebAuthnRegistrationResponse,
+    current_user: User = Depends(get_current_user)
+):
+    """Complete WebAuthn credential registration process"""
+    try:
+        # Retrieve stored challenge
+        challenge_key = f"reg_{current_user.id}"
+        stored_challenge = webauthn_challenges.get(challenge_key)
+        
+        if not stored_challenge:
+            raise HTTPException(status_code=400, detail="No pending registration challenge found")
+        
+        # Verify registration response
+        verification = verify_registration_response(
+            credential=RegistrationCredential.parse_obj(credential_data.dict()),
+            expected_challenge=base64.urlsafe_b64decode(stored_challenge.encode()),
+            expected_origin=ORIGIN,
+            expected_rp_id=RP_ID,
+        )
+        
+        if verification.verified:
+            # Store the credential
+            credential = WebAuthnCredential(
+                user_id=current_user.id,
+                credential_id=base64.urlsafe_b64encode(verification.credential_id).decode('utf-8'),
+                public_key=base64.urlsafe_b64encode(verification.credential_public_key).decode('utf-8'),
+                sign_count=verification.sign_count,
+                aaguid=base64.urlsafe_b64encode(verification.aaguid).decode('utf-8') if verification.aaguid else None,
+                credential_name=f"Face ID - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
+            )
+            
+            await db.webauthn_credentials.insert_one(credential.dict())
+            
+            # Clean up challenge
+            del webauthn_challenges[challenge_key]
+            
+            return {
+                "success": True,
+                "message": "WebAuthn credential registered successfully",
+                "credential_id": credential.id
+            }
+        else:
+            raise HTTPException(status_code=400, detail="WebAuthn registration verification failed")
+            
+    except Exception as e:
+        # Clean up challenge on error
+        challenge_key = f"reg_{current_user.id}"
+        if challenge_key in webauthn_challenges:
+            del webauthn_challenges[challenge_key]
+        raise HTTPException(status_code=500, detail=f"Failed to complete WebAuthn registration: {str(e)}")
+
+@api_router.post("/auth/webauthn/authenticate/begin")
+async def begin_webauthn_authentication(email: str, request: Request):
+    """Begin WebAuthn authentication process"""
+    try:
+        # Find user
+        user_doc = await db.users.find_one({"email": email})
+        if not user_doc:
+            raise HTTPException(status_code=400, detail="Unable to initiate authentication")
+        
+        user = User(**user_doc)
+        
+        # Get user's registered credentials
+        credentials_cursor = db.webauthn_credentials.find({"user_id": user.id})
+        credentials = await credentials_cursor.to_list(None)
+        
+        if not credentials:
+            raise HTTPException(status_code=400, detail="No WebAuthn credentials registered for this user")
+        
+        allow_credentials = []
+        for cred in credentials:
+            allow_credentials.append(
+                PublicKeyCredentialDescriptor(
+                    id=base64.urlsafe_b64decode(cred["credential_id"]),
+                    type="public-key",
+                    transports=[AuthenticatorTransport.INTERNAL]
+                )
+            )
+        
+        options = generate_authentication_options(
+            rp_id=RP_ID,
+            allow_credentials=allow_credentials,
+            user_verification=UserVerificationRequirement.REQUIRED
+        )
+        
+        # Store challenge for verification
+        challenge_key = f"auth_{email}"
+        webauthn_challenges[challenge_key] = base64.urlsafe_b64encode(options.challenge).decode('utf-8')
+        
+        return {
+            "challenge": base64.urlsafe_b64encode(options.challenge).decode('utf-8'),
+            "rpId": options.rp_id,
+            "allowCredentials": [
+                {
+                    "id": base64.urlsafe_b64encode(cred.id).decode('utf-8'),
+                    "type": cred.type,
+                    "transports": cred.transports or ["internal"]
+                } for cred in options.allow_credentials
+            ],
+            "userVerification": options.user_verification,
+            "timeout": options.timeout
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initiate WebAuthn authentication: {str(e)}")
+
+@api_router.post("/auth/webauthn/authenticate/complete", response_model=Token)
+async def complete_webauthn_authentication(
+    email: str,
+    credential_data: WebAuthnAuthenticationResponse,
+    request: Request
+):
+    """Complete WebAuthn authentication process"""
+    try:
+        # Retrieve stored challenge
+        challenge_key = f"auth_{email}"
+        stored_challenge = webauthn_challenges.get(challenge_key)
+        
+        if not stored_challenge:
+            raise HTTPException(status_code=400, detail="No pending authentication challenge found")
+        
+        # Find user
+        user_doc = await db.users.find_one({"email": email})
+        if not user_doc:
+            raise HTTPException(status_code=401, detail="Authentication failed")
+        
+        user = User(**user_doc)
+        
+        # Find the credential being used
+        credential_id = base64.urlsafe_b64decode(credential_data.id.encode())
+        credential_doc = await db.webauthn_credentials.find_one({
+            "user_id": user.id,
+            "credential_id": base64.urlsafe_b64encode(credential_id).decode('utf-8')
+        })
+        
+        if not credential_doc:
+            raise HTTPException(status_code=401, detail="Credential not found")
+        
+        stored_credential = WebAuthnCredential(**credential_doc)
+        
+        # Verify authentication response
+        verification = verify_authentication_response(
+            credential=AuthenticationCredential.parse_obj(credential_data.dict()),
+            expected_challenge=base64.urlsafe_b64decode(stored_challenge.encode()),
+            expected_origin=ORIGIN,
+            expected_rp_id=RP_ID,
+            credential_public_key=base64.urlsafe_b64decode(stored_credential.public_key),
+            credential_current_sign_count=stored_credential.sign_count
+        )
+        
+        if verification.verified:
+            # Update sign count and last used timestamp
+            await db.webauthn_credentials.update_one(
+                {"id": stored_credential.id},
+                {
+                    "$set": {
+                        "sign_count": verification.new_sign_count,
+                        "last_used": datetime.utcnow()
+                    }
+                }
+            )
+            
+            # Update user last login and reset failed attempts
+            await db.users.update_one(
+                {"id": user.id},
+                {
+                    "$set": {
+                        "last_login": datetime.utcnow(),
+                        "updated_at": datetime.utcnow(),
+                        "failed_login_attempts": 0,
+                        "locked_until": None
+                    },
+                    "$inc": {"login_count": 1}
+                }
+            )
+            
+            # Clean up challenge
+            del webauthn_challenges[challenge_key]
+            
+            # Log activity
+            await log_activity(user.id, "webauthn_login", "user", user.id, {"email": email}, request)
+            
+            # Create tokens
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": user.id, "email": user.email, "is_admin": user.is_admin}, 
+                expires_delta=access_token_expires
+            )
+            refresh_token = create_refresh_token()
+            
+            # Store session
+            session = UserSession(
+                user_id=user.id,
+                session_token=access_token,
+                refresh_token=refresh_token,
+                expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+                user_agent=request.headers.get("User-Agent"),
+                ip_address=request.client.host
+            )
+            await db.user_sessions.insert_one(session.dict())
+            
+            return Token(
+                access_token=access_token,
+                refresh_token=refresh_token,  
+                token_type="bearer",
+                expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+                user=user
+            )
+        else:
+            raise HTTPException(status_code=401, detail="WebAuthn authentication verification failed")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Clean up challenge on error
+        challenge_key = f"auth_{email}"
+        if challenge_key in webauthn_challenges:
+            del webauthn_challenges[challenge_key]
+        raise HTTPException(status_code=500, detail=f"Failed to complete WebAuthn authentication: {str(e)}")
+
+# Forgot Password functionality
+@api_router.post("/auth/forgot-password")
+async def forgot_password(forgot_data: ForgotPasswordRequest, request: Request):
+    """Initiate password reset process"""
+    try:
+        user_doc = await db.users.find_one({"email": forgot_data.email})
+        if not user_doc:
+            # Don't reveal whether the email exists or not
+            return {"message": "If an account with this email exists, a password reset link has been sent."}
+        
+        user = User(**user_doc)
+        
+        # Generate reset token
+        reset_token = secrets.token_urlsafe(32)
+        token_expiry = datetime.utcnow() + timedelta(hours=PASSWORD_RESET_TOKEN_EXPIRE_HOURS)
+        
+        # Store token in database
+        await db.users.update_one(
+            {"id": user.id},
+            {
+                "$set": {
+                    "password_reset_token": reset_token,
+                    "password_reset_expires": token_expiry,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Send email (simplified version - in production use proper email service)
+        if EMAIL_USERNAME and EMAIL_PASSWORD:
+            try:
+                await send_password_reset_email(user.email, reset_token)
+            except Exception as e:
+                logging.error(f"Failed to send password reset email: {str(e)}")
+        
+        # Log activity
+        await log_activity(user.id, "password_reset_requested", "user", user.id, {"email": forgot_data.email}, request)
+        
+        return {"message": "If an account with this email exists, a password reset link has been sent."}
+        
+    except Exception as e:
+        logging.error(f"Error processing forgot password request: {str(e)}")
+        return {"message": "If an account with this email exists, a password reset link has been sent."}
+
+@api_router.post("/auth/reset-password")
+async def reset_password(reset_data: ResetPasswordRequest, request: Request):
+    """Reset password using a valid reset token"""
+    try:
+        # Find user with valid reset token
+        user_doc = await db.users.find_one({
+            "password_reset_token": reset_data.token,
+            "password_reset_expires": {"$gt": datetime.utcnow()}
+        })
+        
+        if not user_doc:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        
+        user = User(**user_doc)
+        
+        # Hash new password
+        hashed_password = get_password_hash(reset_data.new_password)
+        
+        # Update user password and clear reset token
+        await db.users.update_one(
+            {"id": user.id},
+            {
+                "$set": {
+                    "password": hashed_password,
+                    "password_reset_token": None,
+                    "password_reset_expires": None,
+                    "failed_login_attempts": 0,
+                    "locked_until": None,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Invalidate all existing sessions for security
+        await db.user_sessions.update_many(
+            {"user_id": user.id},
+            {"$set": {"is_active": False}}
+        )
+        
+        # Log activity
+        await log_activity(user.id, "password_reset_completed", "user", user.id, {"email": user.email}, request)
+        
+        return {"message": "Password reset successful"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reset password: {str(e)}")
+
+# WebAuthn credential management endpoints
+@api_router.get("/auth/webauthn/credentials")
+async def get_webauthn_credentials(current_user: User = Depends(get_current_user)):
+    """Get user's registered WebAuthn credentials"""
+    credentials_cursor = db.webauthn_credentials.find({"user_id": current_user.id})
+    credentials = await credentials_cursor.to_list(None)
+    
+    result = []
+    for cred in credentials:
+        result.append({
+            "id": cred["id"],
+            "name": cred["credential_name"],
+            "created_at": cred["created_at"].isoformat(),
+            "last_used": cred["last_used"].isoformat() if cred.get("last_used") else None
+        })
+    
+    return {"credentials": result}
+
+@api_router.delete("/auth/webauthn/credentials/{credential_id}")
+async def delete_webauthn_credential(
+    credential_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a WebAuthn credential"""
+    result = await db.webauthn_credentials.delete_one({
+        "id": credential_id,
+        "user_id": current_user.id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    
+    return {"message": "Credential deleted successfully"}
+
+@api_router.post("/auth/logout")
+async def logout_user(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Logout user and invalidate session"""
+    try:
+        # Find and invalidate the current session
+        await db.user_sessions.update_one(
+            {
+                "session_token": credentials.credentials,
+                "user_id": current_user.id,
+                "is_active": True
+            },
+            {"$set": {"is_active": False}}
+        )
+        
+        # Log activity
+        await log_activity(current_user.id, "user_logout", "user", current_user.id, {"email": current_user.email}, request)
+        
+        return {"message": "Logged out successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")
+
+# Helper function for sending password reset emails
+async def send_password_reset_email(email: str, reset_token: str):
+    """Send password reset email to user"""
+    try:
+        subject = "Password Reset Request - Big Mann Entertainment"
+        
+        # HTML email template
+        html_body = f"""
+        <html>
+            <body>
+                <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+                    <h2>Password Reset Request</h2>
+                    <p>Hello,</p>
+                    <p>We received a request to reset your password for your Big Mann Entertainment account.</p>
+                    <p>Click the button below to reset your password:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{ORIGIN}/reset-password?token={reset_token}" 
+                           style="background-color: #7c3aed; color: white; padding: 12px 24px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Reset Password
+                        </a>
+                    </div>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; color: #7c3aed;">
+                        {ORIGIN}/reset-password?token={reset_token}
+                    </p>
+                    <p><strong>This link will expire in {PASSWORD_RESET_TOKEN_EXPIRE_HOURS} hours.</strong></p>
+                    <p>If you didn't request this password reset, please ignore this email.</p>
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                    <p style="font-size: 12px; color: #666;">
+                        This is an automated message from Big Mann Entertainment. Please do not reply to this email.
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+        
+        # Create message
+        msg = MimeMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = EMAIL_USERNAME
+        msg['To'] = email
+        
+        # Attach HTML version
+        msg.attach(MimeText(html_body, 'html'))
+        
+        # Send email
+        if EMAIL_USERNAME and EMAIL_PASSWORD:
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                server.starttls()
+                server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                server.send_message(msg)
+                
+    except Exception as e:
+        logging.error(f"Failed to send password reset email: {str(e)}")
+        raise
+
 # Admin User Management Endpoints
 @api_router.get("/admin/users")
 async def get_all_users(
