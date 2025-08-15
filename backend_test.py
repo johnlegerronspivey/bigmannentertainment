@@ -3862,6 +3862,35 @@ class BackendTester:
         self.test_admin_sponsorship_overview()
         self.test_admin_all_deals()
         
+        # NEW: Tax Management System Tests
+        print("\n💼 TESTING TAX MANAGEMENT SYSTEM WITH EIN INTEGRATION")
+        print("-" * 60)
+        
+        print("\nTesting Business Tax Information Management...")
+        self.test_get_business_tax_info()
+        self.test_update_business_tax_info()
+        
+        print("\nTesting Tax Payment Tracking...")
+        self.test_record_tax_payment()
+        self.test_get_tax_payments()
+        self.test_tax_payment_filtering()
+        
+        print("\nTesting 1099 Form Generation...")
+        self.test_generate_1099_forms()
+        self.test_get_1099_forms()
+        self.test_get_1099_form_details()
+        
+        print("\nTesting Tax Reporting...")
+        self.test_generate_annual_tax_report()
+        self.test_get_tax_reports()
+        
+        print("\nTesting Tax Dashboard...")
+        self.test_get_tax_dashboard()
+        
+        print("\nTesting Tax Settings...")
+        self.test_get_tax_settings()
+        self.test_update_tax_settings()
+        
         # Print Summary
         self.print_summary()
     
