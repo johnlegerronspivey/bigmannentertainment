@@ -1840,19 +1840,65 @@ const Register = () => {
     email: '',
     password: '',
     full_name: '',
-    business_name: ''
+    business_name: '',
+    date_of_birth: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state_province: '',
+    postal_code: '',
+    country: 'US'
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const [step, setStep] = useState(1);
+  const [showFaceIDOption, setShowFaceIDOption] = useState(false);
+  const { register, enrollFaceID, isWebAuthnSupported } = useAuth();
   const navigate = useNavigate();
+
+  const validateAge = (dateOfBirth) => {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    const age = today.getFullYear() - birthDate.getFullYear() - 
+      ((today.getMonth() < birthDate.getMonth() || 
+        (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) ? 1 : 0);
+    return age >= 13;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    // Validate age
+    if (!validateAge(formData.date_of_birth)) {
+      setError('You must be at least 13 years old to register');
+      setLoading(false);
+      return;
+    }
+
     const result = await register(formData);
+    
+    if (result.success) {
+      // Show Face ID enrollment option if supported
+      if (isWebAuthnSupported()) {
+        setShowFaceIDOption(true);
+        setStep(2);
+      } else {
+        navigate('/');
+      }
+    } else {
+      setError(result.error);
+    }
+    
+    setLoading(false);
+  };
+
+  const handleFaceIDEnrollment = async () => {
+    setLoading(true);
+    setError('');
+
+    const result = await enrollFaceID();
     
     if (result.success) {
       navigate('/');
@@ -1863,9 +1909,78 @@ const Register = () => {
     setLoading(false);
   };
 
+  const skipFaceID = () => {
+    navigate('/');
+  };
+
+  if (step === 2 && showFaceIDOption) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_audio-video-dist/artifacts/zwcs0h0g_Big%20Mann%20Entertainment%20Logo.png" 
+              alt="Big Mann Entertainment Logo" 
+              className="w-16 h-16 object-contain mx-auto mb-4"
+            />
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Set Up Face ID
+            </h2>
+            <p className="text-gray-600">Secure your account with biometric authentication</p>
+          </div>
+          
+          <div className="mt-8 space-y-6">
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
+            
+            <div className="text-center">
+              <div className="mb-6">
+                <svg className="w-24 h-24 mx-auto text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <p className="text-gray-700 mb-6">
+                Enable Face ID for quick and secure access to your Big Mann Entertainment account.
+              </p>
+            </div>
+            
+            <button
+              onClick={handleFaceIDEnrollment}
+              disabled={loading}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 flex items-center justify-center"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Setting up Face ID...
+                </>
+              ) : (
+                '🔒 Enable Face ID'
+              )}
+            </button>
+            
+            <button
+              onClick={skipFaceID}
+              disabled={loading}
+              className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-2xl w-full space-y-8">
         <div className="text-center">
           <img 
             src="https://customer-assets.emergentagent.com/job_audio-video-dist/artifacts/zwcs0h0g_Big%20Mann%20Entertainment%20Logo.png" 
@@ -1877,58 +1992,176 @@ const Register = () => {
           </h2>
           <p className="text-gray-600">Join Big Mann Entertainment</p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               {error}
             </div>
           )}
-          <div>
-            <input
-              type="text"
-              required
-              value={formData.full_name}
-              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Full Name"
-            />
+          
+          {/* Personal Information */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <input
+                  type="text"
+                  required
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Full Name *"
+                />
+              </div>
+              <div>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Email Address *"
+                />
+              </div>
+              <div>
+                <input
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Password *"
+                  minLength="8"
+                />
+              </div>
+              <div>
+                <input
+                  type="date"
+                  required
+                  value={formData.date_of_birth}
+                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Date of Birth *"
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Email address"
-            />
+
+          {/* Address Information */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <input
+                  type="text"
+                  required
+                  value={formData.address_line1}
+                  onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Street Address *"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  value={formData.address_line2}
+                  onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Apartment, suite, etc. (Optional)"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    required
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="City *"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    required
+                    value={formData.state_province}
+                    onChange={(e) => setFormData({ ...formData, state_province: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="State/Province *"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    required
+                    value={formData.postal_code}
+                    onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="ZIP/Postal Code *"
+                  />
+                </div>
+              </div>
+              <div>
+                <select
+                  required
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="JP">Japan</option>
+                  <option value="BR">Brazil</option>
+                  <option value="IN">India</option>
+                  <option value="MX">Mexico</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <div>
-            <input
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Password"
-            />
+
+          {/* Business Information */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Business Information (Optional)</h3>
+            <div>
+              <input
+                type="text"
+                value={formData.business_name}
+                onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Business Name (Optional)"
+              />
+            </div>
           </div>
-          <div>
-            <input
-              type="text"
-              value={formData.business_name}
-              onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Business Name (Optional)"
-            />
-          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 flex items-center justify-center"
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Creating account...
+              </>
+            ) : (
+              'Create Account'
+            )}
           </button>
+
+          <div className="text-center">
+            <Link to="/login" className="text-purple-600 hover:text-purple-500">
+              Already have an account? Sign in
+            </Link>
+          </div>
         </form>
       </div>
     </div>
