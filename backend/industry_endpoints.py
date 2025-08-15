@@ -6,7 +6,7 @@ from datetime import datetime
 
 from database import get_db
 from industry_service import IndustryIntegrationService
-from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics
+from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IPINumber
 from server import get_current_user, get_admin_user, User, db
 
 logger = logging.getLogger(__name__)
