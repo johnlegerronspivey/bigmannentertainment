@@ -9,7 +9,7 @@ from industry_models import (
     IndustryPartner, StreamingPlatform, RecordLabel, RadioStation, 
     TVNetwork, Venue, BookingAgency, ContentDistribution, 
     IndustryAnalytics, RevenueTracking, INDUSTRY_PARTNERS,
-    IPINumber, BIG_MANN_IPI_NUMBERS
+    IndustryIdentifier, BIG_MANN_IPI_NUMBERS
 )
 
 logger = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ class IndustryIntegrationService:
             
             # Add Big Mann Entertainment IPI numbers
             for ipi_data in BIG_MANN_IPI_NUMBERS:
-                ipi = IPINumber(**ipi_data)
+                ipi = IndustryIdentifier(**ipi_data)
                 await self.db.ipi_numbers.insert_one(ipi.dict())
                 total_ipi += 1
             
@@ -600,7 +600,7 @@ class IndustryIntegrationService:
             if existing:
                 raise ValueError(f"IPI number {ipi_data.get('ipi_number')} already exists")
             
-            ipi = IPINumber(**ipi_data)
+            ipi = IndustryIdentifier(**ipi_data)
             await self.db.ipi_numbers.insert_one(ipi.dict())
             
             return {"success": True, "ipi": ipi.dict()}
