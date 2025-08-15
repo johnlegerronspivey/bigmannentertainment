@@ -92,6 +92,17 @@ FACEBOOK_ACCESS_TOKEN = os.environ.get("FACEBOOK_ACCESS_TOKEN", "")
 YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
 TIKTOK_CLIENT_ID = os.environ.get("TIKTOK_CLIENT_ID", "")
 TIKTOK_CLIENT_SECRET = os.environ.get("TIKTOK_CLIENT_SECRET", "")
+# Business Configuration from environment variables
+BUSINESS_EIN = os.environ.get('BUSINESS_EIN', '270658077')
+BUSINESS_ADDRESS = os.environ.get('BUSINESS_ADDRESS', '1314 Lincoln Heights Street, Alexander City, Alabama 35010')
+BUSINESS_PHONE = os.environ.get('BUSINESS_PHONE', '(256) 234-5678')
+BUSINESS_NAICS_CODE = os.environ.get('BUSINESS_NAICS_CODE', '512200')  # Sound Recording Industries
+BUSINESS_TIN = os.environ.get('BUSINESS_TIN', '270658077')
+
+# Product and Global Identification Numbers
+UPC_COMPANY_PREFIX = os.environ.get('UPC_COMPANY_PREFIX', '8600043402')
+GLOBAL_LOCATION_NUMBER = os.environ.get('GLOBAL_LOCATION_NUMBER', '0860004340201')
+BUSINESS_LEGAL_NAME = os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment LLC')
 
 # Create the main app without a prefix
 app = FastAPI(title="Big Mann Entertainment API", version="1.0.0")
