@@ -459,7 +459,147 @@ async def get_industry_coverage(current_user: User = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to analyze industry coverage: {str(e)}")
 
-# IPI Number Management Endpoints
+# Industry Identifiers Management Endpoints (IPI, ISNI, AARC)
+@router.get("/identifiers")
+async def get_industry_identifiers(
+    entity_type: Optional[str] = None,
+    identifier_type: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all industry identifiers (IPI, ISNI, AARC) with optional filtering"""
+    try:
+        service = IndustryIntegrationService(db)
+        identifiers = await service.get_industry_identifiers(entity_type=entity_type, identifier_type=identifier_type)
+        
+        return {
+            "identifiers": identifiers,
+            "total_count": len(identifiers),
+            "filters_applied": {
+                "entity_type": entity_type,
+                "identifier_type": identifier_type
+            },
+            "big_mann_entertainment": {
+                "company": {
+                    "name": "Big Mann Entertainment",
+                    "ipi": "813048171",
+                    "aarc": "RC00002057"
+                },
+                "individual": {
+                    "name": "John LeGerron Spivey", 
+                    "ipi": "578413032",
+                    "isni": "0000000491551894",
+                    "aarc": "FA02933539"
+                }
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error retrieving industry identifiers: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve industry identifiers: {str(e)}")
+
+@router.post("/identifiers")
+async def add_industry_identifier(
+    identifier_data: IndustryIdentifier,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Add a new industry identifier (IPI, ISNI, AARC)"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.add_industry_identifier(identifier_data.dict())
+        
+        return {
+            "success": True,
+            "message": f"Successfully added industry identifier for {identifier_data.entity_name}",
+            "identifier": result["identifier"]
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add industry identifier: {str(e)}")
+
+@router.put("/identifiers/{entity_name}")
+async def update_industry_identifier(
+    entity_name: str,
+    update_data: Dict[str, Any],
+    admin_user: User = Depends(get_admin_user)
+):
+    """Update an industry identifier"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.update_industry_identifier(entity_name, update_data)
+        
+        return {
+            "success": True,
+            "message": f"Successfully updated industry identifier for {entity_name}"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update industry identifier: {str(e)}")
+
+@router.get("/identifiers/{entity_name}")
+async def get_industry_identifier_details(
+    entity_name: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get detailed information about a specific entity's industry identifiers"""
+    try:
+        identifier = await db.industry_identifiers.find_one({"entity_name": entity_name})
+        if not identifier:
+            raise HTTPException(status_code=404, detail="Entity not found")
+        
+        return {
+            "identifier": identifier,
+            "message": f"Industry identifier for {entity_name} retrieved successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve industry identifier details: {str(e)}")
+
+@router.get("/identifiers/dashboard")
+async def get_industry_identifiers_dashboard(current_user: User = Depends(get_current_user)):
+    """Get comprehensive industry identifiers dashboard data"""
+    try:
+        service = IndustryIntegrationService(db)
+        dashboard_data = await service.get_industry_identifiers_dashboard_data()
+        
+        return {
+            "dashboard": dashboard_data,
+            "last_updated": datetime.utcnow().isoformat(),
+            "user": current_user.email,
+            "message": "Industry identifiers dashboard data retrieved successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve industry identifiers dashboard data: {str(e)}")
+
+@router.delete("/identifiers/{entity_name}")
+async def remove_industry_identifier(
+    entity_name: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Remove an industry identifier"""
+    try:
+        result = await db.industry_identifiers.delete_one({"entity_name": entity_name})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Entity not found")
+        
+        return {
+            "success": True,
+            "message": f"Industry identifier for {entity_name} removed successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove industry identifier: {str(e)}")
+
+# Legacy IPI Number Management Endpoints (for backward compatibility)
 @router.get("/ipi")
 async def get_ipi_numbers(
     entity_type: Optional[str] = None,
