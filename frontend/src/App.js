@@ -541,6 +541,7 @@ const Header = () => {
                     <Link to="/admin/revenue" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Revenue</Link>
                     <Link to="/admin/blockchain" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Blockchain</Link>
                     <Link to="/admin/ddex" className="hover:text-purple-400 transition-colors py-1 pl-4 block">DDEX</Link>
+                    <Link to="/admin/industry" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Industry</Link>
                     <Link to="/admin/security" className="hover:text-purple-400 transition-colors py-1 pl-4 block">Security</Link>
                   </div>
                 </>
