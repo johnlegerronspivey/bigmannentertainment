@@ -1,35 +1,35 @@
 <analysis>
-The AI engineer's work trajectory showcases an impressive evolution of the Big Mann Entertainment media platform, from an MVP to a feature-rich complete media distribution empire. The initial phase involved expanding content distribution capabilities (33+ to 52+ platforms including PROs and FM broadcast), establishing branding, and laying foundational administrative features. Subsequent iterative development focused on complex system integrations: DDEX compliance for metadata, initial blockchain integration for Music NFTs, a comprehensive sponsorship bonus modeling system, and an elaborate tax management system. The engineer adeptly navigated full-stack development, creating backend models/services/endpoints and corresponding React frontend components, while ensuring proper environment variable usage and adhering to Kubernetes ingress rules. The work consistently involved detailed file modifications, dependency management, and thorough backend and frontend testing. The current immediate task involves implementing advanced frontend authentication with Face ID, for which integration playbooks have just been acquired.
+The AI engineer successfully transformed the Big Mann Entertainment platform from an MVP to a comprehensive media distribution system. The work progressed iteratively, starting with core distribution and branding, then integrating complex features like DDEX compliance, blockchain for Music NFTs, sponsorship modeling, and a full tax management system. A significant portion of the work involved implementing advanced frontend authentication with Face ID, followed by integrating critical business identifiers like UPC, GLN, ISRC, and Publisher numbers. The engineer demonstrated proficiency in full-stack development, creating new backend models, services, and endpoints, alongside corresponding React frontend components, while meticulously managing environment variables and adhering to Kubernetes ingress rules. The trajectory concludes with the initiation of a comprehensive industry integration system, including IPI numbers, showing a continuous expansion of the platform's capabilities.
 </analysis>
 
 <product_requirements>
-The overarching goal was to build a robust media distribution platform for Big Mann Entertainment (BME). Initially focused on core distribution to 33+ general platforms, the scope expanded significantly. Key features required:
-
-*   **Expanded Distribution**: Coverage for 37+ platforms with PROs (SoundExchange, ASCAP, BMI, SESAC) for royalty management, and further to 52+ platforms with traditional FM broadcast networks.
-*   **Branding**: Integration of Big Mann Entertainment logo across UI.
-*   **Blockchain Integration**: Implementation of Music NFTs, smart contracts, crypto payments, and decentralized content ownership, using a specified Ethereum contract address.
-*   **Administrator Features**: A comprehensive admin interface for platform management (user/content).
-*   **DDEX Compliance**: Adherence to Digital Data Exchange standards for music metadata exchange.
-*   **Sponsorship Bonus Modeling**: A system for sponsor management, performance tracking, and automated bonus calculations.
-*   **Tax Management**: Integration of Employer Identification Number (EIN), 1099 generation, tax reporting, and compliance tracking. This expanded to include comprehensive business license information (address, city, state), Taxpayer Identification Number (TIN), NAICS code (Sound Recording Industries - 512200), and business contact details.
-*   **Advanced Frontend Authentication**: Implementation of registration and login with Face ID.
+The goal for Big Mann Entertainment (BME) was to establish a comprehensive media distribution empire. Initial requirements included expanding content distribution to 52+ platforms (including PROs and FM broadcast), integrating BME branding, and establishing administrator features. Further enhancements mandated:
+*   **Blockchain Integration**: Music NFTs, smart contracts, and crypto payments.
+*   **DDEX Compliance**: Adherence to digital metadata standards.
+*   **Sponsorship Bonus Modeling**: System for managing sponsors, tracking performance, and calculating bonuses.
+*   **Tax Management**: EIN, 1099 generation, tax reporting, and comprehensive business license information (address, TIN, NAICS 512200, contact details).
+*   **Advanced Frontend Authentication**: Registration and login with Face ID (WebAuthn/Face Recognition), including date of birth and address collection, and a forgot password flow.
+*   **Business Identifiers**: Integration of UPC company prefix (e.g., 8600043402), Global Location Number (GLN) (e.g., 0860004340201), ISRC prefix (e.g., QZ9H8), and Publisher number (e.g., PA04UV) for global commerce.
+*   **Industry Integration**: A comprehensive system connecting to all sound recording industries, media, and entertainment outlets across all tiers and categories, including IPI numbers.
 </product_requirements>
 
 <key_technical_concepts>
 -   **React**: Frontend UI development.
 -   **FastAPI**: Backend API and business logic.
 -   **MongoDB**: NoSQL database.
--   **Tailwind CSS**: Utility-first CSS for styling.
--   **Supervisor**: Process manager.
--   **Kubernetes Ingress**: Manages routing with  prefix for backend.
--   **Environment Variables**: Secure configuration (e.g., , ).
--   **Blockchain**: NFTs, smart contracts, decentralized ownership.
+-   **Tailwind CSS**: Utility-first CSS.
+-   **Supervisor**: Process management.
+-   **Kubernetes Ingress**: Routing with  prefix.
+-   **Environment Variables**: Secure configuration.
+-   **Blockchain/NFTs**: Decentralized content ownership.
 -   **DDEX**: Digital Data Exchange standards.
 -   **WebAuthn/Face Recognition**: Advanced authentication.
+-   **JWT/Bcrypt**: Token-based authentication and password hashing.
+-   **U.P.C./GLN/ISRC/Publisher Numbers/IPI**: Business/content identification standards.
 </key_technical_concepts>
 
 <code_architecture>
-The application utilizes a full-stack architecture with React for the frontend and FastAPI for the backend, supported by MongoDB. It operates within a Kubernetes container environment, managed by Supervisor.
+The application uses a React frontend, FastAPI backend, and MongoDB database, deployed in a Kubernetes environment managed by Supervisor.
 
 **Directory Structure:**
 
@@ -38,41 +38,55 @@ The application utilizes a full-stack architecture with React for the frontend a
 **File Analysis:**
 -   
     -   **Importance**: The core FastAPI application, handling routes, authentication, database interaction, and business logic.
-    -   **Changes Made**: Extensively modified to integrate , , and  routers. Critical for routing all new features.
+    -   **Changes Made**: Extensively modified to integrate , , , , and . Enhanced existing User model to include WebAuthn fields, , . Added WebAuthn imports, configuration, and endpoints. Implemented  and updated login. Incorporated business configuration (UPC, GLN, ISRC, Publisher) and fixed authentication/MongoDB query issues for new business/product endpoints.
 -   
     -   **Importance**: The main React component managing UI, navigation, and API calls.
-    -   **Changes Made**: Significantly updated to include navigation links (header, mobile, admin dropdown) and routing for Sponsorship and Tax Management features, alongside existing DDEX and admin interfaces. Imports  and .
+    -   **Changes Made**: Significantly updated to include comprehensive navigation links (header, mobile, admin dropdown, Profile, Business). Integrated new routes and components for enhanced authentication (Login, Register, Forgot Password, Reset Password, Profile Settings) and business management (BusinessManagement, IndustryComponents).  was enhanced for refresh tokens and WebAuthn.
 -   
-    -   **Importance**: Stores backend environment variables, critical for secure configuration.
-    -   **Changes Made**: , ,  were initially added. Further modified to include , , , , and  for tax and business identification.
+    -   **Importance**: Stores backend environment variables.
+    -   **Changes Made**: Initially contained , , . Expanded to include , , , ,  for tax. Further modified to add , , , and  for business identifiers.
 -   , , 
-    -   **Importance**: New files defining data models, business logic, and API endpoints for the sponsorship bonus modeling system.
-    -   **Changes Made**: Newly created and refined to implement the comprehensive sponsorship feature, including critical fixes for circular import issues in  to make it self-contained.
+    -   **Importance**: Defines models, business logic, and API endpoints for the sponsorship system.
+    -   **Changes Made**: Newly created and refined to implement the comprehensive sponsorship feature.
 -   
     -   **Importance**: Houses React components for the sponsorship interface.
-    -   **Changes Made**: Initially existed, then significantly expanded using  to create a comprehensive UI for managing sponsors, performance, and bonus calculations.
+    -   **Changes Made**: Expanded to create a comprehensive UI for managing sponsors, performance, and bonus calculations.
 -   , , 
-    -   **Importance**: New files for data models, business logic, and API endpoints for the tax management system.
-    -   **Changes Made**: Newly created to handle EIN, 1099 generation, tax reporting, and later expanded to include business license information (address, city, state, TIN, NAICS code, contact number).
+    -   **Importance**: Defines models, business logic, and API endpoints for the tax management system.
+    -   **Changes Made**: Newly created to handle EIN, 1099 generation, tax reporting, and later expanded to include business license information.
 -   
     -   **Importance**: Contains React components for the tax management user interface.
-    -   **Changes Made**: Newly created to provide UI for EIN management, then expanded to incorporate comprehensive business license information, including address, contact details, NAICS, and TIN. Placeholders for NAICS and SIC were also updated.
+    -   **Changes Made**: Newly created and expanded to incorporate comprehensive business license information.
+-   
+    -   **Importance**: Manages Python dependencies.
+    -   **Changes Made**: Added  for advanced authentication.
+-   
+    -   **Importance**: New file for managing business identifiers and UPC codes.
+    -   **Changes Made**: Newly created to provide UI for UPC, GLN, ISRC, and Publisher number management, including generation functions and display.
+-   , , 
+    -   **Importance**: New files for data models, business logic, and API endpoints for comprehensive industry integration.
+    -   **Changes Made**: Newly created to lay the foundation for connecting to various entertainment industry entities.
+-   
+    -   **Importance**: New file for the frontend UI related to industry integration.
+    -   **Changes Made**: Newly created.
 </code_architecture>
 
 <pending_tasks>
-- Implement comprehensive frontend authentication including registration, login, and Face ID integration.
+-   Integrate IPI (Interested Parties Information) numbers for Big Mann Entertainment and John LeGerron Spivey.
+-   Complete the comprehensive industry integration system, connecting to all sound recording industries, media, and entertainment outlets.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was tasked with implementing a comprehensive frontend authentication system for the Big Mann Entertainment platform. This system is required to support user registration, login functionalities, and an advanced Face ID integration method.
+Immediately before this summary request, the AI engineer was in the process of implementing a comprehensive industry integration system for the Big Mann Entertainment platform. The last explicit request from the user was to Add my IPI number for Big Mann Entertainment 813048171 and John LeGerron Spivey 578413032.
 
-The current state of work is as follows:
-1.  **User Request and Clarification**: The user explicitly requested to add front end authentication registration and log in with face id. Upon querying for further details, the user responded with do all, indicating a comprehensive implementation of the requested features.
-2.  **Integration Playbook Acquisition**: The AI engineer's most recent action was to initiate the process of obtaining necessary integration playbooks for the advanced authentication technologies. This involved calling a sub-agent to get playbooks specifically for WebAuthn and Face Recognition, which are critical for building the Face ID login and secure registration.
+Prior to this, the engineer had already:
+1.  **Implemented Industry Integration Backbone**: Created new backend files (, , ) and integrated them into . Corresponding frontend components () were created and linked in .
+2.  **Integrated Business Identifiers**: Successfully added and tested UPC, GLN, ISRC, and Publisher numbers, including their respective backend models, endpoints, environment variables, and frontend UI components. This involved fixing several backend authentication and database query issues.
+3.  **Enhanced Authentication**: A comprehensive frontend authentication system with Face ID (WebAuthn), email/password fallback, registration with DOB and address, and forgot password functionality was implemented and tested. Backend support for WebAuthn credentials and refresh tokens was added.
 
-The backend infrastructure and current frontend components do not yet reflect these authentication features. The system is paused at the point of having gathered the technical blueprints (playbooks) required to proceed with the actual coding and integration of the new authentication mechanism. The foundation for this complex feature is being laid by understanding the necessary third-party integrations.
+The current work is focused on expanding the newly created industry integration system to include IPI numbers, which is the immediate next step in building the ultimate media distribution hub. The engineer has acknowledged the request and is about to proceed with the technical implementation for IPI.
 </current_work>
 
 <optional_next_step>
-Implement the comprehensive frontend authentication system with registration, login, and Face ID integration, utilizing the acquired WebAuthn and Face Recognition playbooks.
+Integrate the provided IPI numbers (Big Mann Entertainment: 813048171, John LeGerron Spivey: 578413032) into the business identification and industry integration system.
 </optional_next_step>
