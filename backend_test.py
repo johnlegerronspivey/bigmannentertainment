@@ -3894,6 +3894,9 @@ class BackendTester:
         self.test_get_tax_settings()
         self.test_update_tax_settings()
         
+        # Enhanced Tax Management System Tests
+        self.run_enhanced_tax_system_tests()
+        
         # Print Summary
         self.print_summary()
     
