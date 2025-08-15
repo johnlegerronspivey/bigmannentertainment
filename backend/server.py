@@ -1363,12 +1363,26 @@ async def register_user(user_data: UserCreate, request: Request):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create user
+    # Validate age (must be at least 13 years old)
+    today = datetime.utcnow().date()
+    birth_date = user_data.date_of_birth.date()
+    age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+    if age < 13:
+        raise HTTPException(status_code=400, detail="Users must be at least 13 years old")
+    
+    # Create user with enhanced fields
     hashed_password = get_password_hash(user_data.password)
     user = User(
         email=user_data.email,
         full_name=user_data.full_name,
-        business_name=user_data.business_name
+        business_name=user_data.business_name,
+        date_of_birth=user_data.date_of_birth,
+        address_line1=user_data.address_line1,
+        address_line2=user_data.address_line2,
+        city=user_data.city,
+        state_province=user_data.state_province,
+        postal_code=user_data.postal_code,
+        country=user_data.country
     )
     
     # Check if this is the first user - make them an admin
@@ -1390,13 +1404,32 @@ async def register_user(user_data: UserCreate, request: Request):
     # Log activity
     await log_activity(user.id, "user_registered", "user", user.id, {"email": user_data.email}, request)
     
-    # Create access token
+    # Create tokens
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.id}, expires_delta=access_token_expires
+        data={"sub": user.id, "email": user.email, "is_admin": user.is_admin}, 
+        expires_delta=access_token_expires
     )
+    refresh_token = create_refresh_token()
     
-    return Token(access_token=access_token, token_type="bearer", user=user)
+    # Store session
+    session = UserSession(
+        user_id=user.id,
+        session_token=access_token,
+        refresh_token=refresh_token,
+        expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        user_agent=request.headers.get("User-Agent"),
+        ip_address=request.client.host
+    )
+    await db.user_sessions.insert_one(session.dict())
+    
+    return Token(
+        access_token=access_token, 
+        refresh_token=refresh_token,
+        token_type="bearer", 
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60, 
+        user=user
+    )
 
 @api_router.post("/auth/login", response_model=Token)
 async def login_user(user_credentials: UserLogin, request: Request):
