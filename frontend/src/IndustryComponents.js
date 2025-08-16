@@ -1258,3 +1258,527 @@ export const EnhancedEntertainmentDashboard = () => {
     </div>
   );
 };
+
+// Photography Services Management Component
+export const PhotographyServices = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedServiceType, setSelectedServiceType] = useState('');
+  const [selectedPriceRange, setSelectedPriceRange] = useState('');
+
+  useEffect(() => {
+    fetchPhotographyServices();
+  }, [selectedServiceType, selectedPriceRange]);
+
+  const fetchPhotographyServices = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (selectedServiceType) params.append('service_type', selectedServiceType);
+      if (selectedPriceRange) params.append('price_range', selectedPriceRange);
+
+      const response = await axios.get(`${API}/industry/photography/services?${params}`);
+      setServices(response.data.services);
+    } catch (error) {
+      setError('Failed to load photography services');
+      console.error('Error fetching photography services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const serviceTypes = ['album_cover', 'promotional', 'event', 'fashion', 'commercial'];
+  const priceRanges = ['$0-500', '$500-1500', '$1500-5000', '$5000+'];
+
+  return (
+    <div className="space-y-6">
+      {/* Photography Services Header */}
+      <div className="bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg p-6">
+        <div className="flex items-center">
+          <div className="p-3 bg-white bg-opacity-20 rounded-full mr-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Photography Services</h2>
+            <p className="text-pink-100">Professional photography for Big Mann Entertainment</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Service Type Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-pink-500">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Album Cover Photography</h3>
+          <p className="text-sm text-gray-600 mb-4">Professional album covers, single covers, and EP artwork that captures your musical vision.</p>
+          <div className="space-y-2 text-xs text-gray-500">
+            <div>• Conceptual design and photography</div>
+            <div>• High-resolution digital delivery</div>
+            <div>• Multiple format options</div>
+            <div>• Revision rounds included</div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-pink-100 text-pink-800 text-xs rounded-full">$500-$3000</span>
+          </div>
+        </div>
+
+        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-purple-500">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Promotional Photography</h3>
+          <p className="text-sm text-gray-600 mb-4">Professional headshots, press photos, and promotional content for marketing campaigns.</p>
+          <div className="space-y-2 text-xs text-gray-500">
+            <div>• Professional headshots</div>
+            <div>• Press kit photography</div>
+            <div>• Social media content</div>
+            <div>• Marketing campaign visuals</div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">$300-$2500</span>
+          </div>
+        </div>
+
+        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-indigo-500">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Event Photography</h3>
+          <p className="text-sm text-gray-600 mb-4">Live concert photography, backstage moments, and event documentation.</p>
+          <div className="space-y-2 text-xs text-gray-500">
+            <div>• Live performance shots</div>
+            <div>• Backstage photography</div>
+            <div>• Audience and venue capture</div>
+            <div>• Event documentation</div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">$200-$1200</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Filter Photography Services</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <select
+            value={selectedServiceType}
+            onChange={(e) => setSelectedServiceType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+          >
+            <option value="">All Service Types</option>
+            {serviceTypes.map(type => (
+              <option key={type} value={type}>{type.replace('_', ' ').toUpperCase()}</option>
+            ))}
+          </select>
+          
+          <select
+            value={selectedPriceRange}
+            onChange={(e) => setSelectedPriceRange(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+          >
+            <option value="">All Price Ranges</option>
+            {priceRanges.map(range => (
+              <option key={range} value={range}>{range}</option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => {
+              setSelectedServiceType('');
+              setSelectedPriceRange('');
+            }}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+          >
+            Clear Filters
+          </button>
+          
+          <button
+            onClick={fetchPhotographyServices}
+            className="px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors"
+          >
+            Refresh Services
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      {/* Services List */}
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+        </div>
+      ) : services.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No photography services found with current filters</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((service, index) => (
+            <div key={index} className="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    service.tier === 'album_cover' ? 'bg-pink-100 text-pink-800' :
+                    service.tier === 'promotional' ? 'bg-purple-100 text-purple-800' :
+                    service.tier === 'event' ? 'bg-indigo-100 text-indigo-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {service.tier?.replace('_', ' ')}
+                  </span>
+                </div>
+                
+                {service.specialties && (
+                  <div className="mb-3">
+                    <div className="text-sm text-gray-600 mb-2">Specialties:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {service.specialties.map((specialty, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          {specialty.replace('_', ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {service.price_range && (
+                  <div className="mb-3">
+                    <span className="text-sm text-gray-600">Price Range: </span>
+                    <span className="font-semibold text-green-600">{service.price_range}</span>
+                  </div>
+                )}
+                
+                {service.territories && (
+                  <div className="mb-3">
+                    <span className="text-sm text-gray-600">Available in: </span>
+                    <span className="text-sm">{service.territories.join(', ')}</span>
+                  </div>
+                )}
+                
+                <button className="w-full px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors">
+                  Request Quote
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Video Production Services Component
+export const VideoProductionServices = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedProductionType, setSelectedProductionType] = useState('');
+
+  useEffect(() => {
+    fetchVideoServices();
+  }, [selectedProductionType]);
+
+  const fetchVideoServices = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (selectedProductionType) params.append('production_type', selectedProductionType);
+
+      const response = await axios.get(`${API}/industry/video/production?${params}`);
+      setServices(response.data.services);
+    } catch (error) {
+      setError('Failed to load video production services');
+      console.error('Error fetching video services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Video Production Header */}
+      <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg p-6">
+        <div className="flex items-center">
+          <div className="p-3 bg-white bg-opacity-20 rounded-full mr-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Video Production Services</h2>
+            <p className="text-red-100">Professional video production for Big Mann Entertainment</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Production Type Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-red-500">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Music Video Production</h3>
+          <p className="text-sm text-gray-600 mb-4">High-quality music videos, lyric videos, and promotional content for artists.</p>
+          <div className="space-y-2 text-xs text-gray-500">
+            <div>• Concept development and storyboarding</div>
+            <div>• Professional filming equipment (4K/8K)</div>
+            <div>• Post-production and editing</div>
+            <div>• Color grading and sound design</div>
+            <div>• Multiple format delivery</div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">$5,000-$50,000</span>
+          </div>
+        </div>
+
+        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-orange-500">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Commercial Production</h3>
+          <p className="text-sm text-gray-600 mb-4">Corporate videos, commercials, and brand content for business promotion.</p>
+          <div className="space-y-2 text-xs text-gray-500">
+            <div>• Brand storytelling</div>
+            <div>• Commercial advertisements</div>
+            <div>• Corporate documentaries</div>
+            <div>• Training and educational videos</div>
+            <div>• Social media content</div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">$2,000-$25,000</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and Services List */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Available Services</h3>
+          <select
+            value={selectedProductionType}
+            onChange={(e) => setSelectedProductionType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            <option value="">All Production Types</option>
+            <option value="music_videos">Music Videos</option>
+            <option value="production_companies">Production Companies</option>
+            <option value="commercial">Commercial</option>
+            <option value="documentary">Documentary</option>
+          </select>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          </div>
+        ) : services.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No video production services found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {services.map((service, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-lg font-semibold text-gray-900">{service.name}</h4>
+                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                    {service.tier?.replace('_', ' ')}
+                  </span>
+                </div>
+                
+                {service.specialties && (
+                  <div className="mb-3">
+                    <div className="flex flex-wrap gap-1">
+                      {service.specialties.map((specialty, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          {specialty.replace('_', ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {service.price_range && (
+                  <div className="mb-3">
+                    <span className="text-sm text-gray-600">Budget: </span>
+                    <span className="font-semibold text-green-600">{service.price_range}</span>
+                  </div>
+                )}
+                
+                <button className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                  Get Proposal
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Monetization Opportunities Component
+export const MonetizationOpportunities = () => {
+  const [opportunities, setOpportunities] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedContentType, setSelectedContentType] = useState('all');
+
+  useEffect(() => {
+    fetchMonetizationOpportunities();
+  }, [selectedContentType]);
+
+  const fetchMonetizationOpportunities = async () => {
+    try {
+      const response = await axios.get(`${API}/industry/monetization/opportunities?content_type=${selectedContentType}`);
+      setOpportunities(response.data.monetization_opportunities);
+    } catch (error) {
+      setError('Failed to load monetization opportunities');
+      console.error('Error fetching monetization opportunities:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Monetization Header */}
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg p-6">
+        <div className="flex items-center">
+          <div className="p-3 bg-white bg-opacity-20 rounded-full mr-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Monetization Opportunities</h2>
+            <p className="text-green-100">Revenue optimization across all entertainment platforms</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Type Filter */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Select Content Type</h3>
+          <select
+            value={selectedContentType}
+            onChange={(e) => setSelectedContentType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="all">All Content Types</option>
+            <option value="photography">Photography</option>
+            <option value="video">Video</option>
+            <option value="audio">Audio/Music</option>
+            <option value="gaming">Gaming</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Revenue Opportunities Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {opportunities.photography && (
+          <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-pink-500">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Photography Revenue</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Stock Platforms:</span>
+                <span className="font-semibold">{opportunities.photography.stock_platforms}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Social Media:</span>
+                <span className="font-semibold">{opportunities.photography.social_media}</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-xl font-bold text-green-600">{opportunities.photography.estimated_revenue_range}</div>
+              <div className="text-xs text-gray-500">Monthly Potential</div>
+            </div>
+          </div>
+        )}
+
+        {opportunities.video && (
+          <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-red-500">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Video Revenue</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Production Services:</span>
+                <span className="font-semibold">{opportunities.video.production_services}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Streaming Platforms:</span>
+                <span className="font-semibold">{opportunities.video.streaming_platforms}</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-xl font-bold text-green-600">{opportunities.video.estimated_revenue_range}</div>
+              <div className="text-xs text-gray-500">Per Project</div>
+            </div>
+          </div>
+        )}
+
+        {opportunities.audio && (
+          <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-purple-500">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Audio Revenue</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Streaming Platforms:</span>
+                <span className="font-semibold">{opportunities.audio.streaming_platforms}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Podcast Platforms:</span>
+                <span className="font-semibold">{opportunities.audio.podcast_platforms}</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-xl font-bold text-green-600">{opportunities.audio.estimated_revenue_range}</div>
+              <div className="text-xs text-gray-500">Per Stream</div>
+            </div>
+          </div>
+        )}
+
+        {opportunities.gaming && (
+          <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-indigo-500">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Gaming Revenue</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Gaming Platforms:</span>
+                <span className="font-semibold">{opportunities.gaming.platforms}</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-xl font-bold text-green-600">{opportunities.gaming.estimated_revenue_range}</div>
+              <div className="text-xs text-gray-500">Per License</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary Card */}
+      {opportunities.summary && (
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg p-6">
+          <h3 className="text-xl font-bold mb-4">Total Revenue Potential</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold">{opportunities.summary.total_platforms}</div>
+              <div className="text-sm text-blue-100">Total Platforms</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold">{opportunities.summary.categories_covered}</div>
+              <div className="text-sm text-blue-100">Revenue Categories</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold">{opportunities.summary.estimated_monthly_potential}</div>
+              <div className="text-sm text-blue-100">Monthly Potential</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Backward compatibility - IPIManagement is now an alias for IndustryIdentifiersManagement  
+export const IPIManagement = IndustryIdentifiersManagement;
