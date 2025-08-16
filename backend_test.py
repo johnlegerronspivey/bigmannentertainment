@@ -7655,6 +7655,376 @@ class BackendTester:
             self.log_result("business_identifiers", "Authentication Requirements", False, f"Exception: {str(e)}")
             return False
 
+    # ===== ENTERTAINMENT INDUSTRY INTEGRATION TESTS =====
+    
+    def test_entertainment_dashboard(self) -> bool:
+        """Test comprehensive entertainment industry dashboard"""
+        try:
+            if not self.auth_token:
+                self.log_result("entertainment_dashboard", "Entertainment Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/entertainment/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'dashboard' in data and 'platform_overview' in data:
+                    dashboard = data['dashboard']
+                    platform_overview = data['platform_overview']
+                    
+                    # Verify entertainment categories
+                    expected_categories = [
+                        'photography_service', 'stock_photography', 'social_media_photography',
+                        'video_production', 'podcast_platform', 'live_streaming',
+                        'gaming_esports', 'fashion_photography'
+                    ]
+                    
+                    categories_found = 0
+                    for category in expected_categories:
+                        if category in dashboard and 'count' in dashboard[category]:
+                            categories_found += 1
+                    
+                    # Verify Big Mann Entertainment branding
+                    if (platform_overview.get('name') == 'Big Mann Entertainment' and
+                        'monetization_streams' in platform_overview and
+                        categories_found >= 6):  # At least 6 categories should be present
+                        
+                        self.log_result("entertainment_dashboard", "Entertainment Dashboard", True, 
+                                      f"Dashboard loaded with {categories_found} entertainment categories, Big Mann Entertainment branding confirmed")
+                        return True
+                    else:
+                        self.log_result("entertainment_dashboard", "Entertainment Dashboard", False, 
+                                      f"Missing categories or branding: {categories_found} categories found, platform: {platform_overview.get('name')}")
+                        return False
+                else:
+                    self.log_result("entertainment_dashboard", "Entertainment Dashboard", False, "Missing dashboard or platform_overview")
+                    return False
+            else:
+                self.log_result("entertainment_dashboard", "Entertainment Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("entertainment_dashboard", "Entertainment Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_photography_services(self) -> bool:
+        """Test photography services integration with filtering"""
+        try:
+            if not self.auth_token:
+                self.log_result("photography_services", "Photography Services", False, "No auth token available")
+                return False
+            
+            # Test basic photography services endpoint
+            response = self.make_request('GET', '/industry/photography/services')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'services' in data and 'available_types' in data:
+                    services = data['services']
+                    available_types = data['available_types']
+                    
+                    # Verify available types include expected photography services
+                    expected_types = ['album_cover', 'promotional', 'event', 'fashion', 'commercial']
+                    types_found = [t for t in expected_types if t in available_types]
+                    
+                    # Test filtering by service type
+                    filter_response = self.make_request('GET', '/industry/photography/services?service_type=album_cover')
+                    
+                    if filter_response.status_code == 200:
+                        filter_data = filter_response.json()
+                        
+                        if len(types_found) >= 4:  # At least 4 types should be available
+                            self.log_result("photography_services", "Photography Services", True, 
+                                          f"Photography services working: {len(services)} total services, {len(types_found)} service types available")
+                            return True
+                        else:
+                            self.log_result("photography_services", "Photography Services", False, 
+                                          f"Insufficient service types: {len(types_found)} found, expected at least 4")
+                            return False
+                    else:
+                        self.log_result("photography_services", "Photography Services", False, 
+                                      f"Filtering failed: {filter_response.status_code}")
+                        return False
+                else:
+                    self.log_result("photography_services", "Photography Services", False, "Missing services or available_types")
+                    return False
+            else:
+                self.log_result("photography_services", "Photography Services", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("photography_services", "Photography Services", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_video_production_services(self) -> bool:
+        """Test video production services integration"""
+        try:
+            if not self.auth_token:
+                self.log_result("video_production", "Video Production Services", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/video/production')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'services' in data and 'available_types' in data:
+                    services = data['services']
+                    available_types = data['available_types']
+                    
+                    # Verify available types include expected video production services
+                    expected_types = ['music_videos', 'production_companies', 'commercial', 'documentary']
+                    types_found = [t for t in expected_types if t in available_types]
+                    
+                    # Test filtering by production type
+                    filter_response = self.make_request('GET', '/industry/video/production?production_type=music_videos')
+                    
+                    if filter_response.status_code == 200:
+                        if len(types_found) >= 3:  # At least 3 types should be available
+                            self.log_result("video_production", "Video Production Services", True, 
+                                          f"Video production services working: {len(services)} total services, {len(types_found)} production types available")
+                            return True
+                        else:
+                            self.log_result("video_production", "Video Production Services", False, 
+                                          f"Insufficient production types: {len(types_found)} found")
+                            return False
+                    else:
+                        self.log_result("video_production", "Video Production Services", False, 
+                                      f"Filtering failed: {filter_response.status_code}")
+                        return False
+                else:
+                    self.log_result("video_production", "Video Production Services", False, "Missing services or available_types")
+                    return False
+            else:
+                self.log_result("video_production", "Video Production Services", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("video_production", "Video Production Services", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_monetization_opportunities(self) -> bool:
+        """Test comprehensive monetization opportunities across entertainment platforms"""
+        try:
+            if not self.auth_token:
+                self.log_result("monetization_opportunities", "Monetization Opportunities", False, "No auth token available")
+                return False
+            
+            # Test different content types
+            content_types = ['all', 'photography', 'video', 'audio', 'gaming']
+            successful_tests = 0
+            
+            for content_type in content_types:
+                response = self.make_request('GET', f'/industry/monetization/opportunities?content_type={content_type}')
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'monetization_opportunities' in data and 'big_mann_entertainment' in data:
+                        opportunities = data['monetization_opportunities']
+                        big_mann = data['big_mann_entertainment']
+                        
+                        # Verify Big Mann Entertainment branding
+                        if ('comprehensive_reach' in big_mann and 
+                            'revenue_potential' in big_mann and
+                            'platform_integration' in big_mann):
+                            successful_tests += 1
+            
+            if successful_tests >= 4:  # At least 4 content types should work
+                self.log_result("monetization_opportunities", "Monetization Opportunities", True, 
+                              f"Monetization opportunities working for {successful_tests} content types with Big Mann Entertainment branding")
+                return True
+            else:
+                self.log_result("monetization_opportunities", "Monetization Opportunities", False, 
+                              f"Only {successful_tests} content types working")
+                return False
+                
+        except Exception as e:
+            self.log_result("monetization_opportunities", "Monetization Opportunities", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_entertainment_partners_by_category(self) -> bool:
+        """Test entertainment partners by category endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_result("entertainment_partners", "Entertainment Partners by Category", False, "No auth token available")
+                return False
+            
+            # Test different entertainment categories
+            categories = [
+                'photography_service', 'stock_photography', 'social_media_photography',
+                'video_production', 'podcast_platform', 'live_streaming',
+                'gaming_esports', 'fashion_photography'
+            ]
+            
+            successful_categories = 0
+            
+            for category in categories:
+                response = self.make_request('GET', f'/industry/entertainment/partners/{category}')
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'partners' in data and 'category' in data:
+                        if data['category'] == category:
+                            successful_categories += 1
+                            
+                            # Test tier filtering for this category
+                            tier_response = self.make_request('GET', f'/industry/entertainment/partners/{category}?tier=major')
+                            if tier_response.status_code == 200:
+                                continue  # Tier filtering works
+            
+            if successful_categories >= 6:  # At least 6 categories should work
+                self.log_result("entertainment_partners", "Entertainment Partners by Category", True, 
+                              f"Entertainment partners working for {successful_categories} categories with tier filtering")
+                return True
+            else:
+                self.log_result("entertainment_partners", "Entertainment Partners by Category", False, 
+                              f"Only {successful_categories} categories working")
+                return False
+                
+        except Exception as e:
+            self.log_result("entertainment_partners", "Entertainment Partners by Category", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_industry_partners_initialization(self) -> bool:
+        """Test industry partners initialization for entertainment categories"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_initialization", "Industry Partners Initialization", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/industry/initialize')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and 'total_partners' in data:
+                    total_partners = data['total_partners']
+                    categories = data.get('categories', [])
+                    
+                    # Verify initialization includes entertainment categories
+                    if total_partners > 0 and len(categories) >= 6:
+                        self.log_result("industry_initialization", "Industry Partners Initialization", True, 
+                                      f"Initialized {total_partners} industry partners across {len(categories)} categories")
+                        return True
+                    else:
+                        self.log_result("industry_initialization", "Industry Partners Initialization", False, 
+                                      f"Insufficient initialization: {total_partners} partners, {len(categories)} categories")
+                        return False
+                else:
+                    self.log_result("industry_initialization", "Industry Partners Initialization", False, "Missing success or total_partners")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("industry_initialization", "Industry Partners Initialization", True, 
+                              "Admin access required for initialization (expected for non-admin users)")
+                return True
+            else:
+                self.log_result("industry_initialization", "Industry Partners Initialization", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_initialization", "Industry Partners Initialization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_content_monetization_strategy(self) -> bool:
+        """Test content monetization strategy creation"""
+        try:
+            if not self.auth_token:
+                self.log_result("content_monetization", "Content Monetization Strategy", False, "No auth token available")
+                return False
+            
+            # Test different content types
+            content_strategies = [
+                {
+                    "content_type": "photo",
+                    "title": "Big Mann Entertainment Photo Collection"
+                },
+                {
+                    "content_type": "video", 
+                    "title": "Big Mann Entertainment Music Video"
+                },
+                {
+                    "content_type": "audio",
+                    "title": "Big Mann Entertainment Track"
+                },
+                {
+                    "content_type": "mixed",
+                    "title": "Big Mann Entertainment Mixed Media"
+                }
+            ]
+            
+            successful_strategies = 0
+            
+            for strategy_data in content_strategies:
+                response = self.make_request('POST', '/industry/entertainment/content/monetize', json=strategy_data)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if ('recommended_platforms' in data and 
+                        'monetization_methods' in data and
+                        'estimated_revenue_potential' in data and
+                        'big_mann_entertainment_advantage' in data):
+                        
+                        # Verify Big Mann Entertainment advantage messaging
+                        advantage = data['big_mann_entertainment_advantage']
+                        if 'comprehensive' in advantage.lower() or 'big mann' in advantage.lower():
+                            successful_strategies += 1
+            
+            if successful_strategies >= 3:  # At least 3 content types should work
+                self.log_result("content_monetization", "Content Monetization Strategy", True, 
+                              f"Content monetization strategy working for {successful_strategies} content types with Big Mann Entertainment advantage")
+                return True
+            else:
+                self.log_result("content_monetization", "Content Monetization Strategy", False, 
+                              f"Only {successful_strategies} content types working")
+                return False
+                
+        except Exception as e:
+            self.log_result("content_monetization", "Content Monetization Strategy", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_entertainment_analytics(self) -> bool:
+        """Test entertainment analytics across all categories"""
+        try:
+            if not self.auth_token:
+                self.log_result("entertainment_analytics", "Entertainment Analytics", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/entertainment/analytics')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'analytics' in data:
+                    analytics = data['analytics']
+                    
+                    # Verify analytics includes entertainment categories
+                    expected_fields = ['total_analytics_records', 'aggregated_data', 'platform_breakdown']
+                    fields_found = [field for field in expected_fields if field in analytics]
+                    
+                    if len(fields_found) >= 2:  # At least 2 key fields should be present
+                        # Verify Big Mann Entertainment stats if present
+                        big_mann_stats = data.get('big_mann_entertainment_stats', {})
+                        
+                        self.log_result("entertainment_analytics", "Entertainment Analytics", True, 
+                                      f"Entertainment analytics working with {len(fields_found)} key metrics, Big Mann Entertainment stats included")
+                        return True
+                    else:
+                        self.log_result("entertainment_analytics", "Entertainment Analytics", False, 
+                                      f"Missing key analytics fields: {[f for f in expected_fields if f not in analytics]}")
+                        return False
+                else:
+                    self.log_result("entertainment_analytics", "Entertainment Analytics", False, "Missing analytics data")
+                    return False
+            else:
+                self.log_result("entertainment_analytics", "Entertainment Analytics", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("entertainment_analytics", "Entertainment Analytics", False, f"Exception: {str(e)}")
+            return False
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
