@@ -762,4 +762,272 @@ async def remove_ipi_number(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to remove IPI number: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to remove industry identifier: {str(e)}")
+
+# Enhanced Entertainment Industry Endpoints
+
+@router.get("/entertainment/partners/{category}")
+async def get_entertainment_partners_by_category(
+    category: str,
+    tier: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get entertainment industry partners by category"""
+    try:
+        service = IndustryIntegrationService(db)
+        partners = await service.get_entertainment_partners_by_category(category, tier)
+        
+        return {
+            "category": category,
+            "tier": tier,
+            "partners": partners,
+            "total_count": len(partners),
+            "message": f"Retrieved {len(partners)} partners in {category} category"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve entertainment partners: {str(e)}")
+
+@router.get("/photography/services")
+async def get_photography_services(
+    service_type: Optional[str] = None,
+    price_range: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get photography services with filtering options"""
+    try:
+        service = IndustryIntegrationService(db)
+        services = await service.get_photography_services(service_type, price_range)
+        
+        return {
+            "services": services,
+            "total_count": len(services),
+            "filters": {
+                "service_type": service_type,
+                "price_range": price_range
+            },
+            "available_types": ["album_cover", "promotional", "event", "fashion", "commercial"],
+            "message": f"Retrieved {len(services)} photography services"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve photography services: {str(e)}")
+
+@router.get("/video/production")
+async def get_video_production_services(
+    production_type: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get video production services"""
+    try:
+        service = IndustryIntegrationService(db)
+        services = await service.get_video_production_services(production_type)
+        
+        return {
+            "services": services,
+            "total_count": len(services),
+            "production_type": production_type,
+            "available_types": ["music_videos", "production_companies", "commercial", "documentary"],
+            "message": f"Retrieved {len(services)} video production services"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve video production services: {str(e)}")
+
+@router.get("/monetization/opportunities")
+async def get_monetization_opportunities(
+    content_type: str = "all",
+    current_user: User = Depends(get_current_user)
+):
+    """Get comprehensive monetization opportunities across all entertainment platforms"""
+    try:
+        service = IndustryIntegrationService(db)
+        opportunities = await service.get_monetization_opportunities(content_type)
+        
+        return {
+            "monetization_opportunities": opportunities,
+            "content_type": content_type,
+            "big_mann_entertainment": {
+                "comprehensive_reach": "Full entertainment industry coverage",
+                "revenue_potential": "Multi-stream revenue optimization",
+                "platform_integration": "Seamless cross-platform distribution"
+            },
+            "message": "Comprehensive monetization opportunities retrieved successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve monetization opportunities: {str(e)}")
+
+@router.get("/entertainment/dashboard")
+async def get_comprehensive_entertainment_dashboard(current_user: User = Depends(get_current_user)):
+    """Get comprehensive entertainment industry dashboard"""
+    try:
+        service = IndustryIntegrationService(db)
+        dashboard_data = await service.get_comprehensive_entertainment_dashboard()
+        
+        return {
+            "dashboard": dashboard_data,
+            "last_updated": datetime.utcnow().isoformat(),
+            "user": current_user.email,
+            "platform_overview": {
+                "name": "Big Mann Entertainment",
+                "industry_coverage": "Comprehensive Entertainment Ecosystem",
+                "content_types": ["Music", "Photography", "Video", "Live Streaming", "Gaming", "Podcasts"],
+                "monetization_streams": "Multi-platform revenue optimization"
+            },
+            "message": "Comprehensive entertainment dashboard retrieved successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve entertainment dashboard: {str(e)}")
+
+@router.post("/entertainment/content/monetize")
+async def create_content_monetization_strategy(
+    content_data: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """Create a monetization strategy for content across entertainment platforms"""
+    try:
+        content_type = content_data.get("content_type", "mixed")
+        content_title = content_data.get("title", "Untitled Content")
+        
+        service = IndustryIntegrationService(db)
+        
+        # Get relevant platforms based on content type
+        if content_type in ["photo", "photography"]:
+            platforms = await service.get_entertainment_partners_by_category("stock_photography")
+            social_platforms = await service.get_entertainment_partners_by_category("social_media_photography")
+            platforms.extend(social_platforms)
+        elif content_type in ["video", "music_video"]:
+            platforms = await service.get_entertainment_partners_by_category("video_production")
+            streaming_platforms = await service.get_entertainment_partners_by_category("live_streaming")
+            platforms.extend(streaming_platforms)
+        elif content_type in ["audio", "music", "podcast"]:
+            platforms = await service.get_entertainment_partners_by_category("streaming_platform")
+            podcast_platforms = await service.get_entertainment_partners_by_category("podcast_platform")
+            platforms.extend(podcast_platforms)
+        else:
+            # Mixed content - get all platforms
+            categories = ["stock_photography", "social_media_photography", "video_production", 
+                         "live_streaming", "streaming_platform", "podcast_platform", "gaming_esports"]
+            platforms = []
+            for category in categories:
+                category_platforms = await service.get_entertainment_partners_by_category(category)
+                platforms.extend(category_platforms)
+        
+        # Create monetization strategy
+        strategy = {
+            "content_title": content_title,
+            "content_type": content_type,
+            "recommended_platforms": [p["name"] for p in platforms[:10]],
+            "monetization_methods": [
+                "Direct sales/licensing",
+                "Revenue sharing",
+                "Subscription content",
+                "Advertising revenue",
+                "Brand partnerships",
+                "Commission-based sales"
+            ],
+            "estimated_revenue_potential": {
+                "photography": "$100-$5000/month",
+                "video": "$500-$50000/project", 
+                "audio": "$50-$10000/month",
+                "cross_platform": "$1000-$100000/month"
+            },
+            "optimization_tips": [
+                "Diversify across multiple platforms",
+                "Optimize content for each platform's requirements",
+                "Track performance analytics",
+                "Build audience engagement",
+                "Regular content updates",
+                "Professional quality standards"
+            ]
+        }
+        
+        return {
+            "strategy": strategy,
+            "total_platforms": len(platforms),
+            "big_mann_entertainment": {
+                "advantage": "Comprehensive industry connections",
+                "support": "Full-service content monetization",
+                "reach": "Global entertainment market access"
+            },
+            "message": f"Monetization strategy created for {content_title}"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create monetization strategy: {str(e)}")
+
+@router.get("/entertainment/analytics")
+async def get_entertainment_analytics(
+    category: Optional[str] = None,
+    timeframe: str = "30d",
+    current_user: User = Depends(get_current_user)
+):
+    """Get entertainment industry analytics and performance metrics"""
+    try:
+        service = IndustryIntegrationService(db)
+        
+        # Get comprehensive analytics
+        analytics_data = {
+            "timeframe": timeframe,
+            "platform_performance": {},
+            "content_analytics": {},
+            "revenue_tracking": {},
+            "growth_metrics": {},
+            "big_mann_entertainment_stats": {
+                "total_industry_connections": 0,
+                "active_revenue_streams": 0,
+                "content_distribution_reach": "Global",
+                "platform_categories": [
+                    "Music Streaming", "Photography Services", "Video Production",
+                    "Live Streaming", "Podcast Hosting", "Gaming Integration",
+                    "Social Media", "Fashion Photography", "Stock Photography"
+                ]
+            }
+        }
+        
+        # Get platform counts for analytics
+        categories = [
+            "photography_service", "stock_photography", "social_media_photography",
+            "video_production", "podcast_platform", "live_streaming",
+            "gaming_esports", "fashion_photography", "streaming_platform"
+        ]
+        
+        total_connections = 0
+        for cat in categories:
+            partners = await service.get_entertainment_partners_by_category(cat)
+            analytics_data["platform_performance"][cat] = {
+                "total_platforms": len(partners),
+                "active_platforms": len([p for p in partners if p.get("status") == "active"]),
+                "growth_rate": "+15%",  # Mock data - would be calculated from historical data
+                "revenue_contribution": f"${1000 + len(partners) * 500}"  # Mock revenue data
+            }
+            total_connections += len(partners)
+        
+        analytics_data["big_mann_entertainment_stats"]["total_industry_connections"] = total_connections
+        analytics_data["big_mann_entertainment_stats"]["active_revenue_streams"] = len(categories)
+        
+        # Mock performance metrics
+        analytics_data["content_analytics"] = {
+            "total_content_pieces": 150,
+            "monetized_content": 125,
+            "average_revenue_per_content": "$1200",
+            "top_performing_category": "Music Video Production"
+        }
+        
+        analytics_data["revenue_tracking"] = {
+            "monthly_revenue": "$45000",
+            "revenue_growth": "+25%",
+            "top_revenue_source": "Multi-platform streaming",
+            "diversification_score": "95%"
+        }
+        
+        return {
+            "analytics": analytics_data,
+            "last_updated": datetime.utcnow().isoformat(),
+            "message": "Entertainment industry analytics retrieved successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve entertainment analytics: {str(e)}")
