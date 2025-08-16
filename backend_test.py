@@ -5868,6 +5868,34 @@ class BackendTester:
         print("\nTesting Legacy IPI Compatibility...")
         self.test_legacy_ipi_compatibility()
         
+        # NEW: Entertainment Industry Integration Tests
+        print("\n🎬 TESTING COMPREHENSIVE ENTERTAINMENT INDUSTRY INTEGRATION")
+        print("-" * 80)
+        
+        print("\nTesting Entertainment Dashboard...")
+        self.test_entertainment_dashboard()
+        
+        print("\nTesting Photography Services...")
+        self.test_photography_services()
+        
+        print("\nTesting Video Production Services...")
+        self.test_video_production_services()
+        
+        print("\nTesting Monetization Opportunities...")
+        self.test_monetization_opportunities()
+        
+        print("\nTesting Entertainment Partners by Category...")
+        self.test_entertainment_partners_by_category()
+        
+        print("\nTesting Industry Partners Initialization...")
+        self.test_industry_partners_initialization()
+        
+        print("\nTesting Content Monetization Strategy...")
+        self.test_content_monetization_strategy()
+        
+        print("\nTesting Entertainment Analytics...")
+        self.test_entertainment_analytics()
+        
         # Print Summary
         self.print_summary()
     
