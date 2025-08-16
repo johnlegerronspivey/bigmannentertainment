@@ -1009,5 +1009,252 @@ export const IndustryIdentifiersManagement = () => {
   );
 };
 
-// Backward compatibility - IPIManagement is now an alias for IndustryIdentifiersManagement  
-export const IPIManagement = IndustryIdentifiersManagement;
+// Enhanced Entertainment Industry Dashboard Component
+export const EnhancedEntertainmentDashboard = () => {
+  const [dashboardData, setDashboardData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  useEffect(() => {
+    fetchEntertainmentDashboard();
+  }, []);
+
+  const fetchEntertainmentDashboard = async () => {
+    try {
+      const response = await axios.get(`${API}/industry/entertainment/dashboard`);
+      setDashboardData(response.data.dashboard);
+    } catch (error) {
+      setError('Failed to load entertainment dashboard');
+      console.error('Error fetching entertainment dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Enhanced Entertainment Overview */}
+      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white rounded-lg p-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">Big Mann Entertainment</h2>
+            <p className="text-purple-100 text-lg">Comprehensive Entertainment Ecosystem</p>
+            <div className="mt-2 text-sm">
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full mr-2">Global Reach</span>
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full mr-2">Multi-Platform</span>
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">Full-Service</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-4xl font-bold">{dashboardData.big_mann_entertainment?.total_industry_reach || 0}</div>
+            <div className="text-sm text-purple-100">Industry Connections</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Entertainment Categories Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Photography Services */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-pink-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-pink-100 rounded-full">
+              <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-gray-900">{dashboardData.photography_service?.count || 0}</div>
+              <div className="text-xs text-gray-500">Photography Services</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Album Covers:</span>
+              <span className="font-semibold">{dashboardData.photography_breakdown?.album_cover || 0}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Promotional:</span>
+              <span className="font-semibold">{dashboardData.photography_breakdown?.promotional || 0}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Event Photography:</span>
+              <span className="font-semibold">{dashboardData.photography_breakdown?.event || 0}</span>
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-pink-100 text-pink-800 text-xs rounded-full">Professional Services</span>
+          </div>
+        </div>
+
+        {/* Video Production */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-red-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-red-100 rounded-full">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-gray-900">{dashboardData.video_production?.count || 0}</div>
+              <div className="text-xs text-gray-500">Video Production</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Music Videos:</span>
+              <span className="font-semibold">{dashboardData.video_breakdown?.music_videos || 0}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Production Companies:</span>
+              <span className="font-semibold">{dashboardData.video_breakdown?.production_companies || 0}</span>
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Professional Video</span>
+          </div>
+        </div>
+
+        {/* Live Streaming */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-purple-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-purple-100 rounded-full">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-gray-900">{dashboardData.live_streaming?.count || 0}</div>
+              <div className="text-xs text-gray-500">Streaming Platforms</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-sm text-gray-600">
+              Live performance streaming, interactive content, and real-time audience engagement.
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">Live Content</span>
+          </div>
+        </div>
+
+        {/* Gaming & Esports */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-green-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-green-100 rounded-full">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-gray-900">{dashboardData.gaming_esports?.count || 0}</div>
+              <div className="text-xs text-gray-500">Gaming Platforms</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-sm text-gray-600">
+              Game soundtracks, esports content, and interactive gaming experiences.
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Gaming Content</span>
+          </div>
+        </div>
+
+        {/* Podcast Platforms */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-yellow-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-yellow-100 rounded-full">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-gray-900">{dashboardData.podcast_platform?.count || 0}</div>
+              <div className="text-xs text-gray-500">Podcast Platforms</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-sm text-gray-600">
+              Audio content distribution, podcast hosting, and voice-over services.
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Audio Content</span>
+          </div>
+        </div>
+
+        {/* Stock Photography */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border-t-4 border-indigo-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-indigo-100 rounded-full">
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-gray-900">{dashboardData.stock_photography?.count || 0}</div>
+              <div className="text-xs text-gray-500">Stock Platforms</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-sm text-gray-600">
+              Licensed photography, stock images, and commercial photo distribution.
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">Stock Content</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Monetization Summary */}
+      <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg p-6">
+        <h3 className="text-xl font-bold mb-4">Revenue Optimization Overview</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold">{dashboardData.monetization_summary?.total_platforms || 0}</div>
+            <div className="text-sm text-green-100">Total Platforms</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold">{dashboardData.monetization_summary?.categories_covered || 0}</div>
+            <div className="text-sm text-green-100">Revenue Categories</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold">{dashboardData.monetization_summary?.estimated_monthly_potential || '$0'}</div>
+            <div className="text-sm text-green-100">Monthly Potential</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <button className="px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors">
+            📸 Photography Services
+          </button>
+          <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+            🎬 Video Production
+          </button>
+          <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+            🎙️ Podcast Hosting
+          </button>
+          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+            💰 Monetization Strategy
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
