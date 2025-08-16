@@ -5752,6 +5752,10 @@ class BackendTester:
         
         print("\nTesting Business Identifiers...")
         self.test_business_identifiers_endpoint()
+        self.test_tin_update_verification()
+        self.test_environment_variable_loading()
+        self.test_business_information_consistency()
+        self.test_admin_business_overview_tin_update()
         self.test_publisher_name_consistency()
         self.test_environment_variables_verification()
         self.test_authentication_requirements()
