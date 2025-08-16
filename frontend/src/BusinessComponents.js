@@ -515,8 +515,8 @@ export const ProductManagement = () => {
     track_title: '',
     release_date: '',
     duration_seconds: '',
-    record_label: 'Big Mann Entertainment LLC',
-    publisher_name: 'Big Mann Entertainment LLC',
+    record_label: 'Big Mann Entertainment',
+    publisher_name: 'Big Mann Entertainment',
     publisher_number: 'PA04UV',
     songwriter_credits: '',
     publishing_rights: 'All rights reserved'
