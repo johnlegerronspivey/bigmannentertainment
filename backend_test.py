@@ -98,7 +98,15 @@ class BackendTester:
             "industry_identifiers_dashboard": {"passed": 0, "failed": 0, "details": []},
             "industry_identifiers_entity_details": {"passed": 0, "failed": 0, "details": []},
             "industry_identifiers_authentication": {"passed": 0, "failed": 0, "details": []},
-            "legacy_ipi_compatibility": {"passed": 0, "failed": 0, "details": []}
+            "legacy_ipi_compatibility": {"passed": 0, "failed": 0, "details": []},
+            "entertainment_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "photography_services": {"passed": 0, "failed": 0, "details": []},
+            "video_production": {"passed": 0, "failed": 0, "details": []},
+            "monetization_opportunities": {"passed": 0, "failed": 0, "details": []},
+            "entertainment_partners": {"passed": 0, "failed": 0, "details": []},
+            "industry_initialization": {"passed": 0, "failed": 0, "details": []},
+            "content_monetization": {"passed": 0, "failed": 0, "details": []},
+            "entertainment_analytics": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
