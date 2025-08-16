@@ -51,60 +51,113 @@ class IndustryIntegrationService:
                     await self.db.industry_partners.insert_one(platform.dict())
                     total_partners += 1
             
-            # Add record labels
-            for tier, labels in ENTERTAINMENT_INDUSTRY_PARTNERS["record_labels"].items():
-                for label_data in labels:
-                    label = RecordLabel(
-                        category="record_label",
-                        tier=tier,
-                        **label_data
-                    )
-                    await self.db.industry_partners.insert_one(label.dict())
-                    total_partners += 1
+            # Add photography services
+            if "photography_services" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for service_type, services in ENTERTAINMENT_INDUSTRY_PARTNERS["photography_services"].items():
+                    for service_data in services:
+                        service = IndustryPartner(
+                            category="photography_service",
+                            tier=service_type,
+                            **service_data
+                        )
+                        await self.db.industry_partners.insert_one(service.dict())
+                        total_partners += 1
             
-            # Add radio stations
-            for tier, stations in ENTERTAINMENT_INDUSTRY_PARTNERS["radio_stations"].items():
-                for station_data in stations:
-                    station = RadioStation(
-                        category="radio_station",
-                        tier=tier,
-                        **station_data
-                    )
-                    await self.db.industry_partners.insert_one(station.dict())
-                    total_partners += 1
+            # Add stock photography platforms
+            if "stock_photography" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for tier, platforms in ENTERTAINMENT_INDUSTRY_PARTNERS["stock_photography"].items():
+                    for platform_data in platforms:
+                        platform = IndustryPartner(
+                            category="stock_photography",
+                            tier=tier,
+                            **platform_data
+                        )
+                        await self.db.industry_partners.insert_one(platform.dict())
+                        total_partners += 1
             
-            # Add TV networks
-            for tier, networks in ENTERTAINMENT_INDUSTRY_PARTNERS["tv_networks"].items():
-                for network_data in networks:
-                    network = TVNetwork(
-                        category="tv_network",
-                        tier=tier,
-                        **network_data
-                    )
-                    await self.db.industry_partners.insert_one(network.dict())
-                    total_partners += 1
+            # Add social media photography platforms
+            if "social_media_photography" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for platform_type, platforms in ENTERTAINMENT_INDUSTRY_PARTNERS["social_media_photography"].items():
+                    for platform_data in platforms:
+                        platform = IndustryPartner(
+                            category="social_media_photography",
+                            tier=platform_type,
+                            **platform_data
+                        )
+                        await self.db.industry_partners.insert_one(platform.dict())
+                        total_partners += 1
             
-            # Add venues
-            for tier, venues in ENTERTAINMENT_INDUSTRY_PARTNERS["venues"].items():
-                for venue_data in venues:
-                    venue = Venue(
-                        category="venue",
-                        tier=tier,
-                        **venue_data
-                    )
-                    await self.db.industry_partners.insert_one(venue.dict())
-                    total_partners += 1
+            # Add video production services
+            if "video_production" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for production_type, services in ENTERTAINMENT_INDUSTRY_PARTNERS["video_production"].items():
+                    for service_data in services:
+                        service = IndustryPartner(
+                            category="video_production",
+                            tier=production_type,
+                            **service_data
+                        )
+                        await self.db.industry_partners.insert_one(service.dict())
+                        total_partners += 1
             
-            # Add booking agencies
-            for tier, agencies in ENTERTAINMENT_INDUSTRY_PARTNERS["booking_agencies"].items():
-                for agency_data in agencies:
-                    agency = BookingAgency(
-                        category="booking_agency",
-                        tier=tier,
-                        **agency_data
-                    )
-                    await self.db.industry_partners.insert_one(agency.dict())
-                    total_partners += 1
+            # Add podcast platforms
+            if "podcast_platforms" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for platform_type, platforms in ENTERTAINMENT_INDUSTRY_PARTNERS["podcast_platforms"].items():
+                    for platform_data in platforms:
+                        platform = IndustryPartner(
+                            category="podcast_platform",
+                            tier=platform_type,
+                            **platform_data
+                        )
+                        await self.db.industry_partners.insert_one(platform.dict())
+                        total_partners += 1
+            
+            # Add live streaming platforms
+            if "live_streaming" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for platform_type, platforms in ENTERTAINMENT_INDUSTRY_PARTNERS["live_streaming"].items():
+                    for platform_data in platforms:
+                        platform = IndustryPartner(
+                            category="live_streaming",
+                            tier=platform_type,
+                            **platform_data
+                        )
+                        await self.db.industry_partners.insert_one(platform.dict())
+                        total_partners += 1
+            
+            # Add gaming/esports platforms
+            if "gaming_esports" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for platform_type, platforms in ENTERTAINMENT_INDUSTRY_PARTNERS["gaming_esports"].items():
+                    for platform_data in platforms:
+                        platform = IndustryPartner(
+                            category="gaming_esports",
+                            tier=platform_type,
+                            **platform_data
+                        )
+                        await self.db.industry_partners.insert_one(platform.dict())
+                        total_partners += 1
+            
+            # Add fashion photography services
+            if "fashion_photography" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for photo_type, services in ENTERTAINMENT_INDUSTRY_PARTNERS["fashion_photography"].items():
+                    for service_data in services:
+                        service = IndustryPartner(
+                            category="fashion_photography",
+                            tier=photo_type,
+                            **service_data
+                        )
+                        await self.db.industry_partners.insert_one(service.dict())
+                        total_partners += 1
+
+            # Add existing record labels
+            if "record_labels" in ENTERTAINMENT_INDUSTRY_PARTNERS:
+                for tier, labels in ENTERTAINMENT_INDUSTRY_PARTNERS["record_labels"].items():
+                    for label_data in labels:
+                        label = RecordLabel(
+                            category="record_label",
+                            tier=tier,
+                            **label_data
+                        )
+                        await self.db.industry_partners.insert_one(label.dict())
+                        total_partners += 1
             
             logger.info(f"Initialized {total_partners} industry partners")
             return total_partners
