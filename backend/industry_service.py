@@ -8,7 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from industry_models import (
     IndustryPartner, StreamingPlatform, RecordLabel, RadioStation, 
     TVNetwork, Venue, BookingAgency, ContentDistribution, 
-    IndustryAnalytics, RevenueTracking, INDUSTRY_PARTNERS,
+    IndustryAnalytics, RevenueTracking, ENTERTAINMENT_INDUSTRY_PARTNERS,
     IndustryIdentifier, BIG_MANN_INDUSTRY_IDENTIFIERS
 )
 
@@ -41,7 +41,7 @@ class IndustryIntegrationService:
             total_partners = 0
             
             # Add streaming platforms
-            for tier, platforms in INDUSTRY_PARTNERS["streaming_platforms"].items():
+            for tier, platforms in ENTERTAINMENT_INDUSTRY_PARTNERS["streaming_platforms"].items():
                 for platform_data in platforms:
                     platform = StreamingPlatform(
                         category="streaming_platform",
@@ -52,7 +52,7 @@ class IndustryIntegrationService:
                     total_partners += 1
             
             # Add record labels
-            for tier, labels in INDUSTRY_PARTNERS["record_labels"].items():
+            for tier, labels in ENTERTAINMENT_INDUSTRY_PARTNERS["record_labels"].items():
                 for label_data in labels:
                     label = RecordLabel(
                         category="record_label",
@@ -63,7 +63,7 @@ class IndustryIntegrationService:
                     total_partners += 1
             
             # Add radio stations
-            for tier, stations in INDUSTRY_PARTNERS["radio_stations"].items():
+            for tier, stations in ENTERTAINMENT_INDUSTRY_PARTNERS["radio_stations"].items():
                 for station_data in stations:
                     station = RadioStation(
                         category="radio_station",
@@ -74,7 +74,7 @@ class IndustryIntegrationService:
                     total_partners += 1
             
             # Add TV networks
-            for tier, networks in INDUSTRY_PARTNERS["tv_networks"].items():
+            for tier, networks in ENTERTAINMENT_INDUSTRY_PARTNERS["tv_networks"].items():
                 for network_data in networks:
                     network = TVNetwork(
                         category="tv_network",
@@ -85,7 +85,7 @@ class IndustryIntegrationService:
                     total_partners += 1
             
             # Add venues
-            for tier, venues in INDUSTRY_PARTNERS["venues"].items():
+            for tier, venues in ENTERTAINMENT_INDUSTRY_PARTNERS["venues"].items():
                 for venue_data in venues:
                     venue = Venue(
                         category="venue",
@@ -96,7 +96,7 @@ class IndustryIntegrationService:
                     total_partners += 1
             
             # Add booking agencies
-            for tier, agencies in INDUSTRY_PARTNERS["booking_agencies"].items():
+            for tier, agencies in ENTERTAINMENT_INDUSTRY_PARTNERS["booking_agencies"].items():
                 for agency_data in agencies:
                     agency = BookingAgency(
                         category="booking_agency",
