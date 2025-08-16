@@ -28,7 +28,176 @@ class IndustryIdentifier(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-# Industry Partner Models
+# Enhanced Entertainment Industry Models
+
+# Photography Services Model
+class PhotographyService(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str = "photography_service"  # photography_service
+    service_type: str  # album_cover, promotional, event, fashion, commercial
+    specialties: List[str] = []
+    price_range: str = ""  # e.g., "$500-$2500"
+    equipment_specs: Dict[str, Any] = {}
+    portfolio_url: Optional[str] = None
+    booking_availability: str = "available"  # available, booked, limited
+    turnaround_time: str = ""  # e.g., "3-7 days"
+    territories: List[str] = []
+    contact_info: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Stock Photography Platform Model
+class StockPhotographyPlatform(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str = "stock_photography"
+    platform_type: str  # major, independent, niche
+    api_endpoint: Optional[str] = None
+    commission_rate: str = ""  # e.g., "15-40%"
+    content_types: List[str] = []  # photos, vectors, videos, templates
+    upload_requirements: Dict[str, Any] = {}
+    review_process: str = ""  # automated, manual, hybrid
+    payout_schedule: str = ""  # monthly, quarterly, on-demand
+    territories: List[str] = []
+    monetization_options: List[str] = []
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Video Production Service Model
+class VideoProductionService(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str = "video_production"
+    production_type: str  # music_videos, commercial, documentary, live_stream
+    specialties: List[str] = []
+    equipment_capabilities: List[str] = []  # 4K, 8K, drone, steadicam, etc.
+    crew_size: str = ""  # e.g., "5-15 people"
+    price_range: str = ""
+    post_production_services: List[str] = []  # editing, color_grading, sound_design
+    delivery_formats: List[str] = []  # mp4, mov, prores, etc.
+    territories: List[str] = []
+    portfolio_url: Optional[str] = None
+    booking_calendar: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Podcast Platform Model
+class PodcastPlatform(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str = "podcast_platform"
+    platform_type: str  # hosting, distribution, production
+    api_endpoint: Optional[str] = None
+    monetization_options: List[str] = []  # ad_revenue, subscriptions, donations
+    content_types: List[str] = []  # audio, video, live
+    analytics_features: List[str] = []
+    distribution_reach: List[str] = []  # spotify, apple, google, etc.
+    upload_limits: Dict[str, Any] = {}
+    pricing_model: str = ""  # free, freemium, subscription, per_episode
+    territories: List[str] = []
+    integration_capabilities: List[str] = []
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Live Streaming Platform Model
+class LiveStreamingPlatform(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str = "live_streaming"
+    platform_type: str  # major, music_focused, gaming, general
+    api_endpoint: Optional[str] = None
+    monetization_options: List[str] = []
+    content_types: List[str] = []
+    streaming_quality: List[str] = []  # 720p, 1080p, 4K
+    chat_features: List[str] = []
+    interactive_features: List[str] = []  # polls, q&a, donations
+    audience_size_limit: Optional[int] = None
+    concurrent_viewers_limit: Optional[int] = None
+    territories: List[str] = []
+    integration_tools: List[str] = []
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Gaming/Esports Platform Model
+class GamingEsportsPlatform(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str = "gaming_esports"
+    platform_type: str  # game_platform, esports_org, streaming_service
+    specialties: List[str] = []
+    monetization_options: List[str] = []
+    content_types: List[str] = []  # soundtracks, sfx, streaming_music
+    audience_demographics: Dict[str, Any] = {}
+    partnership_opportunities: List[str] = []
+    licensing_options: List[str] = []
+    territories: List[str] = []
+    api_integration: Optional[str] = None
+    revenue_sharing: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Social Media Content Platform Model
+class SocialMediaPlatform(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str = "social_media"
+    platform_type: str  # photo_sharing, video_sharing, mixed_content
+    api_endpoint: Optional[str] = None
+    content_types: List[str] = []
+    monetization_options: List[str] = []
+    content_specs: Dict[str, Any] = {}  # image_sizes, video_lengths, etc.
+    engagement_features: List[str] = []
+    advertising_options: List[str] = []
+    creator_tools: List[str] = []
+    analytics_dashboard: bool = True
+    territories: List[str] = []
+    integration_capabilities: List[str] = []
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Enhanced Revenue Tracking for Entertainment Industry
+class EntertainmentRevenueStream(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    source_name: str
+    source_category: str  # photography, video, streaming, gaming, etc.
+    revenue_type: str  # commission, licensing, subscription, ad_revenue, etc.
+    amount: float
+    currency: str = "USD"
+    date_earned: datetime
+    payout_status: str = "pending"  # pending, processing, paid
+    payout_date: Optional[datetime] = None
+    commission_rate: Optional[float] = None
+    gross_revenue: Optional[float] = None
+    net_revenue: float
+    platform_fees: Optional[float] = None
+    territories: List[str] = []
+    content_id: Optional[str] = None
+    content_type: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Content Monetization Model
+class ContentMonetization(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    content_id: str
+    content_type: str  # photo, video, audio, live_stream, etc.
+    content_title: str
+    monetization_methods: List[str] = []  # ads, subscriptions, tips, licensing
+    revenue_streams: List[EntertainmentRevenueStream] = []
+    total_revenue: float = 0.0
+    active_platforms: List[str] = []
+    performance_metrics: Dict[str, Any] = {}
+    optimization_suggestions: List[str] = []
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 class IndustryPartner(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
