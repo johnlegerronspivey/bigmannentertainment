@@ -871,7 +871,7 @@ export const ProductManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {product.publisher_name || 'Big Mann Entertainment LLC'}
+                      {product.publisher_name || 'Big Mann Entertainment'}
                     </div>
                     {product.publisher_number && (
                       <div className="text-xs font-mono text-gray-500">{product.publisher_number}</div>
