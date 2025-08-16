@@ -5752,6 +5752,8 @@ class BackendTester:
         
         print("\nTesting Business Identifiers...")
         self.test_business_identifiers_endpoint()
+        self.test_publisher_name_consistency()
+        self.test_environment_variables_verification()
         self.test_authentication_requirements()
         
         print("\nTesting UPC Code Generation...")
