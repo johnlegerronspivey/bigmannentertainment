@@ -821,5 +821,177 @@ class IndustryIntegrationService:
             }
             
         except Exception as e:
-            logger.error(f"Error getting IPI dashboard data: {str(e)}")
+            logger.error(f"Error getting industry identifiers dashboard data: {str(e)}")
+            return {}
+    
+    # Enhanced Entertainment Industry Management Methods
+    async def get_entertainment_partners_by_category(self, category: str, tier: Optional[str] = None) -> List[Dict]:
+        """Get entertainment industry partners by category (photography, video, streaming, etc.)"""
+        try:
+            query = {"category": category, "status": "active"}
+            if tier:
+                query["tier"] = tier
+            
+            cursor = self.db.industry_partners.find(query)
+            partners = await cursor.to_list(None)
+            return partners
+            
+        except Exception as e:
+            logger.error(f"Error retrieving entertainment partners: {str(e)}")
+            return []
+    
+    async def get_photography_services(self, service_type: Optional[str] = None, price_range: Optional[str] = None) -> List[Dict]:
+        """Get photography services with filtering options"""
+        try:
+            query = {"category": "photography_service", "status": "active"}
+            if service_type:
+                query["tier"] = service_type  # album_cover, promotional, event
+            
+            cursor = self.db.industry_partners.find(query)
+            services = await cursor.to_list(None)
+            
+            # Filter by price range if specified
+            if price_range:
+                filtered_services = []
+                for service in services:
+                    if price_range.lower() in service.get("price_range", "").lower():
+                        filtered_services.append(service)
+                services = filtered_services
+            
+            return services
+            
+        except Exception as e:
+            logger.error(f"Error retrieving photography services: {str(e)}")
+            return []
+    
+    async def get_video_production_services(self, production_type: Optional[str] = None) -> List[Dict]:
+        """Get video production services"""
+        try:
+            query = {"category": "video_production", "status": "active"}
+            if production_type:
+                query["tier"] = production_type  # music_videos, production_companies
+            
+            cursor = self.db.industry_partners.find(query)
+            services = await cursor.to_list(None)
+            return services
+            
+        except Exception as e:
+            logger.error(f"Error retrieving video production services: {str(e)}")
+            return []
+    
+    async def get_monetization_opportunities(self, content_type: str = "all") -> Dict[str, Any]:
+        """Get comprehensive monetization opportunities across all entertainment platforms"""
+        try:
+            monetization_data = {}
+            
+            # Photography monetization
+            photo_platforms = await self.get_entertainment_partners_by_category("stock_photography")
+            photo_social = await self.get_entertainment_partners_by_category("social_media_photography")
+            
+            monetization_data["photography"] = {
+                "stock_platforms": len(photo_platforms),
+                "social_media": len(photo_social),
+                "estimated_revenue_range": "$100-$10000/month",
+                "top_platforms": [p["name"] for p in photo_platforms[:3]]
+            }
+            
+            # Video monetization
+            video_services = await self.get_entertainment_partners_by_category("video_production")
+            streaming_platforms = await self.get_entertainment_partners_by_category("live_streaming")
+            
+            monetization_data["video"] = {
+                "production_services": len(video_services),
+                "streaming_platforms": len(streaming_platforms),
+                "estimated_revenue_range": "$500-$50000/project",
+                "top_platforms": [p["name"] for p in streaming_platforms[:3]]
+            }
+            
+            # Audio/Music monetization (existing)
+            streaming_services = await self.get_entertainment_partners_by_category("streaming_platform")
+            podcast_platforms = await self.get_entertainment_partners_by_category("podcast_platform")
+            
+            monetization_data["audio"] = {
+                "streaming_platforms": len(streaming_services),
+                "podcast_platforms": len(podcast_platforms),
+                "estimated_revenue_range": "$0.003-$0.005/stream",
+                "top_platforms": [p["name"] for p in streaming_services[:3]]
+            }
+            
+            # Gaming monetization
+            gaming_platforms = await self.get_entertainment_partners_by_category("gaming_esports")
+            
+            monetization_data["gaming"] = {
+                "platforms": len(gaming_platforms),
+                "estimated_revenue_range": "$1000-$100000/license",
+                "top_platforms": [p["name"] for p in gaming_platforms[:3]]
+            }
+            
+            # Calculate total opportunities
+            monetization_data["summary"] = {
+                "total_platforms": len(photo_platforms) + len(streaming_platforms) + len(streaming_services) + len(gaming_platforms),
+                "categories_covered": len(monetization_data) - 1,
+                "estimated_monthly_potential": "$2000-$200000"
+            }
+            
+            return monetization_data
+            
+        except Exception as e:
+            logger.error(f"Error getting monetization opportunities: {str(e)}")
+            return {}
+    
+    async def get_comprehensive_entertainment_dashboard(self) -> Dict[str, Any]:
+        """Get comprehensive entertainment industry dashboard with all categories"""
+        try:
+            dashboard_data = {}
+            
+            # Get counts for each category
+            categories = [
+                "photography_service", "stock_photography", "social_media_photography",
+                "video_production", "podcast_platform", "live_streaming",
+                "gaming_esports", "fashion_photography", "streaming_platform", "record_label"
+            ]
+            
+            for category in categories:
+                partners = await self.get_entertainment_partners_by_category(category)
+                dashboard_data[category] = {
+                    "count": len(partners),
+                    "active_partners": len([p for p in partners if p.get("status") == "active"]),
+                    "top_partners": [p["name"] for p in partners[:5]]
+                }
+            
+            # Photography breakdown
+            photography_services = await self.get_photography_services()
+            dashboard_data["photography_breakdown"] = {
+                "album_cover": len([p for p in photography_services if p.get("tier") == "album_cover"]),
+                "promotional": len([p for p in photography_services if p.get("tier") == "promotional"]),
+                "event": len([p for p in photography_services if p.get("tier") == "event"])
+            }
+            
+            # Video production breakdown
+            video_services = await self.get_video_production_services()
+            dashboard_data["video_breakdown"] = {
+                "music_videos": len([p for p in video_services if p.get("tier") == "music_videos"]),
+                "production_companies": len([p for p in video_services if p.get("tier") == "production_companies"])
+            }
+            
+            # Monetization summary
+            monetization = await self.get_monetization_opportunities()
+            dashboard_data["monetization_summary"] = monetization.get("summary", {})
+            
+            # Big Mann Entertainment comprehensive overview
+            dashboard_data["big_mann_entertainment"] = {
+                "total_industry_reach": sum([data["count"] for data in dashboard_data.values() if isinstance(data, dict) and "count" in data]),
+                "content_distribution_channels": len(categories),
+                "monetization_potential": "High across all entertainment verticals",
+                "integrated_services": [
+                    "Music Distribution", "Photography Services", "Video Production",
+                    "Live Streaming", "Podcast Hosting", "Gaming Integration",
+                    "Social Media Content", "Fashion Photography", "Stock Photography"
+                ]
+            }
+            
+            return dashboard_data
+            
+        except Exception as e:
+            logger.error(f"Error getting comprehensive entertainment dashboard: {str(e)}")
             return {}
