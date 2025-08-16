@@ -3535,7 +3535,7 @@ except Exception as e:
 # Include Industry router
 try:
     from industry_endpoints import router as industry_router
-    api_router.include_router(industry_router)
+    app.include_router(industry_router)
     print("✅ Industry router successfully loaded")
 except ImportError as e:
     print(f"⚠️ Industry router not available: {e}")
