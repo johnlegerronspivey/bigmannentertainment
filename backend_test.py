@@ -6863,6 +6863,180 @@ class BackendTester:
             self.log_result("business_identifiers", "Business Identifiers Endpoint", False, f"Exception: {str(e)}")
             return False
     
+    def test_tin_update_verification(self) -> bool:
+        """Test TIN update verification - ensure TIN changed from 270658077 to 12800 while EIN remains unchanged"""
+        try:
+            response = self.make_request('GET', '/business/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify TIN has been updated to 12800
+                actual_tin = data.get('business_tin')
+                expected_tin = '12800'
+                
+                # Verify EIN remains unchanged at 270658077
+                actual_ein = data.get('business_ein')
+                expected_ein = '270658077'
+                
+                tin_correct = actual_tin == expected_tin
+                ein_correct = actual_ein == expected_ein
+                
+                if tin_correct and ein_correct:
+                    self.log_result("business_identifiers", "TIN Update Verification", True, 
+                                  f"✅ TIN successfully updated to {expected_tin}, EIN remains {expected_ein}")
+                    return True
+                elif not tin_correct and ein_correct:
+                    self.log_result("business_identifiers", "TIN Update Verification", False, 
+                                  f"❌ TIN update failed: expected {expected_tin}, got {actual_tin}. EIN correct: {expected_ein}")
+                    return False
+                elif tin_correct and not ein_correct:
+                    self.log_result("business_identifiers", "TIN Update Verification", False, 
+                                  f"❌ EIN changed unexpectedly: expected {expected_ein}, got {actual_ein}. TIN correct: {expected_tin}")
+                    return False
+                else:
+                    self.log_result("business_identifiers", "TIN Update Verification", False, 
+                                  f"❌ Both TIN and EIN incorrect: TIN expected {expected_tin}, got {actual_tin}; EIN expected {expected_ein}, got {actual_ein}")
+                    return False
+            else:
+                self.log_result("business_identifiers", "TIN Update Verification", False, 
+                              f"Failed to retrieve business identifiers: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("business_identifiers", "TIN Update Verification", False, f"Exception: {str(e)}")
+            return False
+
+    def test_environment_variable_loading(self) -> bool:
+        """Test that BUSINESS_TIN environment variable is properly loaded as 12800"""
+        try:
+            response = self.make_request('GET', '/business/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if TIN matches environment variable value
+                actual_tin = data.get('business_tin')
+                expected_tin = '12800'  # This should match BUSINESS_TIN in backend/.env
+                
+                if actual_tin == expected_tin:
+                    self.log_result("business_identifiers", "Environment Variable Loading", True, 
+                                  f"✅ BUSINESS_TIN environment variable properly loaded: {expected_tin}")
+                    return True
+                else:
+                    self.log_result("business_identifiers", "Environment Variable Loading", False, 
+                                  f"❌ Environment variable not loaded correctly: expected {expected_tin}, got {actual_tin}")
+                    return False
+            else:
+                self.log_result("business_identifiers", "Environment Variable Loading", False, 
+                              f"Failed to retrieve business identifiers: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("business_identifiers", "Environment Variable Loading", False, f"Exception: {str(e)}")
+            return False
+
+    def test_business_information_consistency(self) -> bool:
+        """Test that all other business information remains unchanged while only TIN is updated"""
+        try:
+            response = self.make_request('GET', '/business/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify all other fields remain unchanged
+                expected_unchanged_values = {
+                    'business_legal_name': 'Big Mann Entertainment',
+                    'business_ein': '270658077',  # Should remain unchanged
+                    'business_address': '1314 Lincoln Heights Street, Alexander City, Alabama 35010',
+                    'business_phone': '334-669-8638',
+                    'business_naics_code': '512200',
+                    'upc_company_prefix': '8600043402',
+                    'global_location_number': '0860004340201'
+                }
+                
+                # Verify TIN is updated
+                expected_tin = '12800'
+                actual_tin = data.get('business_tin')
+                
+                unchanged_correct = []
+                unchanged_incorrect = []
+                
+                for field, expected in expected_unchanged_values.items():
+                    actual = data.get(field)
+                    if actual == expected:
+                        unchanged_correct.append(field)
+                    else:
+                        unchanged_incorrect.append(f"{field}: expected '{expected}', got '{actual}'")
+                
+                tin_updated = actual_tin == expected_tin
+                
+                if tin_updated and not unchanged_incorrect:
+                    self.log_result("business_identifiers", "Business Information Consistency", True, 
+                                  f"✅ TIN updated to {expected_tin}, all other {len(unchanged_correct)} fields remain unchanged")
+                    return True
+                elif not tin_updated and not unchanged_incorrect:
+                    self.log_result("business_identifiers", "Business Information Consistency", False, 
+                                  f"❌ TIN not updated: expected {expected_tin}, got {actual_tin}")
+                    return False
+                elif tin_updated and unchanged_incorrect:
+                    self.log_result("business_identifiers", "Business Information Consistency", False, 
+                                  f"❌ TIN updated correctly but other fields changed: {'; '.join(unchanged_incorrect)}")
+                    return False
+                else:
+                    self.log_result("business_identifiers", "Business Information Consistency", False, 
+                                  f"❌ TIN not updated AND other fields changed: TIN expected {expected_tin}, got {actual_tin}; Changes: {'; '.join(unchanged_incorrect)}")
+                    return False
+            else:
+                self.log_result("business_identifiers", "Business Information Consistency", False, 
+                              f"Failed to retrieve business identifiers: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("business_identifiers", "Business Information Consistency", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_business_overview_tin_update(self) -> bool:
+        """Test that admin business overview endpoints also reflect the updated TIN"""
+        try:
+            if not self.auth_token:
+                self.log_result("business_identifiers", "Admin Business Overview TIN Update", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/admin/business/overview')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if TIN is reflected in admin overview
+                business_info = data.get('business_information', {})
+                actual_tin = business_info.get('business_tin')
+                expected_tin = '12800'
+                
+                actual_ein = business_info.get('business_ein')
+                expected_ein = '270658077'
+                
+                if actual_tin == expected_tin and actual_ein == expected_ein:
+                    self.log_result("business_identifiers", "Admin Business Overview TIN Update", True, 
+                                  f"✅ Admin overview shows updated TIN: {expected_tin}, EIN unchanged: {expected_ein}")
+                    return True
+                else:
+                    self.log_result("business_identifiers", "Admin Business Overview TIN Update", False, 
+                                  f"❌ Admin overview incorrect: TIN expected {expected_tin}, got {actual_tin}; EIN expected {expected_ein}, got {actual_ein}")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("business_identifiers", "Admin Business Overview TIN Update", True, 
+                              "Admin endpoint properly protected (user not admin)")
+                return True
+            else:
+                self.log_result("business_identifiers", "Admin Business Overview TIN Update", False, 
+                              f"Failed to access admin overview: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("business_identifiers", "Admin Business Overview TIN Update", False, f"Exception: {str(e)}")
+            return False
+    
     def test_publisher_name_consistency(self) -> bool:
         """Test that publisher_name references are consistent and do NOT contain LLC"""
         try:
