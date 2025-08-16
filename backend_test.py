@@ -6796,35 +6796,39 @@ class BackendTester:
     # ===== BUSINESS IDENTIFIERS AND PRODUCT CODE MANAGEMENT TESTS =====
     
     def test_business_identifiers_endpoint(self) -> bool:
-        """Test /api/business/identifiers endpoint to verify LLC REMOVAL from business information"""
+        """Test /api/business/identifiers endpoint to verify TIN UPDATE from 270658077 to 12800"""
         try:
-            if not self.auth_token:
-                self.log_result("business_identifiers", "Business Identifiers Endpoint", False, "No auth token available")
-                return False
-            
             response = self.make_request('GET', '/business/identifiers')
             
             if response.status_code == 200:
                 data = response.json()
                 
-                # CRITICAL TEST: Verify expected business identifiers WITHOUT LLC
+                # CRITICAL TEST: Verify TIN has been updated to 12800 while EIN remains 270658077
                 expected_values = {
-                    'business_legal_name': 'Big Mann Entertainment',  # UPDATED: No LLC
-                    'business_ein': '270658077',
-                    'business_tin': '270658077',
+                    'business_legal_name': 'Big Mann Entertainment',
+                    'business_ein': '270658077',  # Should remain unchanged
+                    'business_tin': '12800',      # UPDATED: Changed from 270658077 to 12800
                     'business_address': '1314 Lincoln Heights Street, Alexander City, Alabama 35010',
                     'business_phone': '334-669-8638',
                     'business_naics_code': '512200',
                     'upc_company_prefix': '8600043402',
-                    'global_location_number': '0860004340201',
-                    'naics_description': 'Sound Recording Industries'
+                    'global_location_number': '0860004340201'
                 }
                 
-                # FIRST: Check if business_legal_name contains LLC (should NOT)
-                business_legal_name = data.get('business_legal_name', '')
-                if 'LLC' in business_legal_name:
+                # FIRST: Check TIN update specifically
+                actual_tin = data.get('business_tin', '')
+                expected_tin = '12800'
+                actual_ein = data.get('business_ein', '')
+                expected_ein = '270658077'
+                
+                if actual_tin != expected_tin:
                     self.log_result("business_identifiers", "Business Identifiers Endpoint", False, 
-                                  f"❌ CRITICAL FAILURE: business_legal_name still contains 'LLC': '{business_legal_name}' - Expected: 'Big Mann Entertainment'")
+                                  f"❌ CRITICAL FAILURE: TIN not updated correctly. Expected: '{expected_tin}', Got: '{actual_tin}'")
+                    return False
+                
+                if actual_ein != expected_ein:
+                    self.log_result("business_identifiers", "Business Identifiers Endpoint", False, 
+                                  f"❌ CRITICAL FAILURE: EIN changed unexpectedly. Expected: '{expected_ein}', Got: '{actual_ein}'")
                     return False
                 
                 # Check all expected values
@@ -6839,7 +6843,7 @@ class BackendTester:
                 
                 if not missing_fields and not incorrect_values:
                     self.log_result("business_identifiers", "Business Identifiers Endpoint", True, 
-                                  f"✅ SUCCESS: LLC removed from business_legal_name. Legal Name: '{data['business_legal_name']}', EIN: {data['business_ein']}, UPC Prefix: {data['upc_company_prefix']}")
+                                  f"✅ SUCCESS: TIN updated to {expected_tin}, EIN remains {expected_ein}. Legal Name: '{data['business_legal_name']}', UPC Prefix: {data['upc_company_prefix']}")
                     return True
                 else:
                     error_msg = ""
