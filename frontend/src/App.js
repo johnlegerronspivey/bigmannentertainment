@@ -460,6 +460,10 @@ const Header = () => {
                   <Link to="/admin/blockchain" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Blockchain</Link>
                   <Link to="/admin/ddex" className="block px-4 py-2 hover:bg-gray-100 transition-colors">DDEX Compliance</Link>
                   <Link to="/admin/industry" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Industry Integration</Link>
+                  <Link to="/admin/industry/entertainment" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Entertainment Dashboard</Link>
+                  <Link to="/admin/industry/photography" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Photography Services</Link>
+                  <Link to="/admin/industry/video" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Video Production</Link>
+                  <Link to="/admin/industry/monetization" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Monetization</Link>
                   <Link to="/admin/security" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Security</Link>
                 </div>
               </div>
