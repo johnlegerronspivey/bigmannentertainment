@@ -6794,7 +6794,7 @@ class BackendTester:
     # ===== BUSINESS IDENTIFIERS AND PRODUCT CODE MANAGEMENT TESTS =====
     
     def test_business_identifiers_endpoint(self) -> bool:
-        """Test /api/business/identifiers endpoint to verify business information"""
+        """Test /api/business/identifiers endpoint to verify LLC REMOVAL from business information"""
         try:
             if not self.auth_token:
                 self.log_result("business_identifiers", "Business Identifiers Endpoint", False, "No auth token available")
@@ -6805,9 +6805,9 @@ class BackendTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Verify expected business identifiers
+                # CRITICAL TEST: Verify expected business identifiers WITHOUT LLC
                 expected_values = {
-                    'business_legal_name': 'Big Mann Entertainment LLC',
+                    'business_legal_name': 'Big Mann Entertainment',  # UPDATED: No LLC
                     'business_ein': '270658077',
                     'business_tin': '270658077',
                     'business_address': '1314 Lincoln Heights Street, Alexander City, Alabama 35010',
@@ -6817,6 +6817,13 @@ class BackendTester:
                     'global_location_number': '0860004340201',
                     'naics_description': 'Sound Recording Industries'
                 }
+                
+                # FIRST: Check if business_legal_name contains LLC (should NOT)
+                business_legal_name = data.get('business_legal_name', '')
+                if 'LLC' in business_legal_name:
+                    self.log_result("business_identifiers", "Business Identifiers Endpoint", False, 
+                                  f"❌ CRITICAL FAILURE: business_legal_name still contains 'LLC': '{business_legal_name}' - Expected: 'Big Mann Entertainment'")
+                    return False
                 
                 # Check all expected values
                 missing_fields = []
@@ -6830,7 +6837,7 @@ class BackendTester:
                 
                 if not missing_fields and not incorrect_values:
                     self.log_result("business_identifiers", "Business Identifiers Endpoint", True, 
-                                  f"All business identifiers correct - EIN: {data['business_ein']}, UPC Prefix: {data['upc_company_prefix']}, GLN: {data['global_location_number']}")
+                                  f"✅ SUCCESS: LLC removed from business_legal_name. Legal Name: '{data['business_legal_name']}', EIN: {data['business_ein']}, UPC Prefix: {data['upc_company_prefix']}")
                     return True
                 else:
                     error_msg = ""
