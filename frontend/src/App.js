@@ -3823,6 +3823,10 @@ function App() {
             <Route path="/admin/industry" element={<AdminRoute><IndustryDashboard /></AdminRoute>} />
             <Route path="/admin/industry/ipi" element={<AdminRoute><IPIManagement /></AdminRoute>} />
             <Route path="/admin/industry/identifiers" element={<AdminRoute><IndustryIdentifiersManagement /></AdminRoute>} />
+            <Route path="/admin/industry/entertainment" element={<AdminRoute><EnhancedEntertainmentDashboard /></AdminRoute>} />
+            <Route path="/admin/industry/photography" element={<AdminRoute><PhotographyServices /></AdminRoute>} />
+            <Route path="/admin/industry/video" element={<AdminRoute><VideoProductionServices /></AdminRoute>} />
+            <Route path="/admin/industry/monetization" element={<AdminRoute><MonetizationOpportunities /></AdminRoute>} />
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
         </AuthProvider>
