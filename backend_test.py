@@ -6857,6 +6857,106 @@ class BackendTester:
             self.log_result("business_identifiers", "Business Identifiers Endpoint", False, f"Exception: {str(e)}")
             return False
     
+    def test_publisher_name_consistency(self) -> bool:
+        """Test that publisher_name references are consistent and do NOT contain LLC"""
+        try:
+            if not self.auth_token:
+                self.log_result("business_identifiers", "Publisher Name Consistency", False, "No auth token available")
+                return False
+            
+            # Test admin business overview for publisher information
+            response = self.make_request('GET', '/admin/business/overview')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if publisher_name or business_name fields exist and verify no LLC
+                publisher_fields = ['publisher_name', 'business_name', 'business_legal_name']
+                llc_found_in = []
+                
+                for field in publisher_fields:
+                    if field in data:
+                        value = data[field]
+                        if isinstance(value, str) and 'LLC' in value:
+                            llc_found_in.append(f"{field}: '{value}'")
+                
+                if llc_found_in:
+                    self.log_result("business_identifiers", "Publisher Name Consistency", False, 
+                                  f"❌ CRITICAL: LLC found in publisher fields: {'; '.join(llc_found_in)}")
+                    return False
+                else:
+                    # Check for expected publisher name without LLC
+                    expected_publisher_name = 'Big Mann Entertainment'
+                    publisher_name = data.get('publisher_name', data.get('business_name', data.get('business_legal_name', '')))
+                    
+                    if publisher_name == expected_publisher_name:
+                        self.log_result("business_identifiers", "Publisher Name Consistency", True, 
+                                      f"✅ SUCCESS: Publisher name consistent without LLC: '{publisher_name}'")
+                        return True
+                    else:
+                        self.log_result("business_identifiers", "Publisher Name Consistency", True, 
+                                      f"✅ No LLC found in publisher fields. Publisher name: '{publisher_name}'")
+                        return True
+            else:
+                self.log_result("business_identifiers", "Publisher Name Consistency", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("business_identifiers", "Publisher Name Consistency", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_environment_variables_verification(self) -> bool:
+        """Test that environment variables are properly loaded without LLC"""
+        try:
+            if not self.auth_token:
+                self.log_result("business_identifiers", "Environment Variables Verification", False, "No auth token available")
+                return False
+            
+            # Test business identifiers endpoint which should reflect environment variables
+            response = self.make_request('GET', '/business/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify that the response reflects environment variables without LLC
+                business_legal_name = data.get('business_legal_name', '')
+                business_name = data.get('business_name', '')
+                
+                # Check both fields for LLC
+                llc_issues = []
+                if 'LLC' in business_legal_name:
+                    llc_issues.append(f"business_legal_name contains LLC: '{business_legal_name}'")
+                if 'LLC' in business_name:
+                    llc_issues.append(f"business_name contains LLC: '{business_name}'")
+                
+                if llc_issues:
+                    self.log_result("business_identifiers", "Environment Variables Verification", False, 
+                                  f"❌ CRITICAL: Environment variables still contain LLC: {'; '.join(llc_issues)}")
+                    return False
+                
+                # Verify expected values match environment variables
+                expected_business_legal_name = 'Big Mann Entertainment'
+                expected_business_name = 'Big Mann Entertainment'
+                
+                if (business_legal_name == expected_business_legal_name and 
+                    (not business_name or business_name == expected_business_name)):
+                    self.log_result("business_identifiers", "Environment Variables Verification", True, 
+                                  f"✅ SUCCESS: Environment variables properly loaded without LLC. BUSINESS_LEGAL_NAME: '{business_legal_name}'")
+                    return True
+                else:
+                    self.log_result("business_identifiers", "Environment Variables Verification", False, 
+                                  f"Environment variable values don't match expected. Legal: '{business_legal_name}', Name: '{business_name}'")
+                    return False
+            else:
+                self.log_result("business_identifiers", "Environment Variables Verification", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("business_identifiers", "Environment Variables Verification", False, f"Exception: {str(e)}")
+            return False
+    
     def test_upc_generation_valid_codes(self) -> bool:
         """Test UPC code generation with valid 5-digit product codes"""
         try:
