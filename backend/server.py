@@ -1449,7 +1449,7 @@ async def register_user(user_data: UserCreate, request: Request):
         user.role = "super_admin"
     
     # JOHN LEGERRON SPIVEY FULL OWNERSHIP: Make John LeGerron Spivey the super admin owner
-    if user_data.email in ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com", "testadmin@bigmannentertainment.com"]:
+    if user_data.email in ["owner@bigmannentertainment.com"]:
         user.is_admin = True
         user.role = "super_admin"
     
