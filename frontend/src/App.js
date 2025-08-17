@@ -1138,7 +1138,14 @@ const AdminUserManagement = () => {
                           </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
+                          <div className="text-sm font-medium text-gray-900 flex items-center">
+                            {user.full_name}
+                            {ownershipStatus?.john_emails?.includes(user.email) && (
+                              <span className="ml-2 px-2 py-1 bg-yellow-200 text-yellow-800 text-xs font-semibold rounded-full">
+                                👑 OWNER
+                              </span>
+                            )}
+                          </div>
                           <div className="text-sm text-gray-500">{user.email}</div>
                         </div>
                       </div>
