@@ -1044,7 +1044,39 @@ const AdminUserManagement = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8">User Management</h1>
+        <h1 className="text-3xl font-bold mb-8">User Management & Platform Ownership</h1>
+        
+        {/* Platform Ownership Status */}
+        {ownershipStatus && (
+          <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 className="text-xl font-bold mb-4">🏢 Platform Ownership Status</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p><strong>Platform Owner:</strong> {ownershipStatus.platform_owner}</p>
+                <p><strong>Business Entity:</strong> {ownershipStatus.business_entity}</p>
+                <p><strong>Your Role:</strong> {ownershipStatus.current_user_role}</p>
+              </div>
+              <div>
+                <p><strong>Total Admin Users:</strong> {ownershipStatus.total_admin_users}</p>
+                <p><strong>You are Owner:</strong> {ownershipStatus.current_user_is_john ? "✅ YES" : "❌ NO"}</p>
+              </div>
+            </div>
+            <div className="mt-4 p-3 bg-purple-700 bg-opacity-50 rounded">
+              <p className="text-sm">{ownershipStatus.ownership_note}</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Owner Controls - Only visible to John LeGerron Spivey */}
+        {ownershipStatus?.current_user_is_john && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+            <h3 className="text-lg font-bold text-yellow-800 mb-2">👑 Owner Controls</h3>
+            <p className="text-yellow-700 text-sm">
+              You have complete ownership and control of the Big Mann Entertainment platform. 
+              You can grant or revoke admin access to any user below.
+            </p>
+          </div>
+        )}
         
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
