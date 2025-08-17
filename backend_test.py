@@ -5946,6 +5946,40 @@ class BackendTester:
         self.test_mdx_integration_with_ipi_numbers()
         self.test_mdx_ddex_compliance()
         
+        # NEW: Mechanical Licensing Collective (MLC) Integration Tests
+        print("\n🎼 TESTING MECHANICAL LICENSING COLLECTIVE (MLC) INTEGRATION SYSTEM")
+        print("-" * 80)
+        
+        print("\nTesting MLC Integration Initialization...")
+        self.test_mlc_initialization()
+        
+        print("\nTesting MLC Dashboard Analytics...")
+        self.test_mlc_dashboard()
+        
+        print("\nTesting MLC Works Registration...")
+        self.test_mlc_works_registration()
+        
+        print("\nTesting MLC Works Listing & Filtering...")
+        self.test_mlc_works_listing()
+        
+        print("\nTesting MLC Royalty Processing...")
+        self.test_mlc_royalty_processing()
+        
+        print("\nTesting MLC Usage Data Matching...")
+        self.test_mlc_usage_matching()
+        
+        print("\nTesting MLC Claims Management...")
+        self.test_mlc_claims_management()
+        
+        print("\nTesting MLC Performance Analytics...")
+        self.test_mlc_analytics()
+        
+        print("\nTesting MLC Authentication & Security...")
+        self.test_mlc_authentication()
+        
+        print("\nTesting MLC Big Mann Entertainment Integration...")
+        self.test_mlc_big_mann_integration()
+        
         # Print Summary
         self.print_summary()
     
