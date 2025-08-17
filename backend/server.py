@@ -2450,6 +2450,102 @@ async def update_user(
     
     return {"message": "User updated successfully"}
 
+@api_router.post("/admin/users/make-super-admin/{user_id}")
+async def make_user_super_admin(
+    user_id: str,
+    request: Request,
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Make a user a super admin with full ownership rights - Only John LeGerron Spivey can use this"""
+    # Only allow John LeGerron Spivey to grant super admin access
+    john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+    if admin_user.email not in john_emails and admin_user.role != "super_admin":
+        raise HTTPException(status_code=403, detail="Only John LeGerron Spivey can grant super admin access")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update user to super admin
+    update_data = {
+        "is_admin": True,
+        "role": "super_admin",
+        "account_status": "active",
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    # Log activity
+    await log_activity(admin_user.id, "user_promoted_super_admin", "user", user_id, {"promoted_by": admin_user.email}, request)
+    
+    return {"message": f"User {user['email']} has been granted super admin access with full ownership rights"}
+
+@api_router.post("/admin/users/revoke-admin/{user_id}")
+async def revoke_admin_access(
+    user_id: str,
+    request: Request,
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Revoke admin access from a user - Only John LeGerron Spivey can use this"""
+    # Only allow John LeGerron Spivey to revoke admin access
+    john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+    if admin_user.email not in john_emails and admin_user.role != "super_admin":
+        raise HTTPException(status_code=403, detail="Only John LeGerron Spivey can revoke admin access")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Don't allow John to revoke his own access
+    if user['email'] in john_emails:
+        raise HTTPException(status_code=400, detail="Cannot revoke John LeGerron Spivey's admin access")
+    
+    # Update user to regular user
+    update_data = {
+        "is_admin": False,
+        "role": "user",
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    # Log activity
+    await log_activity(admin_user.id, "admin_access_revoked", "user", user_id, {"revoked_by": admin_user.email}, request)
+    
+    return {"message": f"Admin access revoked from user {user['email']}"}
+
+@api_router.get("/admin/ownership/status")
+async def get_ownership_status(
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Get current ownership and admin status of the platform"""
+    john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+    
+    # Get all admin users
+    admin_users = []
+    cursor = db.users.find({"$or": [{"is_admin": True}, {"role": {"$in": ["admin", "super_admin", "moderator"]}}]})
+    async for user in cursor:
+        admin_users.append({
+            "id": user["id"],
+            "email": user["email"],
+            "full_name": user.get("full_name", ""),
+            "role": user["role"],
+            "is_admin": user["is_admin"],
+            "is_john_legerron_spivey": user["email"] in john_emails
+        })
+    
+    return {
+        "platform_owner": "John LeGerron Spivey",
+        "business_entity": "Big Mann Entertainment",
+        "john_emails": john_emails,
+        "total_admin_users": len(admin_users),
+        "admin_users": admin_users,
+        "current_user_is_john": admin_user.email in john_emails,
+        "current_user_role": admin_user.role,
+        "ownership_note": "John LeGerron Spivey has complete 100% ownership and control of Big Mann Entertainment platform and all associated accounts"
+    }
+
 @api_router.delete("/admin/users/{user_id}")
 async def delete_user(
     user_id: str,
