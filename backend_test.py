@@ -130,7 +130,14 @@ class BackendTester:
             "ownership_super_admin_grant": {"passed": 0, "failed": 0, "details": []},
             "ownership_admin_revoke": {"passed": 0, "failed": 0, "details": []},
             "ownership_admin_user_list": {"passed": 0, "failed": 0, "details": []},
-            "ownership_access_control": {"passed": 0, "failed": 0, "details": []}
+            "ownership_access_control": {"passed": 0, "failed": 0, "details": []},
+            "label_artist_management": {"passed": 0, "failed": 0, "details": []},
+            "label_ar_management": {"passed": 0, "failed": 0, "details": []},
+            "label_contract_management": {"passed": 0, "failed": 0, "details": []},
+            "label_studio_production": {"passed": 0, "failed": 0, "details": []},
+            "label_marketing": {"passed": 0, "failed": 0, "details": []},
+            "label_financial_management": {"passed": 0, "failed": 0, "details": []},
+            "label_dashboard_analytics": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
