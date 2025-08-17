@@ -1780,5 +1780,492 @@ export const MonetizationOpportunities = () => {
   );
 };
 
+// Music Data Exchange (MDX) Integration Component
+export const MusicDataExchange = () => {
+  const [dashboardData, setDashboardData] = useState({});
+  const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [newTrack, setNewTrack] = useState({
+    title: '',
+    artist_name: 'Big Mann Entertainment',
+    album_title: '',
+    duration: '',
+    isrc: '',
+    upc: ''
+  });
+
+  useEffect(() => {
+    fetchMDXDashboard();
+    fetchMDXTracks();
+  }, []);
+
+  const fetchMDXDashboard = async () => {
+    try {
+      const response = await axios.get(`${API}/industry/mdx/dashboard`);
+      setDashboardData(response.data.mdx_dashboard);
+    } catch (error) {
+      console.error('Error fetching MDX dashboard:', error);
+      setError('Failed to load MDX dashboard');
+    }
+  };
+
+  const fetchMDXTracks = async () => {
+    try {
+      const response = await axios.get(`${API}/industry/mdx/tracks?big_mann_release=true`);
+      setTracks(response.data.tracks);
+    } catch (error) {
+      console.error('Error fetching MDX tracks:', error);
+      setError('Failed to load MDX tracks');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTrackSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${API}/industry/mdx/track/sync`, newTrack);
+      if (response.data.success) {
+        setNewTrack({
+          title: '',
+          artist_name: 'Big Mann Entertainment',
+          album_title: '',
+          duration: '',
+          isrc: '',
+          upc: ''
+        });
+        fetchMDXTracks();
+        fetchMDXDashboard();
+      }
+    } catch (error) {
+      console.error('Error syncing track:', error);
+      setError('Failed to sync track with MDX');
+    }
+  };
+
+  const initializeMDX = async () => {
+    try {
+      const response = await axios.post(`${API}/industry/mdx/initialize`);
+      if (response.data.success) {
+        fetchMDXDashboard();
+        setError('');
+      }
+    } catch (error) {
+      console.error('Error initializing MDX:', error);
+      setError('Failed to initialize MDX integration');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* MDX Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-lg p-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">Music Data Exchange (MDX)</h2>
+            <p className="text-blue-100 text-lg">Comprehensive metadata and rights management for Big Mann Entertainment</p>
+            <div className="mt-2">
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm mr-2">Real-Time Sync</span>
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm mr-2">Rights Management</span>
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">DDEX Compliant</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-4xl font-bold">{dashboardData.big_mann_entertainment?.total_mdx_tracks || 0}</div>
+            <div className="text-sm text-blue-100">Managed Tracks</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            {['dashboard', 'tracks', 'upload', 'rights'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                  activeTab === tab
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              {/* Analytics Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">{dashboardData.analytics?.total_tracks_managed || 0}</div>
+                      <div className="text-sm text-blue-100">Total Tracks</div>
+                    </div>
+                    <svg className="w-8 h-8 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12 6.5v.5M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-6.5c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">{Math.round(dashboardData.analytics?.rights_clearance_rate || 0)}%</div>
+                      <div className="text-sm text-green-100">Rights Cleared</div>
+                    </div>
+                    <svg className="w-8 h-8 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">{Math.round(dashboardData.analytics?.metadata_completeness || 0)}%</div>
+                      <div className="text-sm text-purple-100">Metadata Quality</div>
+                    </div>
+                    <svg className="w-8 h-8 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">${(dashboardData.big_mann_entertainment?.big_mann_revenue_impact || 0).toLocaleString()}</div>
+                      <div className="text-sm text-orange-100">Revenue Impact</div>
+                    </div>
+                    <svg className="w-8 h-8 text-orange-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* MDX Status */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">MDX Integration Status</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Platform Status</div>
+                    <div className="text-lg font-semibold text-green-600">✅ Fully Operational</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Real-Time Sync</div>
+                    <div className="text-lg font-semibold text-green-600">✅ Active</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Rights Management</div>
+                    <div className="text-lg font-semibold text-green-600">✅ Automated</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Revenue Optimization</div>
+                    <div className="text-lg font-semibold text-green-600">✅ Active</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Initialize MDX Button */}
+              <div className="text-center">
+                <button
+                  onClick={initializeMDX}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                >
+                  🔄 Refresh MDX Integration
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'tracks' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">MDX Managed Tracks</h3>
+                <div className="text-sm text-gray-600">{tracks.length} tracks in system</div>
+              </div>
+
+              {tracks.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12 6.5v.5M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-6.5c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No tracks found</h3>
+                  <p className="mt-1 text-sm text-gray-500">Get started by uploading your first track.</p>
+                </div>
+              ) : (
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Track</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rights Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MDX Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {tracks.map((track, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{track.title}</div>
+                            <div className="text-sm text-gray-500">{track.album_title}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {track.artist_name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {track.isrc || 'Pending'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              track.rights_clearance_status === 'cleared'
+                                ? 'bg-green-100 text-green-800'
+                                : track.rights_clearance_status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {track.rights_clearance_status || 'unknown'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                              {track.mdx_track_id ? 'Synced' : 'Pending'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'upload' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Upload New Track to MDX</h3>
+              
+              <form onSubmit={handleTrackSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Track Title</label>
+                    <input
+                      type="text"
+                      value={newTrack.title}
+                      onChange={(e) => setNewTrack({...newTrack, title: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Artist Name</label>
+                    <input
+                      type="text"
+                      value={newTrack.artist_name}
+                      onChange={(e) => setNewTrack({...newTrack, artist_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Album Title</label>
+                    <input
+                      type="text"
+                      value={newTrack.album_title}
+                      onChange={(e) => setNewTrack({...newTrack, album_title: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Duration (seconds)</label>
+                    <input
+                      type="number"
+                      value={newTrack.duration}
+                      onChange={(e) => setNewTrack({...newTrack, duration: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ISRC Code</label>
+                    <input
+                      type="text"
+                      value={newTrack.isrc}
+                      onChange={(e) => setNewTrack({...newTrack, isrc: e.target.value})}
+                      placeholder="e.g., QZ9H82400001"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">UPC Code</label>
+                    <input
+                      type="text"
+                      value={newTrack.upc}
+                      onChange={(e) => setNewTrack({...newTrack, upc: e.target.value})}
+                      placeholder="e.g., 860004340201"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setNewTrack({
+                      title: '',
+                      artist_name: 'Big Mann Entertainment',
+                      album_title: '',
+                      duration: '',
+                      isrc: '',
+                      upc: ''
+                    })}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Sync with MDX
+                  </button>
+                </div>
+              </form>
+
+              {/* Information Card */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <div className="flex">
+                  <svg className="h-5 w-5 text-blue-400 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <div className="text-sm text-blue-700">
+                    <h4 className="font-medium mb-2">MDX Integration Benefits</h4>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Automated metadata distribution across platforms</li>
+                      <li>• Real-time rights clearance and management</li>
+                      <li>• DDEX compliant data exchange</li>
+                      <li>• Revenue optimization through proper attribution</li>
+                      <li>• Global territory and licensing management</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'rights' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Rights Management</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <h4 className="font-semibold text-green-800 mb-3">Big Mann Entertainment Rights</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Publishing Rights:</span>
+                      <span className="font-semibold text-green-700">100%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Mechanical Rights:</span>
+                      <span className="font-semibold text-green-700">100%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Performance Rights:</span>
+                      <span className="font-semibold text-green-700">50%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sync Rights:</span>
+                      <span className="font-semibold text-green-700">100%</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-green-600">
+                    IPI: 813048171 (Publisher)
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <h4 className="font-semibold text-blue-800 mb-3">John LeGerron Spivey Rights</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Songwriter Rights:</span>
+                      <span className="font-semibold text-blue-700">100%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Performance Rights:</span>
+                      <span className="font-semibold text-blue-700">50%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Composer Credits:</span>
+                      <span className="font-semibold text-blue-700">100%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Lyricist Credits:</span>
+                      <span className="font-semibold text-blue-700">100%</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-blue-600">
+                    IPI: 578413032 (Songwriter) | ISNI: 0000000491551894
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h4 className="font-semibold text-yellow-800 mb-3">Rights Management Features</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-yellow-700">
+                  <div>
+                    <div className="font-medium">✅ Automated Clearance</div>
+                    <div className="text-xs">Real-time rights verification and clearance</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">✅ Global Management</div>
+                    <div className="text-xs">Multi-territory rights administration</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">✅ Revenue Tracking</div>
+                    <div className="text-xs">Comprehensive royalty monitoring</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">✅ Compliance Monitoring</div>
+                    <div className="text-xs">DDEX and industry standard compliance</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Backward compatibility - IPIManagement is now an alias for IndustryIdentifiersManagement  
 export const IPIManagement = IndustryIdentifiersManagement;
