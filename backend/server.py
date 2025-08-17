@@ -3643,7 +3643,7 @@ except Exception as e:
 # Include Label router
 try:
     from label_endpoints import label_router
-    app.include_router(label_router)
+    api_router.include_router(label_router)
     print("✅ Label router successfully loaded")
 except ImportError as e:
     print(f"⚠️ Label router not available: {e}")
