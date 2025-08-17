@@ -57,8 +57,8 @@
 ##   test_priority: "high_first"  # or "sequential" or "stuck_first"
 ##
 ## agent_communication:
-##     -agent: "main"  # or "testing" or "user"
-##     -message: "Communication message between agents"
+##     -agent: "main"
+##     -message: "Starting MLC frontend integration completion and Music Reports integration. MLC backend is already complete and working, MLC frontend component exists but needs to be integrated into App.js routes and navigation. Then proceeding to add Music Reports integration as requested by user."
 
 # Protocol Guidelines for Main agent
 #
