@@ -6344,6 +6344,11 @@ class BackendTester:
         print("\nTesting MLC Big Mann Entertainment Integration...")
         self.test_mlc_big_mann_integration()
         
+        # NEW: John LeGerron Spivey Ownership Control System Tests
+        print("\n🏛️  TESTING JOHN LEGERRON SPIVEY OWNERSHIP CONTROL SYSTEM")
+        print("-" * 80)
+        self.run_ownership_control_tests()
+        
         # Print Summary
         self.print_summary()
     
