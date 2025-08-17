@@ -577,6 +577,18 @@ const Header = () => {
               <Link to="/distribute" className="hover:text-purple-400 transition-colors py-2">Distribute</Link>
               <Link to="/platforms" className="hover:text-purple-400 transition-colors py-2">Platforms</Link>
               <Link to="/business" className="hover:text-purple-400 transition-colors py-2">Business</Link>
+              
+              {/* Label Management Submenu */}
+              <div className="py-1 pl-4">
+                <span className="text-purple-300 font-medium block mb-1">Label</span>
+                <Link to="/label" className="hover:text-purple-400 transition-colors py-1 pl-4 block text-sm">Dashboard</Link>
+                <Link to="/label/artists" className="hover:text-purple-400 transition-colors py-1 pl-4 block text-sm">Artists</Link>
+                <Link to="/label/ar" className="hover:text-purple-400 transition-colors py-1 pl-4 block text-sm">A&R</Link>
+                <Link to="/label/projects" className="hover:text-purple-400 transition-colors py-1 pl-4 block text-sm">Projects</Link>
+                <Link to="/label/marketing" className="hover:text-purple-400 transition-colors py-1 pl-4 block text-sm">Marketing</Link>
+                <Link to="/label/finance" className="hover:text-purple-400 transition-colors py-1 pl-4 block text-sm">Finance</Link>
+              </div>
+              
               <Link to="/industry" className="hover:text-purple-400 transition-colors py-2">Industry</Link>
               <Link to="/sponsorship" className="hover:text-purple-400 transition-colors py-2">Sponsorship</Link>
               <Link to="/blockchain" className="hover:text-purple-400 transition-colors py-2">Blockchain</Link>
