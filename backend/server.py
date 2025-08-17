@@ -3640,6 +3640,12 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading Industry router: {e}")
 
+# Test Label endpoint for debugging
+@api_router.get("/label/test")
+async def test_label_endpoint():
+    """Test endpoint to verify label routing works"""
+    return {"message": "Label routing is working!", "timestamp": datetime.utcnow().isoformat()}
+
 # Include Label router
 try:
     from label_endpoints import label_router
