@@ -465,6 +465,7 @@ const Header = () => {
                   <Link to="/admin/industry/video" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Video Production</Link>
                   <Link to="/admin/industry/monetization" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Monetization</Link>
                   <Link to="/admin/industry/mdx" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Music Data Exchange</Link>
+                  <Link to="/admin/industry/mlc" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Mechanical Licensing</Link>
                   <Link to="/admin/security" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Security</Link>
                 </div>
               </div>
