@@ -174,7 +174,263 @@ class MDXAnalytics(BaseModel):
     metadata: Dict[str, Any] = {}
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-# Big Mann Entertainment MDX Configuration
+# Mechanical Licensing Collective (MLC) Integration Models
+class MechanicalLicensingCollective(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    mlc_account_id: Optional[str] = None  # MLC system account ID
+    
+    # Entity Information
+    entity_name: str  # Publisher, songwriter, or administrator name
+    entity_type: str  # publisher, songwriter, admin, dsp
+    mlc_member_status: str = "pending"  # pending, active, inactive, suspended
+    
+    # Registration Information
+    registration_date: Optional[datetime] = None
+    member_number: Optional[str] = None
+    account_status: str = "active"  # active, inactive, suspended, closed
+    
+    # Contact and Business Information
+    contact_info: Dict[str, Any] = {}
+    business_info: Dict[str, Any] = {}
+    tax_info: Dict[str, Any] = {}
+    
+    # Rights and Ownership
+    publishing_rights: Dict[str, Any] = {}
+    mechanical_rights_share: float = 0.0  # Percentage of mechanical rights owned
+    territories: List[str] = ["US"]  # MLC primarily handles US
+    
+    # API Configuration
+    api_credentials: Dict[str, str] = {}
+    api_access_level: str = "standard"  # standard, premium, administrator
+    data_submission_frequency: str = "monthly"  # daily, weekly, monthly, quarterly
+    
+    # Integration Settings
+    automated_reporting: bool = True
+    royalty_collection_enabled: bool = True
+    metadata_sync_enabled: bool = True
+    dispute_management_enabled: bool = True
+    
+    status: str = "active"
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# MLC Musical Work Registration
+class MLCMusicalWork(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    mlc_work_id: Optional[str] = None
+    
+    # Work Identification
+    work_title: str
+    alternative_titles: List[str] = []
+    iswc: Optional[str] = None  # International Standard Musical Work Code
+    
+    # Rights Holders Information
+    publishers: List[Dict[str, Any]] = []  # Publisher information with shares
+    songwriters: List[Dict[str, Any]] = []  # Songwriter information with shares
+    administrators: List[Dict[str, Any]] = []  # Administrative information
+    
+    # Mechanical Rights Information
+    mechanical_rights_share: Dict[str, float] = {}  # Rights holder shares
+    territorial_restrictions: List[str] = []
+    rights_start_date: datetime
+    rights_end_date: Optional[datetime] = None
+    
+    # MLC Specific Data
+    submission_status: str = "pending"  # pending, submitted, accepted, rejected
+    last_submission_date: Optional[datetime] = None
+    mlc_registration_number: Optional[str] = None
+    
+    # Big Mann Entertainment Integration
+    big_mann_work: bool = False
+    internal_catalog_number: Optional[str] = None
+    
+    # Metadata and History
+    submission_history: List[Dict[str, Any]] = []
+    dispute_history: List[Dict[str, Any]] = []
+    
+    status: str = "active"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# MLC Royalty Collection and Distribution
+class MLCRoyaltyReport(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    mlc_report_id: Optional[str] = None
+    
+    # Reporting Period
+    report_period_start: datetime
+    report_period_end: datetime
+    report_type: str  # monthly, quarterly, annual, special
+    
+    # Financial Information
+    total_royalties_collected: float = 0.0
+    total_royalties_distributed: float = 0.0
+    administrative_fees: float = 0.0
+    net_distribution: float = 0.0
+    
+    # Distribution Breakdown
+    publisher_distributions: List[Dict[str, Any]] = []
+    songwriter_distributions: List[Dict[str, Any]] = []
+    unclaimed_royalties: float = 0.0
+    
+    # Source Information
+    digital_service_providers: List[str] = []  # Spotify, Apple Music, etc.
+    usage_data: Dict[str, Any] = {}
+    stream_counts: Dict[str, int] = {}
+    
+    # MLC Processing Information
+    processing_status: str = "pending"  # pending, processing, completed, disputed
+    distribution_date: Optional[datetime] = None
+    payment_method: str = "direct_deposit"
+    
+    # Big Mann Entertainment Specific
+    big_mann_royalties: float = 0.0
+    big_mann_works_count: int = 0
+    
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# MLC Usage Data and Matching
+class MLCUsageData(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    mlc_usage_id: Optional[str] = None
+    
+    # Track Identification
+    track_title: str
+    artist_name: str
+    album_title: Optional[str] = None
+    isrc: Optional[str] = None
+    duration: Optional[int] = None
+    
+    # Digital Service Provider Information
+    dsp_name: str  # Spotify, Apple Music, Amazon Music, etc.
+    dsp_track_id: Optional[str] = None
+    
+    # Usage Statistics
+    play_count: int = 0
+    stream_date: datetime
+    territory: str = "US"
+    revenue_generated: float = 0.0
+    mechanical_royalty_due: float = 0.0
+    
+    # Matching Information
+    matched_work_id: Optional[str] = None  # MLCMusicalWork ID
+    matching_confidence: float = 0.0  # 0.0 to 1.0
+    matching_status: str = "unmatched"  # unmatched, matched, disputed
+    
+    # Rights Holder Information
+    publisher_share: Dict[str, float] = {}
+    songwriter_share: Dict[str, float] = {}
+    
+    # Processing Information
+    processed_date: Optional[datetime] = None
+    royalty_distributed: bool = False
+    distribution_date: Optional[datetime] = None
+    
+    status: str = "active"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# MLC Claims and Disputes Management  
+class MLCClaimsDispute(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    mlc_claim_id: Optional[str] = None
+    
+    # Claim Information
+    claim_type: str  # ownership_claim, royalty_dispute, metadata_correction
+    work_title: str
+    work_id: Optional[str] = None
+    claimant_name: str
+    claimant_type: str  # publisher, songwriter, administrator
+    
+    # Claim Details
+    claimed_rights_percentage: float = 0.0
+    effective_date: datetime
+    supporting_documentation: List[str] = []
+    claim_description: str
+    
+    # Disputed Information
+    disputed_by: List[str] = []
+    dispute_reason: str = ""
+    resolution_method: str = "mediation"  # mediation, arbitration, legal
+    
+    # Processing Status
+    claim_status: str = "pending"  # pending, under_review, approved, rejected, disputed
+    submission_date: datetime = Field(default_factory=datetime.utcnow)
+    resolution_date: Optional[datetime] = None
+    
+    # Financial Impact
+    affected_royalties: float = 0.0
+    royalty_hold_amount: float = 0.0
+    
+    # Big Mann Entertainment Integration
+    big_mann_involvement: bool = False
+    internal_reference: Optional[str] = None
+    
+    status: str = "active"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Big Mann Entertainment MLC Configuration
+BIG_MANN_MLC_CONFIG = {
+    "entity_name": "Big Mann Entertainment",
+    "entity_type": "publisher",
+    "member_information": {
+        "registration_status": "active",
+        "member_type": "publisher",
+        "account_classification": "independent_publisher",
+        "territories": ["US"],
+        "rights_administration": True
+    },
+    "publishing_information": {
+        "publisher_name": "Big Mann Entertainment",
+        "publisher_ipi": "813048171",
+        "publisher_share": 50.0,  # 50% publisher share
+        "administrative_percentage": 100.0,
+        "territories_of_representation": ["US"],
+        "sub_publishers": []
+    },
+    "songwriter_information": {
+        "primary_songwriter": {
+            "name": "John LeGerron Spivey",
+            "ipi_number": "578413032",
+            "isni_number": "0000000491551894",
+            "songwriter_share": 50.0,  # 50% songwriter share
+            "territories": ["US"],
+            "membership_status": "active"
+        }
+    },
+    "royalty_collection": {
+        "collection_enabled": True,
+        "distribution_method": "direct_deposit",
+        "minimum_threshold": 1.00,  # Minimum $1.00 for distribution
+        "frequency": "monthly",
+        "currency": "USD"
+    },
+    "reporting_configuration": {
+        "automated_reporting": True,
+        "report_frequency": "monthly",
+        "data_formats": ["CSV", "JSON", "XML"],
+        "real_time_matching": True,
+        "usage_data_processing": True
+    },
+    "integration_features": {
+        "metadata_sync": True,
+        "automated_work_registration": True,
+        "dispute_management": True,
+        "royalty_reconciliation": True,
+        "cross_platform_tracking": True,
+        "analytics_dashboard": True
+    },
+    "business_configuration": {
+        "business_name": "Big Mann Entertainment",
+        "business_address": "1314 Lincoln Heights Street, Alexander City, AL 35010",
+        "business_phone": "334-669-8638",
+        "tax_id": "12800",
+        "business_type": "Sound Recording Industries",
+        "naics_code": "512200"
+    }
+}
 BIG_MANN_MDX_CONFIG = {
     "entity_name": "Big Mann Entertainment",
     "entity_type": "label",
