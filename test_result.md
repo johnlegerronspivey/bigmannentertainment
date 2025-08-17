@@ -529,8 +529,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Music Data Exchange (MDX) Integration System"
-    - "Music Data Exchange (MDX) Integration Frontend Interface"
+    - "Mechanical Licensing Collective (MLC) Frontend Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
