@@ -5622,7 +5622,7 @@ class BackendTester:
             return False
     
     def test_ownership_status_endpoint(self) -> bool:
-        """Test GET /api/admin/ownership/status endpoint"""
+        """Test GET /api/admin/ownership/status endpoint shows only owner@bigmannentertainment.com"""
         try:
             if not self.auth_token:
                 self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", False, "No auth token available")
@@ -5636,20 +5636,21 @@ class BackendTester:
                                  'admin_users', 'current_user_is_john', 'current_user_role', 'ownership_note']
                 
                 if all(field in data for field in required_fields):
-                    # Verify ownership information
+                    # Verify ownership information shows ONLY owner@bigmannentertainment.com
+                    john_emails = data.get('john_emails', [])
                     if (data.get('platform_owner') == 'John LeGerron Spivey' and 
                         data.get('business_entity') == 'Big Mann Entertainment' and
-                        'johnlegerronspivey@bigmannentertainment.com' in data.get('john_emails', [])):
+                        john_emails == ['owner@bigmannentertainment.com']):
                         
                         admin_users = data.get('admin_users', [])
                         john_admins = [user for user in admin_users if user.get('is_john_legerron_spivey', False)]
                         
                         self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", True, 
-                                      f"Ownership status correct: Owner: {data.get('platform_owner')}, Business: {data.get('business_entity')}, John admins: {len(john_admins)}, Total admins: {data.get('total_admin_users')}")
+                                      f"Ownership status correct: Owner: {data.get('platform_owner')}, Business: {data.get('business_entity')}, John emails: {john_emails}, John admins: {len(john_admins)}, Total admins: {data.get('total_admin_users')}")
                         return True
                     else:
                         self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", False, 
-                                      f"Incorrect ownership info: Owner: {data.get('platform_owner')}, Business: {data.get('business_entity')}")
+                                      f"Incorrect ownership info: Owner: {data.get('platform_owner')}, Business: {data.get('business_entity')}, John emails: {john_emails}")
                         return False
                 else:
                     missing_fields = [field for field in required_fields if field not in data]
