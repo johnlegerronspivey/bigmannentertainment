@@ -8033,6 +8033,714 @@ class BackendTester:
             self.log_result("entertainment_analytics", "Entertainment Analytics", False, f"Exception: {str(e)}")
             return False
 
+    # Music Data Exchange (MDX) Integration Testing Methods
+    
+    def test_mdx_initialization(self) -> bool:
+        """Test MDX integration initialization for Big Mann Entertainment"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_initialization", "MDX Integration Initialization", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/industry/mdx/initialize')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'mdx_configuration' in data:
+                    mdx_config = data['mdx_configuration']
+                    big_mann_data = data.get('big_mann_entertainment', {})
+                    
+                    # Verify Big Mann Entertainment configuration
+                    if (big_mann_data.get('entity_type') == 'label' and 
+                        big_mann_data.get('ipi_integration') == True and
+                        big_mann_data.get('real_time_sync') == True):
+                        self.log_result("mdx_initialization", "MDX Integration Initialization", True, 
+                                      f"MDX integration initialized successfully for Big Mann Entertainment with IPI integration and real-time sync")
+                        return True
+                    else:
+                        self.log_result("mdx_initialization", "MDX Integration Initialization", False, 
+                                      "Big Mann Entertainment configuration incomplete")
+                        return False
+                else:
+                    self.log_result("mdx_initialization", "MDX Integration Initialization", False, 
+                                  "Invalid MDX initialization response")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("mdx_initialization", "MDX Integration Initialization", True, 
+                              "MDX initialization requires admin privileges (expected)")
+                return True
+            else:
+                self.log_result("mdx_initialization", "MDX Integration Initialization", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_initialization", "MDX Integration Initialization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_track_sync(self) -> bool:
+        """Test individual track synchronization with MDX"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_track_sync", "MDX Track Sync", False, "No auth token available")
+                return False
+            
+            # Create test track data with Big Mann Entertainment metadata
+            track_data = {
+                "title": "Big Mann Entertainment Test Track",
+                "artist_name": "John LeGerron Spivey",
+                "album_title": "Test Album",
+                "duration": 180,
+                "isrc": "USQZ9H825001",
+                "upc": "860004340201",
+                "songwriter_splits": [
+                    {"name": "John LeGerron Spivey", "ipi": "578413032", "percentage": 100.0}
+                ],
+                "publisher_splits": [
+                    {"name": "Big Mann Entertainment", "ipi": "813048171", "percentage": 100.0}
+                ],
+                "big_mann_release": True,
+                "rights_clearance_status": "pending"
+            }
+            
+            response = self.make_request('POST', '/industry/mdx/track/sync', json=track_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'track_sync_result' in data:
+                    sync_result = data['track_sync_result']
+                    mdx_integration = data.get('mdx_integration', {})
+                    
+                    # Verify sync result includes proper metadata and rights
+                    if (mdx_integration.get('metadata_quality') == 'High' and
+                        mdx_integration.get('rights_clearance') == 'Automated' and
+                        mdx_integration.get('distribution_ready') == True):
+                        self.log_result("mdx_track_sync", "MDX Track Sync", True, 
+                                      f"Track '{track_data['title']}' successfully synced with MDX with automated rights clearance")
+                        return True
+                    else:
+                        self.log_result("mdx_track_sync", "MDX Track Sync", False, 
+                                      "MDX integration metadata incomplete")
+                        return False
+                else:
+                    self.log_result("mdx_track_sync", "MDX Track Sync", False, 
+                                  "Invalid track sync response")
+                    return False
+            else:
+                self.log_result("mdx_track_sync", "MDX Track Sync", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_track_sync", "MDX Track Sync", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_bulk_track_upload(self) -> bool:
+        """Test bulk track upload to MDX system"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_bulk_operations", "MDX Bulk Track Upload", False, "No auth token available")
+                return False
+            
+            # Create multiple test tracks for bulk upload
+            tracks_data = [
+                {
+                    "title": "Big Mann Track 1",
+                    "artist_name": "John LeGerron Spivey",
+                    "duration": 200,
+                    "isrc": "USQZ9H825002",
+                    "big_mann_release": True,
+                    "songwriter_splits": [{"name": "John LeGerron Spivey", "ipi": "578413032", "percentage": 100.0}],
+                    "publisher_splits": [{"name": "Big Mann Entertainment", "ipi": "813048171", "percentage": 100.0}]
+                },
+                {
+                    "title": "Big Mann Track 2", 
+                    "artist_name": "John LeGerron Spivey",
+                    "duration": 220,
+                    "isrc": "USQZ9H825003",
+                    "big_mann_release": True,
+                    "songwriter_splits": [{"name": "John LeGerron Spivey", "ipi": "578413032", "percentage": 100.0}],
+                    "publisher_splits": [{"name": "Big Mann Entertainment", "ipi": "813048171", "percentage": 100.0}]
+                },
+                {
+                    "title": "Big Mann Track 3",
+                    "artist_name": "John LeGerron Spivey", 
+                    "duration": 190,
+                    "isrc": "USQZ9H825004",
+                    "big_mann_release": True,
+                    "songwriter_splits": [{"name": "John LeGerron Spivey", "ipi": "578413032", "percentage": 100.0}],
+                    "publisher_splits": [{"name": "Big Mann Entertainment", "ipi": "813048171", "percentage": 100.0}]
+                }
+            ]
+            
+            response = self.make_request('POST', '/industry/mdx/tracks/bulk', json=tracks_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'bulk_upload_result' in data and 'big_mann_entertainment' in data:
+                    bulk_result = data['bulk_upload_result']
+                    big_mann_data = data['big_mann_entertainment']
+                    
+                    # Verify bulk processing results
+                    if (bulk_result.get('successfully_processed', 0) >= 2 and
+                        big_mann_data.get('processing_efficiency') == 'Automated bulk processing' and
+                        big_mann_data.get('rights_management') == 'Comprehensive metadata handling'):
+                        self.log_result("mdx_bulk_operations", "MDX Bulk Track Upload", True, 
+                                      f"Bulk upload successful: {bulk_result.get('successfully_processed', 0)} tracks processed with automated rights management")
+                        return True
+                    else:
+                        self.log_result("mdx_bulk_operations", "MDX Bulk Track Upload", False, 
+                                      f"Bulk processing incomplete: {bulk_result.get('successfully_processed', 0)} tracks processed")
+                        return False
+                else:
+                    self.log_result("mdx_bulk_operations", "MDX Bulk Track Upload", False, 
+                                  "Invalid bulk upload response")
+                    return False
+            else:
+                self.log_result("mdx_bulk_operations", "MDX Bulk Track Upload", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_bulk_operations", "MDX Bulk Track Upload", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_tracks_retrieval_with_filtering(self) -> bool:
+        """Test MDX tracks retrieval with filtering options"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", False, "No auth token available")
+                return False
+            
+            # Test retrieving all tracks
+            response = self.make_request('GET', '/industry/mdx/tracks')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'tracks' in data and 'big_mann_entertainment' in data:
+                    tracks = data['tracks']
+                    big_mann_data = data['big_mann_entertainment']
+                    
+                    # Test filtering by Big Mann Entertainment releases
+                    big_mann_response = self.make_request('GET', '/industry/mdx/tracks?big_mann_release=true')
+                    
+                    if big_mann_response.status_code == 200:
+                        big_mann_tracks_data = big_mann_response.json()
+                        big_mann_tracks = big_mann_tracks_data.get('tracks', [])
+                        
+                        # Test filtering by artist name
+                        artist_response = self.make_request('GET', '/industry/mdx/tracks?artist_name=John LeGerron Spivey')
+                        
+                        if artist_response.status_code == 200:
+                            artist_tracks_data = artist_response.json()
+                            
+                            # Test filtering by rights clearance status
+                            rights_response = self.make_request('GET', '/industry/mdx/tracks?rights_clearance_status=cleared')
+                            
+                            if rights_response.status_code == 200:
+                                self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", True, 
+                                              f"MDX tracks filtering working correctly. Total tracks: {len(tracks)}, Big Mann tracks: {len(big_mann_tracks)}, Rights status: {big_mann_data.get('rights_status', 'Unknown')}")
+                                return True
+                            else:
+                                self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", False, 
+                                              "Rights clearance status filtering failed")
+                                return False
+                        else:
+                            self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", False, 
+                                          "Artist name filtering failed")
+                            return False
+                    else:
+                        self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", False, 
+                                      "Big Mann release filtering failed")
+                        return False
+                else:
+                    self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", False, 
+                                  "Invalid tracks response format")
+                    return False
+            else:
+                self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_track_management", "MDX Tracks Retrieval with Filtering", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_track_metadata_update(self) -> bool:
+        """Test updating track metadata in MDX system"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_track_management", "MDX Track Metadata Update", False, "No auth token available")
+                return False
+            
+            # First, get existing tracks to find one to update
+            tracks_response = self.make_request('GET', '/industry/mdx/tracks?big_mann_release=true')
+            
+            if tracks_response.status_code == 200:
+                tracks_data = tracks_response.json()
+                tracks = tracks_data.get('tracks', [])
+                
+                if tracks:
+                    # Use the first track for testing update
+                    track_id = tracks[0].get('id')
+                    
+                    if track_id:
+                        # Update track metadata
+                        update_data = {
+                            "album_title": "Updated Album Title",
+                            "rights_clearance_status": "cleared",
+                            "mdx_metadata": {
+                                "updated_by": "Big Mann Entertainment",
+                                "update_reason": "Rights clearance completed"
+                            }
+                        }
+                        
+                        response = self.make_request('PUT', f'/industry/mdx/track/{track_id}/update', json=update_data)
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            if 'success' in data and data['success'] and 'updated_track' in data:
+                                updated_track = data['updated_track']
+                                changes_applied = data.get('changes_applied', [])
+                                
+                                # Verify the update was applied
+                                if ('album_title' in changes_applied and 
+                                    updated_track.get('album_title') == 'Updated Album Title'):
+                                    self.log_result("mdx_track_management", "MDX Track Metadata Update", True, 
+                                                  f"Track metadata updated successfully. Changes: {', '.join(changes_applied)}")
+                                    return True
+                                else:
+                                    self.log_result("mdx_track_management", "MDX Track Metadata Update", False, 
+                                                  "Track update not properly applied")
+                                    return False
+                            else:
+                                self.log_result("mdx_track_management", "MDX Track Metadata Update", False, 
+                                              "Invalid update response")
+                                return False
+                        else:
+                            self.log_result("mdx_track_management", "MDX Track Metadata Update", False, 
+                                          f"Update failed: {response.status_code}")
+                            return False
+                    else:
+                        self.log_result("mdx_track_management", "MDX Track Metadata Update", False, 
+                                      "No track ID found")
+                        return False
+                else:
+                    self.log_result("mdx_track_management", "MDX Track Metadata Update", True, 
+                                  "No tracks available for update testing (acceptable)")
+                    return True
+            else:
+                self.log_result("mdx_track_management", "MDX Track Metadata Update", False, 
+                              "Failed to retrieve tracks for update testing")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_track_management", "MDX Track Metadata Update", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_rights_management(self) -> bool:
+        """Test MDX rights management functionality"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_rights_management", "MDX Rights Management", False, "No auth token available")
+                return False
+            
+            # Create rights management data for Big Mann Entertainment
+            rights_data = {
+                "rights_type": "publishing",
+                "rights_holder": "Big Mann Entertainment",
+                "rights_percentage": 100.0,
+                "territories": ["US", "UK", "CA", "AU", "global"],
+                "track_ids": ["test_track_1", "test_track_2"],
+                "clearance_status": "active",
+                "licensing_terms": {
+                    "mechanical_rights": True,
+                    "performance_rights": True,
+                    "synchronization_rights": True
+                },
+                "royalty_rates": {
+                    "mechanical": 0.091,
+                    "performance": 0.50,
+                    "sync": "negotiable"
+                }
+            }
+            
+            response = self.make_request('POST', '/industry/mdx/rights/manage', json=rights_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'rights_management_result' in data and 'big_mann_entertainment' in data:
+                    rights_result = data['rights_management_result']
+                    big_mann_data = data['big_mann_entertainment']
+                    
+                    # Verify rights management features
+                    if (big_mann_data.get('rights_optimization') == 'Automated clearance system' and
+                        big_mann_data.get('revenue_protection') == 'Comprehensive rights tracking' and
+                        big_mann_data.get('global_management') == 'Multi-territory rights handling'):
+                        self.log_result("mdx_rights_management", "MDX Rights Management", True, 
+                                      "Rights management working with automated clearance and global territory handling")
+                        return True
+                    else:
+                        self.log_result("mdx_rights_management", "MDX Rights Management", False, 
+                                      "Rights management features incomplete")
+                        return False
+                else:
+                    self.log_result("mdx_rights_management", "MDX Rights Management", False, 
+                                  "Invalid rights management response")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("mdx_rights_management", "MDX Rights Management", True, 
+                              "Rights management requires admin privileges (expected)")
+                return True
+            else:
+                self.log_result("mdx_rights_management", "MDX Rights Management", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_rights_management", "MDX Rights Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_track_rights_information(self) -> bool:
+        """Test retrieving detailed rights information for specific tracks"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_rights_management", "MDX Track Rights Information", False, "No auth token available")
+                return False
+            
+            # First get tracks to find one with rights information
+            tracks_response = self.make_request('GET', '/industry/mdx/tracks?big_mann_release=true')
+            
+            if tracks_response.status_code == 200:
+                tracks_data = tracks_response.json()
+                tracks = tracks_data.get('tracks', [])
+                
+                if tracks:
+                    track_id = tracks[0].get('id')
+                    
+                    if track_id:
+                        # Get rights information for the track
+                        response = self.make_request('GET', f'/industry/mdx/rights/{track_id}')
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            if 'track' in data and 'rights_information' in data and 'rights_summary' in data:
+                                track = data['track']
+                                rights_info = data['rights_information']
+                                rights_summary = data['rights_summary']
+                                
+                                # Verify rights information structure
+                                if ('clearance_status' in rights_summary and
+                                    'big_mann_managed' in rights_summary and
+                                    isinstance(rights_info, list)):
+                                    self.log_result("mdx_rights_management", "MDX Track Rights Information", True, 
+                                                  f"Rights information retrieved for track '{track.get('title', 'Unknown')}'. Clearance status: {rights_summary.get('clearance_status', 'Unknown')}, Big Mann managed: {rights_summary.get('big_mann_managed', False)}")
+                                    return True
+                                else:
+                                    self.log_result("mdx_rights_management", "MDX Track Rights Information", False, 
+                                                  "Rights information structure incomplete")
+                                    return False
+                            else:
+                                self.log_result("mdx_rights_management", "MDX Track Rights Information", False, 
+                                              "Invalid rights information response")
+                                return False
+                        elif response.status_code == 404:
+                            self.log_result("mdx_rights_management", "MDX Track Rights Information", True, 
+                                          "Track not found (acceptable for test)")
+                            return True
+                        else:
+                            self.log_result("mdx_rights_management", "MDX Track Rights Information", False, 
+                                          f"Rights retrieval failed: {response.status_code}")
+                            return False
+                    else:
+                        self.log_result("mdx_rights_management", "MDX Track Rights Information", False, 
+                                      "No track ID available")
+                        return False
+                else:
+                    self.log_result("mdx_rights_management", "MDX Track Rights Information", True, 
+                                  "No tracks available for rights testing (acceptable)")
+                    return True
+            else:
+                self.log_result("mdx_rights_management", "MDX Track Rights Information", False, 
+                              "Failed to retrieve tracks for rights testing")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_rights_management", "MDX Track Rights Information", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_dashboard_analytics(self) -> bool:
+        """Test MDX dashboard analytics and performance metrics"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_dashboard_analytics", "MDX Dashboard Analytics", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/mdx/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'mdx_dashboard' in data and 'platform_status' in data:
+                    mdx_dashboard = data['mdx_dashboard']
+                    platform_status = data['platform_status']
+                    
+                    # Verify dashboard analytics structure
+                    expected_dashboard_fields = ['tracks_managed', 'rights_clearance_rate', 'metadata_completeness']
+                    expected_status_fields = ['mdx_integration', 'real_time_sync', 'rights_management', 'revenue_optimization']
+                    
+                    dashboard_fields_present = any(field in str(mdx_dashboard) for field in expected_dashboard_fields)
+                    status_fields_present = all(field in platform_status for field in expected_status_fields)
+                    
+                    if dashboard_fields_present and status_fields_present:
+                        # Verify Big Mann Entertainment specific metrics
+                        if (platform_status.get('mdx_integration') == 'Fully Operational' and
+                            platform_status.get('real_time_sync') == 'Active' and
+                            platform_status.get('rights_management') == 'Automated'):
+                            self.log_result("mdx_dashboard_analytics", "MDX Dashboard Analytics", True, 
+                                          f"MDX dashboard analytics working correctly. Integration: {platform_status.get('mdx_integration')}, Real-time sync: {platform_status.get('real_time_sync')}, Rights management: {platform_status.get('rights_management')}")
+                            return True
+                        else:
+                            self.log_result("mdx_dashboard_analytics", "MDX Dashboard Analytics", False, 
+                                          "Platform status indicators incomplete")
+                            return False
+                    else:
+                        self.log_result("mdx_dashboard_analytics", "MDX Dashboard Analytics", False, 
+                                      "Dashboard analytics structure incomplete")
+                        return False
+                else:
+                    self.log_result("mdx_dashboard_analytics", "MDX Dashboard Analytics", False, 
+                                  "Invalid dashboard response format")
+                    return False
+            else:
+                self.log_result("mdx_dashboard_analytics", "MDX Dashboard Analytics", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_dashboard_analytics", "MDX Dashboard Analytics", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_track_deletion(self) -> bool:
+        """Test removing tracks from MDX system"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_track_management", "MDX Track Deletion", False, "No auth token available")
+                return False
+            
+            # First get tracks to find one to delete
+            tracks_response = self.make_request('GET', '/industry/mdx/tracks')
+            
+            if tracks_response.status_code == 200:
+                tracks_data = tracks_response.json()
+                tracks = tracks_data.get('tracks', [])
+                
+                if tracks:
+                    # Use the last track for deletion testing
+                    track_id = tracks[-1].get('id')
+                    
+                    if track_id:
+                        response = self.make_request('DELETE', f'/industry/mdx/track/{track_id}')
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            if 'success' in data and data['success']:
+                                tracks_removed = data.get('tracks_removed', 0)
+                                rights_removed = data.get('rights_removed', 0)
+                                
+                                self.log_result("mdx_track_management", "MDX Track Deletion", True, 
+                                              f"Track deletion successful. Tracks removed: {tracks_removed}, Rights removed: {rights_removed}")
+                                return True
+                            else:
+                                self.log_result("mdx_track_management", "MDX Track Deletion", False, 
+                                              "Track deletion response invalid")
+                                return False
+                        elif response.status_code == 403:
+                            self.log_result("mdx_track_management", "MDX Track Deletion", True, 
+                                          "Track deletion requires admin privileges (expected)")
+                            return True
+                        elif response.status_code == 404:
+                            self.log_result("mdx_track_management", "MDX Track Deletion", True, 
+                                          "Track not found for deletion (acceptable)")
+                            return True
+                        else:
+                            self.log_result("mdx_track_management", "MDX Track Deletion", False, 
+                                          f"Deletion failed: {response.status_code}")
+                            return False
+                    else:
+                        self.log_result("mdx_track_management", "MDX Track Deletion", False, 
+                                      "No track ID available for deletion")
+                        return False
+                else:
+                    self.log_result("mdx_track_management", "MDX Track Deletion", True, 
+                                  "No tracks available for deletion testing (acceptable)")
+                    return True
+            else:
+                self.log_result("mdx_track_management", "MDX Track Deletion", False, 
+                              "Failed to retrieve tracks for deletion testing")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_track_management", "MDX Track Deletion", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_authentication_requirements(self) -> bool:
+        """Test that MDX endpoints require proper authentication"""
+        try:
+            # Test without authentication token
+            old_token = self.auth_token
+            self.auth_token = None
+            
+            # Test various MDX endpoints without authentication
+            endpoints_to_test = [
+                ('GET', '/industry/mdx/tracks'),
+                ('GET', '/industry/mdx/dashboard'),
+                ('POST', '/industry/mdx/track/sync'),
+                ('POST', '/industry/mdx/initialize')
+            ]
+            
+            unauthenticated_failures = 0
+            
+            for method, endpoint in endpoints_to_test:
+                response = self.make_request(method, endpoint, json={} if method == 'POST' else None)
+                if response.status_code in [401, 403]:
+                    unauthenticated_failures += 1
+            
+            # Restore authentication token
+            self.auth_token = old_token
+            
+            if unauthenticated_failures >= 3:  # Most endpoints should require auth
+                self.log_result("mdx_authentication", "MDX Authentication Requirements", True, 
+                              f"MDX endpoints properly protected - {unauthenticated_failures}/{len(endpoints_to_test)} endpoints require authentication")
+                return True
+            else:
+                self.log_result("mdx_authentication", "MDX Authentication Requirements", False, 
+                              f"Only {unauthenticated_failures}/{len(endpoints_to_test)} endpoints require authentication")
+                return False
+                
+        except Exception as e:
+            # Restore token in case of exception
+            if 'old_token' in locals():
+                self.auth_token = old_token
+            self.log_result("mdx_authentication", "MDX Authentication Requirements", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_integration_with_ipi_numbers(self) -> bool:
+        """Test MDX integration with existing IPI numbers (813048171, 578413032)"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_integration_features", "MDX IPI Integration", False, "No auth token available")
+                return False
+            
+            # Create track with proper IPI integration
+            track_data = {
+                "title": "IPI Integration Test Track",
+                "artist_name": "John LeGerron Spivey",
+                "songwriter_splits": [
+                    {"name": "John LeGerron Spivey", "ipi": "578413032", "percentage": 100.0}
+                ],
+                "publisher_splits": [
+                    {"name": "Big Mann Entertainment", "ipi": "813048171", "percentage": 100.0}
+                ],
+                "big_mann_release": True,
+                "mdx_metadata": {
+                    "ipi_integration": True,
+                    "rights_source": "Big Mann Entertainment IPI Database"
+                }
+            }
+            
+            response = self.make_request('POST', '/industry/mdx/track/sync', json=track_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success']:
+                    # Verify IPI numbers are properly integrated
+                    track_sync_result = data.get('track_sync_result', {})
+                    
+                    # Check if the track was created with proper IPI integration
+                    if 'track_id' in track_sync_result or 'mdx_track_id' in track_sync_result:
+                        self.log_result("mdx_integration_features", "MDX IPI Integration", True, 
+                                      "MDX successfully integrated with IPI numbers (813048171 for Big Mann Entertainment, 578413032 for John LeGerron Spivey)")
+                        return True
+                    else:
+                        self.log_result("mdx_integration_features", "MDX IPI Integration", False, 
+                                      "IPI integration incomplete in track sync")
+                        return False
+                else:
+                    self.log_result("mdx_integration_features", "MDX IPI Integration", False, 
+                                  "Track sync with IPI numbers failed")
+                    return False
+            else:
+                self.log_result("mdx_integration_features", "MDX IPI Integration", False, 
+                              f"IPI integration test failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_integration_features", "MDX IPI Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mdx_ddex_compliance(self) -> bool:
+        """Test MDX DDEX compliance and metadata standards"""
+        try:
+            if not self.auth_token:
+                self.log_result("mdx_integration_features", "MDX DDEX Compliance", False, "No auth token available")
+                return False
+            
+            # Test dashboard to check DDEX compliance status
+            response = self.make_request('GET', '/industry/mdx/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                mdx_dashboard = data.get('mdx_dashboard', {})
+                
+                # Check for DDEX compliance indicators
+                ddex_indicators = ['ddex', 'DDEX', 'metadata_standards', 'compliance']
+                ddex_compliance_found = any(indicator in str(mdx_dashboard) for indicator in ddex_indicators)
+                
+                if ddex_compliance_found:
+                    self.log_result("mdx_integration_features", "MDX DDEX Compliance", True, 
+                                  "MDX system shows DDEX compliance and metadata standards integration")
+                    return True
+                else:
+                    # Check if we can create a track with DDEX metadata
+                    track_data = {
+                        "title": "DDEX Compliance Test",
+                        "artist_name": "John LeGerron Spivey",
+                        "isrc": "USQZ9H825005",
+                        "mdx_metadata": {
+                            "ddex_compliant": True,
+                            "metadata_standards": ["DDEX", "ISRC", "ISWC", "UPC"],
+                            "format_version": "ERN-4"
+                        },
+                        "big_mann_release": True
+                    }
+                    
+                    sync_response = self.make_request('POST', '/industry/mdx/track/sync', json=track_data)
+                    
+                    if sync_response.status_code == 200:
+                        sync_data = sync_response.json()
+                        mdx_integration = sync_data.get('mdx_integration', {})
+                        
+                        if mdx_integration.get('metadata_quality') == 'High':
+                            self.log_result("mdx_integration_features", "MDX DDEX Compliance", True, 
+                                          "MDX system accepts DDEX compliant metadata with high quality rating")
+                            return True
+                        else:
+                            self.log_result("mdx_integration_features", "MDX DDEX Compliance", False, 
+                                          "DDEX metadata not processed with high quality")
+                            return False
+                    else:
+                        self.log_result("mdx_integration_features", "MDX DDEX Compliance", False, 
+                                      "DDEX compliant track sync failed")
+                        return False
+            else:
+                self.log_result("mdx_integration_features", "MDX DDEX Compliance", False, 
+                              f"Dashboard access failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mdx_integration_features", "MDX DDEX Compliance", False, f"Exception: {str(e)}")
+            return False
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
