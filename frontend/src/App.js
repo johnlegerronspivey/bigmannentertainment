@@ -4019,6 +4019,14 @@ function App() {
             <Route path="/admin/industry/monetization" element={<AdminRoute><MonetizationOpportunities /></AdminRoute>} />
             <Route path="/admin/industry/mdx" element={<AdminRoute><MusicDataExchange /></AdminRoute>} />
             <Route path="/admin/industry/mlc" element={<AdminRoute><MechanicalLicensingCollective /></AdminRoute>} />
+            
+            {/* Admin Label Management Routes */}
+            <Route path="/admin/label" element={<AdminRoute><LabelDashboard /></AdminRoute>} />
+            <Route path="/admin/label/artists" element={<AdminRoute><LabelDashboard /></AdminRoute>} />
+            <Route path="/admin/label/ar" element={<AdminRoute><LabelDashboard /></AdminRoute>} />
+            <Route path="/admin/label/projects" element={<AdminRoute><ProjectManagement /></AdminRoute>} />
+            <Route path="/admin/label/marketing" element={<AdminRoute><MarketingManagement /></AdminRoute>} />
+            <Route path="/admin/label/finance" element={<AdminRoute><FinancialManagement /></AdminRoute>} />
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
         </AuthProvider>
