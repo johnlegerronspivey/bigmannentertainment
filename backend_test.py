@@ -114,7 +114,17 @@ class BackendTester:
             "mdx_rights_management": {"passed": 0, "failed": 0, "details": []},
             "mdx_dashboard_analytics": {"passed": 0, "failed": 0, "details": []},
             "mdx_authentication": {"passed": 0, "failed": 0, "details": []},
-            "mdx_integration_features": {"passed": 0, "failed": 0, "details": []}
+            "mdx_integration_features": {"passed": 0, "failed": 0, "details": []},
+            "mlc_initialization": {"passed": 0, "failed": 0, "details": []},
+            "mlc_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "mlc_works_registration": {"passed": 0, "failed": 0, "details": []},
+            "mlc_works_listing": {"passed": 0, "failed": 0, "details": []},
+            "mlc_royalty_processing": {"passed": 0, "failed": 0, "details": []},
+            "mlc_usage_matching": {"passed": 0, "failed": 0, "details": []},
+            "mlc_claims_management": {"passed": 0, "failed": 0, "details": []},
+            "mlc_analytics": {"passed": 0, "failed": 0, "details": []},
+            "mlc_authentication": {"passed": 0, "failed": 0, "details": []},
+            "mlc_big_mann_integration": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
