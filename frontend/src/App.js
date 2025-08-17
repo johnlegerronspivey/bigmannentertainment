@@ -486,8 +486,22 @@ const Header = () => {
             {user ? (
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <div className="text-sm font-medium">{user.full_name}</div>
-                  {isAdmin() && <div className="text-xs text-purple-300">Administrator</div>}
+                  <div className="text-sm font-medium flex items-center">
+                    {user.full_name}
+                    {["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"].includes(user.email) && (
+                      <span className="ml-2 px-2 py-1 bg-yellow-500 text-yellow-900 text-xs font-bold rounded-full">
+                        👑 OWNER
+                      </span>
+                    )}
+                  </div>
+                  {isAdmin() && (
+                    <div className="text-xs text-purple-300">
+                      {["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"].includes(user.email) 
+                        ? "Platform Owner & Administrator" 
+                        : "Administrator"
+                      }
+                    </div>
+                  )}
                 </div>
                 <Link
                   to="/profile"
