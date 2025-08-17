@@ -1140,6 +1140,12 @@ class IndustryIntegrationService:
             
             cursor = self.db.mdx_tracks.find(query)
             tracks = await cursor.to_list(None)
+            
+            # Convert ObjectId to string for JSON serialization
+            for track in tracks:
+                if '_id' in track:
+                    track['_id'] = str(track['_id'])
+            
             return tracks
             
         except Exception as e:
