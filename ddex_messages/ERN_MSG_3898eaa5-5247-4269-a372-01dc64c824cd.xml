@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ns0:NewReleaseMessage xmlns:ns0="http://ddex.net/xml/ern/41" xmlns="http://ddex.net/xml/ern/41" MessageSchemaVersionId="41" BusinessProfileVersionId="CommonReleaseTypes" ReleaseProfileVersionId="CommonReleaseTypes/14" LanguageAndScriptCode="en">
+  <ns0:MessageHeader>
+    <ns0:MessageThreadId>MSG_3898eaa5-5247-4269-a372-01dc64c824cd</ns0:MessageThreadId>
+    <ns0:MessageId>MSG_3898eaa5-5247-4269-a372-01dc64c824cd</ns0:MessageId>
+    <ns0:MessageFileName>MSG_3898eaa5-5247-4269-a372-01dc64c824cd.xml</ns0:MessageFileName>
+    <ns0:MessageSender>
+      <ns0:PartyId>BME001</ns0:PartyId>
+      <ns0:PartyName>Big Mann Entertainment</ns0:PartyName>
+    </ns0:MessageSender>
+    <ns0:MessageRecipient>
+      <ns0:PartyId>DSP001</ns0:PartyId>
+      <ns0:PartyName>Digital Service Provider</ns0:PartyName>
+    </ns0:MessageRecipient>
+    <ns0:MessageCreatedDateTime>2025-08-17T15:40:29</ns0:MessageCreatedDateTime>
+  </ns0:MessageHeader>
+  <ns0:UpdateIndicator>OriginalMessage</ns0:UpdateIndicator>
+  <ns0:IsBackfill>false</ns0:IsBackfill>
+  <ns0:CatalogTransfer>false</ns0:CatalogTransfer>
+  <ns0:ResourceList>
+    <ns0:SoundRecording>
+      <ns0:ResourceReference>R71B6844AD974</ns0:ResourceReference>
+      <ns0:Type>SoundRecording</ns0:Type>
+      <ns0:ResourceId>
+        <ns0:ISRC>US-BME-25-A0666</ns0:ISRC>
+      </ns0:ResourceId>
+      <ns0:ReferenceTitle>
+        <ns0:TitleText>Big Mann Entertainment Test Track</ns0:TitleText>
+      </ns0:ReferenceTitle>
+      <ns0:Duration>PT3M30S</ns0:Duration>
+      <ns0:DisplayArtist>
+        <ns0:PartyName>John LeGerron Spivey</ns0:PartyName>
+        <ns0:ArtistRole>MainArtist</ns0:ArtistRole>
+      </ns0:DisplayArtist>
+      <ns0:TechnicalDetails>
+        <ns0:TechnicalResourceDetails>
+          <ns0:AudioCodecType>Unknown</ns0:AudioCodecType>
+          <ns0:BitRate>320</ns0:BitRate>
+          <ns0:SamplingRate>44100</ns0:SamplingRate>
+          <ns0:File>
+            <ns0:URI>audio_a03919b0_big_mann_test_track.wav</ns0:URI>
+          </ns0:File>
+        </ns0:TechnicalResourceDetails>
+      </ns0:TechnicalDetails>
+      <ns0:ParentalWarningType>NotExplicit</ns0:ParentalWarningType>
+    </ns0:SoundRecording>
+  </ns0:ResourceList>
+  <ns0:ReleaseList>
+    <ns0:Release>
+      <ns0:ReleaseReference>RC72018F1</ns0:ReleaseReference>
+      <ns0:ReleaseType>Single</ns0:ReleaseType>
+      <ns0:ReleaseId>
+        <ns0:CatalogNumber>
+          <ns0:Namespace>Big Mann Entertainment</ns0:Namespace>
+          <ns0:Value>BME202558C081</ns0:Value>
+        </ns0:CatalogNumber>
+      </ns0:ReleaseId>
+      <ns0:ReferenceTitle>
+        <ns0:TitleText>Big Mann Entertainment Test Track</ns0:TitleText>
+      </ns0:ReferenceTitle>
+      <ns0:DisplayArtist>
+        <ns0:PartyName>John LeGerron Spivey</ns0:PartyName>
+        <ns0:ArtistRole>MainArtist</ns0:ArtistRole>
+      </ns0:DisplayArtist>
+      <ns0:MarketingLabel>
+        <ns0:LabelName>Big Mann Entertainment</ns0:LabelName>
+      </ns0:MarketingLabel>
+      <ns0:ResourceGroup>
+        <ns0:ResourceGroupContentItem>
+          <ns0:SequenceNumber>1</ns0:SequenceNumber>
+          <ns0:ResourceReference>R71B6844AD974</ns0:ResourceReference>
+        </ns0:ResourceGroupContentItem>
+      </ns0:ResourceGroup>
+      <ns0:ReleaseDate>2025-01-15</ns0:ReleaseDate>
+    </ns0:Release>
+  </ns0:ReleaseList>
+  <ns0:DealList>
+    <ns0:ReleaseDeal>
+      <ns0:DealReference>DEAL_RC72018F1</ns0:DealReference>
+      <ns0:DealTerms>
+        <ns0:CommercialModelType>SubscriptionModel</ns0:CommercialModelType>
+        <ns0:Usage>
+          <ns0:UseType>OnDemandStream</ns0:UseType>
+          <ns0:UseType>OnDemandStream</ns0:UseType>
+          <ns0:UseType>PermanentDownload</ns0:UseType>
+        </ns0:Usage>
+        <ns0:TerritoryCode>Worldwide</ns0:TerritoryCode>
+        <ns0:ValidityPeriod>
+          <ns0:StartDate>2025-01-15</ns0:StartDate>
+        </ns0:ValidityPeriod>
+      </ns0:DealTerms>
+      <ns0:DealReleaseReference>RC72018F1</ns0:DealReleaseReference>
+    </ns0:ReleaseDeal>
+  </ns0:DealList>
+</ns0:NewReleaseMessage>
