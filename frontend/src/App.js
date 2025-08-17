@@ -439,7 +439,22 @@ const Header = () => {
             <Link to="/distribute" className="hover:text-purple-400 transition-colors">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-400 transition-colors">Platforms</Link>
             <Link to="/business" className="hover:text-purple-400 transition-colors">Business</Link>
-            <Link to="/industry" className="hover:text-purple-400 transition-colors">Industry</Link>
+            <div className="relative group">
+              <button className="hover:text-purple-400 transition-colors flex items-center">
+                Label
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <Link to="/label" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Label Dashboard</Link>
+                <Link to="/label/artists" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Artist Roster</Link>
+                <Link to="/label/ar" className="block px-4 py-2 hover:bg-gray-100 transition-colors">A&R Management</Link>
+                <Link to="/label/projects" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Recording Projects</Link>
+                <Link to="/label/marketing" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Marketing Campaigns</Link>
+                <Link to="/label/finance" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Financial Management</Link>
+              </div>
+            </div>
             <Link to="/label" className="hover:text-purple-400 transition-colors">Label</Link>
             <Link to="/sponsorship" className="hover:text-purple-400 transition-colors">Sponsorship</Link>
             <Link to="/blockchain" className="hover:text-purple-400 transition-colors">Blockchain</Link>
