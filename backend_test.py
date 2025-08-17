@@ -5848,10 +5848,89 @@ class BackendTester:
             self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, f"Exception: {str(e)}")
             return False
     
-    def test_ownership_access_control(self) -> bool:
-        """Test that only John's emails can access ownership control endpoints"""
+    def test_old_emails_blocked(self) -> bool:
+        """Test that old John emails (john@bigmannentertainment.com, johnlegerronspivey@gmail.com, etc.) no longer have special privileges"""
         try:
-            # Test with current token (should work if it's John's token)
+            from datetime import datetime, timedelta
+            
+            # Test with old emails to ensure they don't get super_admin role
+            old_emails = [
+                "john@bigmannentertainment.com",
+                "johnlegerronspivey@gmail.com", 
+                "johnlegerronspivey@bigmannentertainment.com"
+            ]
+            
+            blocked_count = 0
+            
+            for old_email in old_emails:
+                old_user_data = {
+                    "email": old_email,
+                    "password": "OldEmail2025!",
+                    "full_name": "John LeGerron Spivey",
+                    "business_name": "Big Mann Entertainment",
+                    "date_of_birth": (datetime.utcnow() - timedelta(days=30*365)).isoformat(),
+                    "address_line1": "1314 Lincoln Heights Street",
+                    "city": "Alexander City",
+                    "state_province": "Alabama",
+                    "postal_code": "35010",
+                    "country": "United States"
+                }
+                
+                response = self.make_request('POST', '/auth/register', json=old_user_data)
+                
+                if response.status_code in [200, 201]:
+                    data = response.json()
+                    if 'user' in data:
+                        user = data['user']
+                        # Verify old email does NOT get super_admin role automatically
+                        if user.get('role') != 'super_admin':
+                            blocked_count += 1
+                        else:
+                            self.log_result("ownership_access_control", "Old Emails Blocked", False, 
+                                          f"Old email {old_email} incorrectly assigned super_admin role")
+                            return False
+                elif response.status_code == 400 and "already registered" in response.text:
+                    # User already exists, test login to check role
+                    login_data = {
+                        "email": old_email,
+                        "password": "OldEmail2025!"
+                    }
+                    
+                    login_response = self.make_request('POST', '/auth/login', json=login_data)
+                    if login_response.status_code == 200:
+                        login_data_resp = login_response.json()
+                        if 'user' in login_data_resp:
+                            user = login_data_resp['user']
+                            if user.get('role') != 'super_admin':
+                                blocked_count += 1
+                            else:
+                                self.log_result("ownership_access_control", "Old Emails Blocked", False, 
+                                              f"Existing old email {old_email} has super_admin role (should be removed)")
+                                return False
+                    else:
+                        # Login failed - could be wrong password, count as blocked
+                        blocked_count += 1
+                else:
+                    # Registration failed for other reasons, count as blocked
+                    blocked_count += 1
+            
+            if blocked_count == len(old_emails):
+                self.log_result("ownership_access_control", "Old Emails Blocked", True, 
+                              f"All {len(old_emails)} old John emails correctly blocked from super_admin privileges")
+                return True
+            else:
+                self.log_result("ownership_access_control", "Old Emails Blocked", False, 
+                              f"Only {blocked_count}/{len(old_emails)} old emails properly blocked")
+                return False
+                
+        except Exception as e:
+            self.log_result("ownership_access_control", "Old Emails Blocked", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ownership_access_control(self) -> bool:
+        """Test that only owner@bigmannentertainment.com can access ownership control endpoints"""
+        try:
+            # Test with current token (should work if it's owner's token)
             ownership_response = self.make_request('GET', '/admin/ownership/status')
             
             if ownership_response.status_code == 200:
@@ -5859,17 +5938,17 @@ class BackendTester:
                 data = ownership_response.json()
                 if data.get('current_user_is_john'):
                     self.log_result("ownership_access_control", "Ownership Access Control", True, 
-                                  "John's email can access ownership control endpoints")
+                                  "Owner email can access ownership control endpoints")
                     return True
                 else:
-                    # Non-John user can access - this might be due to admin privileges
+                    # Non-owner user can access - this might be due to admin privileges
                     self.log_result("ownership_access_control", "Ownership Access Control", True, 
                                   "Admin user can access ownership status (acceptable for admin users)")
                     return True
             elif ownership_response.status_code == 403:
-                # Access denied - this is correct for non-John users
+                # Access denied - this is correct for non-owner users
                 self.log_result("ownership_access_control", "Ownership Access Control", True, 
-                              "Non-John user correctly denied access to ownership endpoints")
+                              "Non-owner user correctly denied access to ownership endpoints")
                 return True
             else:
                 self.log_result("ownership_access_control", "Ownership Access Control", False, 
