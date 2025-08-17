@@ -106,7 +106,15 @@ class BackendTester:
             "entertainment_partners": {"passed": 0, "failed": 0, "details": []},
             "industry_initialization": {"passed": 0, "failed": 0, "details": []},
             "content_monetization": {"passed": 0, "failed": 0, "details": []},
-            "entertainment_analytics": {"passed": 0, "failed": 0, "details": []}
+            "entertainment_analytics": {"passed": 0, "failed": 0, "details": []},
+            "mdx_initialization": {"passed": 0, "failed": 0, "details": []},
+            "mdx_track_sync": {"passed": 0, "failed": 0, "details": []},
+            "mdx_bulk_operations": {"passed": 0, "failed": 0, "details": []},
+            "mdx_track_management": {"passed": 0, "failed": 0, "details": []},
+            "mdx_rights_management": {"passed": 0, "failed": 0, "details": []},
+            "mdx_dashboard_analytics": {"passed": 0, "failed": 0, "details": []},
+            "mdx_authentication": {"passed": 0, "failed": 0, "details": []},
+            "mdx_integration_features": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
