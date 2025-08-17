@@ -5804,7 +5804,7 @@ class BackendTester:
             return False
     
     def test_admin_user_list_endpoint(self) -> bool:
-        """Test GET /api/admin/users endpoint shows proper role assignments"""
+        """Test GET /api/admin/users endpoint shows proper role assignments with only owner@bigmannentertainment.com having special privileges"""
         try:
             if not self.auth_token:
                 self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, "No auth token available")
@@ -5816,22 +5816,24 @@ class BackendTester:
                 data = response.json()
                 if 'users' in data and 'total' in data:
                     users = data['users']
-                    john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
                     
-                    # Find John's users
-                    john_users = [user for user in users if user.get('email') in john_emails]
+                    # Find owner user
+                    owner_user = next((user for user in users if user.get('email') == "owner@bigmannentertainment.com"), None)
                     admin_users = [user for user in users if user.get('is_admin') or user.get('role') in ['admin', 'super_admin', 'moderator']]
                     
-                    # Verify John users have proper roles
-                    john_super_admins = [user for user in john_users if user.get('role') == 'super_admin']
-                    
-                    if len(john_super_admins) > 0:
+                    # Verify owner has proper role
+                    if owner_user and owner_user.get('role') == 'super_admin':
+                        # Check that old emails (if they exist) don't have special privileges
+                        old_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+                        old_email_users = [user for user in users if user.get('email') in old_emails]
+                        old_email_super_admins = [user for user in old_email_users if user.get('role') == 'super_admin']
+                        
                         self.log_result("ownership_admin_user_list", "Admin User List Endpoint", True, 
-                                      f"User list shows proper roles: {len(john_super_admins)} John super_admins, {len(admin_users)} total admins, {len(users)} total users")
+                                      f"User list shows proper ownership: Owner has super_admin role, {len(admin_users)} total admins, {len(users)} total users, {len(old_email_super_admins)} old emails with super_admin (should be 0)")
                         return True
                     else:
                         self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, 
-                                      f"No John users found with super_admin role. John users: {len(john_users)}, Admin users: {len(admin_users)}")
+                                      f"Owner user not found or doesn't have super_admin role. Owner found: {owner_user is not None}")
                         return False
                 else:
                     self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, 
