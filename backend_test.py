@@ -5904,6 +5904,38 @@ class BackendTester:
         print("\nTesting Entertainment Analytics...")
         self.test_entertainment_analytics()
         
+        # NEW: Music Data Exchange (MDX) Integration Tests
+        print("\n🎵 TESTING MUSIC DATA EXCHANGE (MDX) INTEGRATION SYSTEM")
+        print("-" * 80)
+        
+        print("\nTesting MDX Integration Initialization...")
+        self.test_mdx_initialization()
+        
+        print("\nTesting MDX Track Synchronization...")
+        self.test_mdx_track_sync()
+        
+        print("\nTesting MDX Bulk Operations...")
+        self.test_mdx_bulk_track_upload()
+        
+        print("\nTesting MDX Track Management...")
+        self.test_mdx_tracks_retrieval_with_filtering()
+        self.test_mdx_track_metadata_update()
+        self.test_mdx_track_deletion()
+        
+        print("\nTesting MDX Rights Management...")
+        self.test_mdx_rights_management()
+        self.test_mdx_track_rights_information()
+        
+        print("\nTesting MDX Dashboard Analytics...")
+        self.test_mdx_dashboard_analytics()
+        
+        print("\nTesting MDX Authentication & Security...")
+        self.test_mdx_authentication_requirements()
+        
+        print("\nTesting MDX Integration Features...")
+        self.test_mdx_integration_with_ipi_numbers()
+        self.test_mdx_ddex_compliance()
+        
         # Print Summary
         self.print_summary()
     
