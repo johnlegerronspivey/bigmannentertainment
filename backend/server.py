@@ -3655,11 +3655,11 @@ async def test_label_endpoint():
     """Test endpoint to verify label routing works"""
     return {"message": "Label routing is working!", "timestamp": datetime.utcnow().isoformat()}
 
-# Include Label router
+# Include Label router (simplified version)
 try:
-    from label_endpoints import label_router
+    from label_simple import label_router
     api_router.include_router(label_router)
-    print("✅ Label router successfully loaded")
+    print("✅ Label router successfully loaded (simple version)")
 except ImportError as e:
     print(f"⚠️ Label router not available: {e}")
 except Exception as e:
