@@ -944,17 +944,19 @@ const AdminDashboard = () => {
 // Admin User Management Component
 const AdminUserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [ownershipStatus, setOwnershipStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
 
   useEffect(() => {
     if (isAdmin()) {
       fetchUsers();
+      fetchOwnershipStatus();
     }
   }, [isAdmin, searchTerm, roleFilter, statusFilter]);
 
@@ -971,6 +973,43 @@ const AdminUserManagement = () => {
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOwnershipStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/ownership/status`);
+      setOwnershipStatus(response.data);
+    } catch (error) {
+      console.error('Error fetching ownership status:', error);
+    }
+  };
+
+  const handleMakeSuperAdmin = async (userId) => {
+    if (window.confirm('Are you sure you want to grant this user super admin access with full ownership rights?')) {
+      try {
+        await axios.post(`${API}/admin/users/make-super-admin/${userId}`);
+        fetchUsers();
+        fetchOwnershipStatus();
+        alert('User has been granted super admin access with full ownership rights');
+      } catch (error) {
+        console.error('Error making user super admin:', error);
+        alert('Error granting super admin access. ' + (error.response?.data?.detail || 'Please try again.'));
+      }
+    }
+  };
+
+  const handleRevokeAdmin = async (userId) => {
+    if (window.confirm('Are you sure you want to revoke admin access from this user?')) {
+      try {
+        await axios.post(`${API}/admin/users/revoke-admin/${userId}`);
+        fetchUsers();
+        fetchOwnershipStatus();
+        alert('Admin access has been revoked');
+      } catch (error) {
+        console.error('Error revoking admin access:', error);
+        alert('Error revoking admin access. ' + (error.response?.data?.detail || 'Please try again.'));
+      }
     }
   };
 
