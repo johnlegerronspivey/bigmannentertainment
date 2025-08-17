@@ -2530,8 +2530,8 @@ async def get_ownership_status(
             "id": user["id"],
             "email": user["email"],
             "full_name": user.get("full_name", ""),
-            "role": user["role"],
-            "is_admin": user["is_admin"],
+            "role": user.get("role", "user"),
+            "is_admin": user.get("is_admin", False),
             "is_john_legerron_spivey": user["email"] in john_emails
         })
     
