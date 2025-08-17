@@ -28,7 +28,190 @@ class IndustryIdentifier(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-# Enhanced Entertainment Industry Models
+# Music Data Exchange (MDX) Integration Models
+class MusicDataExchange(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    mdx_id: Optional[str] = None  # MDX system ID
+    entity_name: str  # Artist, Label, Publisher name
+    entity_type: str  # artist, label, publisher, distributor
+    
+    # Metadata Information
+    metadata_schema: Dict[str, Any] = {}  # MDX metadata structure
+    rights_information: Dict[str, Any] = {}  # Rights and ownership data
+    licensing_data: Dict[str, Any] = {}  # Licensing and clearance info
+    
+    # Integration Configuration
+    api_credentials: Dict[str, str] = {}  # MDX API access credentials
+    data_mapping: Dict[str, Any] = {}  # Data structure mapping
+    sync_frequency: str = "daily"  # real_time, hourly, daily, weekly
+    last_sync: Optional[datetime] = None
+    sync_status: str = "pending"  # pending, active, failed, paused
+    
+    # Metadata Standards
+    ddex_compliant: bool = True
+    isrc_codes: List[str] = []
+    iswc_codes: List[str] = []
+    upc_codes: List[str] = []
+    
+    # Rights and Ownership
+    copyright_owners: List[Dict[str, Any]] = []
+    mechanical_rights: Dict[str, Any] = {}
+    performance_rights: Dict[str, Any] = {}
+    synchronization_rights: Dict[str, Any] = {}
+    
+    # Distribution Information
+    territories: List[str] = []
+    distribution_channels: List[str] = []
+    release_schedule: Dict[str, Any] = {}
+    
+    status: str = "active"  # active, inactive, pending, suspended
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# MDX Track/Release Model
+class MDXTrack(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    mdx_track_id: Optional[str] = None
+    
+    # Basic Track Information
+    title: str
+    artist_name: str
+    album_title: Optional[str] = None
+    track_number: Optional[int] = None
+    duration: Optional[int] = None  # Duration in seconds
+    release_date: Optional[datetime] = None
+    
+    # Identification Codes
+    isrc: Optional[str] = None
+    iswc: Optional[str] = None
+    upc: Optional[str] = None  # For album/release
+    
+    # Rights and Ownership
+    songwriter_splits: List[Dict[str, Any]] = []  # Songwriter percentages
+    publisher_splits: List[Dict[str, Any]] = []  # Publisher percentages
+    performer_credits: List[Dict[str, Any]] = []  # Performer information
+    producer_credits: List[Dict[str, Any]] = []  # Producer information
+    
+    # MDX Specific Data
+    mdx_metadata: Dict[str, Any] = {}
+    rights_clearance_status: str = "pending"  # pending, cleared, blocked
+    distribution_rights: Dict[str, Any] = {}
+    
+    # Big Mann Entertainment Integration
+    big_mann_release: bool = False
+    monetization_strategy: Dict[str, Any] = {}
+    
+    status: str = "active"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# MDX Rights Management Model
+class MDXRightsManagement(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4))
+    mdx_rights_id: Optional[str] = None
+    
+    # Rights Information
+    rights_type: str  # mechanical, performance, synchronization, master, publishing
+    rights_holder: str  # Name of rights holder
+    rights_percentage: float  # Percentage of rights owned (0.0-100.0)
+    
+    # Territory and Duration
+    territories: List[str] = []  # Territories where rights apply
+    rights_start_date: datetime
+    rights_end_date: Optional[datetime] = None  # None for perpetual rights
+    
+    # Associated Content
+    track_ids: List[str] = []  # Associated track IDs
+    album_ids: List[str] = []  # Associated album IDs
+    
+    # Rights Status
+    clearance_status: str = "active"  # active, expired, disputed, pending
+    licensing_terms: Dict[str, Any] = {}
+    royalty_rates: Dict[str, Any] = {}
+    
+    # MDX Integration
+    mdx_sync_status: str = "synced"  # synced, pending, failed
+    last_mdx_update: Optional[datetime] = None
+    
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# MDX Analytics and Reporting Model
+class MDXAnalytics(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    
+    # Reporting Period
+    report_date: datetime
+    report_type: str  # daily, weekly, monthly, quarterly, annual
+    
+    # Metadata Quality Metrics
+    metadata_completeness: float  # Percentage of complete metadata fields
+    rights_clearance_rate: float  # Percentage of rights cleared
+    sync_success_rate: float  # Percentage of successful MDX syncs
+    
+    # Content Statistics
+    total_tracks_managed: int = 0
+    total_rights_cleared: int = 0
+    total_distribution_channels: int = 0
+    total_territories_covered: int = 0
+    
+    # Revenue Impact
+    estimated_revenue_impact: float = 0.0
+    rights_revenue_tracked: float = 0.0
+    metadata_optimization_savings: float = 0.0
+    
+    # Performance Metrics
+    sync_performance: Dict[str, Any] = {}
+    error_rates: Dict[str, float] = {}
+    processing_times: Dict[str, float] = {}
+    
+    # Big Mann Entertainment Specific
+    big_mann_tracks: int = 0
+    big_mann_revenue_impact: float = 0.0
+    
+    metadata: Dict[str, Any] = {}
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Big Mann Entertainment MDX Configuration
+BIG_MANN_MDX_CONFIG = {
+    "entity_name": "Big Mann Entertainment",
+    "entity_type": "label",
+    "mdx_configuration": {
+        "api_version": "v2.1",
+        "supported_formats": ["JSON", "XML", "DDEX"],
+        "sync_frequency": "real_time",
+        "metadata_standards": ["DDEX", "ISRC", "ISWC", "UPC"],
+        "territories": ["US", "UK", "CA", "AU", "global"],
+        "distribution_channels": [
+            "Spotify", "Apple Music", "Amazon Music", "YouTube Music",
+            "Tidal", "Bandcamp", "SoundCloud", "Deezer"
+        ]
+    },
+    "rights_management": {
+        "mechanical_rights": True,
+        "performance_rights": True,
+        "synchronization_rights": True,
+        "master_rights": True,
+        "publishing_rights": True
+    },
+    "integration_features": {
+        "automated_metadata_sync": True,
+        "rights_clearance_automation": True,
+        "revenue_tracking": True,
+        "analytics_reporting": True,
+        "multi_territory_support": True,
+        "real_time_updates": True
+    },
+    "big_mann_specific": {
+        "ipi_integration": True,
+        "isni_integration": True,
+        "aarc_integration": True,
+        "comprehensive_monetization": True,
+        "cross_platform_optimization": True
+    }
+}
 
 # Photography Services Model
 class PhotographyService(BaseModel):
