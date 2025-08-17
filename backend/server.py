@@ -2384,9 +2384,11 @@ async def get_all_users(
     
     total_users = await db.users.count_documents(query)
     
-    # Remove password field from response
+    # Remove password field from response and convert ObjectId to string
     for user in users:
         user.pop("password", None)
+        if "_id" in user:
+            user["_id"] = str(user["_id"])
     
     return {
         "users": users,
