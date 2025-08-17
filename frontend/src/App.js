@@ -3978,6 +3978,14 @@ function App() {
             <Route path="/industry/monetization" element={<ProtectedRoute><MonetizationOpportunities /></ProtectedRoute>} />
             <Route path="/industry/mdx" element={<ProtectedRoute><MusicDataExchange /></ProtectedRoute>} />
             <Route path="/industry/mlc" element={<ProtectedRoute><MechanicalLicensingCollective /></ProtectedRoute>} />
+            
+            {/* Label Management Routes */}
+            <Route path="/label" element={<ProtectedRoute><LabelDashboard /></ProtectedRoute>} />
+            <Route path="/label/artists" element={<ProtectedRoute><LabelDashboard /></ProtectedRoute>} />
+            <Route path="/label/ar" element={<ProtectedRoute><LabelDashboard /></ProtectedRoute>} />
+            <Route path="/label/projects" element={<ProtectedRoute><ProjectManagement /></ProtectedRoute>} />
+            <Route path="/label/marketing" element={<ProtectedRoute><MarketingManagement /></ProtectedRoute>} />
+            <Route path="/label/finance" element={<ProtectedRoute><FinancialManagement /></ProtectedRoute>} />
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/blockchain" element={<Blockchain />} />
