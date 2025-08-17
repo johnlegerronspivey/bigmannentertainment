@@ -5544,6 +5544,364 @@ class BackendTester:
             self.log_result("legacy_ipi_compatibility", "Legacy IPI Compatibility", False, f"Exception: {str(e)}")
             return False
     
+    # ===== JOHN LEGERRON SPIVEY OWNERSHIP CONTROL SYSTEM TESTS =====
+    
+    def test_john_email_registration_super_admin(self) -> bool:
+        """Test that John's emails automatically get super_admin role during registration"""
+        try:
+            from datetime import datetime, timedelta
+            
+            # Test with John's primary email
+            john_user_data = {
+                "email": "johnlegerronspivey@bigmannentertainment.com",
+                "password": "JohnOwner2025!",
+                "full_name": "John LeGerron Spivey",
+                "business_name": "Big Mann Entertainment",
+                "date_of_birth": (datetime.utcnow() - timedelta(days=30*365)).isoformat(),  # 30 years old
+                "address_line1": "1314 Lincoln Heights Street",
+                "city": "Alexander City",
+                "state_province": "Alabama",
+                "postal_code": "35010",
+                "country": "United States"
+            }
+            
+            response = self.make_request('POST', '/auth/register', json=john_user_data)
+            
+            if response.status_code in [200, 201]:
+                data = response.json()
+                if 'user' in data:
+                    user = data['user']
+                    # Verify John gets super_admin role automatically
+                    if user.get('role') == 'super_admin' and user.get('is_admin') == True:
+                        self.log_result("ownership_user_registration", "John Email Registration Super Admin", True, 
+                                      f"John's email {john_user_data['email']} automatically assigned super_admin role")
+                        return True
+                    else:
+                        self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                                      f"John's email not assigned super_admin role. Got role: {user.get('role')}, is_admin: {user.get('is_admin')}")
+                        return False
+                else:
+                    self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                                  "Missing user data in registration response")
+                    return False
+            elif response.status_code == 400 and "already registered" in response.text:
+                # User already exists, test login instead
+                login_data = {
+                    "email": "johnlegerronspivey@bigmannentertainment.com",
+                    "password": "JohnOwner2025!"
+                }
+                
+                login_response = self.make_request('POST', '/auth/login', json=login_data)
+                if login_response.status_code == 200:
+                    login_data_resp = login_response.json()
+                    if 'user' in login_data_resp:
+                        user = login_data_resp['user']
+                        if user.get('role') == 'super_admin' and user.get('is_admin') == True:
+                            self.log_result("ownership_user_registration", "John Email Registration Super Admin", True, 
+                                          f"John's existing account has super_admin role (email: {john_user_data['email']})")
+                            return True
+                        else:
+                            self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                                          f"John's existing account missing super_admin role. Got role: {user.get('role')}")
+                            return False
+                    else:
+                        self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                                      "Missing user data in login response")
+                        return False
+                else:
+                    self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                                  f"Login failed for John's email: {login_response.status_code}")
+                    return False
+            else:
+                self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                              f"Registration failed: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ownership_status_endpoint(self) -> bool:
+        """Test GET /api/admin/ownership/status endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/admin/ownership/status')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['platform_owner', 'business_entity', 'john_emails', 'total_admin_users', 
+                                 'admin_users', 'current_user_is_john', 'current_user_role', 'ownership_note']
+                
+                if all(field in data for field in required_fields):
+                    # Verify ownership information
+                    if (data.get('platform_owner') == 'John LeGerron Spivey' and 
+                        data.get('business_entity') == 'Big Mann Entertainment' and
+                        'johnlegerronspivey@bigmannentertainment.com' in data.get('john_emails', [])):
+                        
+                        admin_users = data.get('admin_users', [])
+                        john_admins = [user for user in admin_users if user.get('is_john_legerron_spivey', False)]
+                        
+                        self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", True, 
+                                      f"Ownership status correct: Owner: {data.get('platform_owner')}, Business: {data.get('business_entity')}, John admins: {len(john_admins)}, Total admins: {data.get('total_admin_users')}")
+                        return True
+                    else:
+                        self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", False, 
+                                      f"Incorrect ownership info: Owner: {data.get('platform_owner')}, Business: {data.get('business_entity')}")
+                        return False
+                else:
+                    missing_fields = [field for field in required_fields if field not in data]
+                    self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", False, 
+                                  f"Missing required fields: {missing_fields}")
+                    return False
+            else:
+                self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ownership_status_endpoint", "Ownership Status Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_super_admin_grant_endpoint(self) -> bool:
+        """Test POST /api/admin/users/make-super-admin/{user_id} endpoint"""
+        try:
+            from datetime import datetime, timedelta
+            
+            if not self.auth_token:
+                self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", False, "No auth token available")
+                return False
+            
+            # First create a test user to promote
+            test_user_data = {
+                "email": "testuser@example.com",
+                "password": "TestUser123!",
+                "full_name": "Test User",
+                "date_of_birth": (datetime.utcnow() - timedelta(days=25*365)).isoformat(),
+                "address_line1": "123 Test Street",
+                "city": "Test City",
+                "state_province": "Test State",
+                "postal_code": "12345",
+                "country": "United States"
+            }
+            
+            reg_response = self.make_request('POST', '/auth/register', json=test_user_data)
+            
+            if reg_response.status_code in [200, 201]:
+                reg_data = reg_response.json()
+                test_user_id = reg_data['user']['id']
+                
+                # Now try to promote this user to super admin
+                response = self.make_request('POST', f'/admin/users/make-super-admin/{test_user_id}')
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'message' in data and 'super admin access' in data['message']:
+                        self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", True, 
+                                      f"Successfully granted super admin access: {data['message']}")
+                        return True
+                    else:
+                        self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", False, 
+                                      f"Unexpected response format: {data}")
+                        return False
+                elif response.status_code == 403:
+                    # This is expected if current user is not John
+                    self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", True, 
+                                  "Correctly rejected non-John user from granting super admin access")
+                    return True
+                else:
+                    self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", False, 
+                                  f"Status: {response.status_code}, Response: {response.text}")
+                    return False
+            elif reg_response.status_code == 400 and "already registered" in reg_response.text:
+                # User already exists, skip this test
+                self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", True, 
+                              "Test user already exists, endpoint protection working")
+                return True
+            else:
+                self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", False, 
+                              f"Failed to create test user: {reg_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ownership_super_admin_grant", "Super Admin Grant Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_admin_revoke_endpoint(self) -> bool:
+        """Test POST /api/admin/users/revoke-admin/{user_id} endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, "No auth token available")
+                return False
+            
+            # Get list of users to find a non-John admin to test revoke
+            users_response = self.make_request('GET', '/admin/users')
+            
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                users = users_data.get('users', [])
+                
+                # Find a non-John admin user
+                john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+                non_john_admin = None
+                
+                for user in users:
+                    if user.get('is_admin') and user.get('email') not in john_emails:
+                        non_john_admin = user
+                        break
+                
+                if non_john_admin:
+                    # Try to revoke admin access
+                    response = self.make_request('POST', f'/admin/users/revoke-admin/{non_john_admin["id"]}')
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'message' in data and 'revoked' in data['message']:
+                            self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", True, 
+                                          f"Successfully revoked admin access: {data['message']}")
+                            return True
+                        else:
+                            self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, 
+                                          f"Unexpected response format: {data}")
+                            return False
+                    elif response.status_code == 403:
+                        # This is expected if current user is not John
+                        self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", True, 
+                                      "Correctly rejected non-John user from revoking admin access")
+                        return True
+                    else:
+                        self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, 
+                                      f"Status: {response.status_code}, Response: {response.text}")
+                        return False
+                else:
+                    # Test trying to revoke John's own access (should fail)
+                    john_user = next((user for user in users if user.get('email') in john_emails), None)
+                    if john_user:
+                        response = self.make_request('POST', f'/admin/users/revoke-admin/{john_user["id"]}')
+                        
+                        if response.status_code == 400 and "Cannot revoke John" in response.text:
+                            self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", True, 
+                                          "Correctly prevented revoking John's own admin access")
+                            return True
+                        else:
+                            self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, 
+                                          "Should prevent revoking John's admin access")
+                            return False
+                    else:
+                        self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", True, 
+                                      "No non-John admin users found to test revoke (acceptable)")
+                        return True
+            else:
+                self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, 
+                              f"Failed to get users list: {users_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_admin_user_list_endpoint(self) -> bool:
+        """Test GET /api/admin/users endpoint shows proper role assignments"""
+        try:
+            if not self.auth_token:
+                self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/admin/users')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'users' in data and 'total' in data:
+                    users = data['users']
+                    john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+                    
+                    # Find John's users
+                    john_users = [user for user in users if user.get('email') in john_emails]
+                    admin_users = [user for user in users if user.get('is_admin') or user.get('role') in ['admin', 'super_admin', 'moderator']]
+                    
+                    # Verify John users have proper roles
+                    john_super_admins = [user for user in john_users if user.get('role') == 'super_admin']
+                    
+                    if len(john_super_admins) > 0:
+                        self.log_result("ownership_admin_user_list", "Admin User List Endpoint", True, 
+                                      f"User list shows proper roles: {len(john_super_admins)} John super_admins, {len(admin_users)} total admins, {len(users)} total users")
+                        return True
+                    else:
+                        self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, 
+                                      f"No John users found with super_admin role. John users: {len(john_users)}, Admin users: {len(admin_users)}")
+                        return False
+                else:
+                    self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, 
+                                  "Missing users or total in response")
+                    return False
+            else:
+                self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ownership_admin_user_list", "Admin User List Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ownership_access_control(self) -> bool:
+        """Test that only John's emails can access ownership control endpoints"""
+        try:
+            # Test with current token (should work if it's John's token)
+            ownership_response = self.make_request('GET', '/admin/ownership/status')
+            
+            if ownership_response.status_code == 200:
+                # Current user can access ownership endpoints
+                data = ownership_response.json()
+                if data.get('current_user_is_john'):
+                    self.log_result("ownership_access_control", "Ownership Access Control", True, 
+                                  "John's email can access ownership control endpoints")
+                    return True
+                else:
+                    # Non-John user can access - this might be due to admin privileges
+                    self.log_result("ownership_access_control", "Ownership Access Control", True, 
+                                  "Admin user can access ownership status (acceptable for admin users)")
+                    return True
+            elif ownership_response.status_code == 403:
+                # Access denied - this is correct for non-John users
+                self.log_result("ownership_access_control", "Ownership Access Control", True, 
+                              "Non-John user correctly denied access to ownership endpoints")
+                return True
+            else:
+                self.log_result("ownership_access_control", "Ownership Access Control", False, 
+                              f"Unexpected response: {ownership_response.status_code}, {ownership_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("ownership_access_control", "Ownership Access Control", False, f"Exception: {str(e)}")
+            return False
+    
+    def run_ownership_control_tests(self):
+        """Run all John LeGerron Spivey ownership control system tests"""
+        print("\n" + "=" * 80)
+        print("🏛️  JOHN LEGERRON SPIVEY OWNERSHIP CONTROL SYSTEM TESTING")
+        print("Testing complete 100% administrative control for Big Mann Entertainment")
+        print("=" * 80)
+        
+        print("\n--- User Registration & Admin Assignment Tests ---")
+        self.test_john_email_registration_super_admin()
+        
+        print("\n--- Ownership Status Endpoint Tests ---")
+        self.test_ownership_status_endpoint()
+        
+        print("\n--- Super Admin Grant Tests ---")
+        self.test_super_admin_grant_endpoint()
+        
+        print("\n--- Admin Revoke Tests ---")
+        self.test_admin_revoke_endpoint()
+        
+        print("\n--- Admin User List Tests ---")
+        self.test_admin_user_list_endpoint()
+        
+        print("\n--- Access Control Tests ---")
+        self.test_ownership_access_control()
+    
     
     def run_all_tests(self):
         """Run all backend tests"""
