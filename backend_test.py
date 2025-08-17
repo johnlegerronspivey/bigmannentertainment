@@ -29,6 +29,12 @@ class BackendTester:
         self.test_session_id = None
         self.test_sponsor_id = None
         self.test_deal_id = None
+        self.test_artist_id = None
+        self.test_demo_id = None
+        self.test_contract_id = None
+        self.test_project_id = None
+        self.test_campaign_id = None
+        self.test_transaction_id = None
         self.results = {
             "authentication": {"passed": 0, "failed": 0, "details": []},
             "media_upload": {"passed": 0, "failed": 0, "details": []},
