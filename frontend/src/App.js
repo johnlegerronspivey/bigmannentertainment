@@ -488,7 +488,7 @@ const Header = () => {
                 <div className="text-right">
                   <div className="text-sm font-medium flex items-center">
                     {user.full_name}
-                    {["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"].includes(user.email) && (
+                    {["owner@bigmannentertainment.com"].includes(user.email) && (
                       <span className="ml-2 px-2 py-1 bg-yellow-500 text-yellow-900 text-xs font-bold rounded-full">
                         👑 OWNER
                       </span>
@@ -496,7 +496,7 @@ const Header = () => {
                   </div>
                   {isAdmin() && (
                     <div className="text-xs text-purple-300">
-                      {["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"].includes(user.email) 
+                      {["owner@bigmannentertainment.com"].includes(user.email) 
                         ? "Platform Owner & Administrator" 
                         : "Administrator"
                       }
