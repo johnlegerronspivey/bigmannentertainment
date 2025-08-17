@@ -3640,6 +3640,15 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading Industry router: {e}")
 
+# Debug: Print all registered routes
+@app.on_event("startup")
+async def debug_routes():
+    print("=== REGISTERED ROUTES DEBUG ===")
+    for route in app.routes:
+        if hasattr(route, 'path'):
+            print(f"Route: {route.path} [{', '.join(route.methods) if hasattr(route, 'methods') else 'N/A'}]")
+    print("=== END ROUTES DEBUG ===")
+
 # Test Label endpoint for debugging
 @api_router.get("/label/test")
 async def test_label_endpoint():
