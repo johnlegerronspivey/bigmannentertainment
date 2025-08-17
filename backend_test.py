@@ -5964,9 +5964,10 @@ class BackendTester:
         print("\n" + "=" * 80)
         print("🏛️  JOHN LEGERRON SPIVEY OWNERSHIP CONTROL SYSTEM TESTING")
         print("Testing complete 100% administrative control for Big Mann Entertainment")
+        print("Testing UPDATED system with ONLY owner@bigmannentertainment.com")
         print("=" * 80)
         
-        print("\n--- User Registration & Admin Assignment Tests ---")
+        print("\n--- Owner Email Registration & Admin Assignment Tests ---")
         self.test_john_email_registration_super_admin()
         
         print("\n--- Ownership Status Endpoint Tests ---")
@@ -5977,6 +5978,15 @@ class BackendTester:
         
         print("\n--- Admin Revoke Tests ---")
         self.test_admin_revoke_endpoint()
+        
+        print("\n--- Admin User List Tests ---")
+        self.test_admin_user_list_endpoint()
+        
+        print("\n--- Old Emails Blocked Tests ---")
+        self.test_old_emails_blocked()
+        
+        print("\n--- Ownership Access Control Tests ---")
+        self.test_ownership_access_control()
         
         print("\n--- Admin User List Tests ---")
         self.test_admin_user_list_endpoint()
