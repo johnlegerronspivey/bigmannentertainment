@@ -7229,6 +7229,11 @@ class BackendTester:
         print("-" * 80)
         self.run_ownership_control_tests()
         
+        # NEW: Big Mann Entertainment Commercial Label Management System Tests
+        print("\n🎵 TESTING BIG MANN ENTERTAINMENT COMMERCIAL LABEL MANAGEMENT SYSTEM")
+        print("-" * 80)
+        self.run_label_management_tests()
+        
         # Print Summary
         self.print_summary()
     
