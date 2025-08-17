@@ -1443,16 +1443,16 @@ class IndustryIntegrationService:
             
             # Create royalty report
             royalty_report = MLCRoyaltyReport(**{
-                "report_period_start": report_data.get("period_start", datetime.utcnow().replace(day=1)),
-                "report_period_end": report_data.get("period_end", datetime.utcnow()),
+                "report_period_start": report_data.get("report_period_start", datetime.utcnow().replace(day=1)),
+                "report_period_end": report_data.get("report_period_end", datetime.utcnow()),
                 "report_type": report_data.get("report_type", "monthly"),
-                "total_royalties_collected": report_data.get("total_collected", 0.0),
+                "total_royalties_collected": report_data.get("total_royalties_collected", 0.0),
                 "administrative_fees": report_data.get("admin_fees", 0.0),
                 "publisher_distributions": [
                     {
                         "publisher_name": "Big Mann Entertainment",
                         "ipi_number": "813048171",
-                        "amount": report_data.get("total_collected", 0.0) * 0.5,  # 50% share
+                        "amount": report_data.get("total_royalties_collected", 0.0) * 0.5,  # 50% share
                         "works_count": len(big_mann_works),
                         "distribution_method": "direct_deposit"
                     }
@@ -1462,20 +1462,20 @@ class IndustryIntegrationService:
                         "songwriter_name": "John LeGerron Spivey",
                         "ipi_number": "578413032",
                         "isni_number": "0000000491551894",
-                        "amount": report_data.get("total_collected", 0.0) * 0.5,  # 50% share
+                        "amount": report_data.get("total_royalties_collected", 0.0) * 0.5,  # 50% share
                         "works_count": len(big_mann_works),
                         "distribution_method": "direct_deposit"
                     }
                 ],
                 "digital_service_providers": ["Spotify", "Apple Music", "Amazon Music", "YouTube Music"],
                 "usage_data": {
-                    "total_streams": report_data.get("total_streams", 0),
+                    "total_streams": report_data.get("usage_data", {}).get("total_streams", 0),
                     "unique_tracks": len(big_mann_works),
                     "average_per_stream": 0.00091  # Approximate mechanical rate
                 },
                 "processing_status": "completed",
                 "distribution_date": datetime.utcnow(),
-                "big_mann_royalties": report_data.get("total_collected", 0.0),
+                "big_mann_royalties": report_data.get("total_royalties_collected", 0.0),
                 "big_mann_works_count": len(big_mann_works)
             })
             
