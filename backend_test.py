@@ -14,8 +14,8 @@ from typing import Dict, Any, Optional
 
 # Configuration
 BASE_URL = "https://industry-connect.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "john.spivey@bigmannentertainment.com"
-TEST_USER_PASSWORD = "BigMann2025!"
+TEST_USER_EMAIL = "owner@bigmannentertainment.com"
+TEST_USER_PASSWORD = "OwnerBigMann2025!"
 TEST_USER_NAME = "John LeGerron Spivey"
 TEST_BUSINESS_NAME = "Big Mann Entertainment"
 
