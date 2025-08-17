@@ -3,9 +3,6 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 from label_models import *
 from label_service import LabelManagementService
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from server import get_current_admin_user, User
 import json
 
