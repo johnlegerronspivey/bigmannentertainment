@@ -3630,15 +3630,15 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading Tax Management router: {e}")
 
-# Include Industry router
+# Include Label router
 try:
-    from industry_endpoints import router as industry_router
-    app.include_router(industry_router)
-    print("✅ Industry router successfully loaded")
+    from label_endpoints import router as label_router
+    app.include_router(label_router)
+    print("✅ Label router successfully loaded")
 except ImportError as e:
-    print(f"⚠️ Industry router not available: {e}")
+    print(f"⚠️ Label router not available: {e}")
 except Exception as e:
-    print(f"❌ Error loading Industry router: {e}")
+    print(f"❌ Error loading Label router: {e}")
 
 # Include IPI router (legacy compatibility)
 try:
