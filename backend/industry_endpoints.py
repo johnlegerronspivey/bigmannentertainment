@@ -1582,3 +1582,6 @@ async def remove_mlc_work(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to remove MLC work: {str(e)}")
+
+# Export the router as industry_router for consistency
+industry_router = router
