@@ -2267,5 +2267,522 @@ export const MusicDataExchange = () => {
   );
 };
 
+// Mechanical Licensing Collective (MLC) Integration Component
+export const MechanicalLicensingCollective = () => {
+  const [dashboardData, setDashboardData] = useState({});
+  const [works, setWorks] = useState([]);
+  const [royaltyReports, setRoyaltyReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [newWork, setNewWork] = useState({
+    work_title: '',
+    alternative_titles: [],
+    iswc: '',
+    rights_start_date: new Date().toISOString().split('T')[0],
+    catalog_number: ''
+  });
+
+  useEffect(() => {
+    fetchMLCDashboard();
+    fetchMLCWorks();
+  }, []);
+
+  const fetchMLCDashboard = async () => {
+    try {
+      const response = await axios.get(`${API}/industry/mlc/dashboard`);
+      setDashboardData(response.data.mlc_dashboard);
+    } catch (error) {
+      console.error('Error fetching MLC dashboard:', error);
+      setError('Failed to load MLC dashboard');
+    }
+  };
+
+  const fetchMLCWorks = async () => {
+    try {
+      const response = await axios.get(`${API}/industry/mlc/works?big_mann_work=true`);
+      setWorks(response.data.works);
+    } catch (error) {
+      console.error('Error fetching MLC works:', error);
+      setError('Failed to load MLC works');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWorkSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${API}/industry/mlc/works/register`, newWork);
+      if (response.data.success) {
+        setNewWork({
+          work_title: '',
+          alternative_titles: [],
+          iswc: '',
+          rights_start_date: new Date().toISOString().split('T')[0],
+          catalog_number: ''
+        });
+        fetchMLCWorks();
+        fetchMLCDashboard();
+      }
+    } catch (error) {
+      console.error('Error registering work:', error);
+      setError('Failed to register work with MLC');
+    }
+  };
+
+  const initializeMLC = async () => {
+    try {
+      const response = await axios.post(`${API}/industry/mlc/initialize`);
+      if (response.data.success) {
+        fetchMLCDashboard();
+        setError('');
+      }
+    } catch (error) {
+      console.error('Error initializing MLC:', error);
+      setError('Failed to initialize MLC integration');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* MLC Header */}
+      <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white rounded-lg p-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">Mechanical Licensing Collective (MLC)</h2>
+            <p className="text-green-100 text-lg">Automated mechanical royalty collection for Big Mann Entertainment</p>
+            <div className="mt-2">
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm mr-2">Active Publisher</span>
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm mr-2">Automated Collection</span>
+              <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">Monthly Distribution</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-4xl font-bold">{dashboardData.works_management?.total_registered_works || 0}</div>
+            <div className="text-sm text-green-100">Registered Works</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            {['dashboard', 'works', 'register', 'royalties', 'claims'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                  activeTab === tab
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              {/* Analytics Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">{dashboardData.works_management?.total_registered_works || 0}</div>
+                      <div className="text-sm text-green-100">Registered Works</div>
+                    </div>
+                    <svg className="w-8 h-8 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">${(dashboardData.royalty_collection?.total_royalties_collected || 0).toLocaleString()}</div>
+                      <div className="text-sm text-emerald-100">Total Collected</div>
+                    </div>
+                    <svg className="w-8 h-8 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">{dashboardData.usage_matching?.matching_rate || '0%'}</div>
+                      <div className="text-sm text-teal-100">Matching Rate</div>
+                    </div>
+                    <svg className="w-8 h-8 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold">${(dashboardData.royalty_collection?.monthly_average || 0).toLocaleString()}</div>
+                      <div className="text-sm text-cyan-100">Monthly Average</div>
+                    </div>
+                    <svg className="w-8 h-8 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* MLC Integration Status */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">MLC Integration Status</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Member Status:</span>
+                      <span className="text-sm font-semibold text-green-600">✅ Active Publisher</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Registration Status:</span>
+                      <span className="text-sm font-semibold text-green-600">✅ Fully Registered</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">API Integration:</span>
+                      <span className="text-sm font-semibold text-green-600">✅ Connected</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Automated Processing:</span>
+                      <span className="text-sm font-semibold text-green-600">✅ Enabled</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Big Mann Entertainment Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Publisher IPI:</span>
+                      <span className="text-sm font-semibold text-blue-600">{dashboardData.big_mann_entertainment?.publisher_ipi || '813048171'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Songwriter IPI:</span>
+                      <span className="text-sm font-semibold text-blue-600">{dashboardData.big_mann_entertainment?.songwriter_ipi || '578413032'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">ISNI Number:</span>
+                      <span className="text-sm font-semibold text-blue-600">{dashboardData.big_mann_entertainment?.isni_number || '0000000491551894'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Mechanical Rights:</span>
+                      <span className="text-sm font-semibold text-green-600">{dashboardData.big_mann_entertainment?.mechanical_rights_share || '50%'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Platform Performance */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Performance</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{(dashboardData.platform_performance?.spotify_streams || 0).toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">Spotify Streams</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-emerald-600">{(dashboardData.platform_performance?.apple_music_streams || 0).toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">Apple Music Streams</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-teal-600">{(dashboardData.platform_performance?.total_streams || 0).toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">Total Streams</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Initialize MLC Button */}
+              <div className="text-center">
+                <button
+                  onClick={initializeMLC}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                >
+                  🔄 Refresh MLC Integration
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'works' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">MLC Registered Works</h3>
+                <div className="text-sm text-gray-600">{works.length} works registered</div>
+              </div>
+
+              {works.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No works registered</h3>
+                  <p className="mt-1 text-sm text-gray-500">Get started by registering your first musical work.</p>
+                </div>
+              ) : (
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Work Title</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISWC</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MLC Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rights Share</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {works.map((work, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{work.work_title}</div>
+                            <div className="text-sm text-gray-500">{work.alternative_titles?.join(', ')}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {work.iswc || 'Pending'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              work.submission_status === 'accepted'
+                                ? 'bg-green-100 text-green-800'
+                                : work.submission_status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : work.submission_status === 'submitted'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {work.submission_status || 'unknown'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                              {work.mlc_work_id ? 'Registered' : 'Processing'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            50% Publisher / 50% Songwriter
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'register' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Register New Musical Work</h3>
+              
+              <form onSubmit={handleWorkSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Work Title</label>
+                    <input
+                      type="text"
+                      value={newWork.work_title}
+                      onChange={(e) => setNewWork({...newWork, work_title: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ISWC (Optional)</label>
+                    <input
+                      type="text"
+                      value={newWork.iswc}
+                      onChange={(e) => setNewWork({...newWork, iswc: e.target.value})}
+                      placeholder="e.g., T-345246800-1"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rights Start Date</label>
+                    <input
+                      type="date"
+                      value={newWork.rights_start_date}
+                      onChange={(e) => setNewWork({...newWork, rights_start_date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Internal Catalog Number</label>
+                    <input
+                      type="text"
+                      value={newWork.catalog_number}
+                      onChange={(e) => setNewWork({...newWork, catalog_number: e.target.value})}
+                      placeholder="e.g., BME-2024-001"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setNewWork({
+                      work_title: '',
+                      alternative_titles: [],
+                      iswc: '',
+                      rights_start_date: new Date().toISOString().split('T')[0],
+                      catalog_number: ''
+                    })}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Register with MLC
+                  </button>
+                </div>
+              </form>
+
+              {/* Rights Information */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <h4 className="font-semibold text-green-800 mb-3">Mechanical Rights Split</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">50%</div>
+                      <div className="text-sm text-gray-600">Publisher Share</div>
+                      <div className="text-xs text-gray-500 mt-1">Big Mann Entertainment</div>
+                      <div className="text-xs text-gray-500">IPI: 813048171</div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">50%</div>
+                      <div className="text-sm text-gray-600">Songwriter Share</div>
+                      <div className="text-xs text-gray-500 mt-1">John LeGerron Spivey</div>
+                      <div className="text-xs text-gray-500">IPI: 578413032 | ISNI: 0000000491551894</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'royalties' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Royalty Collection & Distribution</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg p-6">
+                  <h4 className="font-semibold mb-2">Total Collected</h4>
+                  <div className="text-2xl font-bold">${(dashboardData.royalty_collection?.total_royalties_collected || 0).toLocaleString()}</div>
+                  <div className="text-sm text-green-100 mt-1">All-time mechanical royalties</div>
+                </div>
+
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg p-6">
+                  <h4 className="font-semibold mb-2">Monthly Average</h4>
+                  <div className="text-2xl font-bold">${(dashboardData.royalty_collection?.monthly_average || 0).toLocaleString()}</div>
+                  <div className="text-sm text-blue-100 mt-1">Average monthly distribution</div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg p-6">
+                  <h4 className="font-semibold mb-2">Distribution Method</h4>
+                  <div className="text-xl font-bold">{dashboardData.royalty_collection?.distribution_method || 'Direct Deposit'}</div>
+                  <div className="text-sm text-purple-100 mt-1">Monthly automated payments</div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h4 className="font-semibold text-yellow-800 mb-3">MLC Collection Process</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-yellow-700">
+                  <div>
+                    <div className="font-medium">✅ Automated Collection</div>
+                    <div className="text-xs">MLC collects from all major DSPs</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">✅ Usage Matching</div>
+                    <div className="text-xs">Automatic work-to-usage matching</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">✅ Monthly Distribution</div>
+                    <div className="text-xs">Regular royalty payments</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">✅ Detailed Reporting</div>
+                    <div className="text-xs">Comprehensive usage reports</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'claims' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Claims & Dispute Management</h3>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h4 className="font-semibold text-blue-800 mb-3">Professional Claims Management</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+                  <div>
+                    <div className="font-medium">🛡️ Rights Protection</div>
+                    <div className="text-xs">Comprehensive ownership protection</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">⚖️ Dispute Resolution</div>
+                    <div className="text-xs">Professional mediation support</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">📋 Automated Documentation</div>
+                    <div className="text-xs">Complete claim documentation</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">💰 Royalty Recovery</div>
+                    <div className="text-xs">Recovery of unpaid royalties</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">Claims and disputes are managed through the MLC portal with full legal support.</p>
+                <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  Access MLC Claims Portal
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Backward compatibility - IPIManagement is now an alias for IndustryIdentifiersManagement  
 export const IPIManagement = IndustryIdentifiersManagement;
