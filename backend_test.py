@@ -6001,6 +6001,787 @@ class BackendTester:
         print("\n--- Access Control Tests ---")
         self.test_ownership_access_control()
     
+    # ===== LABEL MANAGEMENT TESTS =====
+    
+    def test_label_create_artist(self) -> bool:
+        """Test creating a new artist profile"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_artist_management", "Create Artist", False, "No auth token available")
+                return False
+            
+            artist_data = {
+                "stage_name": "Test Artist",
+                "real_name": "John Test Artist",
+                "email": "testartist@bigmannentertainment.com",
+                "phone": "+1-555-0123",
+                "genres": ["hip-hop", "r&b"],
+                "bio": "A talented artist signed to Big Mann Entertainment for testing purposes.",
+                "social_media": {
+                    "instagram": "@testartist",
+                    "twitter": "@testartist",
+                    "tiktok": "@testartist"
+                }
+            }
+            
+            response = self.make_request('POST', '/label/artists', json=artist_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'artist_id' in data:
+                    self.test_artist_id = data['artist_id']
+                    self.log_result("label_artist_management", "Create Artist", True, 
+                                  f"Successfully created artist: {data.get('artist_id')}")
+                    return True
+                else:
+                    self.log_result("label_artist_management", "Create Artist", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("label_artist_management", "Create Artist", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_artist_management", "Create Artist", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_artist_roster(self) -> bool:
+        """Test getting artist roster"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_artist_management", "Get Artist Roster", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/artists')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result("label_artist_management", "Get Artist Roster", True, 
+                                  f"Retrieved {len(data)} artists from roster")
+                    return True
+                else:
+                    self.log_result("label_artist_management", "Get Artist Roster", False, 
+                                  "Invalid response format - expected list")
+                    return False
+            else:
+                self.log_result("label_artist_management", "Get Artist Roster", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_artist_management", "Get Artist Roster", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_artist_details(self) -> bool:
+        """Test getting artist details"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_artist_management", "Get Artist Details", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_artist_id') or not self.test_artist_id:
+                self.log_result("label_artist_management", "Get Artist Details", False, "No test artist ID available")
+                return False
+            
+            response = self.make_request('GET', f'/label/artists/{self.test_artist_id}')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'stage_name', 'email', 'status', 'created_at']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result("label_artist_management", "Get Artist Details", True, 
+                                  f"Retrieved artist details: {data.get('stage_name')}")
+                    return True
+                else:
+                    self.log_result("label_artist_management", "Get Artist Details", False, 
+                                  "Missing required fields in artist details")
+                    return False
+            else:
+                self.log_result("label_artist_management", "Get Artist Details", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_artist_management", "Get Artist Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_update_artist(self) -> bool:
+        """Test updating artist profile"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_artist_management", "Update Artist", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_artist_id') or not self.test_artist_id:
+                self.log_result("label_artist_management", "Update Artist", False, "No test artist ID available")
+                return False
+            
+            update_data = {
+                "bio": "Updated bio for testing purposes - Big Mann Entertainment artist",
+                "status": "active"
+            }
+            
+            response = self.make_request('PUT', f'/label/artists/{self.test_artist_id}', json=update_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success']:
+                    self.log_result("label_artist_management", "Update Artist", True, 
+                                  "Successfully updated artist profile")
+                    return True
+                else:
+                    self.log_result("label_artist_management", "Update Artist", False, 
+                                  f"Update failed: {data}")
+                    return False
+            else:
+                self.log_result("label_artist_management", "Update Artist", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_artist_management", "Update Artist", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_submit_demo(self) -> bool:
+        """Test demo submission (public endpoint)"""
+        try:
+            demo_data = {
+                "artist_name": "Demo Artist",
+                "contact_email": "demoartist@example.com",
+                "genre": "hip-hop",
+                "submission_type": "demo",
+                "audio_files": [
+                    {
+                        "title": "Demo Track 1",
+                        "url": "/uploads/demo_track_1.mp3",
+                        "duration": "3:45"
+                    }
+                ],
+                "bio": "Aspiring artist looking to get signed to Big Mann Entertainment"
+            }
+            
+            response = self.make_request('POST', '/label/ar/demos', json=demo_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'submission_id' in data:
+                    self.test_demo_id = data['submission_id']
+                    self.log_result("label_ar_management", "Submit Demo", True, 
+                                  f"Successfully submitted demo: {data.get('submission_id')}")
+                    return True
+                else:
+                    self.log_result("label_ar_management", "Submit Demo", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("label_ar_management", "Submit Demo", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_ar_management", "Submit Demo", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_demo_submissions(self) -> bool:
+        """Test getting demo submissions"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_ar_management", "Get Demo Submissions", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/ar/demos')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result("label_ar_management", "Get Demo Submissions", True, 
+                                  f"Retrieved {len(data)} demo submissions")
+                    return True
+                else:
+                    self.log_result("label_ar_management", "Get Demo Submissions", False, 
+                                  "Invalid response format - expected list")
+                    return False
+            else:
+                self.log_result("label_ar_management", "Get Demo Submissions", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_ar_management", "Get Demo Submissions", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_evaluate_demo(self) -> bool:
+        """Test evaluating a demo submission"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_ar_management", "Evaluate Demo", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_demo_id') or not self.test_demo_id:
+                self.log_result("label_ar_management", "Evaluate Demo", False, "No test demo ID available")
+                return False
+            
+            evaluation_data = {
+                "score": 7.5,
+                "notes": "Good potential, needs some development work",
+                "status": "shortlisted"
+            }
+            
+            response = self.make_request('PUT', f'/label/ar/demos/{self.test_demo_id}/evaluate', 
+                                       params=evaluation_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success']:
+                    self.log_result("label_ar_management", "Evaluate Demo", True, 
+                                  "Successfully evaluated demo submission")
+                    return True
+                else:
+                    self.log_result("label_ar_management", "Evaluate Demo", False, 
+                                  f"Evaluation failed: {data}")
+                    return False
+            else:
+                self.log_result("label_ar_management", "Evaluate Demo", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_ar_management", "Evaluate Demo", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_industry_contacts(self) -> bool:
+        """Test searching industry contacts"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_ar_management", "Industry Contacts", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/ar/industry-contacts?query=radio&category=radio')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result("label_ar_management", "Industry Contacts", True, 
+                                  f"Retrieved {len(data)} industry contacts")
+                    return True
+                else:
+                    self.log_result("label_ar_management", "Industry Contacts", False, 
+                                  "Invalid response format - expected list")
+                    return False
+            else:
+                self.log_result("label_ar_management", "Industry Contacts", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_ar_management", "Industry Contacts", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_industry_trends(self) -> bool:
+        """Test getting industry trends"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_ar_management", "Industry Trends", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/ar/industry-trends')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['trending_genres', 'popular_artists', 'playlist_trends', 'market_insights']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result("label_ar_management", "Industry Trends", True, 
+                                  f"Retrieved industry trends with {len(data.get('trending_genres', []))} trending genres")
+                    return True
+                else:
+                    self.log_result("label_ar_management", "Industry Trends", False, 
+                                  "Missing required fields in trends data")
+                    return False
+            else:
+                self.log_result("label_ar_management", "Industry Trends", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_ar_management", "Industry Trends", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_create_contract(self) -> bool:
+        """Test creating an artist contract"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_contract_management", "Create Contract", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_artist_id') or not self.test_artist_id:
+                self.log_result("label_contract_management", "Create Contract", False, "No test artist ID available")
+                return False
+            
+            from datetime import date
+            contract_data = {
+                "artist_id": self.test_artist_id,
+                "contract_type": "recording",
+                "start_date": date.today().isoformat(),
+                "royalty_rate": 0.15,
+                "advance_amount": 50000.0,
+                "exclusive": True
+            }
+            
+            response = self.make_request('POST', '/label/contracts', json=contract_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'contract_id' in data:
+                    self.test_contract_id = data['contract_id']
+                    self.log_result("label_contract_management", "Create Contract", True, 
+                                  f"Successfully created contract: {data.get('contract_id')}")
+                    return True
+                else:
+                    self.log_result("label_contract_management", "Create Contract", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("label_contract_management", "Create Contract", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_contract_management", "Create Contract", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_contract_details(self) -> bool:
+        """Test getting contract details"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_contract_management", "Get Contract Details", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_contract_id') or not self.test_contract_id:
+                self.log_result("label_contract_management", "Get Contract Details", False, "No test contract ID available")
+                return False
+            
+            response = self.make_request('GET', f'/label/contracts/{self.test_contract_id}')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'artist_id', 'contract_type', 'status', 'royalty_rate']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result("label_contract_management", "Get Contract Details", True, 
+                                  f"Retrieved contract details: {data.get('contract_type')} contract")
+                    return True
+                else:
+                    self.log_result("label_contract_management", "Get Contract Details", False, 
+                                  "Missing required fields in contract details")
+                    return False
+            else:
+                self.log_result("label_contract_management", "Get Contract Details", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_contract_management", "Get Contract Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_create_recording_project(self) -> bool:
+        """Test creating a recording project"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_studio_production", "Create Recording Project", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_artist_id') or not self.test_artist_id:
+                self.log_result("label_studio_production", "Create Recording Project", False, "No test artist ID available")
+                return False
+            
+            from datetime import date, timedelta
+            project_data = {
+                "title": "Test Album Project",
+                "artist_id": self.test_artist_id,
+                "project_type": "album",
+                "budget": 100000.0,
+                "expected_completion": (date.today() + timedelta(days=90)).isoformat()
+            }
+            
+            response = self.make_request('POST', '/label/projects', json=project_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'project_id' in data:
+                    self.test_project_id = data['project_id']
+                    self.log_result("label_studio_production", "Create Recording Project", True, 
+                                  f"Successfully created project: {data.get('project_id')}")
+                    return True
+                else:
+                    self.log_result("label_studio_production", "Create Recording Project", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("label_studio_production", "Create Recording Project", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_studio_production", "Create Recording Project", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_recording_projects(self) -> bool:
+        """Test getting recording projects"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_studio_production", "Get Recording Projects", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/projects')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result("label_studio_production", "Get Recording Projects", True, 
+                                  f"Retrieved {len(data)} recording projects")
+                    return True
+                else:
+                    self.log_result("label_studio_production", "Get Recording Projects", False, 
+                                  "Invalid response format - expected list")
+                    return False
+            else:
+                self.log_result("label_studio_production", "Get Recording Projects", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_studio_production", "Get Recording Projects", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_update_project_status(self) -> bool:
+        """Test updating project status"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_studio_production", "Update Project Status", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_project_id') or not self.test_project_id:
+                self.log_result("label_studio_production", "Update Project Status", False, "No test project ID available")
+                return False
+            
+            update_data = {
+                "status": "recording",
+                "notes": "Project moved to recording phase"
+            }
+            
+            response = self.make_request('PUT', f'/label/projects/{self.test_project_id}/status', 
+                                       params=update_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success']:
+                    self.log_result("label_studio_production", "Update Project Status", True, 
+                                  "Successfully updated project status")
+                    return True
+                else:
+                    self.log_result("label_studio_production", "Update Project Status", False, 
+                                  f"Update failed: {data}")
+                    return False
+            else:
+                self.log_result("label_studio_production", "Update Project Status", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_studio_production", "Update Project Status", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_available_studios(self) -> bool:
+        """Test getting available studios"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_studio_production", "Get Available Studios", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/studios/available')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result("label_studio_production", "Get Available Studios", True, 
+                                  f"Retrieved {len(data)} available studios")
+                    return True
+                else:
+                    self.log_result("label_studio_production", "Get Available Studios", False, 
+                                  "Invalid response format - expected list")
+                    return False
+            else:
+                self.log_result("label_studio_production", "Get Available Studios", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_studio_production", "Get Available Studios", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_create_marketing_campaign(self) -> bool:
+        """Test creating a marketing campaign"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_marketing", "Create Marketing Campaign", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_artist_id') or not self.test_artist_id:
+                self.log_result("label_marketing", "Create Marketing Campaign", False, "No test artist ID available")
+                return False
+            
+            from datetime import date, timedelta
+            campaign_data = {
+                "name": "Test Album Launch Campaign",
+                "artist_id": self.test_artist_id,
+                "campaign_type": "album_release",
+                "start_date": date.today().isoformat(),
+                "end_date": (date.today() + timedelta(days=60)).isoformat(),
+                "total_budget": 25000.0
+            }
+            
+            response = self.make_request('POST', '/label/marketing/campaigns', json=campaign_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'campaign_id' in data:
+                    self.test_campaign_id = data['campaign_id']
+                    self.log_result("label_marketing", "Create Marketing Campaign", True, 
+                                  f"Successfully created campaign: {data.get('campaign_id')}")
+                    return True
+                else:
+                    self.log_result("label_marketing", "Create Marketing Campaign", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("label_marketing", "Create Marketing Campaign", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_marketing", "Create Marketing Campaign", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_marketing_campaigns(self) -> bool:
+        """Test getting marketing campaigns"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_marketing", "Get Marketing Campaigns", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/marketing/campaigns')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result("label_marketing", "Get Marketing Campaigns", True, 
+                                  f"Retrieved {len(data)} marketing campaigns")
+                    return True
+                else:
+                    self.log_result("label_marketing", "Get Marketing Campaigns", False, 
+                                  "Invalid response format - expected list")
+                    return False
+            else:
+                self.log_result("label_marketing", "Get Marketing Campaigns", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_marketing", "Get Marketing Campaigns", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_create_financial_transaction(self) -> bool:
+        """Test creating a financial transaction"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_financial_management", "Create Financial Transaction", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_artist_id') or not self.test_artist_id:
+                self.log_result("label_financial_management", "Create Financial Transaction", False, "No test artist ID available")
+                return False
+            
+            from datetime import date
+            transaction_data = {
+                "transaction_type": "advance",
+                "artist_id": self.test_artist_id,
+                "amount": 10000.0,
+                "description": "Recording advance for test album project",
+                "category": "recording",
+                "transaction_date": date.today().isoformat(),
+                "recoupable": True
+            }
+            
+            response = self.make_request('POST', '/label/finance/transactions', json=transaction_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'transaction_id' in data:
+                    self.test_transaction_id = data['transaction_id']
+                    self.log_result("label_financial_management", "Create Financial Transaction", True, 
+                                  f"Successfully created transaction: {data.get('transaction_id')}")
+                    return True
+                else:
+                    self.log_result("label_financial_management", "Create Financial Transaction", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("label_financial_management", "Create Financial Transaction", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_financial_management", "Create Financial Transaction", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_get_financial_transactions(self) -> bool:
+        """Test getting financial transactions"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_financial_management", "Get Financial Transactions", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/finance/transactions')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result("label_financial_management", "Get Financial Transactions", True, 
+                                  f"Retrieved {len(data)} financial transactions")
+                    return True
+                else:
+                    self.log_result("label_financial_management", "Get Financial Transactions", False, 
+                                  "Invalid response format - expected list")
+                    return False
+            else:
+                self.log_result("label_financial_management", "Get Financial Transactions", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_financial_management", "Get Financial Transactions", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_generate_royalty_statement(self) -> bool:
+        """Test generating a royalty statement"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_financial_management", "Generate Royalty Statement", False, "No auth token available")
+                return False
+            
+            if not hasattr(self, 'test_artist_id') or not self.test_artist_id:
+                self.log_result("label_financial_management", "Generate Royalty Statement", False, "No test artist ID available")
+                return False
+            
+            from datetime import date, timedelta
+            statement_data = {
+                "artist_id": self.test_artist_id,
+                "period_start": (date.today() - timedelta(days=90)).isoformat(),
+                "period_end": date.today().isoformat()
+            }
+            
+            response = self.make_request('POST', '/label/finance/royalty-statements', json=statement_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and 'statement_id' in data:
+                    self.log_result("label_financial_management", "Generate Royalty Statement", True, 
+                                  f"Successfully generated royalty statement: {data.get('statement_id')}")
+                    return True
+                else:
+                    self.log_result("label_financial_management", "Generate Royalty Statement", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("label_financial_management", "Generate Royalty Statement", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_financial_management", "Generate Royalty Statement", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_label_dashboard(self) -> bool:
+        """Test getting label dashboard"""
+        try:
+            if not self.auth_token:
+                self.log_result("label_dashboard_analytics", "Label Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/label/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['total_artists', 'active_projects', 'total_revenue', 'revenue_breakdown']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result("label_dashboard_analytics", "Label Dashboard", True, 
+                                  f"Retrieved dashboard: {data.get('total_artists')} artists, {data.get('active_projects')} active projects")
+                    return True
+                else:
+                    self.log_result("label_dashboard_analytics", "Label Dashboard", False, 
+                                  "Missing required fields in dashboard data")
+                    return False
+            else:
+                self.log_result("label_dashboard_analytics", "Label Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("label_dashboard_analytics", "Label Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def run_label_management_tests(self):
+        """Run all label management tests"""
+        print("\n🎵 TESTING BIG MANN ENTERTAINMENT COMMERCIAL LABEL MANAGEMENT SYSTEM")
+        print("-" * 70)
+        
+        # Artist Management Tests
+        print("\n--- Artist Management Tests ---")
+        self.test_label_create_artist()
+        self.test_label_get_artist_roster()
+        self.test_label_get_artist_details()
+        self.test_label_update_artist()
+        
+        # A&R Management Tests
+        print("\n--- A&R Management Tests ---")
+        self.test_label_submit_demo()
+        self.test_label_get_demo_submissions()
+        self.test_label_evaluate_demo()
+        self.test_label_industry_contacts()
+        self.test_label_industry_trends()
+        
+        # Contract Management Tests
+        print("\n--- Contract Management Tests ---")
+        self.test_label_create_contract()
+        self.test_label_get_contract_details()
+        
+        # Studio & Production Tests
+        print("\n--- Studio & Production Tests ---")
+        self.test_label_create_recording_project()
+        self.test_label_get_recording_projects()
+        self.test_label_update_project_status()
+        self.test_label_get_available_studios()
+        
+        # Marketing Tests
+        print("\n--- Marketing Tests ---")
+        self.test_label_create_marketing_campaign()
+        self.test_label_get_marketing_campaigns()
+        
+        # Financial Management Tests
+        print("\n--- Financial Management Tests ---")
+        self.test_label_create_financial_transaction()
+        self.test_label_get_financial_transactions()
+        self.test_label_generate_royalty_statement()
+        
+        # Dashboard & Analytics Tests
+        print("\n--- Dashboard & Analytics Tests ---")
+        self.test_label_dashboard()
+    
     
     def run_all_tests(self):
         """Run all backend tests"""
