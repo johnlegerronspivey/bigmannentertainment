@@ -5731,31 +5731,31 @@ class BackendTester:
             return False
     
     def test_admin_revoke_endpoint(self) -> bool:
-        """Test POST /api/admin/users/revoke-admin/{user_id} endpoint"""
+        """Test POST /api/admin/users/revoke-admin/{user_id} endpoint - only owner@bigmannentertainment.com should have access"""
         try:
             if not self.auth_token:
                 self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, "No auth token available")
                 return False
             
-            # Get list of users to find a non-John admin to test revoke
+            # Get list of users to find a non-owner admin to test revoke
             users_response = self.make_request('GET', '/admin/users')
             
             if users_response.status_code == 200:
                 users_data = users_response.json()
                 users = users_data.get('users', [])
                 
-                # Find a non-John admin user
-                john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
-                non_john_admin = None
+                # Find a non-owner admin user (old emails should no longer have special privileges)
+                old_john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+                non_owner_admin = None
                 
                 for user in users:
-                    if user.get('is_admin') and user.get('email') not in john_emails:
-                        non_john_admin = user
+                    if user.get('is_admin') and user.get('email') != "owner@bigmannentertainment.com":
+                        non_owner_admin = user
                         break
                 
-                if non_john_admin:
+                if non_owner_admin:
                     # Try to revoke admin access
-                    response = self.make_request('POST', f'/admin/users/revoke-admin/{non_john_admin["id"]}')
+                    response = self.make_request('POST', f'/admin/users/revoke-admin/{non_owner_admin["id"]}')
                     
                     if response.status_code == 200:
                         data = response.json()
@@ -5768,31 +5768,31 @@ class BackendTester:
                                           f"Unexpected response format: {data}")
                             return False
                     elif response.status_code == 403:
-                        # This is expected if current user is not John
+                        # This is expected if current user is not the owner
                         self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", True, 
-                                      "Correctly rejected non-John user from revoking admin access")
+                                      "Correctly rejected non-owner user from revoking admin access")
                         return True
                     else:
                         self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, 
                                       f"Status: {response.status_code}, Response: {response.text}")
                         return False
                 else:
-                    # Test trying to revoke John's own access (should fail)
-                    john_user = next((user for user in users if user.get('email') in john_emails), None)
-                    if john_user:
-                        response = self.make_request('POST', f'/admin/users/revoke-admin/{john_user["id"]}')
+                    # Test trying to revoke owner's own access (should fail)
+                    owner_user = next((user for user in users if user.get('email') == "owner@bigmannentertainment.com"), None)
+                    if owner_user:
+                        response = self.make_request('POST', f'/admin/users/revoke-admin/{owner_user["id"]}')
                         
-                        if response.status_code == 400 and "Cannot revoke John" in response.text:
+                        if response.status_code == 400 and ("Cannot revoke" in response.text or "owner" in response.text.lower()):
                             self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", True, 
-                                          "Correctly prevented revoking John's own admin access")
+                                          "Correctly prevented revoking owner's admin access")
                             return True
                         else:
                             self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, 
-                                          "Should prevent revoking John's admin access")
+                                          "Should prevent revoking owner's admin access")
                             return False
                     else:
                         self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", True, 
-                                      "No non-John admin users found to test revoke (acceptable)")
+                                      "No non-owner admin users found to test revoke (acceptable)")
                         return True
             else:
                 self.log_result("ownership_admin_revoke", "Admin Revoke Endpoint", False, 
