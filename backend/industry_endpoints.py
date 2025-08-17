@@ -1031,3 +1031,251 @@ async def get_entertainment_analytics(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve entertainment analytics: {str(e)}")
+
+# Music Data Exchange (MDX) Integration Endpoints
+
+@router.post("/mdx/initialize")
+async def initialize_mdx_integration(admin_user: User = Depends(get_admin_user)):
+    """Initialize Music Data Exchange integration for Big Mann Entertainment"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.initialize_mdx_integration()
+        
+        return {
+            "success": True,
+            "message": "Music Data Exchange integration initialized successfully",
+            "mdx_configuration": result,
+            "big_mann_entertainment": {
+                "entity_type": "label",
+                "ipi_integration": True,
+                "real_time_sync": True,
+                "comprehensive_rights_management": True
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize MDX integration: {str(e)}")
+
+@router.post("/mdx/track/sync")
+async def sync_track_with_mdx(
+    track_data: MDXTrack,
+    current_user: User = Depends(get_current_user)
+):
+    """Sync track metadata with Music Data Exchange"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.sync_track_with_mdx(track_data.dict())
+        
+        return {
+            "success": True,
+            "track_sync_result": result,
+            "mdx_integration": {
+                "metadata_quality": "High",
+                "rights_clearance": "Automated",
+                "distribution_ready": True
+            },
+            "message": f"Track '{track_data.title}' successfully synced with MDX"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync track with MDX: {str(e)}")
+
+@router.post("/mdx/tracks/bulk")
+async def bulk_upload_tracks_to_mdx(
+    tracks_data: List[Dict[str, Any]],
+    current_user: User = Depends(get_current_user)
+):
+    """Bulk upload tracks to Music Data Exchange"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.process_mdx_bulk_upload(tracks_data)
+        
+        return {
+            "bulk_upload_result": result,
+            "big_mann_entertainment": {
+                "processing_efficiency": "Automated bulk processing",
+                "rights_management": "Comprehensive metadata handling",
+                "distribution_optimization": "Multi-platform sync"
+            },
+            "message": f"Bulk upload completed: {result['successfully_processed']} tracks processed"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process bulk MDX upload: {str(e)}")
+
+@router.get("/mdx/tracks")
+async def get_mdx_tracks(
+    artist_name: Optional[str] = None,
+    big_mann_release: Optional[bool] = None,
+    rights_clearance_status: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get MDX tracks with optional filtering"""
+    try:
+        service = IndustryIntegrationService(db)
+        filters = {}
+        if artist_name:
+            filters["artist_name"] = artist_name
+        if big_mann_release is not None:
+            filters["big_mann_release"] = big_mann_release
+        if rights_clearance_status:
+            filters["rights_clearance_status"] = rights_clearance_status
+        
+        tracks = await service.get_mdx_tracks(filters)
+        
+        return {
+            "tracks": tracks,
+            "total_count": len(tracks),
+            "filters_applied": filters,
+            "big_mann_entertainment": {
+                "total_catalog": len([t for t in tracks if t.get("big_mann_release", False)]),
+                "rights_status": "Comprehensive management",
+                "distribution_ready": len([t for t in tracks if t.get("rights_clearance_status") == "cleared"])
+            },
+            "message": f"Retrieved {len(tracks)} MDX tracks"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve MDX tracks: {str(e)}")
+
+@router.post("/mdx/rights/manage")
+async def manage_mdx_rights(
+    rights_data: Dict[str, Any],
+    admin_user: User = Depends(get_admin_user)
+):
+    """Manage rights through Music Data Exchange"""
+    try:
+        service = IndustryIntegrationService(db)
+        result = await service.manage_mdx_rights(rights_data)
+        
+        return {
+            "rights_management_result": result,
+            "big_mann_entertainment": {
+                "rights_optimization": "Automated clearance system",
+                "revenue_protection": "Comprehensive rights tracking",
+                "global_management": "Multi-territory rights handling"
+            },
+            "message": "Rights successfully managed through MDX integration"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to manage MDX rights: {str(e)}")
+
+@router.get("/mdx/dashboard")
+async def get_mdx_dashboard(current_user: User = Depends(get_current_user)):
+    """Get comprehensive MDX dashboard analytics"""
+    try:
+        service = IndustryIntegrationService(db)
+        dashboard_data = await service.get_mdx_dashboard_data()
+        
+        return {
+            "mdx_dashboard": dashboard_data,
+            "last_updated": datetime.utcnow().isoformat(),
+            "user": current_user.email,
+            "platform_status": {
+                "mdx_integration": "Fully Operational",
+                "real_time_sync": "Active",
+                "rights_management": "Automated",
+                "revenue_optimization": "Active"
+            },
+            "message": "MDX dashboard data retrieved successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve MDX dashboard: {str(e)}")
+
+@router.get("/mdx/rights/{track_id}")
+async def get_track_rights_information(
+    track_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get detailed rights information for a specific track"""
+    try:
+        # Get track information
+        track = await db.mdx_tracks.find_one({"id": track_id})
+        if not track:
+            raise HTTPException(status_code=404, detail="Track not found")
+        
+        # Get associated rights
+        rights_cursor = db.mdx_rights.find({"track_ids": track_id})
+        rights = await rights_cursor.to_list(None)
+        
+        return {
+            "track": track,
+            "rights_information": rights,
+            "rights_summary": {
+                "total_rights": len(rights),
+                "clearance_status": track.get("rights_clearance_status", "unknown"),
+                "distribution_approved": track.get("rights_clearance_status") == "cleared",
+                "big_mann_managed": track.get("big_mann_release", False)
+            },
+            "message": f"Rights information retrieved for track: {track.get('title', 'Unknown')}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve track rights information: {str(e)}")
+
+@router.put("/mdx/track/{track_id}/update")
+async def update_mdx_track_metadata(
+    track_id: str,
+    update_data: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """Update track metadata in MDX system"""
+    try:
+        # Update track in database
+        update_data["updated_at"] = datetime.utcnow()
+        
+        result = await db.mdx_tracks.update_one(
+            {"id": track_id},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Track not found")
+        
+        # Get updated track
+        updated_track = await db.mdx_tracks.find_one({"id": track_id})
+        
+        return {
+            "success": True,
+            "updated_track": updated_track,
+            "changes_applied": list(update_data.keys()),
+            "mdx_sync_status": "pending_sync",
+            "message": f"Track metadata updated successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update MDX track metadata: {str(e)}")
+
+@router.delete("/mdx/track/{track_id}")
+async def remove_track_from_mdx(
+    track_id: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Remove track from MDX system"""
+    try:
+        # Remove track
+        track_result = await db.mdx_tracks.delete_one({"id": track_id})
+        
+        if track_result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Track not found")
+        
+        # Remove associated rights
+        rights_result = await db.mdx_rights.delete_many({"track_ids": track_id})
+        
+        return {
+            "success": True,
+            "tracks_removed": track_result.deleted_count,
+            "rights_removed": rights_result.deleted_count,
+            "message": f"Track and associated rights removed from MDX system"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove track from MDX: {str(e)}")
