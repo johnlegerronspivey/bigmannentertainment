@@ -34,13 +34,16 @@ async def label_system_status():
 
 # Simple demo endpoint (public)
 @label_router.post("/ar/demos/submit")
-async def submit_demo_simple(
-    artist_name: str,
-    contact_email: str,
-    genre: str,
-    bio: str = None
-):
+async def submit_demo_simple(demo_data: dict):
     """Submit a demo for A&R review (simplified version)"""
+    artist_name = demo_data.get("artist_name")
+    contact_email = demo_data.get("contact_email")
+    genre = demo_data.get("genre")
+    bio = demo_data.get("bio", "")
+    
+    if not all([artist_name, contact_email, genre]):
+        raise HTTPException(status_code=400, detail="artist_name, contact_email, and genre are required")
+    
     return {
         "success": True,
         "message": f"Demo submitted successfully for {artist_name}",
@@ -48,5 +51,6 @@ async def submit_demo_simple(
         "contact_email": contact_email,
         "genre": genre,
         "status": "submitted",
-        "next_steps": "You will receive feedback within 2-3 weeks"
+        "next_steps": "You will receive feedback within 2-3 weeks",
+        "timestamp": datetime.utcnow().isoformat()
     }
