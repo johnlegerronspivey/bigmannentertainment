@@ -3836,6 +3836,7 @@ function App() {
             <Route path="/admin/industry/video" element={<AdminRoute><VideoProductionServices /></AdminRoute>} />
             <Route path="/admin/industry/monetization" element={<AdminRoute><MonetizationOpportunities /></AdminRoute>} />
             <Route path="/admin/industry/mdx" element={<AdminRoute><MusicDataExchange /></AdminRoute>} />
+            <Route path="/admin/industry/mlc" element={<AdminRoute><MechanicalLicensingCollective /></AdminRoute>} />
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
         </AuthProvider>
