@@ -3597,6 +3597,16 @@ async def get_user_wallets(current_user: User = Depends(get_current_user)):
     wallets = await db.crypto_wallets.find({"user_id": current_user.id}).to_list(length=None)
     return {"wallets": wallets}
 
+# Include Label router BEFORE api_router is included in app
+try:
+    from label_simple import label_router
+    api_router.include_router(label_router)
+    print("✅ Label router successfully loaded (simple version)")
+except ImportError as e:
+    print(f"⚠️ Label router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading Label router: {e}")
+
 # Include the API router
 app.include_router(api_router)
 
