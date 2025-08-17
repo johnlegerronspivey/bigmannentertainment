@@ -11,7 +11,7 @@ import json
 # Database connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/bigmann')
 client = AsyncIOMotorClient(MONGO_URL)
-db = client.get_default_database()
+db = client.bigmann  # Explicitly specify database name
 
 class LabelManagementService:
     """Comprehensive service for commercial record label operations"""
