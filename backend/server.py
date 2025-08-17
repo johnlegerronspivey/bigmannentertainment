@@ -2522,7 +2522,7 @@ async def get_ownership_status(
     admin_user: User = Depends(get_current_admin_user)
 ):
     """Get current ownership and admin status of the platform"""
-    john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+    john_emails = ["owner@bigmannentertainment.com"]
     
     # Get all admin users
     admin_users = []
