@@ -124,7 +124,13 @@ class BackendTester:
             "mlc_claims_management": {"passed": 0, "failed": 0, "details": []},
             "mlc_analytics": {"passed": 0, "failed": 0, "details": []},
             "mlc_authentication": {"passed": 0, "failed": 0, "details": []},
-            "mlc_big_mann_integration": {"passed": 0, "failed": 0, "details": []}
+            "mlc_big_mann_integration": {"passed": 0, "failed": 0, "details": []},
+            "ownership_user_registration": {"passed": 0, "failed": 0, "details": []},
+            "ownership_status_endpoint": {"passed": 0, "failed": 0, "details": []},
+            "ownership_super_admin_grant": {"passed": 0, "failed": 0, "details": []},
+            "ownership_admin_revoke": {"passed": 0, "failed": 0, "details": []},
+            "ownership_admin_user_list": {"passed": 0, "failed": 0, "details": []},
+            "ownership_access_control": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
