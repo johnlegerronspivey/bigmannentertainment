@@ -1417,6 +1417,12 @@ class IndustryIntegrationService:
             
             cursor = self.db.mlc_works.find(query)
             works = await cursor.to_list(None)
+            
+            # Convert ObjectId to string for JSON serialization
+            for work in works:
+                if '_id' in work:
+                    work['_id'] = str(work['_id'])
+            
             return works
             
         except Exception as e:
