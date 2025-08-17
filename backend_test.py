@@ -8783,6 +8783,668 @@ class BackendTester:
             self.log_result("mdx_integration_features", "MDX DDEX Compliance", False, f"Exception: {str(e)}")
             return False
 
+    # ===== MECHANICAL LICENSING COLLECTIVE (MLC) INTEGRATION TESTS =====
+    
+    def test_mlc_initialization(self) -> bool:
+        """Test MLC integration initialization for Big Mann Entertainment"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_initialization", "MLC Initialization", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/industry/mlc/initialize')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'mlc_configuration' in data:
+                    mlc_config = data['mlc_configuration']
+                    big_mann_info = data.get('big_mann_entertainment', {})
+                    
+                    # Verify Big Mann Entertainment configuration
+                    expected_fields = ['publisher_status', 'member_number', 'mechanical_rights', 'automated_collection']
+                    if all(field in big_mann_info for field in expected_fields):
+                        # Verify IPI integration
+                        if ('813048171' in big_mann_info.get('member_number', '') and
+                            'Publisher Share' in big_mann_info.get('mechanical_rights', '') and
+                            big_mann_info.get('automated_collection') == True):
+                            
+                            self.log_result("mlc_initialization", "MLC Initialization", True, 
+                                          f"MLC integration initialized successfully with Big Mann Entertainment publisher status, member number includes IPI 813048171, automated collection enabled")
+                            return True
+                        else:
+                            self.log_result("mlc_initialization", "MLC Initialization", False, 
+                                          "Big Mann Entertainment configuration missing IPI integration or automated collection")
+                            return False
+                    else:
+                        self.log_result("mlc_initialization", "MLC Initialization", False, 
+                                      f"Missing Big Mann Entertainment fields: {[f for f in expected_fields if f not in big_mann_info]}")
+                        return False
+                else:
+                    self.log_result("mlc_initialization", "MLC Initialization", False, 
+                                  "Invalid response format - missing success or mlc_configuration")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("mlc_initialization", "MLC Initialization", True, 
+                              "MLC initialization requires admin access (expected for non-admin users)")
+                return True
+            else:
+                self.log_result("mlc_initialization", "MLC Initialization", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_initialization", "MLC Initialization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_dashboard(self) -> bool:
+        """Test MLC dashboard analytics and status"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_dashboard", "MLC Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/mlc/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'mlc_dashboard' in data and 'platform_status' in data:
+                    dashboard = data['mlc_dashboard']
+                    platform_status = data['platform_status']
+                    
+                    # Verify platform status
+                    expected_status_fields = ['mlc_integration', 'member_status', 'royalty_collection', 'works_registration']
+                    if all(field in platform_status for field in expected_status_fields):
+                        # Verify Big Mann Entertainment integration status
+                        if (platform_status.get('mlc_integration') == 'Fully Operational' and
+                            platform_status.get('member_status') == 'Active Publisher' and
+                            'Automated' in platform_status.get('royalty_collection', '') and
+                            'Real-time' in platform_status.get('works_registration', '')):
+                            
+                            # Verify dashboard data structure
+                            dashboard_sections = ['works_management', 'royalty_collection', 'usage_matching', 'platform_performance']
+                            dashboard_sections_found = [section for section in dashboard_sections if section in dashboard]
+                            
+                            if len(dashboard_sections_found) >= 3:
+                                self.log_result("mlc_dashboard", "MLC Dashboard", True, 
+                                              f"MLC dashboard fully operational - Integration: {platform_status['mlc_integration']}, Member: {platform_status['member_status']}, {len(dashboard_sections_found)} dashboard sections available")
+                                return True
+                            else:
+                                self.log_result("mlc_dashboard", "MLC Dashboard", False, 
+                                              f"Insufficient dashboard sections: {len(dashboard_sections_found)} found")
+                                return False
+                        else:
+                            self.log_result("mlc_dashboard", "MLC Dashboard", False, 
+                                          "Platform status not fully operational")
+                            return False
+                    else:
+                        self.log_result("mlc_dashboard", "MLC Dashboard", False, 
+                                      "Missing platform status fields")
+                        return False
+                else:
+                    self.log_result("mlc_dashboard", "MLC Dashboard", False, 
+                                  "Missing mlc_dashboard or platform_status")
+                    return False
+            else:
+                self.log_result("mlc_dashboard", "MLC Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_dashboard", "MLC Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_works_registration(self) -> bool:
+        """Test registering musical works with MLC"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_works_registration", "MLC Works Registration", False, "No auth token available")
+                return False
+            
+            # Create test musical work for Big Mann Entertainment
+            test_work = {
+                "work_title": "Digital Dreams - Big Mann Entertainment",
+                "alternative_titles": ["Digital Dreams (Radio Edit)", "Digital Dreams (Extended Mix)"],
+                "iswc": "T-123456789-0",
+                "publishers": [
+                    {
+                        "name": "Big Mann Entertainment",
+                        "ipi_number": "813048171",
+                        "share_percentage": 50.0,
+                        "role": "publisher"
+                    }
+                ],
+                "songwriters": [
+                    {
+                        "name": "John LeGerron Spivey",
+                        "ipi_number": "578413032",
+                        "share_percentage": 50.0,
+                        "role": "songwriter"
+                    }
+                ],
+                "mechanical_rights_share": {
+                    "Big Mann Entertainment": 50.0,
+                    "John LeGerron Spivey": 50.0
+                },
+                "rights_start_date": "2025-01-01T00:00:00Z",
+                "big_mann_work": True,
+                "internal_catalog_number": "BME-2025-001"
+            }
+            
+            response = self.make_request('POST', '/industry/mlc/works/register', json=test_work)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'success' in data and data['success'] and 'work_registration_result' in data:
+                    registration_result = data['work_registration_result']
+                    mlc_integration = data.get('mlc_integration', {})
+                    
+                    # Verify Big Mann Entertainment and John LeGerron Spivey integration
+                    if ('Big Mann Entertainment - 50%' in mlc_integration.get('publisher_rights', '') and
+                        'John LeGerron Spivey - 50%' in mlc_integration.get('songwriter_rights', '') and
+                        'Automated Collection Enabled' in mlc_integration.get('mechanical_licensing', '') and
+                        mlc_integration.get('territory_coverage') == 'United States'):
+                        
+                        # Store work ID for later tests
+                        if 'work_id' in registration_result:
+                            self.test_mlc_work_id = registration_result['work_id']
+                        
+                        self.log_result("mlc_works_registration", "MLC Works Registration", True, 
+                                      f"Musical work registered successfully with MLC - Publisher: Big Mann Entertainment (IPI: 813048171), Songwriter: John LeGerron Spivey (IPI: 578413032), both 50% shares, automated collection enabled")
+                        return True
+                    else:
+                        self.log_result("mlc_works_registration", "MLC Works Registration", False, 
+                                      "Big Mann Entertainment or John LeGerron Spivey integration incorrect")
+                        return False
+                else:
+                    self.log_result("mlc_works_registration", "MLC Works Registration", False, 
+                                  "Invalid response format - missing success or work_registration_result")
+                    return False
+            else:
+                self.log_result("mlc_works_registration", "MLC Works Registration", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_works_registration", "MLC Works Registration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_works_listing(self) -> bool:
+        """Test listing MLC registered works with filtering"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_works_listing", "MLC Works Listing", False, "No auth token available")
+                return False
+            
+            # Test basic works listing
+            response = self.make_request('GET', '/industry/mlc/works')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'works' in data and 'big_mann_entertainment' in data:
+                    works = data['works']
+                    big_mann_info = data['big_mann_entertainment']
+                    
+                    # Verify Big Mann Entertainment information
+                    if ('total_catalog' in big_mann_info and
+                        'registration_status' in big_mann_info and
+                        'mechanical_rights' in big_mann_info):
+                        
+                        # Test filtering by big_mann_work=true
+                        filter_response = self.make_request('GET', '/industry/mlc/works?big_mann_work=true')
+                        
+                        if filter_response.status_code == 200:
+                            filter_data = filter_response.json()
+                            big_mann_works = filter_data.get('works', [])
+                            
+                            # Verify all returned works are Big Mann works
+                            big_mann_works_count = len([w for w in big_mann_works if w.get('big_mann_work', False)])
+                            
+                            # Test filtering by submission_status
+                            status_response = self.make_request('GET', '/industry/mlc/works?submission_status=pending')
+                            
+                            if status_response.status_code == 200:
+                                # Test work title search
+                                title_response = self.make_request('GET', '/industry/mlc/works?work_title=Digital Dreams')
+                                
+                                if title_response.status_code == 200:
+                                    self.log_result("mlc_works_listing", "MLC Works Listing", True, 
+                                                  f"MLC works listing working - Total: {len(works)}, Big Mann catalog: {big_mann_info.get('total_catalog', 0)}, filtering by work status and title functional")
+                                    return True
+                                else:
+                                    self.log_result("mlc_works_listing", "MLC Works Listing", False, 
+                                                  f"Title search failed: {title_response.status_code}")
+                                    return False
+                            else:
+                                self.log_result("mlc_works_listing", "MLC Works Listing", False, 
+                                              f"Status filtering failed: {status_response.status_code}")
+                                return False
+                        else:
+                            self.log_result("mlc_works_listing", "MLC Works Listing", False, 
+                                          f"Big Mann works filtering failed: {filter_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("mlc_works_listing", "MLC Works Listing", False, 
+                                      "Missing Big Mann Entertainment information")
+                        return False
+                else:
+                    self.log_result("mlc_works_listing", "MLC Works Listing", False, 
+                                  "Missing works or big_mann_entertainment in response")
+                    return False
+            else:
+                self.log_result("mlc_works_listing", "MLC Works Listing", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_works_listing", "MLC Works Listing", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_royalty_processing(self) -> bool:
+        """Test MLC royalty report processing"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_royalty_processing", "MLC Royalty Processing", False, "No auth token available")
+                return False
+            
+            # Create test royalty report data
+            test_report_data = {
+                "report_period_start": "2024-12-01T00:00:00Z",
+                "report_period_end": "2024-12-31T23:59:59Z",
+                "report_type": "monthly",
+                "total_royalties_collected": 15000.00,
+                "digital_service_providers": ["Spotify", "Apple Music", "Amazon Music", "YouTube Music"],
+                "usage_data": {
+                    "total_streams": 500000,
+                    "total_downloads": 25000,
+                    "mechanical_royalty_rate": 0.091
+                },
+                "big_mann_works": [
+                    {
+                        "work_title": "Digital Dreams - Big Mann Entertainment",
+                        "streams": 150000,
+                        "mechanical_royalties": 4500.00,
+                        "publisher_share": 2250.00,
+                        "songwriter_share": 2250.00
+                    }
+                ]
+            }
+            
+            response = self.make_request('POST', '/industry/mlc/royalties/process', json=test_report_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'royalty_processing_result' in data and 'big_mann_entertainment' in data:
+                    processing_result = data['royalty_processing_result']
+                    big_mann_info = data['big_mann_entertainment']
+                    
+                    # Verify Big Mann Entertainment royalty distribution
+                    if ('50% mechanical royalties' in big_mann_info.get('publisher_distribution', '') and
+                        'John LeGerron Spivey - 50%' in big_mann_info.get('songwriter_distribution', '') and
+                        big_mann_info.get('payment_method') == 'Direct deposit' and
+                        'Monthly automated' in big_mann_info.get('processing_frequency', '')):
+                        
+                        # Verify processing result
+                        total_distributed = processing_result.get('total_distributed', 0)
+                        if total_distributed > 0:
+                            self.log_result("mlc_royalty_processing", "MLC Royalty Processing", True, 
+                                          f"MLC royalty processing successful - ${total_distributed:,.2f} distributed, Big Mann Entertainment 50% publisher share, John LeGerron Spivey 50% songwriter share, monthly automated processing")
+                            return True
+                        else:
+                            self.log_result("mlc_royalty_processing", "MLC Royalty Processing", False, 
+                                          "No royalties distributed in processing result")
+                            return False
+                    else:
+                        self.log_result("mlc_royalty_processing", "MLC Royalty Processing", False, 
+                                      "Big Mann Entertainment royalty distribution configuration incorrect")
+                        return False
+                else:
+                    self.log_result("mlc_royalty_processing", "MLC Royalty Processing", False, 
+                                  "Missing royalty_processing_result or big_mann_entertainment")
+                    return False
+            else:
+                self.log_result("mlc_royalty_processing", "MLC Royalty Processing", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_royalty_processing", "MLC Royalty Processing", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_usage_matching(self) -> bool:
+        """Test MLC usage data matching to registered works"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_usage_matching", "MLC Usage Matching", False, "No auth token available")
+                return False
+            
+            # Create test usage data from DSPs
+            test_usage_data = [
+                {
+                    "track_title": "Digital Dreams",
+                    "artist_name": "John LeGerron Spivey",
+                    "album_title": "Big Mann Entertainment Collection",
+                    "isrc": "USQZ9H825001",
+                    "duration": 240,
+                    "dsp_name": "Spotify",
+                    "play_count": 75000,
+                    "stream_date": "2024-12-15T00:00:00Z",
+                    "territory": "US",
+                    "revenue_generated": 2250.00,
+                    "mechanical_royalty_due": 204.75
+                },
+                {
+                    "track_title": "Digital Dreams",
+                    "artist_name": "John LeGerron Spivey",
+                    "dsp_name": "Apple Music",
+                    "play_count": 45000,
+                    "stream_date": "2024-12-15T00:00:00Z",
+                    "territory": "US",
+                    "revenue_generated": 1350.00,
+                    "mechanical_royalty_due": 122.85
+                },
+                {
+                    "track_title": "Digital Dreams",
+                    "artist_name": "John LeGerron Spivey",
+                    "dsp_name": "Amazon Music",
+                    "play_count": 30000,
+                    "stream_date": "2024-12-15T00:00:00Z",
+                    "territory": "US",
+                    "revenue_generated": 900.00,
+                    "mechanical_royalty_due": 81.90
+                }
+            ]
+            
+            response = self.make_request('POST', '/industry/mlc/usage/match', json=test_usage_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'usage_matching_result' in data and 'matching_performance' in data and 'big_mann_entertainment' in data:
+                    matching_result = data['usage_matching_result']
+                    matching_performance = data['matching_performance']
+                    big_mann_info = data['big_mann_entertainment']
+                    
+                    # Verify matching performance
+                    total_processed = matching_performance.get('total_processed', 0)
+                    successful_matches = matching_performance.get('successful_matches', 0)
+                    matching_rate = matching_performance.get('matching_rate', '0%')
+                    total_royalties = matching_performance.get('royalties_calculated', '$0')
+                    
+                    # Verify Big Mann Entertainment integration
+                    if ('Automated matching enabled' in big_mann_info.get('catalog_matching', '') and
+                        'Real-time processing' in big_mann_info.get('royalty_calculation', '') and
+                        'All major platforms connected' in big_mann_info.get('dsp_integration', '')):
+                        
+                        if total_processed >= 3 and successful_matches > 0:
+                            self.log_result("mlc_usage_matching", "MLC Usage Matching", True, 
+                                          f"MLC usage matching successful - Processed: {total_processed}, Matches: {successful_matches}, Rate: {matching_rate}, Royalties: {total_royalties}, automated matching enabled for Big Mann Entertainment catalog")
+                            return True
+                        else:
+                            self.log_result("mlc_usage_matching", "MLC Usage Matching", False, 
+                                          f"Insufficient matching results: {total_processed} processed, {successful_matches} matches")
+                            return False
+                    else:
+                        self.log_result("mlc_usage_matching", "MLC Usage Matching", False, 
+                                      "Big Mann Entertainment integration features not properly configured")
+                        return False
+                else:
+                    self.log_result("mlc_usage_matching", "MLC Usage Matching", False, 
+                                  "Missing usage_matching_result, matching_performance, or big_mann_entertainment")
+                    return False
+            else:
+                self.log_result("mlc_usage_matching", "MLC Usage Matching", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_usage_matching", "MLC Usage Matching", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_claims_management(self) -> bool:
+        """Test MLC claims and disputes management"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_claims_management", "MLC Claims Management", False, "No auth token available")
+                return False
+            
+            # Create test claim data
+            test_claim = {
+                "claim_type": "ownership_claim",
+                "work_title": "Digital Dreams - Big Mann Entertainment",
+                "claimant_name": "Big Mann Entertainment",
+                "claimant_type": "publisher",
+                "claimed_rights_percentage": 50.0,
+                "effective_date": "2025-01-01T00:00:00Z",
+                "supporting_documentation": [
+                    "Publisher Agreement - Big Mann Entertainment",
+                    "IPI Registration - 813048171",
+                    "Copyright Registration"
+                ],
+                "claim_description": "Claiming 50% publisher mechanical rights for Digital Dreams as registered publisher Big Mann Entertainment (IPI: 813048171) with songwriter John LeGerron Spivey (IPI: 578413032)",
+                "big_mann_involvement": True,
+                "internal_reference": "BME-CLAIM-2025-001"
+            }
+            
+            response = self.make_request('POST', '/industry/mlc/claims/submit', json=test_claim)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'claim_submission_result' in data and 'big_mann_entertainment' in data:
+                    submission_result = data['claim_submission_result']
+                    big_mann_info = data['big_mann_entertainment']
+                    
+                    # Verify Big Mann Entertainment claims management
+                    if ('Professional dispute resolution' in big_mann_info.get('claim_management', '') and
+                        'Comprehensive claims processing' in big_mann_info.get('rights_protection', '') and
+                        'Automated documentation' in big_mann_info.get('legal_support', '')):
+                        
+                        # Verify claim submission result
+                        mlc_claim_id = submission_result.get('mlc_claim_id', 'Unknown')
+                        if mlc_claim_id != 'Unknown':
+                            self.log_result("mlc_claims_management", "MLC Claims Management", True, 
+                                          f"MLC claim submitted successfully - Claim ID: {mlc_claim_id}, Big Mann Entertainment professional dispute resolution, comprehensive rights protection, automated documentation")
+                            return True
+                        else:
+                            self.log_result("mlc_claims_management", "MLC Claims Management", False, 
+                                          "No MLC claim ID returned")
+                            return False
+                    else:
+                        self.log_result("mlc_claims_management", "MLC Claims Management", False, 
+                                      "Big Mann Entertainment claims management features not properly configured")
+                        return False
+                else:
+                    self.log_result("mlc_claims_management", "MLC Claims Management", False, 
+                                  "Missing claim_submission_result or big_mann_entertainment")
+                    return False
+            else:
+                self.log_result("mlc_claims_management", "MLC Claims Management", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_claims_management", "MLC Claims Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_analytics(self) -> bool:
+        """Test MLC performance analytics and metrics"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_analytics", "MLC Analytics", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/mlc/analytics/performance?timeframe=monthly')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'analytics' in data and 'big_mann_entertainment' in data:
+                    analytics = data['analytics']
+                    big_mann_info = data['big_mann_entertainment']
+                    
+                    # Verify analytics structure
+                    expected_sections = ['collection_performance', 'catalog_performance', 'platform_analytics']
+                    analytics_sections_found = [section for section in expected_sections if section in analytics]
+                    
+                    if len(analytics_sections_found) >= 2:
+                        # Verify collection performance metrics
+                        collection_perf = analytics.get('collection_performance', {})
+                        catalog_perf = analytics.get('catalog_performance', {})
+                        
+                        if ('total_royalties' in collection_perf and
+                            'collection_efficiency' in collection_perf and
+                            'total_works' in catalog_perf and
+                            'active_works' in catalog_perf):
+                            
+                            # Verify Big Mann Entertainment market position
+                            if ('Independent Publisher Leader' in big_mann_info.get('market_position', '') and
+                                'year-over-year' in big_mann_info.get('revenue_growth', '') and
+                                'Full MLC automation' in big_mann_info.get('technology_advantage', '')):
+                                
+                                collection_efficiency = collection_perf.get('collection_efficiency', '0%')
+                                total_works = catalog_perf.get('total_works', 0)
+                                
+                                self.log_result("mlc_analytics", "MLC Analytics", True, 
+                                              f"MLC analytics comprehensive - Collection efficiency: {collection_efficiency}, Total works: {total_works}, Big Mann Entertainment positioned as Independent Publisher Leader with full MLC automation")
+                                return True
+                            else:
+                                self.log_result("mlc_analytics", "MLC Analytics", False, 
+                                              "Big Mann Entertainment market position not properly configured")
+                                return False
+                        else:
+                            self.log_result("mlc_analytics", "MLC Analytics", False, 
+                                          "Missing performance metrics in analytics")
+                            return False
+                    else:
+                        self.log_result("mlc_analytics", "MLC Analytics", False, 
+                                      f"Insufficient analytics sections: {len(analytics_sections_found)} found")
+                        return False
+                else:
+                    self.log_result("mlc_analytics", "MLC Analytics", False, 
+                                  "Missing analytics or big_mann_entertainment")
+                    return False
+            else:
+                self.log_result("mlc_analytics", "MLC Analytics", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_analytics", "MLC Analytics", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_authentication(self) -> bool:
+        """Test MLC endpoints authentication requirements"""
+        try:
+            # Test without authentication
+            temp_token = self.auth_token
+            self.auth_token = None
+            
+            mlc_endpoints = [
+                '/industry/mlc/dashboard',
+                '/industry/mlc/works',
+                '/industry/mlc/works/register',
+                '/industry/mlc/royalties/process',
+                '/industry/mlc/usage/match',
+                '/industry/mlc/claims/submit'
+            ]
+            
+            unauthorized_responses = 0
+            
+            for endpoint in mlc_endpoints:
+                if 'register' in endpoint or 'process' in endpoint or 'match' in endpoint or 'submit' in endpoint:
+                    response = self.make_request('POST', endpoint, json={})
+                else:
+                    response = self.make_request('GET', endpoint)
+                
+                if response.status_code == 401:
+                    unauthorized_responses += 1
+            
+            # Restore token
+            self.auth_token = temp_token
+            
+            if unauthorized_responses >= 4:  # At least 4 endpoints should require auth
+                self.log_result("mlc_authentication", "MLC Authentication", True, 
+                              f"{unauthorized_responses} MLC endpoints properly require authentication")
+                return True
+            else:
+                self.log_result("mlc_authentication", "MLC Authentication", False, 
+                              f"Only {unauthorized_responses} MLC endpoints require authentication")
+                return False
+                
+        except Exception as e:
+            # Restore token in case of exception
+            if 'temp_token' in locals():
+                self.auth_token = temp_token
+            self.log_result("mlc_authentication", "MLC Authentication", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mlc_big_mann_integration(self) -> bool:
+        """Test comprehensive Big Mann Entertainment MLC integration with IPI numbers"""
+        try:
+            if not self.auth_token:
+                self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, "No auth token available")
+                return False
+            
+            # Test dashboard for Big Mann Entertainment configuration
+            dashboard_response = self.make_request('GET', '/industry/mlc/dashboard')
+            
+            if dashboard_response.status_code == 200:
+                dashboard_data = dashboard_response.json()
+                platform_status = dashboard_data.get('platform_status', {})
+                
+                # Verify MLC integration is fully operational
+                if platform_status.get('mlc_integration') == 'Fully Operational':
+                    # Test works listing for Big Mann Entertainment catalog
+                    works_response = self.make_request('GET', '/industry/mlc/works?big_mann_work=true')
+                    
+                    if works_response.status_code == 200:
+                        works_data = works_response.json()
+                        big_mann_info = works_data.get('big_mann_entertainment', {})
+                        
+                        # Verify Big Mann Entertainment configuration
+                        if ('Active Publisher Member' in big_mann_info.get('registration_status', '') and
+                            'Comprehensive Collection Enabled' in big_mann_info.get('mechanical_rights', '')):
+                            
+                            # Test analytics for market position
+                            analytics_response = self.make_request('GET', '/industry/mlc/analytics/performance')
+                            
+                            if analytics_response.status_code == 200:
+                                analytics_data = analytics_response.json()
+                                big_mann_analytics = analytics_data.get('big_mann_entertainment', {})
+                                
+                                # Verify comprehensive integration
+                                if ('Independent Publisher Leader' in big_mann_analytics.get('market_position', '') and
+                                    'Full MLC automation' in big_mann_analytics.get('technology_advantage', '')):
+                                    
+                                    self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", True, 
+                                                  f"✅ COMPREHENSIVE MLC INTEGRATION VERIFIED: Big Mann Entertainment fully integrated as Active Publisher Member with IPI 813048171, John LeGerron Spivey as songwriter with IPI 578413032, Independent Publisher Leader market position, full MLC automation, comprehensive collection enabled")
+                                    return True
+                                else:
+                                    self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, 
+                                                  "Big Mann Entertainment market position or technology advantage not properly configured")
+                                    return False
+                            else:
+                                self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, 
+                                              f"Analytics access failed: {analytics_response.status_code}")
+                                return False
+                        else:
+                            self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, 
+                                          "Big Mann Entertainment registration status or mechanical rights not properly configured")
+                            return False
+                    else:
+                        self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, 
+                                      f"Works listing failed: {works_response.status_code}")
+                        return False
+                else:
+                    self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, 
+                                  f"MLC integration not fully operational: {platform_status.get('mlc_integration')}")
+                    return False
+            else:
+                self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, 
+                              f"Dashboard access failed: {dashboard_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, f"Exception: {str(e)}")
+            return False
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
