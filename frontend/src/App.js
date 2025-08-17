@@ -487,6 +487,22 @@ const Header = () => {
                 </div>
               </div>
             )}
+            <div className="relative group">
+              <button className="hover:text-purple-400 transition-colors flex items-center">
+                Label Management
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <Link to="/admin/label" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Label Dashboard</Link>
+                <Link to="/admin/label/artists" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Artist Management</Link>
+                <Link to="/admin/label/ar" className="block px-4 py-2 hover:bg-gray-100 transition-colors">A&R Management</Link>
+                <Link to="/admin/label/projects" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Studio & Projects</Link>
+                <Link to="/admin/label/marketing" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Marketing & PR</Link>
+                <Link to="/admin/label/finance" className="block px-4 py-2 hover:bg-gray-100 transition-colors">Financial Management</Link>
+              </div>
+            </div>
           </nav>
 
           {/* Mobile Menu Button */}
