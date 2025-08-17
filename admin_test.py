@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Configuration
-BASE_URL = "https://industry-connect.preview.emergentagent.com/api"
+BASE_URL = "https://industry-connect-1.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@bigmannentertainment.com"
 ADMIN_PASSWORD = "AdminBigMann2025!"
 

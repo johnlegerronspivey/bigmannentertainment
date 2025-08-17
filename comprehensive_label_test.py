@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://1a0564b8-b055-49be-b4c3-af86a4884970.preview.emergentagent.com/api"
+BASE_URL = "https://industry-connect-1.preview.emergentagent.com/api"
 
 class ComprehensiveLabelTester:
     def __init__(self):

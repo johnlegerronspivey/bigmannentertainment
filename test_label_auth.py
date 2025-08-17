@@ -6,7 +6,7 @@ Test authenticated label endpoints
 import requests
 import json
 
-BASE_URL = "https://1a0564b8-b055-49be-b4c3-af86a4884970.preview.emergentagent.com/api"
+BASE_URL = "https://industry-connect-1.preview.emergentagent.com/api"
 AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4OWE5OGExOC1mYWNjLTQ1ZGItOTJiOC1kOTBmY2U5M2M0MmQiLCJlbWFpbCI6ImxhYmVsdGVzdEBiaWdtYW5uZW50ZXJ0YWlubWVudC5jb20iLCJpc19hZG1pbiI6ZmFsc2UsImV4cCI6MTc1NTQ3MjkyMn0.7qOdq0j6jzsi8bYoArcTWB6jOCCZjlRw6hY3mHauNJQ"
 
 def make_request(method: str, endpoint: str, **kwargs):
