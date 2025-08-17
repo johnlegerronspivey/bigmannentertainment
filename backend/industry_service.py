@@ -10,7 +10,8 @@ from industry_models import (
     TVNetwork, Venue, BookingAgency, ContentDistribution, 
     IndustryAnalytics, RevenueTracking, ENTERTAINMENT_INDUSTRY_PARTNERS,
     IndustryIdentifier, BIG_MANN_INDUSTRY_IDENTIFIERS,
-    MusicDataExchange, MDXTrack, MDXRightsManagement, MDXAnalytics, BIG_MANN_MDX_CONFIG
+    MusicDataExchange, MDXTrack, MDXRightsManagement, MDXAnalytics, BIG_MANN_MDX_CONFIG,
+    MechanicalLicensingCollective, MLCMusicalWork, MLCRoyaltyReport, MLCUsageData, MLCClaimsDispute, BIG_MANN_MLC_CONFIG
 )
 
 logger = logging.getLogger(__name__)
