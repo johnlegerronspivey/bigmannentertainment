@@ -2460,7 +2460,7 @@ async def make_user_super_admin(
 ):
     """Make a user a super admin with full ownership rights - Only John LeGerron Spivey can use this"""
     # Only allow John LeGerron Spivey to grant super admin access
-    john_emails = ["john@bigmannentertainment.com", "johnlegerronspivey@gmail.com", "johnlegerronspivey@bigmannentertainment.com"]
+    john_emails = ["owner@bigmannentertainment.com"]
     if admin_user.email not in john_emails and admin_user.role != "super_admin":
         raise HTTPException(status_code=403, detail="Only John LeGerron Spivey can grant super admin access")
     
