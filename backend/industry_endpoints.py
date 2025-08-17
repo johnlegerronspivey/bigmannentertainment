@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 from industry_service import IndustryIntegrationService
-from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IndustryIdentifier
+from industry_models import IndustryPartner, ContentDistribution, IndustryAnalytics, IndustryIdentifier, MusicDataExchange, MDXTrack
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
