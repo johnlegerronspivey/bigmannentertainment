@@ -960,6 +960,20 @@ const AdminDashboard = () => {
             </div>
           </Link>
 
+          <Link to="/admin/label" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-red-100 rounded-full">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Label Management</h3>
+                <p className="text-gray-600 text-sm">Manage artists, A&R, and label operations</p>
+              </div>
+            </div>
+          </Link>
+
           <Link to="/admin/analytics" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-green-100 rounded-full">
