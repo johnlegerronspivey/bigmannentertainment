@@ -4,7 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date, timedelta
 import uuid
-from .label_models import *
+from label_models import *
 import httpx
 import json
 
