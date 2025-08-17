@@ -1176,21 +1176,58 @@ const AdminUserManagement = () => {
                       {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowUserModal(true);
-                        }}
-                        className="text-purple-600 hover:text-purple-900 mr-4"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleUserDelete(user.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex flex-col space-y-1">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowUserModal(true);
+                            }}
+                            className="text-purple-600 hover:text-purple-900 text-xs"
+                          >
+                            Edit
+                          </button>
+                          {!ownershipStatus?.john_emails?.includes(user.email) && (
+                            <button
+                              onClick={() => handleUserDelete(user.id)}
+                              className="text-red-600 hover:text-red-900 text-xs"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                        
+                        {/* Owner Controls - Only visible to John LeGerron Spivey */}
+                        {ownershipStatus?.current_user_is_john && !ownershipStatus?.john_emails?.includes(user.email) && (
+                          <div className="flex flex-col space-y-1 pt-1 border-t border-gray-200">
+                            {user.role !== 'super_admin' && (
+                              <button
+                                onClick={() => handleMakeSuperAdmin(user.id)}
+                                className="text-yellow-600 hover:text-yellow-800 text-xs font-medium"
+                                title="Grant full admin access with ownership rights"
+                              >
+                                👑 Make Super Admin
+                              </button>
+                            )}
+                            {(user.is_admin || ['admin', 'super_admin', 'moderator'].includes(user.role)) && (
+                              <button
+                                onClick={() => handleRevokeAdmin(user.id)}
+                                className="text-orange-600 hover:text-orange-800 text-xs font-medium"
+                                title="Remove admin access"
+                              >
+                                🔒 Revoke Admin
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Owner Badge */}
+                        {ownershipStatus?.john_emails?.includes(user.email) && (
+                          <div className="text-xs text-yellow-600 font-medium">
+                            🏢 Platform Owner - Cannot be modified
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
