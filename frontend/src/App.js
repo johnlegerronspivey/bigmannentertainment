@@ -3800,6 +3800,7 @@ function App() {
             <Route path="/industry/photography" element={<ProtectedRoute><PhotographyServices /></ProtectedRoute>} />
             <Route path="/industry/video" element={<ProtectedRoute><VideoProductionServices /></ProtectedRoute>} />
             <Route path="/industry/monetization" element={<ProtectedRoute><MonetizationOpportunities /></ProtectedRoute>} />
+            <Route path="/industry/mdx" element={<ProtectedRoute><MusicDataExchange /></ProtectedRoute>} />
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/blockchain" element={<Blockchain />} />
