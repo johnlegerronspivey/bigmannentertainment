@@ -9,7 +9,8 @@ from industry_models import (
     IndustryPartner, StreamingPlatform, RecordLabel, RadioStation, 
     TVNetwork, Venue, BookingAgency, ContentDistribution, 
     IndustryAnalytics, RevenueTracking, ENTERTAINMENT_INDUSTRY_PARTNERS,
-    IndustryIdentifier, BIG_MANN_INDUSTRY_IDENTIFIERS
+    IndustryIdentifier, BIG_MANN_INDUSTRY_IDENTIFIERS,
+    MusicDataExchange, MDXTrack, MDXRightsManagement, MDXAnalytics, BIG_MANN_MDX_CONFIG
 )
 
 logger = logging.getLogger(__name__)
