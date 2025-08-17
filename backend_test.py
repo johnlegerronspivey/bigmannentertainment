@@ -5547,14 +5547,14 @@ class BackendTester:
     # ===== JOHN LEGERRON SPIVEY OWNERSHIP CONTROL SYSTEM TESTS =====
     
     def test_john_email_registration_super_admin(self) -> bool:
-        """Test that John's emails automatically get super_admin role during registration"""
+        """Test that ONLY owner@bigmannentertainment.com gets super_admin role during registration"""
         try:
             from datetime import datetime, timedelta
             
-            # Test with John's primary email
-            john_user_data = {
-                "email": "johnlegerronspivey@bigmannentertainment.com",
-                "password": "JohnOwner2025!",
+            # Test with the ONLY authorized owner email
+            owner_user_data = {
+                "email": "owner@bigmannentertainment.com",
+                "password": "OwnerBigMann2025!",
                 "full_name": "John LeGerron Spivey",
                 "business_name": "Big Mann Entertainment",
                 "date_of_birth": (datetime.utcnow() - timedelta(days=30*365)).isoformat(),  # 30 years old
@@ -5565,30 +5565,30 @@ class BackendTester:
                 "country": "United States"
             }
             
-            response = self.make_request('POST', '/auth/register', json=john_user_data)
+            response = self.make_request('POST', '/auth/register', json=owner_user_data)
             
             if response.status_code in [200, 201]:
                 data = response.json()
                 if 'user' in data:
                     user = data['user']
-                    # Verify John gets super_admin role automatically
+                    # Verify owner email gets super_admin role automatically
                     if user.get('role') == 'super_admin' and user.get('is_admin') == True:
-                        self.log_result("ownership_user_registration", "John Email Registration Super Admin", True, 
-                                      f"John's email {john_user_data['email']} automatically assigned super_admin role")
+                        self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", True, 
+                                      f"Owner email {owner_user_data['email']} automatically assigned super_admin role")
                         return True
                     else:
-                        self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
-                                      f"John's email not assigned super_admin role. Got role: {user.get('role')}, is_admin: {user.get('is_admin')}")
+                        self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", False, 
+                                      f"Owner email not assigned super_admin role. Got role: {user.get('role')}, is_admin: {user.get('is_admin')}")
                         return False
                 else:
-                    self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                    self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", False, 
                                   "Missing user data in registration response")
                     return False
             elif response.status_code == 400 and "already registered" in response.text:
                 # User already exists, test login instead
                 login_data = {
-                    "email": "johnlegerronspivey@bigmannentertainment.com",
-                    "password": "JohnOwner2025!"
+                    "email": "owner@bigmannentertainment.com",
+                    "password": "OwnerBigMann2025!"
                 }
                 
                 login_response = self.make_request('POST', '/auth/login', json=login_data)
@@ -5597,28 +5597,28 @@ class BackendTester:
                     if 'user' in login_data_resp:
                         user = login_data_resp['user']
                         if user.get('role') == 'super_admin' and user.get('is_admin') == True:
-                            self.log_result("ownership_user_registration", "John Email Registration Super Admin", True, 
-                                          f"John's existing account has super_admin role (email: {john_user_data['email']})")
+                            self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", True, 
+                                          f"Owner's existing account has super_admin role (email: {owner_user_data['email']})")
                             return True
                         else:
-                            self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
-                                          f"John's existing account missing super_admin role. Got role: {user.get('role')}")
+                            self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", False, 
+                                          f"Owner's existing account missing super_admin role. Got role: {user.get('role')}")
                             return False
                     else:
-                        self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                        self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", False, 
                                       "Missing user data in login response")
                         return False
                 else:
-                    self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
-                                  f"Login failed for John's email: {login_response.status_code}")
+                    self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", False, 
+                                  f"Login failed for owner email: {login_response.status_code}")
                     return False
             else:
-                self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, 
+                self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", False, 
                               f"Registration failed: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("ownership_user_registration", "John Email Registration Super Admin", False, f"Exception: {str(e)}")
+            self.log_result("ownership_user_registration", "Owner Email Registration Super Admin", False, f"Exception: {str(e)}")
             return False
     
     def test_ownership_status_endpoint(self) -> bool:
