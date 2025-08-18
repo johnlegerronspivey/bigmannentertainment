@@ -5,6 +5,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from bson import ObjectId
 from industry_models import (
     IndustryPartner, StreamingPlatform, RecordLabel, RadioStation, 
     TVNetwork, Venue, BookingAgency, ContentDistribution, 
