@@ -563,34 +563,34 @@ class BackendTester:
         return content, filename, mime_type
     
     def test_media_upload(self) -> bool:
-        """Test media file upload"""
+        """Test media file upload with comprehensive validation"""
         try:
             if not self.auth_token:
                 self.log_result("media_upload", "Media Upload", False, "No auth token available")
                 return False
             
-            # Test audio upload
+            # Test audio upload with all required fields
             content, filename, mime_type = self.create_test_file("audio")
             
             files = {'file': (filename, content, mime_type)}
             data = {
-                'title': 'Test Audio Track',
-                'description': 'A test audio file for Big Mann Entertainment',
+                'title': 'Big Mann Entertainment Test Track',
+                'description': 'A professional test audio file for Big Mann Entertainment media distribution platform',
                 'category': 'music',
                 'price': 9.99,
-                'tags': 'test, audio, music'
+                'tags': 'BigMannEntertainment, test, audio, music, professional'
             }
             
             response = self.make_request('POST', '/media/upload', files=files, data=data)
             
             if response.status_code == 200:
                 result = response.json()
-                if 'media_id' in result:
+                if 'media_id' in result and 'message' in result:
                     self.test_media_id = result['media_id']
-                    self.log_result("media_upload", "Media Upload", True, f"Successfully uploaded audio file, ID: {self.test_media_id}")
+                    self.log_result("media_upload", "Media Upload", True, f"Successfully uploaded audio file with all required fields, ID: {self.test_media_id}")
                     return True
                 else:
-                    self.log_result("media_upload", "Media Upload", False, "No media_id in response")
+                    self.log_result("media_upload", "Media Upload", False, "Missing media_id or message in response")
                     return False
             else:
                 self.log_result("media_upload", "Media Upload", False, f"Status: {response.status_code}, Response: {response.text}")
@@ -598,6 +598,265 @@ class BackendTester:
                 
         except Exception as e:
             self.log_result("media_upload", "Media Upload", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_media_upload_authentication(self) -> bool:
+        """Test media upload authentication requirement"""
+        try:
+            # Test upload without authentication token
+            content, filename, mime_type = self.create_test_file("audio")
+            
+            files = {'file': (filename, content, mime_type)}
+            data = {
+                'title': 'Unauthorized Upload Test',
+                'description': 'This should fail without authentication',
+                'category': 'test',
+                'price': 0,
+                'tags': 'unauthorized'
+            }
+            
+            # Make request without auth token
+            url = f"{self.base_url}/media/upload"
+            response = self.session.request('POST', url, files=files, data=data)
+            
+            if response.status_code == 401 or response.status_code == 403:
+                self.log_result("media_upload", "Authentication Required", True, "Correctly rejected upload without authentication")
+                return True
+            else:
+                self.log_result("media_upload", "Authentication Required", False, f"Should have rejected unauthorized upload, got status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("media_upload", "Authentication Required", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_media_upload_required_fields(self) -> bool:
+        """Test media upload with missing required fields"""
+        try:
+            if not self.auth_token:
+                self.log_result("media_upload", "Required Fields Validation", False, "No auth token available")
+                return False
+            
+            # Test upload without title (required field)
+            content, filename, mime_type = self.create_test_file("audio")
+            
+            files = {'file': (filename, content, mime_type)}
+            data = {
+                'description': 'Missing title field',
+                'category': 'test',
+                'price': 0,
+                'tags': 'missing-title'
+            }
+            
+            response = self.make_request('POST', '/media/upload', files=files, data=data)
+            
+            if response.status_code == 422:  # FastAPI validation error
+                self.log_result("media_upload", "Required Fields Validation", True, "Correctly rejected upload with missing title")
+                return True
+            else:
+                self.log_result("media_upload", "Required Fields Validation", False, f"Should have rejected upload with missing title, got status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("media_upload", "Required Fields Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_media_upload_different_file_types(self) -> bool:
+        """Test uploading different file types (audio, video, image)"""
+        try:
+            if not self.auth_token:
+                self.log_result("media_upload", "Different File Types", False, "No auth token available")
+                return False
+            
+            file_types = ["audio", "video", "image"]
+            successful_uploads = 0
+            
+            for file_type in file_types:
+                try:
+                    content, filename, mime_type = self.create_test_file(file_type)
+                    
+                    files = {'file': (filename, content, mime_type)}
+                    data = {
+                        'title': f'Big Mann Entertainment Test {file_type.title()}',
+                        'description': f'Professional test {file_type} file for Big Mann Entertainment',
+                        'category': file_type,
+                        'price': 5.99,
+                        'tags': f'BigMannEntertainment, test, {file_type}, professional'
+                    }
+                    
+                    response = self.make_request('POST', '/media/upload', files=files, data=data)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if 'media_id' in result:
+                            successful_uploads += 1
+                            self.log_result("media_upload", f"{file_type.title()} Upload", True, f"Successfully uploaded {file_type} file, ID: {result['media_id']}")
+                        else:
+                            self.log_result("media_upload", f"{file_type.title()} Upload", False, "No media_id in response")
+                    else:
+                        self.log_result("media_upload", f"{file_type.title()} Upload", False, f"Status: {response.status_code}, Response: {response.text}")
+                        
+                except Exception as e:
+                    self.log_result("media_upload", f"{file_type.title()} Upload", False, f"Exception: {str(e)}")
+            
+            if successful_uploads == 3:
+                self.log_result("media_upload", "Different File Types", True, f"Successfully uploaded all 3 file types")
+                return True
+            else:
+                self.log_result("media_upload", "Different File Types", False, f"Only {successful_uploads}/3 file types uploaded successfully")
+                return False
+                
+        except Exception as e:
+            self.log_result("media_upload", "Different File Types", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_media_upload_invalid_file_types(self) -> bool:
+        """Test rejection of invalid file types"""
+        try:
+            if not self.auth_token:
+                self.log_result("media_upload", "Invalid File Type Rejection", False, "No auth token available")
+                return False
+            
+            # Test various invalid file types
+            invalid_files = [
+                ('test.txt', b'This is a text file', 'text/plain'),
+                ('test.pdf', b'%PDF-1.4 fake pdf', 'application/pdf'),
+                ('test.exe', b'MZ fake executable', 'application/x-executable'),
+                ('test.zip', b'PK fake zip', 'application/zip')
+            ]
+            
+            rejected_count = 0
+            
+            for filename, content, mime_type in invalid_files:
+                files = {'file': (filename, content, mime_type)}
+                data = {
+                    'title': f'Invalid File Test - {filename}',
+                    'description': 'This should be rejected',
+                    'category': 'test',
+                    'price': 0,
+                    'tags': 'invalid'
+                }
+                
+                response = self.make_request('POST', '/media/upload', files=files, data=data)
+                
+                if response.status_code == 400 and "Unsupported file type" in response.text:
+                    rejected_count += 1
+                    self.log_result("media_upload", f"Reject {mime_type}", True, f"Correctly rejected {mime_type}")
+                else:
+                    self.log_result("media_upload", f"Reject {mime_type}", False, f"Should have rejected {mime_type}, got status: {response.status_code}")
+            
+            if rejected_count == len(invalid_files):
+                self.log_result("media_upload", "Invalid File Type Rejection", True, f"Correctly rejected all {rejected_count} invalid file types")
+                return True
+            else:
+                self.log_result("media_upload", "Invalid File Type Rejection", False, f"Only rejected {rejected_count}/{len(invalid_files)} invalid file types")
+                return False
+                
+        except Exception as e:
+            self.log_result("media_upload", "Invalid File Type Rejection", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_uploads_directory_permissions(self) -> bool:
+        """Test uploads directory exists and is writable"""
+        try:
+            import os
+            import tempfile
+            
+            uploads_dir = "/app/uploads"
+            
+            # Check if uploads directory exists
+            if not os.path.exists(uploads_dir):
+                self.log_result("media_upload", "Uploads Directory Permissions", False, "Uploads directory does not exist")
+                return False
+            
+            # Check if directory is writable
+            try:
+                test_file = os.path.join(uploads_dir, "test_write_permission.tmp")
+                with open(test_file, 'w') as f:
+                    f.write("test")
+                os.remove(test_file)
+                
+                # Check subdirectories
+                subdirs = ['audio', 'video', 'image']
+                for subdir in subdirs:
+                    subdir_path = os.path.join(uploads_dir, subdir)
+                    if not os.path.exists(subdir_path):
+                        os.makedirs(subdir_path, exist_ok=True)
+                
+                self.log_result("media_upload", "Uploads Directory Permissions", True, f"Uploads directory exists and is writable with subdirectories: {subdirs}")
+                return True
+                
+            except PermissionError:
+                self.log_result("media_upload", "Uploads Directory Permissions", False, "Uploads directory is not writable")
+                return False
+                
+        except Exception as e:
+            self.log_result("media_upload", "Uploads Directory Permissions", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_media_upload_database_storage(self) -> bool:
+        """Test that uploaded media is properly stored in database"""
+        try:
+            if not self.auth_token:
+                self.log_result("media_upload", "Database Storage", False, "No auth token available")
+                return False
+            
+            # Upload a file
+            content, filename, mime_type = self.create_test_file("audio")
+            
+            files = {'file': (filename, content, mime_type)}
+            data = {
+                'title': 'Database Storage Test Track',
+                'description': 'Testing database storage for Big Mann Entertainment',
+                'category': 'music',
+                'price': 12.99,
+                'tags': 'database, test, storage, BigMannEntertainment'
+            }
+            
+            response = self.make_request('POST', '/media/upload', files=files, data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                media_id = result.get('media_id')
+                
+                if media_id:
+                    # Try to retrieve the uploaded media to verify database storage
+                    get_response = self.make_request('GET', f'/media/{media_id}')
+                    
+                    if get_response.status_code == 200:
+                        media_data = get_response.json()
+                        
+                        # Verify all fields are stored correctly
+                        expected_fields = ['id', 'title', 'description', 'content_type', 'category', 'price', 'tags', 'owner_id', 'file_path', 'file_size', 'mime_type']
+                        missing_fields = [field for field in expected_fields if field not in media_data]
+                        
+                        if not missing_fields:
+                            # Verify specific values
+                            if (media_data['title'] == 'Database Storage Test Track' and 
+                                media_data['price'] == 12.99 and 
+                                media_data['content_type'] == 'audio' and
+                                'database' in media_data['tags']):
+                                
+                                self.log_result("media_upload", "Database Storage", True, f"Media properly stored in database with all fields, file size: {media_data['file_size']} bytes")
+                                return True
+                            else:
+                                self.log_result("media_upload", "Database Storage", False, "Media data values don't match uploaded values")
+                                return False
+                        else:
+                            self.log_result("media_upload", "Database Storage", False, f"Missing database fields: {missing_fields}")
+                            return False
+                    else:
+                        self.log_result("media_upload", "Database Storage", False, f"Could not retrieve uploaded media: {get_response.status_code}")
+                        return False
+                else:
+                    self.log_result("media_upload", "Database Storage", False, "No media_id returned from upload")
+                    return False
+            else:
+                self.log_result("media_upload", "Database Storage", False, f"Upload failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("media_upload", "Database Storage", False, f"Exception: {str(e)}")
             return False
     
     def test_file_type_validation(self) -> bool:
