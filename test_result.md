@@ -555,7 +555,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Mechanical Licensing Collective (MLC) Frontend Integration"
+    - "Industry Dashboard Endpoint Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
