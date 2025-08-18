@@ -675,6 +675,12 @@ class IndustryIntegrationService:
             
             cursor = self.db.industry_identifiers.find(query)
             identifiers = await cursor.to_list(None)
+            
+            # Convert ObjectId to string for JSON serialization
+            for identifier in identifiers:
+                if "_id" in identifier:
+                    identifier["_id"] = str(identifier["_id"])
+            
             return identifiers
             
         except Exception as e:
