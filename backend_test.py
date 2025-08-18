@@ -7203,6 +7203,46 @@ class BackendTester:
         self.test_label_dashboard()
     
     
+    def run_media_upload_tests(self):
+        """Run comprehensive media upload functionality tests"""
+        print("\n" + "="*80)
+        print("🎵 TESTING MEDIA UPLOAD FUNCTIONALITY")
+        print("="*80)
+        
+        # Test uploads directory and permissions first
+        self.test_uploads_directory_permissions()
+        
+        # Test authentication requirement
+        self.test_media_upload_authentication()
+        
+        # Test required fields validation
+        self.test_media_upload_required_fields()
+        
+        # Test invalid file type rejection
+        self.test_media_upload_invalid_file_types()
+        
+        # Test successful upload with all required fields
+        self.test_media_upload()
+        
+        # Test different file types (audio, video, image)
+        self.test_media_upload_different_file_types()
+        
+        # Test database storage
+        self.test_media_upload_database_storage()
+        
+        # Test file type validation (existing test)
+        self.test_file_type_validation()
+        
+        print(f"\n📊 Media Upload Tests Summary:")
+        print(f"✅ Passed: {self.results['media_upload']['passed']}")
+        print(f"❌ Failed: {self.results['media_upload']['failed']}")
+        
+        if self.results['media_upload']['failed'] > 0:
+            print(f"\n❌ Failed Tests Details:")
+            for detail in self.results['media_upload']['details']:
+                if "❌ FAIL" in detail:
+                    print(f"  {detail}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("=" * 80)
