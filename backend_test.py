@@ -7202,6 +7202,12 @@ class BackendTester:
         print("\nTesting Industry Identifiers Database Initialization...")
         self.test_industry_identifiers_initialization()
         
+        print("\nTesting Industry Dashboard...")
+        self.test_industry_dashboard()
+        
+        print("\nTesting Industry Identifiers Endpoint...")
+        self.test_industry_identifiers_endpoint()
+        
         print("\nTesting Industry Identifiers Retrieval...")
         self.test_industry_identifiers_retrieval()
         
