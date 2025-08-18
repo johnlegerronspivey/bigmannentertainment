@@ -7265,11 +7265,10 @@ class BackendTester:
         self.test_reset_password()
         self.test_logout_session_invalidation()
         
-        # Media Upload Tests
-        print("\n📁 TESTING MEDIA UPLOAD AND STORAGE")
+        # Media Upload Tests (COMPREHENSIVE)
+        print("\n📁 TESTING COMPREHENSIVE MEDIA UPLOAD FUNCTIONALITY")
         print("-" * 40)
-        self.test_media_upload()
-        self.test_file_type_validation()
+        self.run_media_upload_tests()
         
         # Media Management Tests
         print("\n📚 TESTING MEDIA CONTENT MANAGEMENT")
