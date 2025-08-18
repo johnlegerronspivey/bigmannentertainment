@@ -5191,6 +5191,90 @@ class BackendTester:
             self.log_result("industry_identifiers_initialization", "Industry Identifiers Initialization", False, f"Exception: {str(e)}")
             return False
     
+    def test_industry_dashboard(self) -> bool:
+        """Test industry dashboard endpoint at /api/industry/dashboard"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_dashboard", "Industry Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'dashboard' in data and 'last_updated' in data:
+                    dashboard = data['dashboard']
+                    self.log_result("industry_dashboard", "Industry Dashboard", True, 
+                                  f"✅ Dashboard loaded successfully with comprehensive data. User: {data.get('user', 'N/A')}")
+                    return True
+                else:
+                    self.log_result("industry_dashboard", "Industry Dashboard", False, 
+                                  f"Invalid dashboard response format. Keys: {list(data.keys())}")
+                    return False
+            elif response.status_code == 404:
+                self.log_result("industry_dashboard", "Industry Dashboard", False, 
+                              f"❌ 404 ERROR: Industry dashboard endpoint not found - this confirms the reported issue")
+                return False
+            elif response.status_code == 401:
+                self.log_result("industry_dashboard", "Industry Dashboard", False, 
+                              f"❌ 401 UNAUTHORIZED: Authentication failed for industry dashboard")
+                return False
+            elif response.status_code == 403:
+                self.log_result("industry_dashboard", "Industry Dashboard", False, 
+                              f"❌ 403 FORBIDDEN: Insufficient permissions for industry dashboard")
+                return False
+            else:
+                self.log_result("industry_dashboard", "Industry Dashboard", False, 
+                              f"❌ Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_dashboard", "Industry Dashboard", False, f"❌ Exception: {str(e)}")
+            return False
+    
+    def test_industry_identifiers_endpoint(self) -> bool:
+        """Test industry identifiers endpoint at /api/industry/identifiers"""
+        try:
+            if not self.auth_token:
+                self.log_result("industry_identifiers_retrieval", "Industry Identifiers Endpoint", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/industry/identifiers')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'identifiers' in data and 'big_mann_entertainment' in data:
+                    identifiers = data['identifiers']
+                    big_mann_data = data['big_mann_entertainment']
+                    
+                    # Verify Big Mann Entertainment data structure
+                    if ('company' in big_mann_data and 'individual' in big_mann_data and
+                        big_mann_data['company'].get('ipi') == '813048171' and
+                        big_mann_data['individual'].get('ipi') == '578413032'):
+                        self.log_result("industry_identifiers_retrieval", "Industry Identifiers Endpoint", True, 
+                                      f"✅ Retrieved {len(identifiers)} identifiers with correct Big Mann Entertainment data")
+                        return True
+                    else:
+                        self.log_result("industry_identifiers_retrieval", "Industry Identifiers Endpoint", False, 
+                                      f"Big Mann Entertainment data structure incorrect: {big_mann_data}")
+                        return False
+                else:
+                    self.log_result("industry_identifiers_retrieval", "Industry Identifiers Endpoint", False, 
+                                  f"Invalid response format. Keys: {list(data.keys())}")
+                    return False
+            elif response.status_code == 404:
+                self.log_result("industry_identifiers_retrieval", "Industry Identifiers Endpoint", False, 
+                              f"❌ 404 ERROR: Industry identifiers endpoint not found")
+                return False
+            else:
+                self.log_result("industry_identifiers_retrieval", "Industry Identifiers Endpoint", False, 
+                              f"❌ Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("industry_identifiers_retrieval", "Industry Identifiers Endpoint", False, f"❌ Exception: {str(e)}")
+            return False
+    
     def test_industry_identifiers_retrieval(self) -> bool:
         """Test GET /api/industry/identifiers to retrieve all industry identifiers"""
         try:
