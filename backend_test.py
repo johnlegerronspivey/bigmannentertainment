@@ -105,6 +105,7 @@ class BackendTester:
             "industry_identifiers_entity_details": {"passed": 0, "failed": 0, "details": []},
             "industry_identifiers_authentication": {"passed": 0, "failed": 0, "details": []},
             "legacy_ipi_compatibility": {"passed": 0, "failed": 0, "details": []},
+            "industry_dashboard": {"passed": 0, "failed": 0, "details": []},
             "entertainment_dashboard": {"passed": 0, "failed": 0, "details": []},
             "photography_services": {"passed": 0, "failed": 0, "details": []},
             "video_production": {"passed": 0, "failed": 0, "details": []},
