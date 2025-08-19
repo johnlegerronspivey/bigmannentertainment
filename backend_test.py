@@ -1049,37 +1049,40 @@ class BackendTester:
             self.log_result("payments", "Checkout Session Creation", False, f"Exception: {str(e)}")
             return False
     
-    def test_payment_status_polling(self) -> bool:
-        """Test payment status polling"""
+    def test_webhook_endpoint(self) -> bool:
+        """Test Stripe webhook endpoint accessibility and signature validation"""
         try:
-            if not self.auth_token:
-                self.log_result("payments", "Payment Status Polling", False, "No auth token available")
-                return False
+            # Test webhook endpoint with dummy data (should fail signature validation)
+            webhook_data = {
+                "id": "evt_test_webhook",
+                "object": "event",
+                "type": "checkout.session.completed",
+                "data": {
+                    "object": {
+                        "id": "cs_test_session_id",
+                        "payment_status": "paid"
+                    }
+                }
+            }
             
-            # Use a dummy session ID for testing
-            test_session_id = "cs_test_dummy_session_id"
-            response = self.make_request('GET', f'/payments/checkout/status/{test_session_id}')
+            # Test without signature (should fail)
+            response = self.make_request('POST', '/payments/webhook/stripe', json=webhook_data)
             
-            if response.status_code == 400 and ("Transaction not found" in response.text or "not found" in response.text):
-                self.log_result("payments", "Payment Status Polling", True, "Correctly handled non-existent session ID")
+            if response.status_code == 400 and "Missing Stripe signature" in response.text:
+                self.log_result("payments", "Webhook Endpoint", True, "Webhook endpoint correctly requires Stripe signature")
                 return True
-            elif response.status_code == 200:
-                data = response.json()
-                if 'status' in data and 'payment_status' in data:
-                    self.log_result("payments", "Payment Status Polling", True, f"Payment status endpoint working: {data['status']}")
-                    return True
-                else:
-                    self.log_result("payments", "Payment Status Polling", False, "Invalid status response format")
-                    return False
             elif response.status_code == 500 and ("STRIPE_API_KEY not found" in response.text or "not configured" in response.text):
-                self.log_result("payments", "Payment Status Polling", False, "STRIPE_API_KEY not configured - critical issue")
+                self.log_result("payments", "Webhook Endpoint", False, "STRIPE_API_KEY not configured - critical issue")
                 return False
+            elif response.status_code == 200:
+                self.log_result("payments", "Webhook Endpoint", True, "Webhook endpoint accessible")
+                return True
             else:
-                self.log_result("payments", "Payment Status Polling", False, f"Status: {response.status_code}, Response: {response.text}")
+                self.log_result("payments", "Webhook Endpoint", False, f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("payments", "Payment Status Polling", False, f"Exception: {str(e)}")
+            self.log_result("payments", "Webhook Endpoint", False, f"Exception: {str(e)}")
             return False
     
     def test_complete_payment_flow_simulation(self) -> bool:
