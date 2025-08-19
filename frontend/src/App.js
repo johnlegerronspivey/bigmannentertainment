@@ -4024,6 +4024,68 @@ const AdminRoute = ({ children }) => {
   return user && isAdmin() ? children : <Navigate to="/" />;
 };
 
+// Footer Component
+const Footer = () => {
+  return (
+    <footer className="bg-gray-900 text-white py-8">
+      <div className="container mx-auto px-4">
+        <div className="grid md:grid-cols-3 gap-8">
+          <div>
+            <div className="flex items-center space-x-3 mb-4">
+              <img 
+                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%234F46E5'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='16' font-weight='bold' font-family='Arial'%3EBM%3C/text%3E%3C/svg%3E" 
+                alt="Big Mann Entertainment Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <div>
+                <h3 className="font-bold text-lg">Big Mann Entertainment</h3>
+                <p className="text-sm text-gray-400">Professional Music Distribution</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-400">
+              Empowering artists and creators with professional-grade music distribution, 
+              royalty management, and industry-standard tools.
+            </p>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4">Services</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li>Music Distribution</li>
+              <li>Royalty Management</li>
+              <li>Industry Analytics</li>
+              <li>DDEX Compliance</li>
+              <li>Label Services</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4">Contact</h4>
+            <div className="text-sm text-gray-400 space-y-2">
+              <p>John LeGerron Spivey</p>
+              <p>Owner & Administrator</p>
+              <p>owner@bigmannentertainment.com</p>
+              <div className="mt-4">
+                <p className="text-xs">Business Location:</p>
+                <p className="text-xs">Alexander City, Alabama 35010</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
+          <p className="text-sm text-gray-400">
+            © {new Date().getFullYear()} Big Mann Entertainment. All rights reserved.
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
+            Owned and operated by John LeGerron Spivey doing business as Big Mann Entertainment
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
 function App() {
   return (
     <div className="App">
