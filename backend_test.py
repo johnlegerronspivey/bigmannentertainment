@@ -153,7 +153,9 @@ class BackendTester:
             "payment_payouts": {"passed": 0, "failed": 0, "details": []},
             "payment_royalty_splits": {"passed": 0, "failed": 0, "details": []},
             "payment_webhook": {"passed": 0, "failed": 0, "details": []},
-            "payment_authentication": {"passed": 0, "failed": 0, "details": []}
+            "payment_authentication": {"passed": 0, "failed": 0, "details": []},
+            "payment_validation": {"passed": 0, "failed": 0, "details": []},
+            "payment_database": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
