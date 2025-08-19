@@ -63,7 +63,7 @@ export const PaymentPackages = ({ onSelectPackage }) => {
               ))}
             </ul>
             <button
-              onClick={() => onSelectPackage(pkg)}
+              onClick={() => handleSelectPackage(pkg)}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
             >
               Select Plan
