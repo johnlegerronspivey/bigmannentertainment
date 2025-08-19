@@ -583,6 +583,8 @@ const Header = () => {
               <Link to="/distribute" className="hover:text-purple-400 transition-colors py-2">Distribute</Link>
               <Link to="/platforms" className="hover:text-purple-400 transition-colors py-2">Platforms</Link>
               <Link to="/business" className="hover:text-purple-400 transition-colors py-2">Business</Link>
+              <Link to="/earnings" className="hover:text-purple-400 transition-colors py-2">Earnings</Link>
+              <Link to="/pricing" className="hover:text-purple-400 transition-colors py-2">Pricing</Link>
               
               {/* Label Management Submenu */}
               <div className="py-1 pl-4">
