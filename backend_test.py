@@ -1083,16 +1083,31 @@ class BackendTester:
             return False
     
     def test_webhook_endpoint(self) -> bool:
-        """Test webhook endpoint accessibility"""
+        """Test Stripe webhook endpoint accessibility and signature validation"""
         try:
-            # Test webhook endpoint with dummy data
-            response = self.make_request('POST', '/webhook/stripe', json={"test": "data"})
+            # Test webhook endpoint with dummy data (should fail signature validation)
+            webhook_data = {
+                "id": "evt_test_webhook",
+                "object": "event",
+                "type": "checkout.session.completed",
+                "data": {
+                    "object": {
+                        "id": "cs_test_session_id",
+                        "payment_status": "paid"
+                    }
+                }
+            }
             
-            if response.status_code == 500 and "not configured" in response.text:
-                self.log_result("payments", "Webhook Endpoint", True, "Webhook endpoint accessible (Stripe not configured as expected)")
+            # Test without signature (should fail)
+            response = self.make_request('POST', '/payments/webhook/stripe', json=webhook_data)
+            
+            if response.status_code == 400 and "Missing Stripe signature" in response.text:
+                self.log_result("payments", "Webhook Endpoint", True, "Webhook endpoint correctly requires Stripe signature")
                 return True
-            elif response.status_code in [200, 400]:
-                # Either success or bad request (both indicate endpoint is working)
+            elif response.status_code == 500 and ("STRIPE_API_KEY not found" in response.text or "not configured" in response.text):
+                self.log_result("payments", "Webhook Endpoint", False, "STRIPE_API_KEY not configured - critical issue")
+                return False
+            elif response.status_code == 200:
                 self.log_result("payments", "Webhook Endpoint", True, "Webhook endpoint accessible")
                 return True
             else:
