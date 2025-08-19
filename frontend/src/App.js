@@ -715,7 +715,7 @@ const Home = () => {
         <div className="relative container mx-auto px-4 text-center">
           <div className="flex justify-center mb-6">
             <img 
-              src="https://customer-assets.emergentagent.com/job_audio-video-dist/artifacts/zwcs0h0g_Big%20Mann%20Entertainment%20Logo.png" 
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%234F46E5'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='16' font-weight='bold' font-family='Arial'%3EBM%3C/text%3E%3C/svg%3E" 
               alt="Big Mann Entertainment Logo" 
               className="w-24 h-24 object-contain"
             />
