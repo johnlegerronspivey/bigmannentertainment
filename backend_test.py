@@ -144,7 +144,16 @@ class BackendTester:
             "label_studio_production": {"passed": 0, "failed": 0, "details": []},
             "label_marketing": {"passed": 0, "failed": 0, "details": []},
             "label_financial_management": {"passed": 0, "failed": 0, "details": []},
-            "label_dashboard_analytics": {"passed": 0, "failed": 0, "details": []}
+            "label_dashboard_analytics": {"passed": 0, "failed": 0, "details": []},
+            "payment_packages": {"passed": 0, "failed": 0, "details": []},
+            "payment_checkout": {"passed": 0, "failed": 0, "details": []},
+            "payment_bank_accounts": {"passed": 0, "failed": 0, "details": []},
+            "payment_digital_wallets": {"passed": 0, "failed": 0, "details": []},
+            "payment_earnings": {"passed": 0, "failed": 0, "details": []},
+            "payment_payouts": {"passed": 0, "failed": 0, "details": []},
+            "payment_royalty_splits": {"passed": 0, "failed": 0, "details": []},
+            "payment_webhook": {"passed": 0, "failed": 0, "details": []},
+            "payment_authentication": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
