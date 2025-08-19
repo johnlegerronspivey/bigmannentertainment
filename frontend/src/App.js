@@ -4036,6 +4036,16 @@ function App() {
             <Route path="/label/projects" element={<ProtectedRoute><ProjectManagement /></ProtectedRoute>} />
             <Route path="/label/marketing" element={<ProtectedRoute><MarketingManagement /></ProtectedRoute>} />
             <Route path="/label/finance" element={<ProtectedRoute><FinancialManagement /></ProtectedRoute>} />
+            
+            {/* Payment & Earnings Routes */}
+            <Route path="/pricing" element={<PaymentPackages onSelectPackage={(pkg) => window.location.href = `/checkout/${pkg.id}`} />} />
+            <Route path="/checkout/:packageId" element={<ProtectedRoute><PaymentCheckout /></ProtectedRoute>} />
+            <Route path="/payment/success" element={<ProtectedRoute><PaymentStatus /></ProtectedRoute>} />
+            <Route path="/payment/cancel" element={<ProtectedRoute><PaymentStatus /></ProtectedRoute>} />
+            <Route path="/earnings" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
+            <Route path="/banking" element={<ProtectedRoute><BankAccountManager /></ProtectedRoute>} />
+            <Route path="/wallets" element={<ProtectedRoute><DigitalWalletManager /></ProtectedRoute>} />
+            <Route path="/royalties/:mediaId" element={<ProtectedRoute><RoyaltySplitManager /></ProtectedRoute>} />
             <Route path="/library" element={<Library />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/blockchain" element={<Blockchain />} />
