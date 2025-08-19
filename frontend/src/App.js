@@ -15,7 +15,29 @@ import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// WebAuthn Service for Face ID authentication
+// Enhanced Payment Checkout Component
+const EnhancedPaymentCheckout = () => {
+  const { packageId } = useParams();
+  const navigate = useNavigate();
+  
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-6">
+        <button 
+          onClick={() => navigate('/pricing')}
+          className="text-blue-600 hover:text-blue-800 flex items-center"
+        >
+          ← Back to Pricing
+        </button>
+      </div>
+      <PaymentCheckout 
+        packageId={packageId}
+        onSuccess={() => navigate('/payment/success')}
+        onCancel={() => navigate('/pricing')}
+      />
+    </div>
+  );
+};
 class WebAuthnService {
   constructor(apiBaseUrl) {
     this.apiBaseUrl = apiBaseUrl;
