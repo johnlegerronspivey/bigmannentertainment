@@ -66,6 +66,33 @@ class StripePaymentTester:
     def test_user_login(self) -> bool:
         """Test user login to get authentication token"""
         try:
+            # First try to register the user (in case account doesn't exist)
+            from datetime import datetime, timedelta
+            
+            user_data = {
+                "email": TEST_USER_EMAIL,
+                "password": TEST_USER_PASSWORD,
+                "full_name": TEST_USER_NAME,
+                "business_name": TEST_BUSINESS_NAME,
+                "date_of_birth": (datetime.utcnow() - timedelta(days=25*365)).isoformat(),  # 25 years old
+                "address_line1": "1314 Lincoln Heights Street",
+                "city": "Alexander City",
+                "state_province": "Alabama",
+                "postal_code": "35010",
+                "country": "United States"
+            }
+            
+            register_response = self.make_request('POST', '/auth/register', json=user_data)
+            
+            if register_response.status_code in [200, 201]:
+                data = register_response.json()
+                if 'access_token' in data:
+                    self.auth_token = data['access_token']
+                    self.test_user_id = data['user']['id']
+                    self.log_result("authentication", "User Registration/Login", True, f"Successfully registered/logged in as {TEST_USER_EMAIL}")
+                    return True
+            
+            # If registration failed, try login
             login_data = {
                 "email": TEST_USER_EMAIL,
                 "password": TEST_USER_PASSWORD
@@ -83,6 +110,9 @@ class StripePaymentTester:
                 else:
                     self.log_result("authentication", "User Login", False, "Missing token or user data in response")
                     return False
+            elif response.status_code == 401 and "locked" in response.text:
+                self.log_result("authentication", "User Login", False, f"Account is locked - will test without authentication where possible")
+                return False
             else:
                 self.log_result("authentication", "User Login", False, f"Status: {response.status_code}, Response: {response.text}")
                 return False
