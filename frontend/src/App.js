@@ -9,6 +9,8 @@ import { BusinessIdentifiers, UPCGenerator, ISRCGenerator, ProductManagement } f
 import { IndustryDashboard, IndustryPartners, GlobalDistribution, IndustryCoverage, IPIManagement, IndustryIdentifiersManagement, EnhancedEntertainmentDashboard, PhotographyServices, VideoProductionServices, MonetizationOpportunities, MusicDataExchange, MechanicalLicensingCollective } from "./IndustryComponents";
 import { LabelDashboard } from "./LabelComponents";
 import { ProjectManagement, MarketingManagement, FinancialManagement } from "./LabelExtendedComponents";
+import { PaymentPackages, PaymentCheckout, PaymentStatus, BankAccountManager, DigitalWalletManager } from "./PaymentComponents";
+import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
