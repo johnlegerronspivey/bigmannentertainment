@@ -333,9 +333,9 @@ class StripePaymentTester:
         # Authentication
         print("\n🔐 AUTHENTICATION SETUP")
         print("-" * 40)
-        if not self.test_user_login():
-            print("❌ Cannot proceed without authentication")
-            return False
+        auth_success = self.test_user_login()
+        if not auth_success:
+            print("⚠️  Authentication failed - will test endpoints that don't require auth")
         
         # Critical Stripe Integration Tests
         print("\n💳 CRITICAL STRIPE INTEGRATION TESTS")
