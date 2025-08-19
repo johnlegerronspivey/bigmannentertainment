@@ -441,6 +441,8 @@ const Header = () => {
             <Link to="/distribute" className="hover:text-purple-400 transition-colors">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-400 transition-colors">Platforms</Link>
             <Link to="/business" className="hover:text-purple-400 transition-colors">Business</Link>
+            <Link to="/earnings" className="hover:text-purple-400 transition-colors">Earnings</Link>
+            <Link to="/pricing" className="hover:text-purple-400 transition-colors">Pricing</Link>
             <div className="relative group">
               <button className="hover:text-purple-400 transition-colors flex items-center">
                 Label
