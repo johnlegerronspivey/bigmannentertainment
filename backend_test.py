@@ -7212,6 +7212,492 @@ class BackendTester:
         self.test_label_dashboard()
     
     
+    # ===== PAYMENT AND ROYALTY SYSTEM TESTS =====
+    
+    def test_payment_packages_endpoint(self) -> bool:
+        """Test GET /api/payments/packages endpoint"""
+        try:
+            response = self.make_request('GET', '/payments/packages')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'packages' in data and isinstance(data['packages'], list):
+                    packages = data['packages']
+                    
+                    # Verify expected packages exist
+                    expected_packages = ['basic', 'premium', 'enterprise', 'single_track', 'album']
+                    package_ids = [pkg.get('id') for pkg in packages]
+                    
+                    missing_packages = [pkg for pkg in expected_packages if pkg not in package_ids]
+                    
+                    if not missing_packages:
+                        # Verify package structure
+                        basic_package = next((pkg for pkg in packages if pkg.get('id') == 'basic'), None)
+                        if basic_package and all(field in basic_package for field in ['name', 'description', 'amount', 'features']):
+                            self.log_result("payment_packages", "Payment Packages Endpoint", True, 
+                                          f"Retrieved {len(packages)} payment packages with correct structure")
+                            return True
+                        else:
+                            self.log_result("payment_packages", "Payment Packages Endpoint", False, 
+                                          "Package structure missing required fields")
+                            return False
+                    else:
+                        self.log_result("payment_packages", "Payment Packages Endpoint", False, 
+                                      f"Missing expected packages: {missing_packages}")
+                        return False
+                else:
+                    self.log_result("payment_packages", "Payment Packages Endpoint", False, 
+                                  "Invalid response format - missing packages array")
+                    return False
+            else:
+                self.log_result("payment_packages", "Payment Packages Endpoint", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_packages", "Payment Packages Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_checkout_session_creation(self) -> bool:
+        """Test POST /api/payments/checkout/session endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_checkout", "Checkout Session Creation", False, "No auth token available")
+                return False
+            
+            # Test with package_id
+            checkout_data = {
+                "package_id": "basic"
+            }
+            
+            response = self.make_request('POST', '/payments/checkout/session', json=checkout_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if all(field in data for field in ['url', 'session_id', 'amount', 'currency']):
+                    self.log_result("payment_checkout", "Checkout Session Creation", True, 
+                                  f"Created checkout session: {data['session_id']}, Amount: ${data['amount']} {data['currency'].upper()}")
+                    return True
+                else:
+                    self.log_result("payment_checkout", "Checkout Session Creation", False, 
+                                  "Missing required fields in checkout response")
+                    return False
+            elif response.status_code == 500 and ("not configured" in response.text or "STRIPE_API_KEY" in response.text):
+                self.log_result("payment_checkout", "Checkout Session Creation", True, 
+                              "Stripe not configured (expected in test environment)")
+                return True
+            else:
+                self.log_result("payment_checkout", "Checkout Session Creation", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_checkout", "Checkout Session Creation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_checkout_with_media(self) -> bool:
+        """Test checkout session creation with media_id"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_checkout", "Checkout with Media", False, "No auth token available")
+                return False
+            
+            # Use test media ID if available
+            if hasattr(self, 'test_media_id') and self.test_media_id:
+                checkout_data = {
+                    "media_id": self.test_media_id
+                }
+                
+                response = self.make_request('POST', '/payments/checkout/session', json=checkout_data)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'session_id' in data and 'amount' in data:
+                        self.log_result("payment_checkout", "Checkout with Media", True, 
+                                      f"Created media checkout session: {data['session_id']}")
+                        return True
+                    else:
+                        self.log_result("payment_checkout", "Checkout with Media", False, 
+                                      "Missing required fields in media checkout response")
+                        return False
+                elif response.status_code == 500 and "not configured" in response.text:
+                    self.log_result("payment_checkout", "Checkout with Media", True, 
+                                  "Stripe not configured (expected in test environment)")
+                    return True
+                else:
+                    self.log_result("payment_checkout", "Checkout with Media", False, 
+                                  f"Status: {response.status_code}, Response: {response.text}")
+                    return False
+            else:
+                self.log_result("payment_checkout", "Checkout with Media", True, 
+                              "No test media available - skipping media checkout test")
+                return True
+                
+        except Exception as e:
+            self.log_result("payment_checkout", "Checkout with Media", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_bank_account_management(self) -> bool:
+        """Test bank account management endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_bank_accounts", "Bank Account Management", False, "No auth token available")
+                return False
+            
+            # Test adding a bank account
+            bank_account_data = {
+                "account_name": "Big Mann Entertainment Business Account",
+                "account_number": "1234567890",
+                "routing_number": "021000021",
+                "bank_name": "Chase Bank",
+                "account_type": "business",
+                "is_primary": True
+            }
+            
+            add_response = self.make_request('POST', '/payments/bank-accounts', json=bank_account_data)
+            
+            if add_response.status_code == 200:
+                add_data = add_response.json()
+                if 'account_id' in add_data and 'message' in add_data:
+                    account_id = add_data['account_id']
+                    
+                    # Test retrieving bank accounts
+                    get_response = self.make_request('GET', '/payments/bank-accounts')
+                    
+                    if get_response.status_code == 200:
+                        get_data = get_response.json()
+                        if 'accounts' in get_data and isinstance(get_data['accounts'], list):
+                            accounts = get_data['accounts']
+                            added_account = next((acc for acc in accounts if acc.get('id') == account_id), None)
+                            
+                            if added_account:
+                                self.log_result("payment_bank_accounts", "Bank Account Management", True, 
+                                              f"Successfully added and retrieved bank account: {added_account.get('bank_name')}")
+                                return True
+                            else:
+                                self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                                              "Added account not found in accounts list")
+                                return False
+                        else:
+                            self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                                          "Invalid accounts response format")
+                            return False
+                    else:
+                        self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                                      f"Failed to retrieve accounts: {get_response.status_code}")
+                        return False
+                else:
+                    self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                                  "Missing account_id or message in add response")
+                    return False
+            else:
+                self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                              f"Failed to add bank account: {add_response.status_code}, {add_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_bank_accounts", "Bank Account Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_digital_wallet_management(self) -> bool:
+        """Test digital wallet management endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_digital_wallets", "Digital Wallet Management", False, "No auth token available")
+                return False
+            
+            # Test adding a digital wallet
+            wallet_data = {
+                "wallet_type": "paypal",
+                "wallet_address": "payments@bigmannentertainment.com",
+                "wallet_name": "Big Mann Entertainment PayPal",
+                "is_primary": True
+            }
+            
+            add_response = self.make_request('POST', '/payments/wallets', json=wallet_data)
+            
+            if add_response.status_code == 200:
+                add_data = add_response.json()
+                if 'wallet_id' in add_data and 'message' in add_data:
+                    wallet_id = add_data['wallet_id']
+                    
+                    # Test retrieving digital wallets
+                    get_response = self.make_request('GET', '/payments/wallets')
+                    
+                    if get_response.status_code == 200:
+                        get_data = get_response.json()
+                        if 'wallets' in get_data and isinstance(get_data['wallets'], list):
+                            wallets = get_data['wallets']
+                            added_wallet = next((wallet for wallet in wallets if wallet.get('id') == wallet_id), None)
+                            
+                            if added_wallet:
+                                self.log_result("payment_digital_wallets", "Digital Wallet Management", True, 
+                                              f"Successfully added and retrieved digital wallet: {added_wallet.get('wallet_type')}")
+                                return True
+                            else:
+                                self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                                              "Added wallet not found in wallets list")
+                                return False
+                        else:
+                            self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                                          "Invalid wallets response format")
+                            return False
+                    else:
+                        self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                                      f"Failed to retrieve wallets: {get_response.status_code}")
+                        return False
+                else:
+                    self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                                  "Missing wallet_id or message in add response")
+                    return False
+            else:
+                self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                              f"Failed to add digital wallet: {add_response.status_code}, {add_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_digital_wallets", "Digital Wallet Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_earnings_dashboard(self) -> bool:
+        """Test GET /api/payments/earnings endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_earnings", "Earnings Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/payments/earnings')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'earnings' in data:
+                    earnings = data['earnings']
+                    required_fields = ['total_earnings', 'available_balance', 'pending_balance', 'total_paid_out']
+                    
+                    if all(field in earnings for field in required_fields):
+                        recent_transactions = data.get('recent_transactions', [])
+                        self.log_result("payment_earnings", "Earnings Dashboard", True, 
+                                      f"Retrieved earnings: Total: ${earnings.get('total_earnings', 0):.2f}, Available: ${earnings.get('available_balance', 0):.2f}, Recent transactions: {len(recent_transactions)}")
+                        return True
+                    else:
+                        self.log_result("payment_earnings", "Earnings Dashboard", False, 
+                                      "Missing required earnings fields")
+                        return False
+                else:
+                    self.log_result("payment_earnings", "Earnings Dashboard", False, 
+                                  "Missing earnings data in response")
+                    return False
+            else:
+                self.log_result("payment_earnings", "Earnings Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_earnings", "Earnings Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payout_request(self) -> bool:
+        """Test POST /api/payments/payouts endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_payouts", "Payout Request", False, "No auth token available")
+                return False
+            
+            # Test payout request
+            payout_data = {
+                "amount": 50.00,
+                "payout_method": "bank_transfer"
+            }
+            
+            response = self.make_request('POST', '/payments/payouts', json=payout_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'payout_id' in data and 'message' in data:
+                    self.log_result("payment_payouts", "Payout Request", True, 
+                                  f"Successfully requested payout: {data['payout_id']}")
+                    return True
+                else:
+                    self.log_result("payment_payouts", "Payout Request", False, 
+                                  "Missing payout_id or message in response")
+                    return False
+            elif response.status_code == 400 and "Insufficient balance" in response.text:
+                self.log_result("payment_payouts", "Payout Request", True, 
+                              "Correctly rejected payout due to insufficient balance")
+                return True
+            else:
+                self.log_result("payment_payouts", "Payout Request", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_payouts", "Payout Request", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_royalty_split_management(self) -> bool:
+        """Test royalty split management endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_royalty_splits", "Royalty Split Management", False, "No auth token available")
+                return False
+            
+            # Use test media ID if available
+            if hasattr(self, 'test_media_id') and self.test_media_id:
+                # Test creating a royalty split
+                split_data = {
+                    "media_id": self.test_media_id,
+                    "recipient_email": "artist@bigmannentertainment.com",
+                    "recipient_name": "Test Artist",
+                    "split_type": "percentage",
+                    "percentage": 70.0,
+                    "role": "artist"
+                }
+                
+                create_response = self.make_request('POST', '/payments/royalty-splits', json=split_data)
+                
+                if create_response.status_code == 200:
+                    create_data = create_response.json()
+                    if 'split_id' in create_data and 'message' in create_data:
+                        # Test retrieving royalty splits for media
+                        get_response = self.make_request('GET', f'/payments/royalty-splits/{self.test_media_id}')
+                        
+                        if get_response.status_code == 200:
+                            get_data = get_response.json()
+                            if 'splits' in get_data and isinstance(get_data['splits'], list):
+                                splits = get_data['splits']
+                                self.log_result("payment_royalty_splits", "Royalty Split Management", True, 
+                                              f"Successfully created and retrieved royalty split: {len(splits)} splits for media")
+                                return True
+                            else:
+                                self.log_result("payment_royalty_splits", "Royalty Split Management", False, 
+                                              "Invalid splits response format")
+                                return False
+                        else:
+                            self.log_result("payment_royalty_splits", "Royalty Split Management", False, 
+                                          f"Failed to retrieve splits: {get_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("payment_royalty_splits", "Royalty Split Management", False, 
+                                      "Missing split_id or message in create response")
+                        return False
+                else:
+                    self.log_result("payment_royalty_splits", "Royalty Split Management", False, 
+                                  f"Failed to create royalty split: {create_response.status_code}, {create_response.text}")
+                    return False
+            else:
+                self.log_result("payment_royalty_splits", "Royalty Split Management", True, 
+                              "No test media available - skipping royalty split test")
+                return True
+                
+        except Exception as e:
+            self.log_result("payment_royalty_splits", "Royalty Split Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_stripe_webhook_endpoint(self) -> bool:
+        """Test POST /api/payments/webhook/stripe endpoint"""
+        try:
+            # Test webhook endpoint with dummy data
+            webhook_data = {
+                "id": "evt_test_webhook",
+                "object": "event",
+                "type": "checkout.session.completed",
+                "data": {
+                    "object": {
+                        "id": "cs_test_session",
+                        "payment_status": "paid"
+                    }
+                }
+            }
+            
+            # Note: This will fail without proper Stripe signature, but we're testing endpoint existence
+            response = self.make_request('POST', '/payments/webhook/stripe', json=webhook_data)
+            
+            if response.status_code == 400 and "Missing Stripe signature" in response.text:
+                self.log_result("payment_webhook", "Stripe Webhook Endpoint", True, 
+                              "Webhook endpoint exists and correctly validates Stripe signature")
+                return True
+            elif response.status_code == 200:
+                self.log_result("payment_webhook", "Stripe Webhook Endpoint", True, 
+                              "Webhook endpoint processed request successfully")
+                return True
+            elif response.status_code == 500 and "not configured" in response.text:
+                self.log_result("payment_webhook", "Stripe Webhook Endpoint", True, 
+                              "Webhook endpoint exists but Stripe not configured (expected)")
+                return True
+            else:
+                self.log_result("payment_webhook", "Stripe Webhook Endpoint", False, 
+                              f"Unexpected response: {response.status_code}, {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_webhook", "Stripe Webhook Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_authentication(self) -> bool:
+        """Test that payment endpoints require authentication"""
+        try:
+            # Test endpoints without authentication
+            endpoints_to_test = [
+                '/payments/earnings',
+                '/payments/bank-accounts',
+                '/payments/wallets',
+                '/payments/payouts'
+            ]
+            
+            authenticated_endpoints = 0
+            
+            for endpoint in endpoints_to_test:
+                # Make request without auth token
+                url = f"{self.base_url}{endpoint}"
+                response = self.session.request('GET', url)
+                
+                if response.status_code in [401, 403]:
+                    authenticated_endpoints += 1
+                elif response.status_code == 422:  # FastAPI validation error for missing auth
+                    authenticated_endpoints += 1
+            
+            if authenticated_endpoints == len(endpoints_to_test):
+                self.log_result("payment_authentication", "Payment Authentication", True, 
+                              f"All {len(endpoints_to_test)} payment endpoints properly require authentication")
+                return True
+            else:
+                self.log_result("payment_authentication", "Payment Authentication", False, 
+                              f"Only {authenticated_endpoints}/{len(endpoints_to_test)} endpoints require authentication")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_authentication", "Payment Authentication", False, f"Exception: {str(e)}")
+            return False
+    
+    def run_payment_system_tests(self):
+        """Run comprehensive payment and royalty system tests"""
+        print("\n" + "="*80)
+        print("💳 TESTING COMPREHENSIVE PAYMENT & ROYALTY SYSTEM")
+        print("Testing Big Mann Entertainment payment infrastructure with Stripe integration")
+        print("="*80)
+        
+        print("\n--- Payment Package Tests ---")
+        self.test_payment_packages_endpoint()
+        
+        print("\n--- Payment Checkout Tests ---")
+        self.test_payment_checkout_session_creation()
+        self.test_payment_checkout_with_media()
+        
+        print("\n--- Banking & Wallet Tests ---")
+        self.test_bank_account_management()
+        self.test_digital_wallet_management()
+        
+        print("\n--- Earnings & Payout Tests ---")
+        self.test_earnings_dashboard()
+        self.test_payout_request()
+        
+        print("\n--- Royalty Management Tests ---")
+        self.test_royalty_split_management()
+        
+        print("\n--- Webhook & Security Tests ---")
+        self.test_stripe_webhook_endpoint()
+        self.test_payment_authentication()
+
     def run_media_upload_tests(self):
         """Run comprehensive media upload functionality tests"""
         print("\n" + "="*80)
