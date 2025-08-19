@@ -8464,7 +8464,7 @@ class BackendTester:
         self.test_stripe_api_key_verification()
         self.test_checkout_session_creation()
         self.test_payment_status_polling()
-        self.test_stripe_webhook_endpoint()
+        self.test_webhook_endpoint()
         self.test_complete_payment_flow_simulation()
         self.test_authentication_with_stripe_endpoints()
         self.test_payment_packages_validation()
