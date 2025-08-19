@@ -8194,6 +8194,11 @@ class BackendTester:
         print("-" * 80)
         self.run_label_management_tests()
         
+        # NEW: Comprehensive Payment & Royalty System Tests
+        print("\n💳 TESTING COMPREHENSIVE PAYMENT & ROYALTY SYSTEM")
+        print("-" * 80)
+        self.run_payment_system_tests()
+        
         # Print Summary
         self.print_summary()
     
