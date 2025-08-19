@@ -8,10 +8,20 @@ export const PaymentPackages = ({ onSelectPackage }) => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPackages();
   }, []);
+
+  const handleSelectPackage = (pkg) => {
+    if (onSelectPackage) {
+      onSelectPackage(pkg);
+    } else {
+      // Navigate to checkout page
+      navigate(`/checkout/${pkg.id}`);
+    }
+  };
 
   const fetchPackages = async () => {
     try {
