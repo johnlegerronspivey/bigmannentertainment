@@ -7265,13 +7265,13 @@ class BackendTester:
                 self.log_result("payment_checkout", "Checkout Session Creation", False, "No auth token available")
                 return False
             
-            # Test with package_id as form data
-            checkout_data = {
+            # Test with package_id as query parameters
+            params = {
                 "package_id": "basic",
                 "origin_url": "https://9e4f5b47-418e-4990-84bf-0db76774f328.preview.emergentagent.com"
             }
             
-            response = self.make_request('POST', '/payments/checkout/session', data=checkout_data)
+            response = self.make_request('POST', '/payments/checkout/session', params=params)
             
             if response.status_code == 200:
                 data = response.json()
