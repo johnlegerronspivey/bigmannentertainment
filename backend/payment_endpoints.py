@@ -44,9 +44,9 @@ def get_payment_service():
 @payment_router.post("/checkout/session", response_model=CreateCheckoutSessionResponse)
 async def create_checkout_session(
     request: Request,
-    package_id: Optional[str] = None,
-    media_id: Optional[str] = None,
-    origin_url: Optional[str] = None,
+    package_id: Optional[str] = Query(None),
+    media_id: Optional[str] = Query(None),
+    origin_url: Optional[str] = Query(None),
     metadata: Optional[Dict[str, str]] = None,
     current_user: Optional[User] = Depends(get_current_user)
 ):
