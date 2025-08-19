@@ -7643,18 +7643,21 @@ class BackendTester:
         try:
             # Test endpoints without authentication
             endpoints_to_test = [
-                '/payments/earnings',
-                '/payments/bank-accounts',
-                '/payments/wallets',
-                '/payments/payouts'
+                ('GET', '/payments/earnings'),
+                ('GET', '/payments/bank-accounts'),
+                ('GET', '/payments/wallets'),
+                ('POST', '/payments/payouts')
             ]
             
             authenticated_endpoints = 0
             
-            for endpoint in endpoints_to_test:
+            for method, endpoint in endpoints_to_test:
                 # Make request without auth token
                 url = f"{self.base_url}{endpoint}"
-                response = self.session.request('GET', url)
+                if method == 'POST':
+                    response = self.session.request(method, url, json={"amount": 10.00})
+                else:
+                    response = self.session.request(method, url)
                 
                 if response.status_code in [401, 403]:
                     authenticated_endpoints += 1
