@@ -4087,6 +4087,12 @@ function App() {
             <Route path="/admin/label/projects" element={<AdminRoute><ProjectManagement /></AdminRoute>} />
             <Route path="/admin/label/marketing" element={<AdminRoute><MarketingManagement /></AdminRoute>} />
             <Route path="/admin/label/finance" element={<AdminRoute><FinancialManagement /></AdminRoute>} />
+            
+            {/* Admin Payment & Earnings Routes */}
+            <Route path="/admin/payments" element={<AdminRoute><PaymentPackages /></AdminRoute>} />
+            <Route path="/admin/earnings" element={<AdminRoute><EarningsDashboard /></AdminRoute>} />
+            <Route path="/admin/banking" element={<AdminRoute><BankAccountManager /></AdminRoute>} />
+            <Route path="/admin/wallets" element={<AdminRoute><DigitalWalletManager /></AdminRoute>} />
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
         </AuthProvider>
