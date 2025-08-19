@@ -8455,12 +8455,17 @@ class BackendTester:
         self.test_fm_broadcast_audio_only_validation()
         self.test_fm_broadcast_programming_metadata()
         
-        # Payment Tests
-        print("\n💳 TESTING PAYMENT INTEGRATION")
+        # Comprehensive Stripe Payment System Tests
+        print("\n💳 TESTING COMPREHENSIVE STRIPE PAYMENT SYSTEM")
         print("-" * 40)
+        self.test_stripe_api_key_verification()
         self.test_checkout_session_creation()
         self.test_payment_status_polling()
         self.test_webhook_endpoint()
+        self.test_complete_payment_flow_simulation()
+        self.test_authentication_with_stripe_endpoints()
+        self.test_payment_packages_validation()
+        self.test_payment_transaction_database_storage()
         
         # Enhanced Analytics Tests
         print("\n📊 TESTING ENHANCED ANALYTICS WITH DISTRIBUTION METRICS")
