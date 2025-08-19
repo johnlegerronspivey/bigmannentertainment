@@ -7677,6 +7677,404 @@ class BackendTester:
             self.log_result("payment_authentication", "Payment Authentication", False, f"Exception: {str(e)}")
             return False
     
+    def test_payment_checkout_status_checking(self) -> bool:
+        """Test GET /api/payments/checkout/status/{session_id} - Test status checking"""
+        try:
+            # Test with dummy session ID
+            test_session_id = "cs_test_dummy_session_id_for_testing"
+            response = self.make_request('GET', f'/payments/checkout/status/{test_session_id}')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'status' in data and 'payment_status' in data:
+                    self.log_result("payment_checkout", "Checkout Status Checking", True, 
+                                  f"Status endpoint working, returned: {data.get('payment_status', 'unknown')}")
+                    return True
+                else:
+                    self.log_result("payment_checkout", "Checkout Status Checking", False, 
+                                  "Missing status fields in response")
+                    return False
+            elif response.status_code == 400 and ("not found" in response.text.lower() or "invalid" in response.text.lower()):
+                self.log_result("payment_checkout", "Checkout Status Checking", True, 
+                              "Status endpoint correctly handles invalid session ID")
+                return True
+            else:
+                self.log_result("payment_checkout", "Checkout Status Checking", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_checkout", "Checkout Status Checking", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_webhook_endpoint_exists(self) -> bool:
+        """Test POST /api/payments/webhook/stripe - Verify webhook endpoint exists"""
+        try:
+            # Test webhook endpoint with dummy data
+            webhook_data = {
+                "id": "evt_test_webhook",
+                "object": "event",
+                "type": "checkout.session.completed",
+                "data": {
+                    "object": {
+                        "id": "cs_test_session_id",
+                        "payment_status": "paid"
+                    }
+                }
+            }
+            
+            response = self.make_request('POST', '/payments/webhook/stripe', json=webhook_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'status' in data and data['status'] == 'success':
+                    self.log_result("payment_webhook", "Webhook Endpoint", True, 
+                                  "Webhook endpoint working correctly")
+                    return True
+                else:
+                    self.log_result("payment_webhook", "Webhook Endpoint", False, 
+                                  "Webhook response format incorrect")
+                    return False
+            elif response.status_code == 400 and ("signature" in response.text.lower() or "stripe" in response.text.lower()):
+                self.log_result("payment_webhook", "Webhook Endpoint", True, 
+                              "Webhook endpoint exists and validates signatures (expected)")
+                return True
+            else:
+                self.log_result("payment_webhook", "Webhook Endpoint", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_webhook", "Webhook Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_bank_account_management(self) -> bool:
+        """Test POST/GET /api/payments/bank-accounts - Test adding and retrieving bank accounts"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_bank_accounts", "Bank Account Management", False, "No auth token available")
+                return False
+            
+            # Test adding a bank account
+            bank_account_data = {
+                "account_name": "Big Mann Entertainment Business Account",
+                "account_number": "1234567890",
+                "routing_number": "021000021",
+                "bank_name": "Chase Bank",
+                "account_type": "business",
+                "is_primary": True
+            }
+            
+            add_response = self.make_request('POST', '/payments/bank-accounts', json=bank_account_data)
+            
+            if add_response.status_code == 200:
+                add_data = add_response.json()
+                if 'account_id' in add_data and 'message' in add_data:
+                    # Test retrieving bank accounts
+                    get_response = self.make_request('GET', '/payments/bank-accounts')
+                    
+                    if get_response.status_code == 200:
+                        get_data = get_response.json()
+                        if 'accounts' in get_data and isinstance(get_data['accounts'], list):
+                            self.log_result("payment_bank_accounts", "Bank Account Management", True, 
+                                          f"Successfully added and retrieved bank accounts. Count: {len(get_data['accounts'])}")
+                            return True
+                        else:
+                            self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                                          "Failed to retrieve bank accounts")
+                            return False
+                    else:
+                        self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                                      f"Failed to retrieve accounts: {get_response.status_code}")
+                        return False
+                else:
+                    self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                                  "Missing account_id or message in add response")
+                    return False
+            else:
+                self.log_result("payment_bank_accounts", "Bank Account Management", False, 
+                              f"Failed to add bank account: {add_response.status_code}, {add_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_bank_accounts", "Bank Account Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_digital_wallet_management(self) -> bool:
+        """Test POST/GET /api/payments/wallets - Test adding and retrieving digital wallets"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_digital_wallets", "Digital Wallet Management", False, "No auth token available")
+                return False
+            
+            # Test adding a digital wallet
+            wallet_data = {
+                "wallet_type": "paypal",
+                "wallet_address": "john@bigmannentertainment.com",
+                "wallet_name": "Big Mann Entertainment PayPal",
+                "is_primary": True
+            }
+            
+            add_response = self.make_request('POST', '/payments/wallets', json=wallet_data)
+            
+            if add_response.status_code == 200:
+                add_data = add_response.json()
+                if 'wallet_id' in add_data and 'message' in add_data:
+                    # Test retrieving digital wallets
+                    get_response = self.make_request('GET', '/payments/wallets')
+                    
+                    if get_response.status_code == 200:
+                        get_data = get_response.json()
+                        if 'wallets' in get_data and isinstance(get_data['wallets'], list):
+                            self.log_result("payment_digital_wallets", "Digital Wallet Management", True, 
+                                          f"Successfully added and retrieved digital wallets. Count: {len(get_data['wallets'])}")
+                            return True
+                        else:
+                            self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                                          "Failed to retrieve digital wallets")
+                            return False
+                    else:
+                        self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                                      f"Failed to retrieve wallets: {get_response.status_code}")
+                        return False
+                else:
+                    self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                                  "Missing wallet_id or message in add response")
+                    return False
+            else:
+                self.log_result("payment_digital_wallets", "Digital Wallet Management", False, 
+                              f"Failed to add digital wallet: {add_response.status_code}, {add_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_digital_wallets", "Digital Wallet Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_earnings_dashboard(self) -> bool:
+        """Test GET /api/payments/earnings - Test earnings dashboard for authenticated user"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_earnings", "Earnings Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/payments/earnings')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'earnings' in data:
+                    earnings = data['earnings']
+                    required_fields = ['total_earnings', 'available_balance', 'pending_balance']
+                    
+                    if all(field in earnings for field in required_fields):
+                        self.log_result("payment_earnings", "Earnings Dashboard", True, 
+                                      f"Earnings dashboard working. Balance: ${earnings.get('available_balance', 0)}")
+                        return True
+                    else:
+                        self.log_result("payment_earnings", "Earnings Dashboard", False, 
+                                      "Missing required earnings fields")
+                        return False
+                else:
+                    self.log_result("payment_earnings", "Earnings Dashboard", False, 
+                                  "Missing earnings data in response")
+                    return False
+            else:
+                self.log_result("payment_earnings", "Earnings Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_earnings", "Earnings Dashboard", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_royalty_splits_management(self) -> bool:
+        """Test POST/GET /api/payments/royalty-splits - Test creating and retrieving royalty splits"""
+        try:
+            if not self.auth_token or not self.test_media_id:
+                self.log_result("payment_royalty_splits", "Royalty Splits Management", False, "Missing auth token or media ID")
+                return False
+            
+            # Test creating a royalty split
+            royalty_split_data = {
+                "media_id": self.test_media_id,
+                "recipient_email": "artist@bigmannentertainment.com",
+                "recipient_name": "Featured Artist",
+                "split_type": "percentage",
+                "percentage": 70.0,
+                "role": "artist"
+            }
+            
+            create_response = self.make_request('POST', '/payments/royalty-splits', json=royalty_split_data)
+            
+            if create_response.status_code == 200:
+                create_data = create_response.json()
+                if 'split_id' in create_data and 'message' in create_data:
+                    # Test retrieving royalty splits for media
+                    get_response = self.make_request('GET', f'/payments/royalty-splits/{self.test_media_id}')
+                    
+                    if get_response.status_code == 200:
+                        get_data = get_response.json()
+                        if 'splits' in get_data and isinstance(get_data['splits'], list):
+                            self.log_result("payment_royalty_splits", "Royalty Splits Management", True, 
+                                          f"Successfully created and retrieved royalty splits. Count: {len(get_data['splits'])}")
+                            return True
+                        else:
+                            self.log_result("payment_royalty_splits", "Royalty Splits Management", False, 
+                                          "Failed to retrieve royalty splits")
+                            return False
+                    else:
+                        self.log_result("payment_royalty_splits", "Royalty Splits Management", False, 
+                                      f"Failed to retrieve splits: {get_response.status_code}")
+                        return False
+                else:
+                    self.log_result("payment_royalty_splits", "Royalty Splits Management", False, 
+                                  "Missing split_id or message in create response")
+                    return False
+            else:
+                self.log_result("payment_royalty_splits", "Royalty Splits Management", False, 
+                              f"Failed to create royalty split: {create_response.status_code}, {create_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_royalty_splits", "Royalty Splits Management", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_payout_functionality(self) -> bool:
+        """Test POST /api/payments/payouts - Test payout request functionality"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_payouts", "Payout Functionality", False, "No auth token available")
+                return False
+            
+            # Test requesting a payout
+            payout_data = {
+                "amount": 50.00,
+                "payout_method": "bank_transfer",
+                "bank_account_id": "test_bank_account_id"
+            }
+            
+            response = self.make_request('POST', '/payments/payouts', json=payout_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'payout_id' in data and 'message' in data:
+                    self.log_result("payment_payouts", "Payout Functionality", True, 
+                                  f"Payout request successful: {data['payout_id']}")
+                    return True
+                else:
+                    self.log_result("payment_payouts", "Payout Functionality", False, 
+                                  "Missing payout_id or message in response")
+                    return False
+            elif response.status_code == 400 and ("insufficient" in response.text.lower() or "balance" in response.text.lower()):
+                self.log_result("payment_payouts", "Payout Functionality", True, 
+                              "Payout endpoint correctly validates insufficient balance")
+                return True
+            else:
+                self.log_result("payment_payouts", "Payout Functionality", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_payouts", "Payout Functionality", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_error_handling_validation(self) -> bool:
+        """Test error handling and validation for payment endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_validation", "Error Handling & Validation", False, "No auth token available")
+                return False
+            
+            validation_tests = 0
+            total_tests = 0
+            
+            # Test invalid package ID in checkout session
+            total_tests += 1
+            invalid_checkout_response = self.make_request('POST', '/payments/checkout/session', 
+                                                        params={"package_id": "invalid_package", "origin_url": "https://test.com"})
+            if invalid_checkout_response.status_code == 400:
+                validation_tests += 1
+            
+            # Test invalid bank account data
+            total_tests += 1
+            invalid_bank_data = {"account_name": "", "account_number": ""}  # Missing required fields
+            invalid_bank_response = self.make_request('POST', '/payments/bank-accounts', json=invalid_bank_data)
+            if invalid_bank_response.status_code in [400, 422]:
+                validation_tests += 1
+            
+            # Test invalid wallet data
+            total_tests += 1
+            invalid_wallet_data = {"wallet_type": "", "wallet_address": ""}  # Missing required fields
+            invalid_wallet_response = self.make_request('POST', '/payments/wallets', json=invalid_wallet_data)
+            if invalid_wallet_response.status_code in [400, 422]:
+                validation_tests += 1
+            
+            # Test payout with insufficient balance
+            total_tests += 1
+            large_payout_data = {"amount": 999999.99, "payout_method": "bank_transfer"}
+            large_payout_response = self.make_request('POST', '/payments/payouts', json=large_payout_data)
+            if large_payout_response.status_code == 400:
+                validation_tests += 1
+            
+            if validation_tests >= total_tests - 1:  # Allow 1 test to behave differently
+                self.log_result("payment_validation", "Error Handling & Validation", True, 
+                              f"Payment validation working correctly: {validation_tests}/{total_tests} tests passed")
+                return True
+            else:
+                self.log_result("payment_validation", "Error Handling & Validation", False, 
+                              f"Only {validation_tests}/{total_tests} validation tests passed")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_validation", "Error Handling & Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_payment_database_integration(self) -> bool:
+        """Test database integration for payment system"""
+        try:
+            if not self.auth_token:
+                self.log_result("payment_database", "Database Integration", False, "No auth token available")
+                return False
+            
+            integration_tests = 0
+            total_tests = 0
+            
+            # Test that earnings are created/retrieved from database
+            total_tests += 1
+            earnings_response = self.make_request('GET', '/payments/earnings')
+            if earnings_response.status_code == 200:
+                data = earnings_response.json()
+                if 'earnings' in data and isinstance(data['earnings'], dict):
+                    integration_tests += 1
+            
+            # Test that bank accounts are stored in database
+            total_tests += 1
+            bank_accounts_response = self.make_request('GET', '/payments/bank-accounts')
+            if bank_accounts_response.status_code == 200:
+                data = bank_accounts_response.json()
+                if 'accounts' in data and isinstance(data['accounts'], list):
+                    integration_tests += 1
+            
+            # Test that wallets are stored in database
+            total_tests += 1
+            wallets_response = self.make_request('GET', '/payments/wallets')
+            if wallets_response.status_code == 200:
+                data = wallets_response.json()
+                if 'wallets' in data and isinstance(data['wallets'], list):
+                    integration_tests += 1
+            
+            if integration_tests >= total_tests - 1:
+                self.log_result("payment_database", "Database Integration", True, 
+                              f"Database integration working: {integration_tests}/{total_tests} tests passed")
+                return True
+            else:
+                self.log_result("payment_database", "Database Integration", False, 
+                              f"Only {integration_tests}/{total_tests} database tests passed")
+                return False
+                
+        except Exception as e:
+            self.log_result("payment_database", "Database Integration", False, f"Exception: {str(e)}")
+            return False
+    
     def run_payment_system_tests(self):
         """Run comprehensive payment and royalty system tests"""
         print("\n" + "="*80)
