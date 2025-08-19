@@ -12,18 +12,18 @@ from payment_models import (
     RoyaltySplitRequest, PayoutRequestModel
 )
 
-# Import authentication dependencies (assuming they exist from your existing code)
-# Adjust these imports based on your existing authentication setup
+# Import authentication dependencies
 try:
-    from server import get_current_user, User  # Adjust import path as needed
+    from server import get_current_user, User
 except ImportError:
     # Fallback for development - create simple authentication
-    async def get_current_user():
-        return {"id": "test-user", "email": "test@example.com"}
-    
-    class User:
+    from pydantic import BaseModel
+    class User(BaseModel):
         id: str
         email: str
+    
+    async def get_current_user():
+        return User(id="test-user", email="test@example.com")
 
 logger = logging.getLogger(__name__)
 
