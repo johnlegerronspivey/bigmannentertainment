@@ -3597,6 +3597,21 @@ async def get_user_wallets(current_user: User = Depends(get_current_user)):
     wallets = await db.crypto_wallets.find({"user_id": current_user.id}).to_list(length=None)
     return {"wallets": wallets}
 
+# Include Payment router
+try:
+    from payment_endpoints import payment_router
+    from payment_service import PaymentService
+    import payment_endpoints
+    
+    # Initialize payment service
+    payment_endpoints.payment_service = PaymentService(db)
+    app.include_router(payment_router)
+    print("✅ Payment router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ Payment router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading Payment router: {e}")
+
 # Include Label router BEFORE api_router is included in app
 try:
     from label_simple import label_router
