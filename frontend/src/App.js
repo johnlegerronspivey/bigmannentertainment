@@ -4179,6 +4179,7 @@ function App() {
             <Route path="/admin/wallets" element={<AdminRoute><DigitalWalletManager /></AdminRoute>} />
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
+          <Footer />
         </AuthProvider>
       </BrowserRouter>
     </div>
