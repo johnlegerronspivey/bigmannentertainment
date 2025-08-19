@@ -1058,15 +1058,22 @@ class BackendTester:
             
             # Use a dummy session ID for testing
             test_session_id = "cs_test_dummy_session_id"
-            response = self.make_request('GET', f'/payments/status/{test_session_id}')
+            response = self.make_request('GET', f'/payments/checkout/status/{test_session_id}')
             
-            if response.status_code == 500 and "not configured" in response.text:
-                self.log_result("payments", "Payment Status Polling", True, "Payment system not configured (expected in test environment)")
+            if response.status_code == 400 and ("Transaction not found" in response.text or "not found" in response.text):
+                self.log_result("payments", "Payment Status Polling", True, "Correctly handled non-existent session ID")
                 return True
-            elif response.status_code in [200, 404]:
-                # Either successful response or session not found (both acceptable for testing)
-                self.log_result("payments", "Payment Status Polling", True, "Payment status endpoint accessible")
-                return True
+            elif response.status_code == 200:
+                data = response.json()
+                if 'status' in data and 'payment_status' in data:
+                    self.log_result("payments", "Payment Status Polling", True, f"Payment status endpoint working: {data['status']}")
+                    return True
+                else:
+                    self.log_result("payments", "Payment Status Polling", False, "Invalid status response format")
+                    return False
+            elif response.status_code == 500 and ("STRIPE_API_KEY not found" in response.text or "not configured" in response.text):
+                self.log_result("payments", "Payment Status Polling", False, "STRIPE_API_KEY not configured - critical issue")
+                return False
             else:
                 self.log_result("payments", "Payment Status Polling", False, f"Status: {response.status_code}, Response: {response.text}")
                 return False
