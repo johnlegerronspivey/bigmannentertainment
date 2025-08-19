@@ -975,27 +975,72 @@ class BackendTester:
             self.log_result("media_management", "Media Details", False, f"Exception: {str(e)}")
             return False
     
-    def test_checkout_session_creation(self) -> bool:
-        """Test Stripe checkout session creation"""
+    def test_stripe_api_key_verification(self) -> bool:
+        """Test Stripe API key is properly loaded from environment"""
         try:
-            if not self.auth_token or not self.test_media_id:
-                self.log_result("payments", "Checkout Session Creation", False, "Missing auth token or media ID")
-                return False
-            
-            response = self.make_request('POST', f'/payments/checkout?media_id={self.test_media_id}')
+            # Test payment packages endpoint to verify Stripe service initialization
+            response = self.make_request('GET', '/payments/packages')
             
             if response.status_code == 200:
                 data = response.json()
-                if 'checkout_url' in data and 'session_id' in data:
-                    self.test_session_id = data['session_id']
-                    self.log_result("payments", "Checkout Session Creation", True, f"Created checkout session: {self.test_session_id}")
-                    return True
+                if 'packages' in data and isinstance(data['packages'], list):
+                    packages = data['packages']
+                    # Verify we have the expected packages
+                    package_ids = [pkg.get('id') for pkg in packages]
+                    expected_packages = ['basic', 'premium', 'enterprise', 'single_track', 'album']
+                    
+                    if all(pkg_id in package_ids for pkg_id in expected_packages):
+                        self.log_result("payments", "Stripe API Key Verification", True, 
+                                      f"Stripe service initialized successfully with {len(packages)} payment packages")
+                        return True
+                    else:
+                        self.log_result("payments", "Stripe API Key Verification", False, 
+                                      f"Missing expected packages. Found: {package_ids}")
+                        return False
                 else:
-                    self.log_result("payments", "Checkout Session Creation", False, "Missing checkout_url or session_id in response")
+                    self.log_result("payments", "Stripe API Key Verification", False, "Invalid packages response format")
                     return False
-            elif response.status_code == 500 and "not configured" in response.text:
-                self.log_result("payments", "Checkout Session Creation", True, "Payment system not configured (expected in test environment)")
-                return True
+            elif response.status_code == 500 and ("STRIPE_API_KEY not found" in response.text or "not initialized" in response.text):
+                self.log_result("payments", "Stripe API Key Verification", False, "STRIPE_API_KEY not found in environment variables")
+                return False
+            else:
+                self.log_result("payments", "Stripe API Key Verification", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("payments", "Stripe API Key Verification", False, f"Exception: {str(e)}")
+            return False
+
+    def test_checkout_session_creation(self) -> bool:
+        """Test Stripe checkout session creation with basic package"""
+        try:
+            if not self.auth_token:
+                self.log_result("payments", "Checkout Session Creation", False, "No auth token available")
+                return False
+            
+            # Test with basic package ($9.99)
+            response = self.make_request('POST', '/payments/checkout/session?package_id=basic')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'url' in data and 'session_id' in data and 'amount' in data:
+                    self.test_session_id = data['session_id']
+                    expected_amount = 9.99
+                    if data['amount'] == expected_amount and data['currency'] == 'usd':
+                        self.log_result("payments", "Checkout Session Creation", True, 
+                                      f"Created checkout session: {self.test_session_id}, Amount: ${data['amount']} {data['currency']}")
+                        return True
+                    else:
+                        self.log_result("payments", "Checkout Session Creation", False, 
+                                      f"Incorrect amount/currency. Expected: ${expected_amount} USD, Got: ${data['amount']} {data['currency']}")
+                        return False
+                else:
+                    self.log_result("payments", "Checkout Session Creation", False, 
+                                  f"Missing required fields in response. Keys: {list(data.keys())}")
+                    return False
+            elif response.status_code == 500 and ("STRIPE_API_KEY not found" in response.text or "not configured" in response.text):
+                self.log_result("payments", "Checkout Session Creation", False, "STRIPE_API_KEY not configured - critical issue")
+                return False
             else:
                 self.log_result("payments", "Checkout Session Creation", False, f"Status: {response.status_code}, Response: {response.text}")
                 return False
