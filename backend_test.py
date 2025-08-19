@@ -7267,7 +7267,8 @@ class BackendTester:
             
             # Test with package_id
             checkout_data = {
-                "package_id": "basic"
+                "package_id": "basic",
+                "origin_url": "https://9e4f5b47-418e-4990-84bf-0db76774f328.preview.emergentagent.com"
             }
             
             response = self.make_request('POST', '/payments/checkout/session', json=checkout_data)
