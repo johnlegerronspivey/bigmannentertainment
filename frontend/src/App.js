@@ -4061,7 +4061,7 @@ function App() {
             
             {/* Payment & Earnings Routes */}
             <Route path="/pricing" element={<PaymentPackages onSelectPackage={(pkg) => window.location.href = `/checkout/${pkg.id}`} />} />
-            <Route path="/checkout/:packageId" element={<ProtectedRoute><PaymentCheckout /></ProtectedRoute>} />
+            <Route path="/checkout/:packageId" element={<ProtectedRoute><EnhancedPaymentCheckout /></ProtectedRoute>} />
             <Route path="/payment/success" element={<ProtectedRoute><PaymentStatus /></ProtectedRoute>} />
             <Route path="/payment/cancel" element={<ProtectedRoute><PaymentStatus /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
