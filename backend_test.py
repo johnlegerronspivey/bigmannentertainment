@@ -8078,31 +8078,34 @@ class BackendTester:
     def run_payment_system_tests(self):
         """Run comprehensive payment and royalty system tests"""
         print("\n" + "="*80)
-        print("💳 TESTING COMPREHENSIVE PAYMENT & ROYALTY SYSTEM")
+        print("💳 COMPREHENSIVE PAYMENT & ROYALTY SYSTEM TESTING")
         print("Testing Big Mann Entertainment payment infrastructure with Stripe integration")
         print("="*80)
         
-        print("\n--- Payment Package Tests ---")
+        print("\n--- Core Payment System Tests ---")
         self.test_payment_packages_endpoint()
-        
-        print("\n--- Payment Checkout Tests ---")
         self.test_payment_checkout_session_creation()
         self.test_payment_checkout_with_media()
+        self.test_payment_checkout_status_checking()
+        self.test_payment_webhook_endpoint_exists()
         
-        print("\n--- Banking & Wallet Tests ---")
-        self.test_bank_account_management()
-        self.test_digital_wallet_management()
-        
-        print("\n--- Earnings & Payout Tests ---")
-        self.test_earnings_dashboard()
-        self.test_payout_request()
-        
-        print("\n--- Royalty Management Tests ---")
-        self.test_royalty_split_management()
-        
-        print("\n--- Webhook & Security Tests ---")
-        self.test_stripe_webhook_endpoint()
+        print("\n--- Authentication Integration Tests ---")
         self.test_payment_authentication()
+        
+        print("\n--- Banking & Wallet Management Tests ---")
+        self.test_payment_bank_account_management()
+        self.test_payment_digital_wallet_management()
+        
+        print("\n--- Earnings & Royalty System Tests ---")
+        self.test_payment_earnings_dashboard()
+        self.test_payment_royalty_splits_management()
+        self.test_payment_payout_functionality()
+        
+        print("\n--- Error Handling & Validation Tests ---")
+        self.test_payment_error_handling_validation()
+        
+        print("\n--- Database Integration Tests ---")
+        self.test_payment_database_integration()
 
     def run_media_upload_tests(self):
         """Run comprehensive media upload functionality tests"""
