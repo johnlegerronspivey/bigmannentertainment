@@ -594,11 +594,16 @@ class LicensingService:
             
             # Store daily compensation
             daily_compensation = DailyCompensation(**compensation_data)
-            self.daily_compensations.insert_one(daily_compensation.dict())
+            # Convert Decimal fields to float for MongoDB storage
+            compensation_dict = daily_compensation.dict()
+            for key, value in compensation_dict.items():
+                if isinstance(value, Decimal):
+                    compensation_dict[key] = float(value)
+            self.daily_compensations.insert_one(compensation_dict)
             
             platform_compensations.append(compensation_data)
             total_compensations_calculated += 1
-            total_amount_calculated += compensation_data["total_compensation"]
+            total_amount_calculated += Decimal(str(compensation_data["total_compensation"]))
         
         return {
             "compensation_date": compensation_date.isoformat(),
