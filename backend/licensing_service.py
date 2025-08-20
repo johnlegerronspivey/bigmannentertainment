@@ -1,5 +1,6 @@
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timedelta
+from decimal import Decimal
 import json
 from bson import ObjectId
 from pymongo import MongoClient
@@ -7,7 +8,9 @@ import os
 
 from licensing_models import (
     PlatformLicense, LicensingAgreement, LicenseUsage, 
-    ComplianceCheck, PlatformActivation, LicenseStatus, LicenseType
+    ComplianceCheck, PlatformActivation, LicenseStatus, LicenseType,
+    StatutoryRate, RoyaltyType, DailyCompensation, CompensationPayout,
+    LicenseCompensationSummary
 )
 
 class LicensingService:
