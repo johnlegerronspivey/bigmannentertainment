@@ -1210,10 +1210,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Earnings Dashboard Frontend Testing"
-    - "Label Management Dashboard Frontend Testing" 
-    - "Face ID Authentication Frontend Testing"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
