@@ -13,7 +13,7 @@ licensing_service = LicensingService()
 # Import the existing platforms configuration
 from server import DISTRIBUTION_PLATFORMS
 
-@router.post("/api/licensing/initialize-all-platforms")
+@router.post("/initialize-all-platforms")
 async def initialize_all_platform_licenses(current_user: dict = Depends(require_admin)):
     """Initialize licenses for all 83+ platforms"""
     try:
