@@ -770,7 +770,12 @@ class LicensingService:
                 }
                 
                 payout = CompensationPayout(**payout_data)
-                result = self.compensation_payouts.insert_one(payout.dict())
+                # Convert Decimal fields to float for MongoDB storage
+                payout_dict = payout.dict()
+                for key, value in payout_dict.items():
+                    if isinstance(value, Decimal):
+                        payout_dict[key] = float(value)
+                result = self.compensation_payouts.insert_one(payout_dict)
                 
                 payouts_processed.append({
                     "payout_id": str(result.inserted_id),
