@@ -2530,7 +2530,7 @@ class BackendTester:
             return False
     
     def test_new_platforms_categorization(self) -> bool:
-        """Test that new platforms are properly categorized by type"""
+        """Test that new creator/lifestyle platforms are properly categorized by type"""
         try:
             response = self.make_request('GET', '/distribution/platforms')
             
@@ -2541,53 +2541,43 @@ class BackendTester:
                 # Count platforms by category
                 social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
                 streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
-                streaming_tv = [p for p in platforms.values() if p.get('type') == 'streaming_tv']
                 
-                # Check that new platforms are in correct categories
+                # Check that new creator/lifestyle platforms are in correct categories
                 social_media_platforms = [p.get('name') for p in social_media]
                 streaming_platforms = [p.get('name') for p in streaming]
-                streaming_tv_platforms = [p.get('name') for p in streaming_tv]
                 
-                # Verify The Shade Room, Hollywood Unlocked, and Tumblr are in social_media
-                expected_social = ['The Shade Room', 'Hollywood Unlocked', 'Tumblr']
+                # Verify Models.com, Model Management, OnlyFans, and Lemon8 are in social_media
+                expected_social = ['Models.com', 'Model Management', 'OnlyFans', 'Lemon8']
                 missing_social = [p for p in expected_social if p not in social_media_platforms]
                 
-                # Verify WorldStar Hip Hop is in streaming
-                if 'WorldStar Hip Hop' not in streaming_platforms:
-                    missing_streaming = ['WorldStar Hip Hop']
+                # Verify RapHouseTV is in streaming
+                if 'RapHouseTV' not in streaming_platforms:
+                    missing_streaming = ['RapHouseTV']
                 else:
                     missing_streaming = []
                 
-                # Verify Tubi is in streaming_tv
-                if 'Tubi' not in streaming_tv_platforms:
-                    missing_streaming_tv = ['Tubi']
-                else:
-                    missing_streaming_tv = []
-                
-                if missing_social or missing_streaming or missing_streaming_tv:
+                if missing_social or missing_streaming:
                     errors = []
                     if missing_social:
                         errors.append(f"Missing from social_media: {missing_social}")
                     if missing_streaming:
                         errors.append(f"Missing from streaming: {missing_streaming}")
-                    if missing_streaming_tv:
-                        errors.append(f"Missing from streaming_tv: {missing_streaming_tv}")
                     
-                    self.log_result("new_platforms_categorization", "New Platforms Categorization", False, 
+                    self.log_result("new_platforms_categorization", "New Creator/Lifestyle Platforms Categorization", False, 
                                   f"Categorization errors: {'; '.join(errors)}")
                     return False
                 
-                self.log_result("new_platforms_categorization", "New Platforms Categorization", True, 
-                              f"All new platforms properly categorized - Social Media: {len(social_media)}, Streaming: {len(streaming)}, Streaming TV: {len(streaming_tv)}")
+                self.log_result("new_platforms_categorization", "New Creator/Lifestyle Platforms Categorization", True, 
+                              f"All new creator/lifestyle platforms properly categorized - Social Media: {len(social_media)}, Streaming: {len(streaming)}")
                 return True
                 
             else:
-                self.log_result("new_platforms_categorization", "New Platforms Categorization", False, 
+                self.log_result("new_platforms_categorization", "New Creator/Lifestyle Platforms Categorization", False, 
                               f"Failed to get platforms: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log_result("new_platforms_categorization", "New Platforms Categorization", False, f"Exception: {str(e)}")
+            self.log_result("new_platforms_categorization", "New Creator/Lifestyle Platforms Categorization", False, f"Exception: {str(e)}")
             return False
     
     def test_new_platforms_specific_features(self) -> bool:
