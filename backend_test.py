@@ -2581,7 +2581,7 @@ class BackendTester:
             return False
     
     def test_new_platforms_specific_features(self) -> bool:
-        """Test platform-specific features and configurations for the 5 new platforms"""
+        """Test platform-specific features and configurations for the 5 new creator/lifestyle platforms"""
         try:
             response = self.make_request('GET', '/distribution/platforms')
             
@@ -2589,54 +2589,101 @@ class BackendTester:
                 data = response.json()
                 platforms = data.get('platforms', {})
                 
-                # Test WorldStar Hip Hop features
-                if 'worldstarhiphop' in platforms:
-                    worldstar = platforms['worldstarhiphop']
+                # Test RapHouseTV features
+                if 'raphousetv' in platforms:
+                    raphouse = platforms['raphousetv']
                     
                     # Check hip-hop content focus
-                    if 'hip-hop' not in worldstar.get('target_demographics', '').lower():
-                        self.log_result("new_platforms_features", "WorldStar Hip-Hop Focus", False, 
-                                      f"Missing hip-hop focus in demographics: {worldstar.get('target_demographics')}")
+                    if 'hip-hop' not in raphouse.get('target_demographics', '').lower():
+                        self.log_result("new_platforms_features", "RapHouseTV Hip-Hop Focus", False, 
+                                      f"Missing hip-hop focus in demographics: {raphouse.get('target_demographics')}")
                         return False
                     
-                    # Check viral content feature
-                    if 'viral_content' not in worldstar.get('platform_features', []):
-                        self.log_result("new_platforms_features", "WorldStar Viral Content", False, 
-                                      f"Missing viral_content feature: {worldstar.get('platform_features')}")
+                    # Check rap videos feature
+                    if 'rap_videos' not in raphouse.get('platform_features', []):
+                        self.log_result("new_platforms_features", "RapHouseTV Rap Videos", False, 
+                                      f"Missing rap_videos feature: {raphouse.get('platform_features')}")
                         return False
                 
-                # Test The Shade Room features
-                if 'theshaderoom' in platforms:
-                    shaderoom = platforms['theshaderoom']
+                # Test Models.com features
+                if 'models' in platforms:
+                    models = platforms['models']
                     
-                    # Check entertainment content configuration
-                    guidelines = shaderoom.get('content_guidelines', '').lower()
-                    if 'entertainment' not in guidelines:
-                        self.log_result("new_platforms_features", "Shade Room Entertainment Content", False, 
-                                      f"Missing entertainment content in guidelines: {shaderoom.get('content_guidelines')}")
+                    # Check fashion industry targeting
+                    demographics = models.get('target_demographics', '').lower()
+                    if 'fashion industry' not in demographics:
+                        self.log_result("new_platforms_features", "Models.com Fashion Industry", False, 
+                                      f"Missing fashion industry targeting: {models.get('target_demographics')}")
                         return False
                     
-                    # Check urban culture targeting
-                    if 'urban culture' not in shaderoom.get('target_demographics', '').lower():
-                        self.log_result("new_platforms_features", "Shade Room Urban Culture", False, 
-                                      f"Missing urban culture targeting: {shaderoom.get('target_demographics')}")
+                    # Check portfolio hosting feature
+                    if 'portfolio_hosting' not in models.get('platform_features', []):
+                        self.log_result("new_platforms_features", "Models.com Portfolio Hosting", False, 
+                                      f"Missing portfolio_hosting feature: {models.get('platform_features')}")
                         return False
                 
-                # Test Tubi features
-                if 'tubi' in platforms:
-                    tubi = platforms['tubi']
+                # Test Model Management features
+                if 'modelmanagement' in platforms:
+                    modelmanagement = platforms['modelmanagement']
                     
-                    # Check free streaming platform feature
-                    if 'free_streaming' not in tubi.get('platform_features', []):
-                        self.log_result("new_platforms_features", "Tubi Free Streaming", False, 
-                                      f"Missing free_streaming feature: {tubi.get('platform_features')}")
+                    # Check agency management focus
+                    guidelines = modelmanagement.get('content_guidelines', '').lower()
+                    if 'agency' not in guidelines:
+                        self.log_result("new_platforms_features", "Model Management Agency Focus", False, 
+                                      f"Missing agency focus in guidelines: {modelmanagement.get('content_guidelines')}")
                         return False
                     
-                    # Check ad-supported model
-                    if 'ad_supported' not in tubi.get('platform_features', []):
-                        self.log_result("new_platforms_features", "Tubi Ad Supported", False, 
-                                      f"Missing ad_supported feature: {tubi.get('platform_features')}")
+                    # Check agency management feature
+                    if 'agency_management' not in modelmanagement.get('platform_features', []):
+                        self.log_result("new_platforms_features", "Model Management Agency Feature", False, 
+                                      f"Missing agency_management feature: {modelmanagement.get('platform_features')}")
                         return False
+                
+                # Test OnlyFans features
+                if 'onlyfans' in platforms:
+                    onlyfans = platforms['onlyfans']
+                    
+                    # Check creator monetization feature
+                    if 'creator_monetization' not in onlyfans.get('platform_features', []):
+                        self.log_result("new_platforms_features", "OnlyFans Creator Monetization", False, 
+                                      f"Missing creator_monetization feature: {onlyfans.get('platform_features')}")
+                        return False
+                    
+                    # Check subscription model feature
+                    if 'subscription_model' not in onlyfans.get('platform_features', []):
+                        self.log_result("new_platforms_features", "OnlyFans Subscription Model", False, 
+                                      f"Missing subscription_model feature: {onlyfans.get('platform_features')}")
+                        return False
+                
+                # Test Lemon8 features
+                if 'lemon8' in platforms:
+                    lemon8 = platforms['lemon8']
+                    
+                    # Check lifestyle content focus
+                    guidelines = lemon8.get('content_guidelines', '').lower()
+                    if 'lifestyle' not in guidelines:
+                        self.log_result("new_platforms_features", "Lemon8 Lifestyle Content", False, 
+                                      f"Missing lifestyle content in guidelines: {lemon8.get('content_guidelines')}")
+                        return False
+                    
+                    # Check lifestyle content feature
+                    if 'lifestyle_content' not in lemon8.get('platform_features', []):
+                        self.log_result("new_platforms_features", "Lemon8 Lifestyle Feature", False, 
+                                      f"Missing lifestyle_content feature: {lemon8.get('platform_features')}")
+                        return False
+                
+                self.log_result("new_platforms_features", "New Creator/Lifestyle Platforms Specific Features", True, 
+                              "All new creator/lifestyle platform-specific features verified successfully")
+                return True
+                
+            else:
+                self.log_result("new_platforms_features", "New Creator/Lifestyle Platforms Specific Features", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_platforms_features", "New Creator/Lifestyle Platforms Specific Features", False, f"Exception: {str(e)}")
+            return False
                 
                 # Test Hollywood Unlocked features
                 if 'hollywoodunlocked' in platforms:
