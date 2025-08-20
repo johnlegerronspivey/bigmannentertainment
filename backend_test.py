@@ -2409,7 +2409,7 @@ class BackendTester:
             return False
     
     def test_new_5_platforms_integration(self) -> bool:
-        """Test the newly added 5 platforms integration: WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr"""
+        """Test the newly added 5 creator and lifestyle platforms integration: RapHouseTV, Models.com, Model Management, OnlyFans, Lemon8"""
         try:
             response = self.make_request('GET', '/distribution/platforms')
             
@@ -2417,36 +2417,36 @@ class BackendTester:
                 data = response.json()
                 platforms = data.get('platforms', {})
                 
-                # Check for the 5 new platforms
+                # Check for the 5 new creator and lifestyle platforms
                 new_platforms = {
-                    'worldstarhiphop': {
+                    'raphousetv': {
                         'expected_type': 'streaming',
-                        'expected_name': 'WorldStar Hip Hop',
-                        'expected_api': 'https://api.worldstarhiphop.com/v1',
-                        'expected_max_size': 500 * 1024 * 1024  # 500MB
+                        'expected_name': 'RapHouseTV',
+                        'expected_api': 'https://api.raphousetv.com/v1',
+                        'expected_max_size': 300 * 1024 * 1024  # 300MB
                     },
-                    'theshaderoom': {
+                    'models': {
                         'expected_type': 'social_media',
-                        'expected_name': 'The Shade Room',
-                        'expected_api': 'https://api.theshaderoom.com/v1',
-                        'expected_max_size': 100 * 1024 * 1024  # 100MB
+                        'expected_name': 'Models.com',
+                        'expected_api': 'https://api.models.com/v1',
+                        'expected_max_size': 200 * 1024 * 1024  # 200MB
                     },
-                    'tubi': {
-                        'expected_type': 'streaming_tv',
-                        'expected_name': 'Tubi',
-                        'expected_api': 'https://api.tubi.tv/v1',
-                        'expected_max_size': 2 * 1024 * 1024 * 1024  # 2GB
-                    },
-                    'hollywoodunlocked': {
+                    'modelmanagement': {
                         'expected_type': 'social_media',
-                        'expected_name': 'Hollywood Unlocked',
-                        'expected_api': 'https://api.hollywoodunlocked.com/v1',
+                        'expected_name': 'Model Management',
+                        'expected_api': 'https://api.modelmanagement.com/v1',
                         'expected_max_size': 150 * 1024 * 1024  # 150MB
                     },
-                    'tumblr': {
+                    'onlyfans': {
                         'expected_type': 'social_media',
-                        'expected_name': 'Tumblr',
-                        'expected_api': 'https://api.tumblr.com/v2',
+                        'expected_name': 'OnlyFans',
+                        'expected_api': 'https://api.onlyfans.com/v1',
+                        'expected_max_size': 1 * 1024 * 1024 * 1024  # 1GB
+                    },
+                    'lemon8': {
+                        'expected_type': 'social_media',
+                        'expected_name': 'Lemon8',
+                        'expected_api': 'https://api.lemon8-app.com/v1',
                         'expected_max_size': 100 * 1024 * 1024  # 100MB
                     }
                 }
