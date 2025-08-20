@@ -7,7 +7,7 @@ from auth import get_current_user, require_admin
 from licensing_service import LicensingService
 from licensing_models import PlatformLicense, LicensingAgreement
 
-router = APIRouter()
+router = APIRouter(prefix="/api/licensing", tags=["Licensing System"])
 licensing_service = LicensingService()
 
 # Import the existing platforms configuration
