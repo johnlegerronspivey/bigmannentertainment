@@ -2500,7 +2500,7 @@ class BackendTester:
             return False
     
     def test_new_platforms_count_verification(self) -> bool:
-        """Test that platform count has increased from 73 to 78 with the new 5 platforms"""
+        """Test that platform count has increased from 78 to 83 with the new 5 creator/lifestyle platforms"""
         try:
             response = self.make_request('GET', '/distribution/platforms')
             
@@ -2510,14 +2510,14 @@ class BackendTester:
                 
                 total_platforms = len(platforms)
                 
-                # Should be 78 platforms now (73 + 5 new platforms)
-                if total_platforms >= 78:
+                # Should be 83 platforms now (78 + 5 new creator/lifestyle platforms)
+                if total_platforms >= 83:
                     self.log_result("new_platforms_count", "Platform Count Verification", True, 
-                                  f"Platform count increased to {total_platforms} (expected 78+)")
+                                  f"Platform count increased to {total_platforms} (expected 83+)")
                     return True
                 else:
                     self.log_result("new_platforms_count", "Platform Count Verification", False, 
-                                  f"Platform count is {total_platforms}, expected 78+")
+                                  f"Platform count is {total_platforms}, expected 83+")
                     return False
                 
             else:
