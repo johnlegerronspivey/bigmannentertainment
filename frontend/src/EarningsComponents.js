@@ -292,7 +292,7 @@ const PayoutRequestModal = ({ availableBalance, minThreshold, onClose, onSuccess
 
       // Fetch wallets
       const walletResponse = await fetch(`${API}/api/payments/wallets`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (walletResponse.ok) {
         const walletData = await walletResponse.json();
