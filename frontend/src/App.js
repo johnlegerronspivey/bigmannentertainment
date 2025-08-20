@@ -52,11 +52,20 @@ class WebAuthnService {
   async registerCredential(accessToken) {
     try {
       // Step 1: Get registration options from backend
-      const optionsResponse = await axios.post(`${this.apiBaseUrl}/webauthn/register/begin`, {}, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+      const optionsResponse = await fetch(`${this.apiBaseUrl}/api/webauthn/register/begin`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
       });
 
-      const options = optionsResponse.data;
+      if (!optionsResponse.ok) {
+        throw new Error('Failed to get registration options');
+      }
+
+      const options = await optionsResponse.json();
 
       // Step 2: Convert base64url strings to ArrayBuffers
       const credentialCreationOptions = {
