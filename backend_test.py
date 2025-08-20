@@ -13772,16 +13772,16 @@ class BackendTester:
             return False
 
     def run_new_5_platforms_tests(self):
-        """Run tests specifically for the newly added 5 platforms integration"""
+        """Run tests specifically for the newly added 5 creator and lifestyle platforms integration"""
         print("="*80)
-        print("🎵 NEW 5 PLATFORMS INTEGRATION TESTING FOR BIG MANN ENTERTAINMENT")
-        print("Testing WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr")
+        print("🎯 NEW 5 CREATOR AND LIFESTYLE PLATFORMS INTEGRATION TESTING FOR BIG MANN ENTERTAINMENT")
+        print("Testing RapHouseTV, Models.com, Model Management, OnlyFans, Lemon8")
         print("="*80)
         
         print("\n--- Distribution Platforms Endpoint Tests ---")
         self.test_distribution_platforms_endpoint()
         
-        print("\n--- NEW 5 PLATFORMS INTEGRATION TESTS ---")
+        print("\n--- NEW 5 CREATOR/LIFESTYLE PLATFORMS INTEGRATION TESTS ---")
         self.test_new_5_platforms_integration()
         self.test_new_platforms_count_verification()
         self.test_new_platforms_categorization()
