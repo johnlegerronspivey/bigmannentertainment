@@ -798,7 +798,7 @@ const Home = () => {
               <div className="text-sm">Revenue</div>
             </div>
             <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-              <div className="text-2xl md:text-3xl font-bold">{stats.platforms?.supported || 78}</div>
+              <div className="text-2xl md:text-3xl font-bold">{stats.platforms?.supported || 83}</div>
               <div className="text-sm">Platforms</div>
             </div>
           </div>
