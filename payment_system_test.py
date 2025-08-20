@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://9e4f5b47-418e-4990-84bf-0db76774f328.preview.emergentagent.com/api"
+BASE_URL = "https://music-royalty-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "payment.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "PaymentTester2025!"
 TEST_USER_NAME = "Payment System Tester"
@@ -145,7 +145,7 @@ class PaymentSystemTester:
             # Test with basic package
             params = {
                 "package_id": "basic",
-                "origin_url": "https://9e4f5b47-418e-4990-84bf-0db76774f328.preview.emergentagent.com"
+                "origin_url": "https://music-royalty-1.preview.emergentagent.com"
             }
             
             response = self.make_request('POST', '/payments/checkout/session', params=params)
