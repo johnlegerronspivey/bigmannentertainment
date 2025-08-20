@@ -9394,6 +9394,43 @@ class BackendTester:
                 if "❌ FAIL" in detail:
                     print(f"  {detail}")
 
+    def run_mixtape_platforms_integration_tests(self):
+        """Run mixtape platforms integration tests for LiveMixtapes and MyMixtapez as requested in review"""
+        print("\n" + "="*80)
+        print("🎵 MIXTAPE PLATFORMS INTEGRATION TESTING")
+        print("Testing LiveMixtapes.com and MyMixtapez.com platform integration for Big Mann Entertainment")
+        print("="*80)
+        
+        print("\n--- Distribution Platforms Endpoint Tests ---")
+        self.test_distribution_platforms_endpoint()
+        
+        print("\n--- Mixtape Platforms Configuration Tests ---")
+        self.test_mixtape_platforms_integration()
+        self.test_mixtape_platform_categorization()
+        self.test_mixtape_platform_count_verification()
+        self.test_mixtape_platform_specific_features()
+        
+        print(f"\n📊 Mixtape Platforms Integration Tests Summary:")
+        mixtape_total_passed = (self.results['distribution_platforms']['passed'] +
+                               self.results['mixtape_platforms_integration']['passed'] + 
+                               self.results['mixtape_platform_categorization']['passed'] + 
+                               self.results['mixtape_platform_count']['passed'] + 
+                               self.results['mixtape_platform_features']['passed'])
+        mixtape_total_failed = (self.results['distribution_platforms']['failed'] +
+                               self.results['mixtape_platforms_integration']['failed'] + 
+                               self.results['mixtape_platform_categorization']['failed'] + 
+                               self.results['mixtape_platform_count']['failed'] + 
+                               self.results['mixtape_platform_features']['failed'])
+        print(f"✅ Passed: {mixtape_total_passed}")
+        print(f"❌ Failed: {mixtape_total_failed}")
+        
+        if mixtape_total_failed > 0:
+            print(f"\n❌ Failed Mixtape Tests Details:")
+            for category in ['distribution_platforms', 'mixtape_platforms_integration', 'mixtape_platform_categorization', 'mixtape_platform_count', 'mixtape_platform_features']:
+                for detail in self.results[category]['details']:
+                    if "❌ FAIL" in detail:
+                        print(f"  {detail}")
+
     def run_tv_platforms_integration_tests(self):
         """Run comprehensive TV platforms integration tests for BET, Revolt TV, and MTV"""
         print("\n" + "="*80)
