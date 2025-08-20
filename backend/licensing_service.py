@@ -478,53 +478,58 @@ class LicensingService:
                 {
                     "royalty_type": RoyaltyType.MECHANICAL,
                     "rate_name": "Digital Mechanical Royalty (2025)",
-                    "rate_per_unit": Decimal('0.091'),  # $0.091 per reproduction/download
-                    "minimum_fee": Decimal('0.0175'),   # $0.0175 minimum per work
+                    "rate_per_unit": 0.091,  # $0.091 per reproduction/download
+                    "minimum_fee": 0.0175,   # $0.0175 minimum per work
                     "effective_date": datetime(2025, 1, 1),
                     "unit_type": "per_reproduction",
                     "rate_source": "CRB",
-                    "big_mann_rate_multiplier": Decimal('1.0'),
+                    "big_mann_rate_multiplier": 1.0,
                     "auto_apply": True
                 },
                 {
                     "royalty_type": RoyaltyType.PERFORMANCE,
                     "rate_name": "Digital Performance Royalty (Streaming)",
-                    "rate_per_unit": Decimal('0.0022'),  # $0.0022 per stream
-                    "minimum_fee": Decimal('0.0001'),
+                    "rate_per_unit": 0.0022,  # $0.0022 per stream
+                    "minimum_fee": 0.0001,
                     "effective_date": datetime(2025, 1, 1),
                     "unit_type": "per_stream",
                     "rate_source": "CRB",
-                    "big_mann_rate_multiplier": Decimal('1.0'),
+                    "big_mann_rate_multiplier": 1.0,
                     "auto_apply": True
                 },
                 {
                     "royalty_type": RoyaltyType.SYNCHRONIZATION,
                     "rate_name": "Synchronization License Fee",
-                    "rate_per_unit": Decimal('500.00'),  # $500 base sync fee
-                    "rate_percentage": Decimal('2.5'),   # 2.5% of production budget
-                    "minimum_fee": Decimal('100.00'),
+                    "rate_per_unit": 500.00,  # $500 base sync fee
+                    "rate_percentage": 2.5,   # 2.5% of production budget
+                    "minimum_fee": 100.00,
                     "effective_date": datetime(2025, 1, 1),
                     "unit_type": "per_usage",
                     "rate_source": "Industry Standard",
-                    "big_mann_rate_multiplier": Decimal('1.0'),
+                    "big_mann_rate_multiplier": 1.0,
                     "auto_apply": True
                 },
                 {
                     "royalty_type": RoyaltyType.DIGITAL_PERFORMANCE,
                     "rate_name": "Interactive Streaming Rate",
-                    "rate_per_unit": Decimal('0.0084'),  # $0.0084 per interactive stream
-                    "minimum_fee": Decimal('0.0001'),
+                    "rate_per_unit": 0.0084,  # $0.0084 per interactive stream
+                    "minimum_fee": 0.0001,
                     "effective_date": datetime(2025, 1, 1),
                     "unit_type": "per_stream",
                     "rate_source": "CRB",
-                    "big_mann_rate_multiplier": Decimal('1.0'),
+                    "big_mann_rate_multiplier": 1.0,
                     "auto_apply": True
                 }
             ]
             
             for rate_data in current_rates:
                 statutory_rate = StatutoryRate(**rate_data)
-                self.statutory_rates.insert_one(statutory_rate.dict())
+                # Convert Decimal fields to float for MongoDB storage
+                rate_dict = statutory_rate.dict()
+                for key, value in rate_dict.items():
+                    if isinstance(value, Decimal):
+                        rate_dict[key] = float(value)
+                self.statutory_rates.insert_one(rate_dict)
     
     def get_statutory_rates(self, royalty_type: Optional[str] = None, active_only: bool = True) -> List[Dict]:
         """Get current statutory rates"""
