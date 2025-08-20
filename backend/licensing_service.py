@@ -223,19 +223,171 @@ class LicensingService:
             }
         }
     
-    def get_platform_licenses(self, status: Optional[str] = None, platform_type: Optional[str] = None) -> List[Dict]:
+    def get_platform_licenses(self, status: Optional[str] = None, category: Optional[str] = None, limit: int = 50, offset: int = 0) -> List[Dict]:
         """Get platform licenses with optional filtering"""
         query = {}
         if status:
             query["license_status"] = status
             
-        licenses = list(self.platform_licenses.find(query))
+        licenses = list(self.platform_licenses.find(query).skip(offset).limit(limit))
         
         # Convert ObjectId to string for JSON serialization
         for license_doc in licenses:
             license_doc["_id"] = str(license_doc["_id"])
             
         return licenses
+    
+    def get_licensing_status(self) -> Dict[str, Any]:
+        """Get overall licensing system status and health"""
+        total_platforms = self.platform_licenses.count_documents({})
+        active_licenses = self.platform_licenses.count_documents({"license_status": "active"})
+        
+        # Calculate health score based on active licenses and compliance
+        health_score = (active_licenses / total_platforms * 100) if total_platforms > 0 else 100
+        
+        # Get compliance rate
+        total_compliance_checks = self.compliance_checks.count_documents({})
+        compliant_checks = self.compliance_checks.count_documents({"compliance_status": "compliant"})
+        compliance_rate = (compliant_checks / total_compliance_checks * 100) if total_compliance_checks > 0 else 100
+        
+        return {
+            "health_score": health_score,
+            "total_platforms": total_platforms,
+            "active_licenses": active_licenses,
+            "compliance_rate": compliance_rate,
+            "system_status": "operational" if health_score > 80 else "degraded"
+        }
+    
+    def get_platform_license_details(self, platform_id: str) -> Optional[Dict[str, Any]]:
+        """Get detailed information for a specific platform license"""
+        license_doc = self.platform_licenses.find_one({"platform_id": platform_id})
+        
+        if license_doc:
+            license_doc["_id"] = str(license_doc["_id"])
+            return license_doc
+        
+        return None
+    
+    def check_platform_compliance(self, platform_id: str) -> Dict[str, Any]:
+        """Check compliance status for a specific platform"""
+        license_doc = self.platform_licenses.find_one({"platform_id": platform_id})
+        
+        if not license_doc:
+            return {"compliant": False, "score": 0, "details": {"error": "License not found"}}
+        
+        compliance_score = 100
+        compliance_details = {}
+        recommendations = []
+        
+        # Check usage limits
+        usage_count = license_doc.get("usage_count", 0)
+        monthly_limit = license_doc.get("monthly_limit", 1000)
+        
+        if usage_count > monthly_limit:
+            compliance_score -= 30
+            compliance_details["usage_violation"] = f"Usage {usage_count} exceeds limit {monthly_limit}"
+            recommendations.append("Reduce usage or upgrade license tier")
+        
+        # Check license expiration
+        end_date = license_doc.get("end_date")
+        if end_date:
+            try:
+                if isinstance(end_date, str):
+                    end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                
+                days_until_expiry = (end_date - datetime.utcnow()).days
+                if days_until_expiry < 30:
+                    compliance_score -= 20
+                    compliance_details["expiry_warning"] = f"License expires in {days_until_expiry} days"
+                    recommendations.append("Renew license before expiration")
+            except (ValueError, TypeError):
+                pass
+        
+        return {
+            "compliant": compliance_score >= 80,
+            "score": compliance_score,
+            "details": compliance_details,
+            "recommendations": recommendations
+        }
+    
+    def get_platform_usage_metrics(self, platform_id: str) -> Dict[str, Any]:
+        """Get usage metrics for a platform"""
+        license_doc = self.platform_licenses.find_one({"platform_id": platform_id})
+        
+        if not license_doc:
+            return {"error": "Platform not found"}
+        
+        # Get recent usage data
+        usage_docs = list(self.license_usage.find({"platform_id": platform_id}).sort("usage_date", -1).limit(30))
+        
+        total_uploads = sum(doc.get("content_uploads", 0) for doc in usage_docs)
+        total_api_calls = sum(doc.get("api_calls", 0) for doc in usage_docs)
+        total_revenue = sum(doc.get("revenue_generated", 0) for doc in usage_docs)
+        
+        return {
+            "total_uploads": total_uploads,
+            "total_api_calls": total_api_calls,
+            "total_revenue": total_revenue,
+            "usage_period": "Last 30 days",
+            "monthly_limit": license_doc.get("monthly_limit", 1000),
+            "usage_percentage": (total_uploads / license_doc.get("monthly_limit", 1000)) * 100
+        }
+    
+    def deactivate_platform_license(self, platform_id: str, deactivated_by: str) -> str:
+        """Deactivate a platform license"""
+        # Update license status
+        self.platform_licenses.update_one(
+            {"platform_id": platform_id},
+            {"$set": {"license_status": "inactive", "deactivated_date": datetime.utcnow()}}
+        )
+        
+        # Update activation record
+        self.platform_activations.update_one(
+            {"platform_id": platform_id},
+            {"$set": {"is_active": False, "deactivated_by": deactivated_by, "deactivation_date": datetime.utcnow()}}
+        )
+        
+        return f"deactivation_{platform_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+    
+    def get_licensing_agreements(self, agreement_type: Optional[str] = None, status: Optional[str] = None, limit: int = 50, offset: int = 0) -> List[Dict]:
+        """Get licensing agreements with optional filtering"""
+        query = {}
+        if agreement_type:
+            query["agreement_type"] = agreement_type
+        if status:
+            query["status"] = status
+            
+        agreements = list(self.licensing_agreements.find(query).skip(offset).limit(limit))
+        
+        # Convert ObjectId to string for JSON serialization
+        for agreement in agreements:
+            agreement["_id"] = str(agreement["_id"])
+            
+        return agreements
+    
+    def update_platform_usage(self, platform_id: str, usage_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update usage metrics for a platform"""
+        # Create usage record
+        usage = LicenseUsage(
+            license_id=f"license_{platform_id}",
+            platform_id=platform_id,
+            content_uploads=usage_data.get("uploads_count", 0),
+            api_calls=usage_data.get("api_calls", 0),
+            data_transfer_mb=usage_data.get("bandwidth_used", 0) / 1024 / 1024,  # Convert bytes to MB
+            usage_date=datetime.utcnow(),
+            reporting_period="daily",
+            revenue_generated=usage_data.get("revenue_generated", 0.0)
+        )
+        
+        self.license_usage.insert_one(usage.dict())
+        
+        # Update the license's usage count
+        self.platform_licenses.update_one(
+            {"platform_id": platform_id},
+            {"$inc": {"usage_count": usage_data.get("uploads_count", 0)}}
+        )
+        
+        return usage_data
     
     def update_license_usage(self, license_id: str, usage_data: Dict[str, Any]) -> bool:
         """Update license usage metrics"""
