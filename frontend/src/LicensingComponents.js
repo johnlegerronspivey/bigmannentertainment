@@ -503,6 +503,7 @@ export const LicensingDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchLicensingDashboard();
@@ -594,112 +595,147 @@ export const LicensingDashboard = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Platform Licensing Dashboard</h1>
-          <p className="text-purple-200">{business_info?.business_entity} - Comprehensive License Management</p>
+          <p className="text-purple-200">{business_info?.business_entity} - Comprehensive License Management with Statutory Rates</p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="mb-8 text-center">
-          <button
-            onClick={initializeAllPlatformLicenses}
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-lg"
-          >
-            🚀 License All 83+ Platforms
-          </button>
-        </div>
-
-        {/* Licensing Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-2">
-              {licensing_overview?.total_platforms_licensed || 0}
-            </div>
-            <div className="text-purple-200">Total Platforms Licensed</div>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-green-400 mb-2">
-              {licensing_overview?.active_licenses || 0}
-            </div>
-            <div className="text-purple-200">Active Licenses</div>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-yellow-400 mb-2">
-              {licensing_overview?.pending_licenses || 0}
-            </div>
-            <div className="text-purple-200">Pending Licenses</div>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">
-              {licensing_overview?.licensing_compliance_rate?.toFixed(1) || 100}%
-            </div>
-            <div className="text-purple-200">Compliance Rate</div>
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="flex flex-wrap justify-center gap-2">
+            {[
+              { id: 'overview', label: '📊 Overview', icon: '📊' },
+              { id: 'statutory-rates', label: '⚖️ Statutory Rates', icon: '⚖️' },
+              { id: 'daily-compensation', label: '💰 Daily Compensation', icon: '💰' },
+              { id: 'compensation-dashboard', label: '📈 Compensation Analytics', icon: '📈' },
+              { id: 'platform-management', label: '🏢 Platform Management', icon: '🏢' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-lg font-semibold transition duration-300 ${
+                  activeTab === tab.id
+                    ? 'bg-white text-purple-900'
+                    : 'bg-white/10 text-purple-200 hover:bg-white/20'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Platform Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Platform Categories</h3>
-            <div className="space-y-3">
-              {platform_categories && Object.entries(platform_categories).map(([category, count]) => (
-                <div key={category} className="flex justify-between items-center">
-                  <span className="text-purple-200">{category}</span>
-                  <span className="text-white font-semibold">{count} platforms</span>
-                </div>
-              ))}
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div>
+            {/* Quick Actions */}
+            <div className="mb-8 text-center">
+              <button
+                onClick={initializeAllPlatformLicenses}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-lg"
+              >
+                🚀 License All 83+ Platforms
+              </button>
             </div>
-          </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Financial Summary</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-purple-200">Total Licensing Fees</span>
-                <span className="text-green-400 font-semibold">${financial_summary?.total_licensing_fees?.toFixed(2) || '0.00'}</span>
+            {/* Licensing Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-white mb-2">
+                  {licensing_overview?.total_platforms_licensed || 0}
+                </div>
+                <div className="text-purple-200">Total Platforms Licensed</div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-purple-200">Monthly Recurring</span>
-                <span className="text-green-400 font-semibold">${financial_summary?.monthly_recurring_revenue?.toFixed(2) || '0.00'}</span>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-green-400 mb-2">
+                  {licensing_overview?.active_licenses || 0}
+                </div>
+                <div className="text-purple-200">Active Licenses</div>
               </div>
-              <div className="text-sm text-purple-300 mt-2">
-                {financial_summary?.revenue_share_potential}
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-yellow-400 mb-2">
+                  {licensing_overview?.pending_licenses || 0}
+                </div>
+                <div className="text-purple-200">Pending Licenses</div>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-2">
+                  {licensing_overview?.licensing_compliance_rate?.toFixed(1) || 100}%
+                </div>
+                <div className="text-purple-200">Compliance Rate</div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Business Information */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">License Holder Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-purple-200">Business Entity:</span>
-                  <span className="text-white font-semibold">{business_info?.business_entity}</span>
+            {/* Platform Categories and Financial Summary */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <h3 className="text-xl font-bold text-white mb-4">Platform Categories</h3>
+                <div className="space-y-3">
+                  {platform_categories && Object.entries(platform_categories).map(([category, count]) => (
+                    <div key={category} className="flex justify-between items-center">
+                      <span className="text-purple-200">{category}</span>
+                      <span className="text-white font-semibold">{count} platforms</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-purple-200">Business Owner:</span>
-                  <span className="text-white font-semibold">{business_info?.business_owner}</span>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <h3 className="text-xl font-bold text-white mb-4">Financial Summary</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Total Licensing Fees</span>
+                    <span className="text-green-400 font-semibold">${financial_summary?.total_licensing_fees?.toFixed(2) || '0.00'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Monthly Recurring</span>
+                    <span className="text-green-400 font-semibold">${financial_summary?.monthly_recurring_revenue?.toFixed(2) || '0.00'}</span>
+                  </div>
+                  <div className="text-sm text-purple-300 mt-2">
+                    {financial_summary?.revenue_share_potential}
+                  </div>
                 </div>
               </div>
             </div>
-            <div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-purple-200">EIN:</span>
-                  <span className="text-white font-semibold">{business_info?.ein}</span>
+
+            {/* Business Information */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+              <h3 className="text-xl font-bold text-white mb-4">License Holder Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">Business Entity:</span>
+                      <span className="text-white font-semibold">{business_info?.business_entity}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">Business Owner:</span>
+                      <span className="text-white font-semibold">{business_info?.business_owner}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-purple-200">TIN:</span>
-                  <span className="text-white font-semibold">{business_info?.tin}</span>
+                <div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">EIN:</span>
+                      <span className="text-white font-semibold">{business_info?.ein}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">TIN:</span>
+                      <span className="text-white font-semibold">{business_info?.tin}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'statutory-rates' && <StatutoryRatesManager />}
+        {activeTab === 'daily-compensation' && <DailyCompensationDashboard />}
+        {activeTab === 'compensation-dashboard' && <CompensationOverviewDashboard />}
+        {activeTab === 'platform-management' && <LicensingStatus />}
       </div>
     </div>
   );
