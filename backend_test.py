@@ -172,7 +172,15 @@ class BackendTester:
             "licensing_compliance": {"passed": 0, "failed": 0, "details": []},
             "licensing_usage_tracking": {"passed": 0, "failed": 0, "details": []},
             "licensing_authentication": {"passed": 0, "failed": 0, "details": []},
-            "licensing_platform_integration": {"passed": 0, "failed": 0, "details": []}
+            "licensing_platform_integration": {"passed": 0, "failed": 0, "details": []},
+            "licensing_statutory_rates": {"passed": 0, "failed": 0, "details": []},
+            "licensing_daily_compensation": {"passed": 0, "failed": 0, "details": []},
+            "licensing_daily_payouts": {"passed": 0, "failed": 0, "details": []},
+            "licensing_compensation_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "licensing_compensation_history": {"passed": 0, "failed": 0, "details": []},
+            "licensing_payout_history": {"passed": 0, "failed": 0, "details": []},
+            "licensing_statutory_rates_auth": {"passed": 0, "failed": 0, "details": []},
+            "licensing_daily_payouts_admin": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
