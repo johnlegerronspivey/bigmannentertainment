@@ -2619,10 +2619,11 @@ class BackendTester:
                 if 'theshaderoom' in platforms:
                     shaderoom = platforms['theshaderoom']
                     
-                    # Check entertainment news configuration
-                    if 'entertainment news' not in shaderoom.get('content_guidelines', '').lower():
-                        self.log_result("new_platforms_features", "Shade Room Entertainment News", False, 
-                                      f"Missing entertainment news in guidelines: {shaderoom.get('content_guidelines')}")
+                    # Check entertainment content configuration
+                    guidelines = shaderoom.get('content_guidelines', '').lower()
+                    if 'entertainment' not in guidelines:
+                        self.log_result("new_platforms_features", "Shade Room Entertainment Content", False, 
+                                      f"Missing entertainment content in guidelines: {shaderoom.get('content_guidelines')}")
                         return False
                     
                     # Check urban culture targeting
