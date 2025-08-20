@@ -254,12 +254,24 @@ const ArtistManagement = () => {
 
   const fetchArtists = async () => {
     try {
-      const params = {};
-      if (filters.status) params.status = filters.status;
-      if (filters.genre) params.genre = filters.genre;
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
 
-      const response = await axios.get(`${API}/label/artists`, { params });
-      setArtists(response.data);
+      const params = new URLSearchParams();
+      if (filters.status) params.append('status', filters.status);
+      if (filters.genre) params.append('genre', filters.genre);
+
+      const response = await fetch(`${API}/api/label/artists?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setArtists(data);
+      }
     } catch (error) {
       console.error('Error fetching artists:', error);
     } finally {
