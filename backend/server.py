@@ -512,6 +512,32 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 100 * 1024 * 1024,
         "credentials_required": ["client_id", "client_secret"]
     },
+    "livemixtapes": {
+        "type": "streaming",
+        "name": "LiveMixtapes.com",
+        "api_endpoint": "https://api.livemixtapes.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 150 * 1024 * 1024,  # 150MB
+        "credentials_required": ["api_key", "user_token"],
+        "target_demographics": "Hip-hop fans, ages 16-35, urban culture",
+        "content_guidelines": "Hip-hop mixtapes, rap music, urban content, artist features",
+        "submission_process": "LiveMixtapes content review and approval",
+        "revenue_sharing": "Free hosting with promotional benefits",
+        "platform_features": ["mixtape_hosting", "artist_profiles", "download_tracking", "social_sharing"]
+    },
+    "mymixtapez": {
+        "type": "streaming", 
+        "name": "MyMixtapez.com",
+        "api_endpoint": "https://api.mymixtapez.com/v2",
+        "supported_formats": ["audio"],
+        "max_file_size": 200 * 1024 * 1024,  # 200MB
+        "credentials_required": ["api_key", "artist_id"],
+        "target_demographics": "Hip-hop enthusiasts, ages 18-40, mixtape culture",
+        "content_guidelines": "Mixtapes, rap albums, hip-hop singles, collaborative projects",
+        "submission_process": "MyMixtapez artist verification and content approval",
+        "revenue_sharing": "Free distribution with premium promotion options",
+        "platform_features": ["mixtape_distribution", "playlist_features", "artist_discovery", "mobile_app_integration"]
+    },
     
     # Radio Stations
     "iheartradio": {
