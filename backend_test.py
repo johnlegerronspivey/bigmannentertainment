@@ -10757,6 +10757,18 @@ class BackendTester:
         
         # Platform Integration
         self.test_licensing_platform_integration()
+        
+        # NEW: Statutory Rates and Daily Compensation Tests
+        print("\n🎵 STATUTORY RATES & DAILY COMPENSATION TESTS")
+        print("-" * 50)
+        self.test_statutory_rates_endpoint()
+        self.test_daily_compensation_calculation()
+        self.test_daily_payouts_processing()
+        self.test_compensation_dashboard()
+        self.test_compensation_history()
+        self.test_payout_history()
+        self.test_statutory_rates_authentication()
+        self.test_daily_payouts_admin_permissions()
 
     # ===== TAX MANAGEMENT SYSTEM TESTS =====
     
