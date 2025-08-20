@@ -26,6 +26,13 @@ class LicensingService:
         self.license_usage = self.db.license_usage
         self.compliance_checks = self.db.compliance_checks
         self.platform_activations = self.db.platform_activations
+        self.statutory_rates = self.db.statutory_rates
+        self.daily_compensations = self.db.daily_compensations
+        self.compensation_payouts = self.db.compensation_payouts
+        self.compensation_summaries = self.db.compensation_summaries
+        
+        # Initialize statutory rates if not present
+        self._initialize_statutory_rates()
         
     def initialize_all_platform_licenses(self, platforms_config: Dict[str, Any]) -> Dict[str, str]:
         """Initialize licenses for all 83+ platforms"""
