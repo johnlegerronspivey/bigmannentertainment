@@ -792,10 +792,23 @@ class LicensingService:
             {"$set": {"payment_status": "processing", "payment_date": payout_date}}
         )
         
+        # Create recipient breakdown for response
+        recipient_breakdown = {}
+        for recipient_type, recipient_name, amount in recipients:
+            if amount > minimum_amount:
+                recipient_breakdown[recipient_type] = {
+                    "name": recipient_name,
+                    "amount": float(amount),
+                    "tax_withholding": float(amount * Decimal('0.24')),
+                    "net_payout": float(amount * Decimal('0.76'))
+                }
+        
         return {
             "payout_date": payout_date.isoformat(),
-            "total_payouts_processed": len(payouts_processed),
+            "total_payouts": len(payouts_processed),
             "total_payout_amount": float(total_payout_amount),
+            "recipient_breakdown": recipient_breakdown,
+            "tax_withholding": float(total_payout_amount * Decimal('0.24')),
             "payouts": payouts_processed,
             "compensations_processed": len(compensation_ids),
             "minimum_payout_threshold": float(minimum_amount),
