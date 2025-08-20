@@ -50,225 +50,227 @@ async def get_licensing_dashboard(current_user: dict = Depends(get_current_user)
     """Get comprehensive licensing dashboard"""
     try:
         dashboard_data = licensing_service.get_licensing_dashboard()
-        return dashboard_data
+        
+        return {
+            "licensing_overview": {
+                "total_platforms_licensed": dashboard_data.get("total_platforms", 0),
+                "active_licenses": dashboard_data.get("active_licenses", 0),
+                "pending_licenses": dashboard_data.get("pending_licenses", 0),
+                "expired_licenses": dashboard_data.get("expired_licenses", 0),
+                "compliance_rate": dashboard_data.get("compliance_rate", 0)
+            },
+            "business_info": {
+                "business_entity": "Big Mann Entertainment",
+                "business_owner": "John LeGerron Spivey",
+                "license_holder": "John LeGerron Spivey",
+                "business_type": "Entertainment/Media Distribution",
+                "established": "2020"
+            },
+            "financial_summary": {
+                "total_licensing_fees": dashboard_data.get("total_fees", 0),
+                "monthly_licensing_costs": dashboard_data.get("monthly_costs", 0),
+                "annual_licensing_budget": dashboard_data.get("annual_budget", 0),
+                "cost_per_platform": dashboard_data.get("cost_per_platform", 0)
+            },
+            "platform_categories": dashboard_data.get("platform_categories", {}),
+            "recent_activity": dashboard_data.get("recent_activity", []),
+            "alerts": dashboard_data.get("alerts", [])
+        }
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get licensing dashboard: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve licensing dashboard: {str(e)}")
 
-@router.get("/api/licensing/platforms")
+@router.get("/platforms")
 async def get_platform_licenses(
     status: Optional[str] = None,
-    platform_type: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all platform licenses with optional filtering"""
+    """Get platform licenses with optional filtering"""
     try:
-        licenses = licensing_service.get_platform_licenses(status=status, platform_type=platform_type)
+        licenses = licensing_service.get_platform_licenses(
+            status=status, 
+            category=category, 
+            limit=limit, 
+            offset=offset
+        )
+        
         return {
             "total_licenses": len(licenses),
             "licenses": licenses,
-            "filters_applied": {
+            "filters": {
                 "status": status,
-                "platform_type": platform_type
+                "category": category,
+                "limit": limit,
+                "offset": offset
             }
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get platform licenses: {str(e)}")
-
-@router.get("/api/licensing/platforms/{platform_id}")
-async def get_platform_license_details(platform_id: str, current_user: dict = Depends(get_current_user)):
-    """Get detailed licensing information for a specific platform"""
-    try:
-        license_doc = licensing_service.platform_licenses.find_one({"platform_id": platform_id})
         
-        if not license_doc:
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve platform licenses: {str(e)}")
+
+@router.get("/platforms/{platform_id}")
+async def get_platform_license_details(
+    platform_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get detailed information for a specific platform license"""
+    try:
+        license_details = licensing_service.get_platform_license_details(platform_id)
+        
+        if not license_details:
             raise HTTPException(status_code=404, detail="Platform license not found")
         
-        # Convert ObjectId to string
-        license_doc["_id"] = str(license_doc["_id"])
-        
-        # Get platform activation status
-        activation = licensing_service.platform_activations.find_one({"platform_id": platform_id})
-        if activation:
-            activation["_id"] = str(activation["_id"])
-        
-        # Get recent usage data
-        recent_usage = list(licensing_service.license_usage.find(
-            {"platform_id": platform_id}
-        ).sort("usage_date", -1).limit(10))
-        
-        for usage in recent_usage:
-            usage["_id"] = str(usage["_id"])
-        
         return {
-            "platform_license": license_doc,
-            "activation_status": activation,
-            "recent_usage": recent_usage,
-            "platform_config": DISTRIBUTION_PLATFORMS.get(platform_id, {})
+            "platform_license": license_details,
+            "compliance_status": licensing_service.check_platform_compliance(platform_id),
+            "usage_metrics": licensing_service.get_platform_usage_metrics(platform_id)
         }
         
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get platform license details: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve platform license details: {str(e)}")
 
-@router.post("/api/licensing/platforms/{platform_id}/activate")
-async def activate_platform_license(platform_id: str, current_user: dict = Depends(require_admin)):
-    """Activate a platform license"""
+@router.post("/platforms/{platform_id}/activate")
+async def activate_platform_license(
+    platform_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Activate a platform license (admin only)"""
     try:
-        # Check if license exists
-        license_doc = licensing_service.platform_licenses.find_one({"platform_id": platform_id})
-        if not license_doc:
-            raise HTTPException(status_code=404, detail="Platform license not found")
-        
-        license_id = str(license_doc.get("id", license_doc["_id"]))
-        
-        # Activate the license
         activation_id = licensing_service.activate_platform_license(
-            platform_id, license_id, current_user.get("email", "admin")
-        )
-        
-        # Update license status to active
-        licensing_service.platform_licenses.update_one(
-            {"platform_id": platform_id},
-            {"$set": {"license_status": "active", "updated_at": datetime.utcnow()}}
+            platform_id, 
+            platform_id,  # Using platform_id as license_id for simplicity
+            current_user.get("email", "admin")
         )
         
         return {
             "message": f"Platform {platform_id} license activated successfully",
-            "platform_id": platform_id,
             "activation_id": activation_id,
+            "platform_id": platform_id,
             "activated_by": current_user.get("email", "admin"),
             "activation_date": datetime.utcnow().isoformat()
         }
         
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to activate platform license: {str(e)}")
 
-@router.post("/api/licensing/platforms/{platform_id}/deactivate")
-async def deactivate_platform_license(platform_id: str, reason: str, current_user: dict = Depends(require_admin)):
-    """Deactivate a platform license"""
+@router.post("/platforms/{platform_id}/deactivate")
+async def deactivate_platform_license(
+    platform_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Deactivate a platform license (admin only)"""
     try:
-        # Update activation status
-        licensing_service.platform_activations.update_one(
-            {"platform_id": platform_id},
-            {
-                "$set": {
-                    "is_active": False,
-                    "deactivation_date": datetime.utcnow(),
-                    "deactivation_reason": reason,
-                    "updated_at": datetime.utcnow()
-                }
-            }
-        )
-        
-        # Update license status
-        licensing_service.platform_licenses.update_one(
-            {"platform_id": platform_id},
-            {"$set": {"license_status": "suspended", "updated_at": datetime.utcnow()}}
+        deactivation_id = licensing_service.deactivate_platform_license(
+            platform_id,
+            current_user.get("email", "admin")
         )
         
         return {
-            "message": f"Platform {platform_id} license deactivated",
+            "message": f"Platform {platform_id} license deactivated successfully",
+            "deactivation_id": deactivation_id,
             "platform_id": platform_id,
             "deactivated_by": current_user.get("email", "admin"),
-            "reason": reason,
             "deactivation_date": datetime.utcnow().isoformat()
         }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to deactivate platform license: {str(e)}")
 
-@router.post("/api/licensing/compliance-check/{platform_id}")
-async def run_compliance_check(platform_id: str, current_user: dict = Depends(get_current_user)):
-    """Run compliance check for a platform license"""
+@router.post("/compliance-check/{platform_id}")
+async def check_platform_compliance(
+    platform_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Check compliance status for a specific platform"""
     try:
-        license_doc = licensing_service.platform_licenses.find_one({"platform_id": platform_id})
-        if not license_doc:
-            raise HTTPException(status_code=404, detail="Platform license not found")
+        compliance_data = licensing_service.check_platform_compliance(platform_id)
         
-        license_id = str(license_doc.get("id", license_doc["_id"]))
-        compliance_result = licensing_service.check_compliance(platform_id, license_id)
-        
-        return compliance_result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to run compliance check: {str(e)}")
-
-@router.post("/api/licensing/usage/{platform_id}")
-async def update_platform_usage(platform_id: str, usage_data: Dict[str, Any], current_user: dict = Depends(get_current_user)):
-    """Update usage metrics for a platform license"""
-    try:
-        license_doc = licensing_service.platform_licenses.find_one({"platform_id": platform_id})
-        if not license_doc:
-            raise HTTPException(status_code=404, detail="Platform license not found")
-        
-        license_id = str(license_doc.get("id", license_doc["_id"]))
-        
-        # Add platform_id to usage_data
-        usage_data["platform_id"] = platform_id
-        
-        success = licensing_service.update_license_usage(license_id, usage_data)
-        
-        if success:
-            return {
-                "message": "Usage metrics updated successfully",
-                "platform_id": platform_id,
-                "usage_data": usage_data,
-                "updated_at": datetime.utcnow().isoformat()
-            }
-        else:
-            raise HTTPException(status_code=500, detail="Failed to update usage metrics")
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update platform usage: {str(e)}")
-
-@router.get("/api/licensing/agreements")
-async def get_licensing_agreements(current_user: dict = Depends(get_current_user)):
-    """Get all licensing agreements"""
-    try:
-        agreements = list(licensing_service.licensing_agreements.find({}))
-        
-        for agreement in agreements:
-            agreement["_id"] = str(agreement["_id"])
-            
         return {
-            "total_agreements": len(agreements),
-            "agreements": agreements
+            "platform_id": platform_id,
+            "overall_compliance": compliance_data.get("compliant", False),
+            "compliance_score": compliance_data.get("score", 0),
+            "compliance_details": compliance_data.get("details", {}),
+            "recommendations": compliance_data.get("recommendations", []),
+            "last_check": datetime.utcnow().isoformat()
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get licensing agreements: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to check platform compliance: {str(e)}")
 
-@router.get("/api/licensing/status")
-async def get_overall_licensing_status(current_user: dict = Depends(get_current_user)):
-    """Get overall licensing status for Big Mann Entertainment"""
+@router.get("/status")
+async def get_licensing_status(current_user: dict = Depends(get_current_user)):
+    """Get overall licensing system status and health"""
     try:
-        dashboard_data = licensing_service.get_licensing_dashboard()
-        
-        # Calculate licensing health score
-        total_platforms = dashboard_data["licensing_overview"]["total_platforms_licensed"]
-        active_platforms = dashboard_data["licensing_overview"]["active_licenses"]
-        compliance_rate = dashboard_data["licensing_overview"]["licensing_compliance_rate"]
-        
-        health_score = ((active_platforms / total_platforms) * 0.7 + (compliance_rate / 100) * 0.3) * 100 if total_platforms > 0 else 0
+        status_data = licensing_service.get_licensing_status()
         
         return {
             "business_entity": "Big Mann Entertainment",
-            "business_owner": "John LeGerron Spivey",
-            "total_platforms_licensed": total_platforms,
-            "active_licenses": active_platforms,
-            "licensing_health_score": round(health_score, 2),
-            "compliance_rate": compliance_rate,
-            "licensing_status": "Fully Licensed" if health_score > 90 else "Needs Attention",
-            "master_agreement_active": True,
-            "last_updated": datetime.utcnow().isoformat()
+            "license_owner": "John LeGerron Spivey",
+            "licensing_health_score": status_data.get("health_score", 0),
+            "total_platforms": status_data.get("total_platforms", 0),
+            "active_licenses": status_data.get("active_licenses", 0),
+            "compliance_rate": status_data.get("compliance_rate", 0),
+            "last_updated": datetime.utcnow().isoformat(),
+            "system_status": "operational"
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get licensing status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve licensing status: {str(e)}")
+
+@router.get("/agreements")
+async def get_licensing_agreements(
+    agreement_type: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get licensing agreements with optional filtering"""
+    try:
+        agreements = licensing_service.get_licensing_agreements(
+            agreement_type=agreement_type,
+            status=status,
+            limit=limit,
+            offset=offset
+        )
+        
+        return {
+            "total_agreements": len(agreements),
+            "agreements": agreements,
+            "filters": {
+                "agreement_type": agreement_type,
+                "status": status,
+                "limit": limit,
+                "offset": offset
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve licensing agreements: {str(e)}")
+
+@router.post("/usage/{platform_id}")
+async def update_platform_usage(
+    platform_id: str,
+    usage_data: Dict[str, Any],
+    current_user: dict = Depends(get_current_user)
+):
+    """Update usage metrics for a platform"""
+    try:
+        updated_usage = licensing_service.update_platform_usage(platform_id, usage_data)
+        
+        return {
+            "message": f"Usage metrics updated for platform {platform_id}",
+            "platform_id": platform_id,
+            "usage_data": updated_usage,
+            "updated_by": current_user.get("email", "user"),
+            "update_date": datetime.utcnow().isoformat(),
+            "check_date": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update platform usage: {str(e)}")
