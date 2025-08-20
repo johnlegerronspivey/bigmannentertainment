@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 // Get API URL from environment
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
 
 // ===== MAIN LABEL DASHBOARD =====
 
-const LabelDashboard = () => {
+export const LabelDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState({
     start: new Date().toISOString().split('T')[0],
@@ -21,15 +21,37 @@ const LabelDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get(`${API}/label/dashboard`, {
-        params: {
-          period_start: dateRange.start,
-          period_end: dateRange.end
+      setLoading(true);
+      setError('');
+      
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API}/api/label/dashboard`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
-      setDashboardData(response.data);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDashboardData(data);
+        setError('');
+      } else if (response.status === 401) {
+        setError('Session expired. Please log in again.');
+        localStorage.removeItem('accessToken');
+      } else {
+        setError('Failed to load label dashboard data');
+      }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Label dashboard fetch error:', error);
+      setError('Error connecting to server. Please try again.');
     } finally {
       setLoading(false);
     }
