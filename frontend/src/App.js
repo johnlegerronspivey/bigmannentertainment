@@ -127,8 +127,19 @@ class WebAuthnService {
   async authenticateWithWebAuthn(email) {
     try {
       // Step 1: Get authentication options from backend
-      const optionsResponse = await axios.post(`${this.apiBaseUrl}/webauthn/authenticate/begin`, { email });
-      const options = optionsResponse.data;
+      const optionsResponse = await fetch(`${this.apiBaseUrl}/api/webauthn/authenticate/begin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (!optionsResponse.ok) {
+        throw new Error('Failed to get authentication options');
+      }
+
+      const options = await optionsResponse.json();
 
       // Step 2: Convert base64url strings to ArrayBuffers
       const credentialRequestOptions = {
