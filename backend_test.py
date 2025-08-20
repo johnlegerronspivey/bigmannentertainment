@@ -155,7 +155,11 @@ class BackendTester:
             "payment_webhook": {"passed": 0, "failed": 0, "details": []},
             "payment_authentication": {"passed": 0, "failed": 0, "details": []},
             "payment_validation": {"passed": 0, "failed": 0, "details": []},
-            "payment_database": {"passed": 0, "failed": 0, "details": []}
+            "payment_database": {"passed": 0, "failed": 0, "details": []},
+            "mixtape_platforms_integration": {"passed": 0, "failed": 0, "details": []},
+            "mixtape_platform_categorization": {"passed": 0, "failed": 0, "details": []},
+            "mixtape_platform_count": {"passed": 0, "failed": 0, "details": []},
+            "mixtape_platform_features": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
