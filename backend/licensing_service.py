@@ -607,9 +607,9 @@ class LicensingService:
         
         return {
             "compensation_date": compensation_date.isoformat(),
-            "total_platforms_processed": total_compensations_calculated,
-            "total_compensation_amount": float(total_amount_calculated),
-            "platform_compensations": platform_compensations[:10],  # Show first 10
+            "total_platforms": total_compensations_calculated,
+            "total_compensation": float(total_amount_calculated),
+            "platform_breakdown": platform_compensations[:10],  # Show first 10
             "statutory_rates_applied": {
                 "mechanical": float(statutory_rates[RoyaltyType.MECHANICAL]["rate_per_unit"]) if statutory_rates[RoyaltyType.MECHANICAL] else 0,
                 "performance": float(statutory_rates[RoyaltyType.PERFORMANCE]["rate_per_unit"]) if statutory_rates[RoyaltyType.PERFORMANCE] else 0,
