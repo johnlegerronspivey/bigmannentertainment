@@ -281,12 +281,22 @@ const ArtistManagement = () => {
 
   const handleAddArtist = async (artistData) => {
     try {
-      await axios.post(`${API}/label/artists`, artistData);
-      setShowAddModal(false);
-      fetchArtists();
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API}/api/label/artists`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(artistData)
+      });
+      
+      if (response.ok) {
+        setShowAddModal(false);
+        fetchArtists();
+      }
     } catch (error) {
       console.error('Error adding artist:', error);
-      alert('Error adding artist');
     }
   };
 
