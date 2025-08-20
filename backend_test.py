@@ -2109,6 +2109,296 @@ class BackendTester:
             self.log_result("distribution_platforms", "Platform Count Verification", False, f"Exception: {str(e)}")
             return False
     
+    def test_mixtape_platforms_integration(self) -> bool:
+        """Test the newly added mixtape platforms: LiveMixtapes.com and MyMixtapez.com"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Test the 2 new mixtape platforms
+                mixtape_platforms = {
+                    'livemixtapes': {
+                        'expected_type': 'streaming',
+                        'expected_name': 'LiveMixtapes.com',
+                        'expected_api_endpoint': 'https://api.livemixtapes.com/v1',
+                        'expected_max_file_size': 150 * 1024 * 1024,  # 150MB
+                        'expected_formats': ['audio'],
+                        'expected_credentials': ['api_key', 'user_token'],
+                        'expected_demographics': 'Hip-hop fans, ages 16-35, urban culture',
+                        'expected_content_guidelines': 'Hip-hop mixtapes, rap music, urban content, artist features',
+                        'expected_features': ['mixtape_hosting', 'artist_profiles', 'download_tracking', 'social_sharing']
+                    },
+                    'mymixtapez': {
+                        'expected_type': 'streaming',
+                        'expected_name': 'MyMixtapez.com',
+                        'expected_api_endpoint': 'https://api.mymixtapez.com/v2',
+                        'expected_max_file_size': 200 * 1024 * 1024,  # 200MB
+                        'expected_formats': ['audio'],
+                        'expected_credentials': ['api_key', 'artist_id'],
+                        'expected_demographics': 'Hip-hop enthusiasts, ages 18-40, mixtape culture',
+                        'expected_content_guidelines': 'Mixtapes, rap albums, hip-hop singles, collaborative projects',
+                        'expected_features': ['mixtape_distribution', 'playlist_features', 'artist_discovery', 'mobile_app_integration']
+                    }
+                }
+                
+                all_platforms_valid = True
+                platform_details = []
+                
+                for platform_id, expected_config in mixtape_platforms.items():
+                    if platform_id in platforms:
+                        platform = platforms[platform_id]
+                        
+                        # Verify platform type
+                        if platform.get('type') != expected_config['expected_type']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Type Verification", False, 
+                                          f"Expected type '{expected_config['expected_type']}', got '{platform.get('type')}'")
+                            continue
+                        
+                        # Verify platform name
+                        if platform.get('name') != expected_config['expected_name']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Name Verification", False, 
+                                          f"Expected name '{expected_config['expected_name']}', got '{platform.get('name')}'")
+                            continue
+                        
+                        # Verify API endpoint
+                        if platform.get('api_endpoint') != expected_config['expected_api_endpoint']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} API Endpoint Verification", False, 
+                                          f"Expected API endpoint '{expected_config['expected_api_endpoint']}', got '{platform.get('api_endpoint')}'")
+                            continue
+                        
+                        # Verify max file size
+                        if platform.get('max_file_size') != expected_config['expected_max_file_size']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} File Size Verification", False, 
+                                          f"Expected max file size {expected_config['expected_max_file_size']//1024//1024}MB, got {platform.get('max_file_size', 0)//1024//1024}MB")
+                            continue
+                        
+                        # Verify supported formats
+                        if set(platform.get('supported_formats', [])) != set(expected_config['expected_formats']):
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Formats Verification", False, 
+                                          f"Expected formats {expected_config['expected_formats']}, got {platform.get('supported_formats')}")
+                            continue
+                        
+                        # Verify credentials required
+                        if set(platform.get('credentials_required', [])) != set(expected_config['expected_credentials']):
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Credentials Verification", False, 
+                                          f"Expected credentials {expected_config['expected_credentials']}, got {platform.get('credentials_required')}")
+                            continue
+                        
+                        # Verify target demographics
+                        if platform.get('target_demographics') != expected_config['expected_demographics']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Demographics Verification", False, 
+                                          f"Expected demographics '{expected_config['expected_demographics']}', got '{platform.get('target_demographics')}'")
+                            continue
+                        
+                        # Verify content guidelines
+                        if platform.get('content_guidelines') != expected_config['expected_content_guidelines']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Content Guidelines Verification", False, 
+                                          f"Expected guidelines '{expected_config['expected_content_guidelines']}', got '{platform.get('content_guidelines')}'")
+                            continue
+                        
+                        # Verify platform features
+                        if set(platform.get('platform_features', [])) != set(expected_config['expected_features']):
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Features Verification", False, 
+                                          f"Expected features {expected_config['expected_features']}, got {platform.get('platform_features')}")
+                            continue
+                        
+                        # If all checks pass, log success
+                        self.log_result("distribution_platforms", f"{platform_id.upper()} Configuration", True, 
+                                      f"All configuration verified: type={platform.get('type')}, max_size={platform.get('max_file_size')//1024//1024}MB, formats={platform.get('supported_formats')}")
+                        
+                        platform_details.append(f"{platform_id.upper()}: {platform.get('name')} ({platform.get('type')})")
+                        
+                    else:
+                        all_platforms_valid = False
+                        self.log_result("distribution_platforms", f"{platform_id.upper()} Existence", False, 
+                                      f"Platform '{platform_id}' not found in platforms list")
+                
+                if all_platforms_valid:
+                    self.log_result("distribution_platforms", "Mixtape Platforms Integration", True, 
+                                  f"All 2 new mixtape platforms properly configured: {', '.join(platform_details)}")
+                    return True
+                else:
+                    self.log_result("distribution_platforms", "Mixtape Platforms Integration", False, 
+                                  "Some mixtape platforms have configuration issues")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "Mixtape Platforms Integration", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "Mixtape Platforms Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mixtape_platform_categorization(self) -> bool:
+        """Test that mixtape platforms are properly categorized in streaming category"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Get all streaming platforms
+                streaming_platforms = [p for p_id, p in platforms.items() if p.get('type') == 'streaming']
+                
+                # Check that LiveMixtapes and MyMixtapez are in streaming category
+                livemixtapes_in_streaming = any(p.get('name') == 'LiveMixtapes.com' for p in streaming_platforms)
+                mymixtapez_in_streaming = any(p.get('name') == 'MyMixtapez.com' for p in streaming_platforms)
+                
+                if livemixtapes_in_streaming and mymixtapez_in_streaming:
+                    self.log_result("distribution_platforms", "Mixtape Platform Categorization", True, 
+                                  f"Both mixtape platforms correctly categorized in streaming category (Total streaming platforms: {len(streaming_platforms)})")
+                    return True
+                else:
+                    missing = []
+                    if not livemixtapes_in_streaming:
+                        missing.append("LiveMixtapes not in streaming category")
+                    if not mymixtapez_in_streaming:
+                        missing.append("MyMixtapez not in streaming category")
+                    
+                    self.log_result("distribution_platforms", "Mixtape Platform Categorization", False, 
+                                  f"Categorization issues: {', '.join(missing)}")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "Mixtape Platform Categorization", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "Mixtape Platform Categorization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mixtape_platform_count_verification(self) -> bool:
+        """Test that platform count has increased from 71 to 73+ with new mixtape platforms"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                total_count = len(platforms)
+                
+                # Verify we have at least 73 platforms (71 + 2 new mixtape platforms)
+                if total_count >= 73:
+                    # Verify the specific new mixtape platforms exist
+                    new_platforms = ['livemixtapes', 'mymixtapez']
+                    found_new_platforms = [p for p in new_platforms if p in platforms]
+                    
+                    if len(found_new_platforms) == 2:
+                        self.log_result("distribution_platforms", "Mixtape Platform Count Verification", True, 
+                                      f"Platform count increased to {total_count} (includes both new mixtape platforms: {', '.join(found_new_platforms)})")
+                        return True
+                    else:
+                        missing_new = [p for p in new_platforms if p not in platforms]
+                        self.log_result("distribution_platforms", "Mixtape Platform Count Verification", False, 
+                                      f"Total count is {total_count} but missing new mixtape platforms: {missing_new}")
+                        return False
+                else:
+                    self.log_result("distribution_platforms", "Mixtape Platform Count Verification", False, 
+                                  f"Expected at least 73 platforms, found {total_count}")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "Mixtape Platform Count Verification", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "Mixtape Platform Count Verification", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mixtape_platform_specific_features(self) -> bool:
+        """Test mixtape platform-specific features and configurations"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Test LiveMixtapes specific features
+                if 'livemixtapes' in platforms:
+                    livemixtapes = platforms['livemixtapes']
+                    
+                    # Check hip-hop/urban targeting
+                    if 'Hip-hop' not in livemixtapes.get('target_demographics', ''):
+                        self.log_result("distribution_platforms", "LiveMixtapes Hip-Hop Targeting", False, 
+                                      f"Missing hip-hop targeting in demographics: {livemixtapes.get('target_demographics')}")
+                        return False
+                    
+                    # Check free distribution model
+                    if 'Free hosting' not in livemixtapes.get('revenue_sharing', ''):
+                        self.log_result("distribution_platforms", "LiveMixtapes Free Distribution", False, 
+                                      f"Missing free distribution model: {livemixtapes.get('revenue_sharing')}")
+                        return False
+                    
+                    # Check mixtape hosting feature
+                    if 'mixtape_hosting' not in livemixtapes.get('platform_features', []):
+                        self.log_result("distribution_platforms", "LiveMixtapes Mixtape Hosting", False, 
+                                      f"Missing mixtape_hosting feature: {livemixtapes.get('platform_features')}")
+                        return False
+                    
+                    self.log_result("distribution_platforms", "LiveMixtapes Specific Features", True, 
+                                  "All LiveMixtapes specific features verified")
+                else:
+                    self.log_result("distribution_platforms", "LiveMixtapes Specific Features", False, 
+                                  "LiveMixtapes platform not found")
+                    return False
+                
+                # Test MyMixtapez specific features
+                if 'mymixtapez' in platforms:
+                    mymixtapez = platforms['mymixtapez']
+                    
+                    # Check hip-hop/urban targeting
+                    if 'Hip-hop' not in mymixtapez.get('target_demographics', ''):
+                        self.log_result("distribution_platforms", "MyMixtapez Hip-Hop Targeting", False, 
+                                      f"Missing hip-hop targeting in demographics: {mymixtapez.get('target_demographics')}")
+                        return False
+                    
+                    # Check mixtape distribution feature
+                    if 'mixtape_distribution' not in mymixtapez.get('platform_features', []):
+                        self.log_result("distribution_platforms", "MyMixtapez Mixtape Distribution", False, 
+                                      f"Missing mixtape_distribution feature: {mymixtapez.get('platform_features')}")
+                        return False
+                    
+                    # Check mobile app integration
+                    if 'mobile_app_integration' not in mymixtapez.get('platform_features', []):
+                        self.log_result("distribution_platforms", "MyMixtapez Mobile Integration", False, 
+                                      f"Missing mobile_app_integration feature: {mymixtapez.get('platform_features')}")
+                        return False
+                    
+                    self.log_result("distribution_platforms", "MyMixtapez Specific Features", True, 
+                                  "All MyMixtapez specific features verified")
+                else:
+                    self.log_result("distribution_platforms", "MyMixtapez Specific Features", False, 
+                                  "MyMixtapez platform not found")
+                    return False
+                
+                self.log_result("distribution_platforms", "Mixtape Platform Specific Features", True, 
+                              "All mixtape platform-specific features verified successfully")
+                return True
+                
+            else:
+                self.log_result("distribution_platforms", "Mixtape Platform Specific Features", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "Mixtape Platform Specific Features", False, f"Exception: {str(e)}")
+            return False
+    
     def test_content_distribution_audio_to_streaming(self) -> bool:
         """Test distributing audio content to streaming platforms"""
         try:
