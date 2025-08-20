@@ -2408,6 +2408,284 @@ class BackendTester:
             self.log_result("distribution_platforms", "Mixtape Platform Specific Features", False, f"Exception: {str(e)}")
             return False
     
+    def test_new_5_platforms_integration(self) -> bool:
+        """Test the newly added 5 platforms integration: WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Check for the 5 new platforms
+                new_platforms = {
+                    'worldstarhiphop': {
+                        'expected_type': 'streaming',
+                        'expected_name': 'WorldStar Hip Hop',
+                        'expected_api': 'https://api.worldstarhiphop.com/v1',
+                        'expected_max_size': 500 * 1024 * 1024  # 500MB
+                    },
+                    'theshaderoom': {
+                        'expected_type': 'social_media',
+                        'expected_name': 'The Shade Room',
+                        'expected_api': 'https://api.theshaderoom.com/v1',
+                        'expected_max_size': 100 * 1024 * 1024  # 100MB
+                    },
+                    'tubi': {
+                        'expected_type': 'streaming_tv',
+                        'expected_name': 'Tubi',
+                        'expected_api': 'https://api.tubi.tv/v1',
+                        'expected_max_size': 2 * 1024 * 1024 * 1024  # 2GB
+                    },
+                    'hollywoodunlocked': {
+                        'expected_type': 'social_media',
+                        'expected_name': 'Hollywood Unlocked',
+                        'expected_api': 'https://api.hollywoodunlocked.com/v1',
+                        'expected_max_size': 150 * 1024 * 1024  # 150MB
+                    },
+                    'tumblr': {
+                        'expected_type': 'social_media',
+                        'expected_name': 'Tumblr',
+                        'expected_api': 'https://api.tumblr.com/v2',
+                        'expected_max_size': 100 * 1024 * 1024  # 100MB
+                    }
+                }
+                
+                missing_platforms = []
+                incorrect_configs = []
+                
+                for platform_id, expected_config in new_platforms.items():
+                    if platform_id not in platforms:
+                        missing_platforms.append(platform_id)
+                    else:
+                        platform = platforms[platform_id]
+                        
+                        # Verify platform type
+                        if platform.get('type') != expected_config['expected_type']:
+                            incorrect_configs.append(f"{platform_id}: type should be {expected_config['expected_type']}, got {platform.get('type')}")
+                        
+                        # Verify platform name
+                        if platform.get('name') != expected_config['expected_name']:
+                            incorrect_configs.append(f"{platform_id}: name should be {expected_config['expected_name']}, got {platform.get('name')}")
+                        
+                        # Verify API endpoint
+                        if platform.get('api_endpoint') != expected_config['expected_api']:
+                            incorrect_configs.append(f"{platform_id}: API endpoint should be {expected_config['expected_api']}, got {platform.get('api_endpoint')}")
+                        
+                        # Verify max file size
+                        if platform.get('max_file_size') != expected_config['expected_max_size']:
+                            incorrect_configs.append(f"{platform_id}: max file size should be {expected_config['expected_max_size']}, got {platform.get('max_file_size')}")
+                
+                if missing_platforms:
+                    self.log_result("new_platforms_integration", "New 5 Platforms Integration", False, 
+                                  f"Missing platforms: {missing_platforms}")
+                    return False
+                
+                if incorrect_configs:
+                    self.log_result("new_platforms_integration", "New 5 Platforms Integration", False, 
+                                  f"Incorrect configurations: {incorrect_configs}")
+                    return False
+                
+                self.log_result("new_platforms_integration", "New 5 Platforms Integration", True, 
+                              "All 5 new platforms (WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr) are properly integrated")
+                return True
+                
+            else:
+                self.log_result("new_platforms_integration", "New 5 Platforms Integration", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_platforms_integration", "New 5 Platforms Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_new_platforms_count_verification(self) -> bool:
+        """Test that platform count has increased from 73 to 78 with the new 5 platforms"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                total_platforms = len(platforms)
+                
+                # Should be 78 platforms now (73 + 5 new platforms)
+                if total_platforms >= 78:
+                    self.log_result("new_platforms_count", "Platform Count Verification", True, 
+                                  f"Platform count increased to {total_platforms} (expected 78+)")
+                    return True
+                else:
+                    self.log_result("new_platforms_count", "Platform Count Verification", False, 
+                                  f"Platform count is {total_platforms}, expected 78+")
+                    return False
+                
+            else:
+                self.log_result("new_platforms_count", "Platform Count Verification", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_platforms_count", "Platform Count Verification", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_new_platforms_categorization(self) -> bool:
+        """Test that new platforms are properly categorized by type"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Count platforms by category
+                social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
+                streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
+                streaming_tv = [p for p in platforms.values() if p.get('type') == 'streaming_tv']
+                
+                # Check that new platforms are in correct categories
+                social_media_platforms = [p.get('name') for p in social_media]
+                streaming_platforms = [p.get('name') for p in streaming]
+                streaming_tv_platforms = [p.get('name') for p in streaming_tv]
+                
+                # Verify The Shade Room, Hollywood Unlocked, and Tumblr are in social_media
+                expected_social = ['The Shade Room', 'Hollywood Unlocked', 'Tumblr']
+                missing_social = [p for p in expected_social if p not in social_media_platforms]
+                
+                # Verify WorldStar Hip Hop is in streaming
+                if 'WorldStar Hip Hop' not in streaming_platforms:
+                    missing_streaming = ['WorldStar Hip Hop']
+                else:
+                    missing_streaming = []
+                
+                # Verify Tubi is in streaming_tv
+                if 'Tubi' not in streaming_tv_platforms:
+                    missing_streaming_tv = ['Tubi']
+                else:
+                    missing_streaming_tv = []
+                
+                if missing_social or missing_streaming or missing_streaming_tv:
+                    errors = []
+                    if missing_social:
+                        errors.append(f"Missing from social_media: {missing_social}")
+                    if missing_streaming:
+                        errors.append(f"Missing from streaming: {missing_streaming}")
+                    if missing_streaming_tv:
+                        errors.append(f"Missing from streaming_tv: {missing_streaming_tv}")
+                    
+                    self.log_result("new_platforms_categorization", "New Platforms Categorization", False, 
+                                  f"Categorization errors: {'; '.join(errors)}")
+                    return False
+                
+                self.log_result("new_platforms_categorization", "New Platforms Categorization", True, 
+                              f"All new platforms properly categorized - Social Media: {len(social_media)}, Streaming: {len(streaming)}, Streaming TV: {len(streaming_tv)}")
+                return True
+                
+            else:
+                self.log_result("new_platforms_categorization", "New Platforms Categorization", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_platforms_categorization", "New Platforms Categorization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_new_platforms_specific_features(self) -> bool:
+        """Test platform-specific features and configurations for the 5 new platforms"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Test WorldStar Hip Hop features
+                if 'worldstarhiphop' in platforms:
+                    worldstar = platforms['worldstarhiphop']
+                    
+                    # Check hip-hop content focus
+                    if 'hip-hop' not in worldstar.get('target_demographics', '').lower():
+                        self.log_result("new_platforms_features", "WorldStar Hip-Hop Focus", False, 
+                                      f"Missing hip-hop focus in demographics: {worldstar.get('target_demographics')}")
+                        return False
+                    
+                    # Check viral content feature
+                    if 'viral_content' not in worldstar.get('platform_features', []):
+                        self.log_result("new_platforms_features", "WorldStar Viral Content", False, 
+                                      f"Missing viral_content feature: {worldstar.get('platform_features')}")
+                        return False
+                
+                # Test The Shade Room features
+                if 'theshaderoom' in platforms:
+                    shaderoom = platforms['theshaderoom']
+                    
+                    # Check entertainment news configuration
+                    if 'entertainment news' not in shaderoom.get('content_guidelines', '').lower():
+                        self.log_result("new_platforms_features", "Shade Room Entertainment News", False, 
+                                      f"Missing entertainment news in guidelines: {shaderoom.get('content_guidelines')}")
+                        return False
+                    
+                    # Check urban culture targeting
+                    if 'urban culture' not in shaderoom.get('target_demographics', '').lower():
+                        self.log_result("new_platforms_features", "Shade Room Urban Culture", False, 
+                                      f"Missing urban culture targeting: {shaderoom.get('target_demographics')}")
+                        return False
+                
+                # Test Tubi features
+                if 'tubi' in platforms:
+                    tubi = platforms['tubi']
+                    
+                    # Check free streaming platform feature
+                    if 'free_streaming' not in tubi.get('platform_features', []):
+                        self.log_result("new_platforms_features", "Tubi Free Streaming", False, 
+                                      f"Missing free_streaming feature: {tubi.get('platform_features')}")
+                        return False
+                    
+                    # Check ad-supported model
+                    if 'ad_supported' not in tubi.get('platform_features', []):
+                        self.log_result("new_platforms_features", "Tubi Ad Supported", False, 
+                                      f"Missing ad_supported feature: {tubi.get('platform_features')}")
+                        return False
+                
+                # Test Hollywood Unlocked features
+                if 'hollywoodunlocked' in platforms:
+                    hollywood = platforms['hollywoodunlocked']
+                    
+                    # Check celebrity content focus
+                    if 'celebrity' not in hollywood.get('content_guidelines', '').lower():
+                        self.log_result("new_platforms_features", "Hollywood Unlocked Celebrity Focus", False, 
+                                      f"Missing celebrity focus in guidelines: {hollywood.get('content_guidelines')}")
+                        return False
+                
+                # Test Tumblr features
+                if 'tumblr' in platforms:
+                    tumblr = platforms['tumblr']
+                    
+                    # Check creative community focus
+                    if 'creative' not in tumblr.get('target_demographics', '').lower():
+                        self.log_result("new_platforms_features", "Tumblr Creative Community", False, 
+                                      f"Missing creative community focus: {tumblr.get('target_demographics')}")
+                        return False
+                    
+                    # Check artistic expression in guidelines
+                    if 'artistic expression' not in tumblr.get('content_guidelines', '').lower():
+                        self.log_result("new_platforms_features", "Tumblr Artistic Expression", False, 
+                                      f"Missing artistic expression in guidelines: {tumblr.get('content_guidelines')}")
+                        return False
+                
+                self.log_result("new_platforms_features", "New Platforms Specific Features", True, 
+                              "All new platform-specific features verified successfully")
+                return True
+                
+            else:
+                self.log_result("new_platforms_features", "New Platforms Specific Features", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_platforms_features", "New Platforms Specific Features", False, f"Exception: {str(e)}")
+            return False
+    
     def test_content_distribution_audio_to_streaming(self) -> bool:
         """Test distributing audio content to streaming platforms"""
         try:
