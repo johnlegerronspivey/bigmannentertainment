@@ -9783,6 +9783,13 @@ class BackendTester:
                 for detail in self.results[category]['details']:
                     if "❌ FAIL" in detail:
                         print(f"  {detail}")
+        
+        if new_platforms_total_failed > 0:
+            print(f"\n❌ Failed New 5 Platforms Tests Details:")
+            for category in ['new_platforms_integration', 'new_platforms_count', 'new_platforms_categorization', 'new_platforms_features']:
+                for detail in self.results[category]['details']:
+                    if "❌ FAIL" in detail:
+                        print(f"  {detail}")
 
     def run_all_tests(self):
         """Run comprehensive backend tests focusing on the review request components"""
