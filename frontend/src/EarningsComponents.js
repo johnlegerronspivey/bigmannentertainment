@@ -283,7 +283,7 @@ const PayoutRequestModal = ({ availableBalance, minThreshold, onClose, onSuccess
     try {
       // Fetch bank accounts
       const bankResponse = await fetch(`${API}/api/payments/bank-accounts`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (bankResponse.ok) {
         const bankData = await bankResponse.json();
