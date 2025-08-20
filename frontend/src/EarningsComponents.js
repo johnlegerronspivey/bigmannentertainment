@@ -64,8 +64,39 @@ export const EarningsDashboard = () => {
     });
   };
 
-  if (loading) return <div className="text-center py-8">Loading earnings...</div>;
-  if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your earnings data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold">Error Loading Earnings</h3>
+              <p>{error}</p>
+            </div>
+            <button
+              onClick={fetchEarnings}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
