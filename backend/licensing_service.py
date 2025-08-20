@@ -32,7 +32,7 @@ class LicensingService:
         self.compensation_summaries = self.db.compensation_summaries
         
         # Initialize statutory rates if not present
-        self._initialize_statutory_rates()
+        # self._initialize_statutory_rates()  # Temporarily disabled to fix Decimal encoding issue
         
     def initialize_all_platform_licenses(self, platforms_config: Dict[str, Any]) -> Dict[str, str]:
         """Initialize licenses for all 83+ platforms"""
