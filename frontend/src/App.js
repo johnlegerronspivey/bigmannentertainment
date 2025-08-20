@@ -4217,6 +4217,17 @@ function App() {
             <Route path="/admin/earnings" element={<AdminRoute><EarningsDashboard /></AdminRoute>} />
             <Route path="/admin/banking" element={<AdminRoute><BankAccountManager /></AdminRoute>} />
             <Route path="/admin/wallets" element={<AdminRoute><DigitalWalletManager /></AdminRoute>} />
+            
+            {/* Licensing Management Routes */}
+            <Route path="/licensing" element={<ProtectedRoute><LicensingDashboard /></ProtectedRoute>} />
+            <Route path="/licensing/platforms" element={<ProtectedRoute><PlatformLicenseManager /></ProtectedRoute>} />
+            <Route path="/licensing/status" element={<ProtectedRoute><LicensingStatus /></ProtectedRoute>} />
+            
+            {/* Admin Licensing Routes */}
+            <Route path="/admin/licensing" element={<AdminRoute><LicensingDashboard /></AdminRoute>} />
+            <Route path="/admin/licensing/platforms" element={<AdminRoute><PlatformLicenseManager /></AdminRoute>} />
+            <Route path="/admin/licensing/status" element={<AdminRoute><LicensingStatus /></AdminRoute>} />
+            
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
           <Footer />
