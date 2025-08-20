@@ -149,3 +149,155 @@ class PlatformActivation(BaseModel):
     
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Statutory Rate Models for Music Licensing
+class RoyaltyType(str, Enum):
+    MECHANICAL = "mechanical"
+    PERFORMANCE = "performance"
+    SYNCHRONIZATION = "synchronization"
+    DIGITAL_PERFORMANCE = "digital_performance"
+    REPRODUCTION = "reproduction"
+
+class StatutoryRate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    royalty_type: RoyaltyType
+    rate_name: str
+    
+    # Rate information
+    rate_per_unit: Decimal  # Rate per play/stream/copy
+    rate_percentage: Optional[Decimal] = None  # Percentage of revenue
+    minimum_fee: Decimal = Decimal('0.00')
+    maximum_fee: Optional[Decimal] = None
+    
+    # Effective period
+    effective_date: datetime
+    expiration_date: Optional[datetime] = None
+    
+    # Rate details
+    currency: str = "USD"
+    unit_type: str = "per_stream"  # "per_stream", "per_download", "per_minute", "per_composition"
+    rate_source: str = "CRB"  # Copyright Royalty Board
+    
+    # Applicability
+    applies_to_platforms: List[str] = Field(default_factory=list)  # Platform IDs
+    applies_to_content: List[str] = Field(default_factory=list)   # Content types
+    
+    # Big Mann Entertainment specific
+    big_mann_rate_multiplier: Decimal = Decimal('1.0')  # Custom multiplier
+    auto_apply: bool = True
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class DailyCompensation(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    compensation_date: datetime
+    
+    # Platform and license information
+    platform_id: str
+    license_id: str
+    platform_name: str
+    
+    # Usage metrics for the day
+    total_streams: int = 0
+    total_downloads: int = 0
+    total_views: int = 0
+    total_plays: int = 0
+    
+    # Revenue calculations
+    gross_revenue: Decimal = Decimal('0.00')
+    platform_commission: Decimal = Decimal('0.00')
+    net_revenue: Decimal = Decimal('0.00')
+    
+    # Statutory rate applications
+    mechanical_royalties: Decimal = Decimal('0.00')
+    performance_royalties: Decimal = Decimal('0.00')
+    sync_royalties: Decimal = Decimal('0.00')
+    
+    # Daily compensation breakdown
+    artist_compensation: Decimal = Decimal('0.00')
+    songwriter_compensation: Decimal = Decimal('0.00')
+    publisher_compensation: Decimal = Decimal('0.00')
+    big_mann_commission: Decimal = Decimal('0.00')
+    
+    # Payment details
+    total_compensation: Decimal = Decimal('0.00')
+    payment_status: str = "pending"  # "pending", "processed", "paid", "failed"
+    payment_date: Optional[datetime] = None
+    payment_reference: Optional[str] = None
+    
+    # Calculation metadata
+    statutory_rates_applied: List[str] = Field(default_factory=list)  # Statutory rate IDs used
+    calculation_method: str = "automated"
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CompensationPayout(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    payout_date: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Payout details
+    recipient_type: str  # "artist", "songwriter", "publisher", "platform"
+    recipient_id: str
+    recipient_name: str
+    recipient_email: Optional[str] = None
+    
+    # Compensation period
+    period_start: datetime
+    period_end: datetime
+    compensation_days: List[str] = Field(default_factory=list)  # Daily compensation IDs included
+    
+    # Financial details
+    total_amount: Decimal = Decimal('0.00')
+    tax_withholding: Decimal = Decimal('0.00')
+    net_payout: Decimal = Decimal('0.00')
+    
+    # Payment method
+    payment_method: str = "bank_transfer"  # "bank_transfer", "paypal", "venmo", "check"
+    payment_details: Dict[str, str] = Field(default_factory=dict)
+    
+    # Status tracking
+    payout_status: str = "pending"  # "pending", "processing", "completed", "failed", "cancelled"
+    transaction_id: Optional[str] = None
+    confirmation_number: Optional[str] = None
+    
+    # Business information
+    business_entity: str = "Big Mann Entertainment"
+    business_owner: str = "John LeGerron Spivey"
+    business_ein: str = "270658077"
+    business_tin: str = "12800"
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class LicenseCompensationSummary(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    summary_date: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Summary period
+    period_start: datetime
+    period_end: datetime
+    period_type: str = "monthly"  # "daily", "weekly", "monthly", "quarterly", "annual"
+    
+    # Platform summary
+    total_platforms_active: int = 0
+    total_content_distributed: int = 0
+    total_streams_generated: int = 0
+    
+    # Financial summary
+    total_gross_revenue: Decimal = Decimal('0.00')
+    total_statutory_royalties: Decimal = Decimal('0.00')
+    total_compensations_paid: Decimal = Decimal('0.00')
+    total_pending_compensations: Decimal = Decimal('0.00')
+    
+    # Statutory rate compliance
+    statutory_compliance_rate: Decimal = Decimal('100.00')
+    rates_applied_count: int = 0
+    compliance_issues: List[str] = Field(default_factory=list)
+    
+    # Big Mann Entertainment performance
+    big_mann_total_commission: Decimal = Decimal('0.00')
+    big_mann_roi_percentage: Decimal = Decimal('0.00')
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
