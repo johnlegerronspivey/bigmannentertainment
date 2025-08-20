@@ -13787,7 +13787,7 @@ class BackendTester:
         self.test_new_platforms_categorization()
         self.test_new_platforms_specific_features()
         
-        print(f"\n📊 NEW 5 PLATFORMS INTEGRATION TESTS SUMMARY:")
+        print(f"\n📊 NEW 5 CREATOR/LIFESTYLE PLATFORMS INTEGRATION TESTS SUMMARY:")
         new_platforms_total_passed = (self.results['new_platforms_integration']['passed'] + 
                                      self.results['new_platforms_count']['passed'] + 
                                      self.results['new_platforms_categorization']['passed'] + 
@@ -13800,7 +13800,7 @@ class BackendTester:
         print(f"❌ Failed: {new_platforms_total_failed}")
         
         if new_platforms_total_failed > 0:
-            print(f"\n❌ Failed New 5 Platforms Tests Details:")
+            print(f"\n❌ Failed New 5 Creator/Lifestyle Platforms Tests Details:")
             for category in ['new_platforms_integration', 'new_platforms_count', 'new_platforms_categorization', 'new_platforms_features']:
                 for detail in self.results[category]['details']:
                     if "❌ FAIL" in detail:
