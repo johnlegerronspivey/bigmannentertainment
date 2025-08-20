@@ -11,6 +11,7 @@ import { LabelDashboard } from "./LabelComponents";
 import { ProjectManagement, MarketingManagement, FinancialManagement } from "./LabelExtendedComponents";
 import { PaymentPackages, PaymentCheckout, PaymentStatus, BankAccountManager, DigitalWalletManager } from "./PaymentComponents";
 import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
+import { LicensingDashboard, PlatformLicenseManager, LicensingStatus } from './LicensingComponents';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
