@@ -669,7 +669,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Media Upload API Endpoint (/api/media/upload)"
+    - "Mixtape Platforms Integration for Big Mann Entertainment (LiveMixtapes, MyMixtapez)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
