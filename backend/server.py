@@ -756,6 +756,42 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 3 * 1024 * 1024 * 1024,
         "credentials_required": ["api_key", "content_partner_id"]
     },
+    "bet": {
+        "type": "tv",
+        "name": "BET (Black Entertainment Television)",
+        "api_endpoint": "https://api.bet.com/content/v1",
+        "supported_formats": ["video", "audio", "image"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,  # 2GB
+        "credentials_required": ["api_key", "content_partner_id"],
+        "target_demographics": "African American audience, ages 18-54",
+        "content_guidelines": "Urban entertainment, music videos, reality TV, comedy, drama",
+        "submission_process": "BET content review and approval required",
+        "revenue_sharing": "70/30 split (creator/platform)"
+    },
+    "revolt_tv": {
+        "type": "streaming_tv", 
+        "name": "Revolt TV",
+        "api_endpoint": "https://api.revolt.tv/v1",
+        "supported_formats": ["video", "audio"],
+        "max_file_size": 1 * 1024 * 1024 * 1024,  # 1GB
+        "credentials_required": ["api_key", "channel_id"],
+        "target_demographics": "Music lovers, ages 18-34, urban culture",
+        "content_guidelines": "Hip-hop, R&B, music documentaries, artist interviews",
+        "submission_process": "Revolt content curation team review",
+        "revenue_sharing": "65/35 split (creator/platform)"
+    },
+    "mtv": {
+        "type": "tv",
+        "name": "MTV (Music Television)",
+        "api_endpoint": "https://api.mtv.com/content/v2",
+        "supported_formats": ["video", "audio", "image"],
+        "max_file_size": 3 * 1024 * 1024 * 1024,  # 3GB
+        "credentials_required": ["api_key", "viacom_partner_id"],
+        "target_demographics": "Gen Z and Millennials, ages 12-34",
+        "content_guidelines": "Music videos, reality TV, pop culture, lifestyle content",
+        "submission_process": "MTV programming team review and scheduling",
+        "revenue_sharing": "60/40 split (creator/platform)"
+    },
     
     # Podcast Platforms
     "spotify_podcasts": {
