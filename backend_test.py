@@ -10744,6 +10744,10 @@ class BackendTester:
         # Core Licensing Endpoints
         self.test_licensing_dashboard()
         self.test_licensing_platform_initialization()
+        
+        # Try admin initialization if regular initialization fails
+        self.test_licensing_platform_initialization_admin()
+        
         self.test_licensing_platform_management()
         self.test_licensing_compliance()
         self.test_licensing_usage_tracking()
