@@ -2486,8 +2486,8 @@ class BackendTester:
                                   f"Incorrect configurations: {incorrect_configs}")
                     return False
                 
-                self.log_result("new_platforms_integration", "New 5 Platforms Integration", True, 
-                              "All 5 new platforms (WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr) are properly integrated")
+                self.log_result("new_platforms_integration", "New 5 Creator/Lifestyle Platforms Integration", True, 
+                              "All 5 new creator/lifestyle platforms (RapHouseTV, Models.com, Model Management, OnlyFans, Lemon8) are properly integrated")
                 return True
                 
             else:
