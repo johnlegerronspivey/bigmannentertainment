@@ -831,6 +831,19 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 3 * 1024 * 1024 * 1024,
         "credentials_required": ["api_key", "content_partner_id"]
     },
+    "tubi": {
+        "type": "streaming_tv",
+        "name": "Tubi",
+        "api_endpoint": "https://api.tubi.tv/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,  # 2GB
+        "credentials_required": ["api_key", "content_partner_id"],
+        "target_demographics": "Diverse audience, ages 18-65, free streaming viewers",
+        "content_guidelines": "Movies, TV shows, documentaries, original content",
+        "submission_process": "Tubi content acquisition team review",
+        "revenue_sharing": "Ad-supported revenue sharing model",
+        "platform_features": ["free_streaming", "ad_supported", "mobile_apps", "smart_tv_integration"]
+    },
     "bet": {
         "type": "tv",
         "name": "BET (Black Entertainment Television)",
