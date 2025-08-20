@@ -2684,45 +2684,6 @@ class BackendTester:
         except Exception as e:
             self.log_result("new_platforms_features", "New Creator/Lifestyle Platforms Specific Features", False, f"Exception: {str(e)}")
             return False
-                
-                # Test Hollywood Unlocked features
-                if 'hollywoodunlocked' in platforms:
-                    hollywood = platforms['hollywoodunlocked']
-                    
-                    # Check celebrity content focus
-                    if 'celebrity' not in hollywood.get('content_guidelines', '').lower():
-                        self.log_result("new_platforms_features", "Hollywood Unlocked Celebrity Focus", False, 
-                                      f"Missing celebrity focus in guidelines: {hollywood.get('content_guidelines')}")
-                        return False
-                
-                # Test Tumblr features
-                if 'tumblr' in platforms:
-                    tumblr = platforms['tumblr']
-                    
-                    # Check creative community focus
-                    if 'creative' not in tumblr.get('target_demographics', '').lower():
-                        self.log_result("new_platforms_features", "Tumblr Creative Community", False, 
-                                      f"Missing creative community focus: {tumblr.get('target_demographics')}")
-                        return False
-                    
-                    # Check artistic expression in guidelines
-                    if 'artistic expression' not in tumblr.get('content_guidelines', '').lower():
-                        self.log_result("new_platforms_features", "Tumblr Artistic Expression", False, 
-                                      f"Missing artistic expression in guidelines: {tumblr.get('content_guidelines')}")
-                        return False
-                
-                self.log_result("new_platforms_features", "New Platforms Specific Features", True, 
-                              "All new platform-specific features verified successfully")
-                return True
-                
-            else:
-                self.log_result("new_platforms_features", "New Platforms Specific Features", False, 
-                              f"Failed to get platforms: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log_result("new_platforms_features", "New Platforms Specific Features", False, f"Exception: {str(e)}")
-            return False
     
     def test_content_distribution_audio_to_streaming(self) -> bool:
         """Test distributing audio content to streaming platforms"""
