@@ -469,7 +469,7 @@ export const RoyaltySplitManager = ({ mediaId, mediaTitle }) => {
     try {
       const response = await fetch(`${API}/api/payments/royalty-splits/${mediaId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
