@@ -10249,6 +10249,440 @@ class BackendTester:
         # Print Summary
         self.print_summary()
     
+    # ===== COMPREHENSIVE LICENSING SYSTEM TESTS =====
+    
+    def test_licensing_backend_integration(self) -> bool:
+        """Test that licensing endpoints router is properly loaded"""
+        try:
+            # Test a simple licensing endpoint to verify router is loaded
+            response = self.make_request('GET', '/licensing/status')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'business_entity' in data and data['business_entity'] == 'Big Mann Entertainment':
+                    self.log_result("licensing_backend_integration", "Licensing Router Loading", True, 
+                                  "Licensing endpoints router successfully loaded and accessible")
+                    return True
+                else:
+                    self.log_result("licensing_backend_integration", "Licensing Router Loading", False, 
+                                  "Licensing endpoint accessible but missing expected data")
+                    return False
+            elif response.status_code == 401 or response.status_code == 403:
+                self.log_result("licensing_backend_integration", "Licensing Router Loading", True, 
+                              "Licensing endpoints router loaded (authentication required as expected)")
+                return True
+            else:
+                self.log_result("licensing_backend_integration", "Licensing Router Loading", False, 
+                              f"Licensing endpoints not accessible: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_backend_integration", "Licensing Router Loading", False, f"Exception: {str(e)}")
+            return False
+
+    def test_licensing_dashboard(self) -> bool:
+        """Test GET /api/licensing/dashboard endpoint"""
+        try:
+            if not self.auth_token:
+                self.log_result("licensing_dashboard", "Licensing Dashboard", False, "No auth token available")
+                return False
+            
+            response = self.make_request('GET', '/licensing/dashboard')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_sections = ['licensing_overview', 'business_info', 'financial_summary']
+                
+                if all(section in data for section in required_sections):
+                    overview = data['licensing_overview']
+                    business = data['business_info']
+                    
+                    if (business.get('business_entity') == 'Big Mann Entertainment' and
+                        business.get('business_owner') == 'John LeGerron Spivey' and
+                        'total_platforms_licensed' in overview):
+                        
+                        self.log_result("licensing_dashboard", "Licensing Dashboard", True, 
+                                      f"Dashboard loaded successfully with {overview.get('total_platforms_licensed', 0)} platforms licensed")
+                        return True
+                    else:
+                        self.log_result("licensing_dashboard", "Licensing Dashboard", False, 
+                                      "Dashboard missing expected Big Mann Entertainment data")
+                        return False
+                else:
+                    self.log_result("licensing_dashboard", "Licensing Dashboard", False, 
+                                  f"Dashboard missing required sections. Found: {list(data.keys())}")
+                    return False
+            else:
+                self.log_result("licensing_dashboard", "Licensing Dashboard", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_dashboard", "Licensing Dashboard", False, f"Exception: {str(e)}")
+            return False
+
+    def test_licensing_platform_initialization(self) -> bool:
+        """Test POST /api/licensing/initialize-all-platforms (admin only)"""
+        try:
+            if not self.auth_token:
+                self.log_result("licensing_platform_initialization", "Platform Initialization", False, "No auth token available")
+                return False
+            
+            response = self.make_request('POST', '/licensing/initialize-all-platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['platforms_licensed', 'master_agreement_id', 'platform_licenses', 'business_entity']
+                
+                if all(field in data for field in required_fields):
+                    platforms_count = data.get('platforms_licensed', 0)
+                    
+                    if (platforms_count >= 83 and 
+                        data.get('business_entity') == 'Big Mann Entertainment' and
+                        data.get('license_owner') == 'John LeGerron Spivey'):
+                        
+                        self.log_result("licensing_platform_initialization", "Platform Initialization", True, 
+                                      f"Successfully initialized {platforms_count} platform licenses with master agreement")
+                        return True
+                    else:
+                        self.log_result("licensing_platform_initialization", "Platform Initialization", False, 
+                                      f"Initialization incomplete. Platforms: {platforms_count}, Expected: 83+")
+                        return False
+                else:
+                    self.log_result("licensing_platform_initialization", "Platform Initialization", False, 
+                                  f"Response missing required fields. Found: {list(data.keys())}")
+                    return False
+            elif response.status_code == 403:
+                self.log_result("licensing_platform_initialization", "Platform Initialization", True, 
+                              "Correctly requires admin permissions (403 Forbidden)")
+                return True
+            else:
+                self.log_result("licensing_platform_initialization", "Platform Initialization", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_platform_initialization", "Platform Initialization", False, f"Exception: {str(e)}")
+            return False
+
+    def test_licensing_platform_management(self) -> bool:
+        """Test platform license management endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_result("licensing_platform_management", "Platform Management", False, "No auth token available")
+                return False
+            
+            # Test 1: Get all platform licenses
+            response = self.make_request('GET', '/licensing/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'total_licenses' in data and 'licenses' in data:
+                    total_licenses = data.get('total_licenses', 0)
+                    
+                    # Test 2: Get platform licenses with filtering
+                    filter_response = self.make_request('GET', '/licensing/platforms?status=active')
+                    
+                    if filter_response.status_code == 200:
+                        filter_data = filter_response.json()
+                        
+                        # Test 3: Get specific platform details (if any platforms exist)
+                        if total_licenses > 0 and len(data['licenses']) > 0:
+                            platform_id = data['licenses'][0].get('platform_id')
+                            if platform_id:
+                                detail_response = self.make_request('GET', f'/licensing/platforms/{platform_id}')
+                                
+                                if detail_response.status_code == 200:
+                                    detail_data = detail_response.json()
+                                    if 'platform_license' in detail_data:
+                                        self.log_result("licensing_platform_management", "Platform Management", True, 
+                                                      f"Platform management working: {total_licenses} licenses, filtering works, details accessible")
+                                        return True
+                                    else:
+                                        self.log_result("licensing_platform_management", "Platform Management", False, 
+                                                      "Platform details missing license information")
+                                        return False
+                                else:
+                                    self.log_result("licensing_platform_management", "Platform Management", False, 
+                                                  f"Platform details failed: {detail_response.status_code}")
+                                    return False
+                        
+                        self.log_result("licensing_platform_management", "Platform Management", True, 
+                                      f"Platform management endpoints working: {total_licenses} total licenses")
+                        return True
+                    else:
+                        self.log_result("licensing_platform_management", "Platform Management", False, 
+                                      f"Platform filtering failed: {filter_response.status_code}")
+                        return False
+                else:
+                    self.log_result("licensing_platform_management", "Platform Management", False, 
+                                  "Invalid platform licenses response format")
+                    return False
+            else:
+                self.log_result("licensing_platform_management", "Platform Management", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_platform_management", "Platform Management", False, f"Exception: {str(e)}")
+            return False
+
+    def test_licensing_compliance(self) -> bool:
+        """Test compliance and status endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_result("licensing_compliance", "Compliance & Status", False, "No auth token available")
+                return False
+            
+            # Test 1: Overall licensing status
+            status_response = self.make_request('GET', '/licensing/status')
+            
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                required_fields = ['business_entity', 'licensing_health_score', 'compliance_rate']
+                
+                if all(field in status_data for field in required_fields):
+                    # Test 2: Licensing agreements
+                    agreements_response = self.make_request('GET', '/licensing/agreements')
+                    
+                    if agreements_response.status_code == 200:
+                        agreements_data = agreements_response.json()
+                        
+                        if 'total_agreements' in agreements_data and 'agreements' in agreements_data:
+                            # Test 3: Compliance check (if we have platforms)
+                            # First get a platform to test compliance
+                            platforms_response = self.make_request('GET', '/licensing/platforms')
+                            
+                            if platforms_response.status_code == 200:
+                                platforms_data = platforms_response.json()
+                                if platforms_data.get('total_licenses', 0) > 0 and len(platforms_data['licenses']) > 0:
+                                    platform_id = platforms_data['licenses'][0].get('platform_id')
+                                    if platform_id:
+                                        compliance_response = self.make_request('POST', f'/licensing/compliance-check/{platform_id}')
+                                        
+                                        if compliance_response.status_code == 200:
+                                            compliance_data = compliance_response.json()
+                                            if 'overall_compliance' in compliance_data:
+                                                self.log_result("licensing_compliance", "Compliance & Status", True, 
+                                                              f"All compliance endpoints working. Health score: {status_data.get('licensing_health_score', 0)}%")
+                                                return True
+                            
+                            self.log_result("licensing_compliance", "Compliance & Status", True, 
+                                          f"Status and agreements endpoints working. Agreements: {agreements_data.get('total_agreements', 0)}")
+                            return True
+                        else:
+                            self.log_result("licensing_compliance", "Compliance & Status", False, 
+                                          "Invalid agreements response format")
+                            return False
+                    else:
+                        self.log_result("licensing_compliance", "Compliance & Status", False, 
+                                      f"Agreements endpoint failed: {agreements_response.status_code}")
+                        return False
+                else:
+                    self.log_result("licensing_compliance", "Compliance & Status", False, 
+                                  f"Status response missing required fields. Found: {list(status_data.keys())}")
+                    return False
+            else:
+                self.log_result("licensing_compliance", "Compliance & Status", False, 
+                              f"Status: {status_response.status_code}, Response: {status_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_compliance", "Compliance & Status", False, f"Exception: {str(e)}")
+            return False
+
+    def test_licensing_usage_tracking(self) -> bool:
+        """Test POST /api/licensing/usage/{platform_id} for updating usage metrics"""
+        try:
+            if not self.auth_token:
+                self.log_result("licensing_usage_tracking", "Usage Tracking", False, "No auth token available")
+                return False
+            
+            # First get a platform to test usage tracking
+            platforms_response = self.make_request('GET', '/licensing/platforms')
+            
+            if platforms_response.status_code == 200:
+                platforms_data = platforms_response.json()
+                if platforms_data.get('total_licenses', 0) > 0 and len(platforms_data['licenses']) > 0:
+                    platform_id = platforms_data['licenses'][0].get('platform_id')
+                    
+                    if platform_id:
+                        # Test usage update
+                        usage_data = {
+                            "content_uploads": 5,
+                            "api_calls": 150,
+                            "data_transfer_mb": 250.5,
+                            "revenue_generated": 125.75
+                        }
+                        
+                        usage_response = self.make_request('POST', f'/licensing/usage/{platform_id}', json=usage_data)
+                        
+                        if usage_response.status_code == 200:
+                            usage_result = usage_response.json()
+                            
+                            if ('message' in usage_result and 
+                                usage_result.get('platform_id') == platform_id and
+                                'usage_data' in usage_result):
+                                
+                                self.log_result("licensing_usage_tracking", "Usage Tracking", True, 
+                                              f"Usage tracking working for platform {platform_id}: {usage_data['content_uploads']} uploads, {usage_data['api_calls']} API calls")
+                                return True
+                            else:
+                                self.log_result("licensing_usage_tracking", "Usage Tracking", False, 
+                                              "Usage update response missing expected fields")
+                                return False
+                        else:
+                            self.log_result("licensing_usage_tracking", "Usage Tracking", False, 
+                                          f"Usage update failed: {usage_response.status_code}, {usage_response.text}")
+                            return False
+                    else:
+                        self.log_result("licensing_usage_tracking", "Usage Tracking", False, 
+                                      "No platform_id found in license data")
+                        return False
+                else:
+                    self.log_result("licensing_usage_tracking", "Usage Tracking", True, 
+                                  "No platforms available for usage tracking test (acceptable)")
+                    return True
+            else:
+                self.log_result("licensing_usage_tracking", "Usage Tracking", False, 
+                              f"Cannot get platforms for usage test: {platforms_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_usage_tracking", "Usage Tracking", False, f"Exception: {str(e)}")
+            return False
+
+    def test_licensing_authentication(self) -> bool:
+        """Test authentication requirements for licensing endpoints"""
+        try:
+            # Test 1: Admin-only endpoint without auth
+            url = f"{self.base_url}/licensing/initialize-all-platforms"
+            response = self.session.request('POST', url)
+            
+            if response.status_code == 401 or response.status_code == 403:
+                # Test 2: User endpoint without auth
+                url = f"{self.base_url}/licensing/dashboard"
+                response = self.session.request('GET', url)
+                
+                if response.status_code == 401 or response.status_code == 403:
+                    # Test 3: User endpoint with auth (should work)
+                    if self.auth_token:
+                        auth_response = self.make_request('GET', '/licensing/status')
+                        
+                        if auth_response.status_code == 200:
+                            self.log_result("licensing_authentication", "Authentication & Authorization", True, 
+                                          "Licensing endpoints properly protected - admin endpoints require admin, user endpoints require auth")
+                            return True
+                        else:
+                            self.log_result("licensing_authentication", "Authentication & Authorization", False, 
+                                          f"Authenticated user cannot access user endpoints: {auth_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("licensing_authentication", "Authentication & Authorization", True, 
+                                      "Licensing endpoints properly protected (no auth token to test authenticated access)")
+                        return True
+                else:
+                    self.log_result("licensing_authentication", "Authentication & Authorization", False, 
+                                  "User endpoints not properly protected")
+                    return False
+            else:
+                self.log_result("licensing_authentication", "Authentication & Authorization", False, 
+                              "Admin endpoints not properly protected")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_authentication", "Authentication & Authorization", False, f"Exception: {str(e)}")
+            return False
+
+    def test_licensing_platform_integration(self) -> bool:
+        """Test platform integration with all 83+ platforms from DISTRIBUTION_PLATFORMS"""
+        try:
+            if not self.auth_token:
+                self.log_result("licensing_platform_integration", "Platform Integration", False, "No auth token available")
+                return False
+            
+            # Get platform licenses to verify integration
+            response = self.make_request('GET', '/licensing/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                total_licenses = data.get('total_licenses', 0)
+                licenses = data.get('licenses', [])
+                
+                # Check if we have the expected number of platforms (83+)
+                if total_licenses >= 83:
+                    # Verify platform categorization
+                    platform_types = {}
+                    platform_names = []
+                    
+                    for license_doc in licenses:
+                        platform_config = license_doc.get('platform_config', {})
+                        platform_name = license_doc.get('platform_name', '')
+                        platform_names.append(platform_name)
+                        
+                        # Determine platform type from config
+                        api_endpoint = platform_config.get('api_endpoint', '')
+                        if 'social' in api_endpoint or 'facebook' in api_endpoint or 'twitter' in api_endpoint:
+                            platform_types['social_media'] = platform_types.get('social_media', 0) + 1
+                        elif 'streaming' in api_endpoint or 'music' in api_endpoint:
+                            platform_types['streaming'] = platform_types.get('streaming', 0) + 1
+                        elif 'tv' in api_endpoint:
+                            platform_types['tv'] = platform_types.get('tv', 0) + 1
+                        elif 'radio' in api_endpoint:
+                            platform_types['radio'] = platform_types.get('radio', 0) + 1
+                    
+                    # Verify we have diverse platform types
+                    if len(platform_types) >= 4:  # At least 4 different platform types
+                        # Check for specific key platforms
+                        key_platforms = ['Spotify', 'YouTube', 'Instagram', 'TikTok', 'Apple Music']
+                        found_key_platforms = [name for name in platform_names if any(key in name for key in key_platforms)]
+                        
+                        if len(found_key_platforms) >= 3:
+                            self.log_result("licensing_platform_integration", "Platform Integration", True, 
+                                          f"Platform integration successful: {total_licenses} platforms across {len(platform_types)} categories, including key platforms: {', '.join(found_key_platforms[:5])}")
+                            return True
+                        else:
+                            self.log_result("licensing_platform_integration", "Platform Integration", True, 
+                                          f"Platform integration working: {total_licenses} platforms across {len(platform_types)} categories")
+                            return True
+                    else:
+                        self.log_result("licensing_platform_integration", "Platform Integration", False, 
+                                      f"Insufficient platform diversity: only {len(platform_types)} platform types found")
+                        return False
+                else:
+                    self.log_result("licensing_platform_integration", "Platform Integration", False, 
+                                  f"Insufficient platforms licensed: {total_licenses}, expected 83+")
+                    return False
+            else:
+                self.log_result("licensing_platform_integration", "Platform Integration", False, 
+                              f"Cannot access platform licenses: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("licensing_platform_integration", "Platform Integration", False, f"Exception: {str(e)}")
+            return False
+
+    def run_licensing_tests(self):
+        """Run comprehensive licensing system tests"""
+        print("\n🏢 COMPREHENSIVE LICENSING SYSTEM TESTS")
+        print("-" * 50)
+        
+        # Backend Integration
+        self.test_licensing_backend_integration()
+        
+        # Core Licensing Endpoints
+        self.test_licensing_dashboard()
+        self.test_licensing_platform_initialization()
+        self.test_licensing_platform_management()
+        self.test_licensing_compliance()
+        self.test_licensing_usage_tracking()
+        
+        # Authentication & Authorization
+        self.test_licensing_authentication()
+        
+        # Platform Integration
+        self.test_licensing_platform_integration()
+
     # ===== TAX MANAGEMENT SYSTEM TESTS =====
     
     def test_get_business_tax_info(self) -> bool:
