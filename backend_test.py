@@ -9100,6 +9100,32 @@ class BackendTester:
                 if "❌ FAIL" in detail:
                     print(f"  {detail}")
 
+    def run_tv_platforms_integration_tests(self):
+        """Run comprehensive TV platforms integration tests for BET, Revolt TV, and MTV"""
+        print("\n" + "="*80)
+        print("📺 NEW TV PLATFORMS INTEGRATION TESTING")
+        print("Testing BET, Revolt TV, and MTV platform integration for Big Mann Entertainment")
+        print("="*80)
+        
+        print("\n--- Distribution Platforms Endpoint Tests ---")
+        self.test_distribution_platforms_endpoint()
+        self.test_platform_configuration_details()
+        
+        print("\n--- New TV Platforms Configuration Tests ---")
+        self.test_new_tv_platforms_integration()
+        self.test_tv_platform_categorization()
+        self.test_platform_count_verification()
+        
+        print(f"\n📊 TV Platforms Integration Tests Summary:")
+        print(f"✅ Passed: {self.results['distribution_platforms']['passed']}")
+        print(f"❌ Failed: {self.results['distribution_platforms']['failed']}")
+        
+        if self.results['distribution_platforms']['failed'] > 0:
+            print(f"\n❌ Failed Tests Details:")
+            for detail in self.results['distribution_platforms']['details']:
+                if "❌ FAIL" in detail:
+                    print(f"  {detail}")
+
     def run_all_tests(self):
         """Run comprehensive backend tests focusing on the review request components"""
         print("=" * 80)
