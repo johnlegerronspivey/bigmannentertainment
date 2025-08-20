@@ -443,8 +443,18 @@ const ARManagement = () => {
   const fetchDemos = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/label/ar/demos`);
-      setDemos(response.data);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API}/api/label/ar/demos`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDemos(data);
+      }
     } catch (error) {
       console.error('Error fetching demos:', error);
     } finally {
