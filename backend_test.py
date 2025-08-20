@@ -1804,7 +1804,7 @@ class BackendTester:
             return False
     
     def test_distribution_platforms_endpoint(self) -> bool:
-        """Test the /api/distribution/platforms endpoint to verify all platforms including new TV networks (BET, Revolt TV, MTV) are configured"""
+        """Test the /api/distribution/platforms endpoint to verify all platforms including new mixtape platforms (LiveMixtapes, MyMixtapez) are configured"""
         try:
             response = self.make_request('GET', '/distribution/platforms')
             
@@ -1813,8 +1813,8 @@ class BackendTester:
                 if 'platforms' in data and isinstance(data['platforms'], dict):
                     platforms = data['platforms']
                     
-                    # Check if we have the expected number of platforms (71+)
-                    if len(platforms) >= 71:
+                    # Check if we have the expected number of platforms (73+ with new mixtape platforms)
+                    if len(platforms) >= 73:
                         # Verify platform categories
                         social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
                         streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
@@ -1825,14 +1825,14 @@ class BackendTester:
                         podcast = [p for p in platforms.values() if p.get('type') == 'podcast']
                         performance_rights = [p for p in platforms.values() if p.get('type') == 'performance_rights']
                         
-                        # Verify specific platforms exist including new TV networks
+                        # Verify specific platforms exist including new mixtape platforms
                         expected_platforms = ['instagram', 'twitter', 'facebook', 'tiktok', 'youtube', 
                                             'spotify', 'apple_music', 'soundcloud', 'iheartradio', 
                                             'siriusxm', 'cnn', 'fox_news', 'netflix', 'hulu', 
                                             'spotify_podcasts', 'apple_podcasts', 'soundexchange', 
                                             'ascap', 'bmi', 'sesac', 'clear_channel_pop', 'cumulus_country',
                                             'entercom_rock', 'urban_one_hiphop', 'townsquare_adult_contemporary',
-                                            'bet', 'revolt_tv', 'mtv']  # New TV platforms
+                                            'bet', 'revolt_tv', 'mtv', 'livemixtapes', 'mymixtapez']  # New mixtape platforms
                         
                         missing_platforms = [p for p in expected_platforms if p not in platforms]
                         
@@ -1846,7 +1846,7 @@ class BackendTester:
                             return False
                     else:
                         self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
-                                      f"Expected 71+ platforms, found {len(platforms)}")
+                                      f"Expected 73+ platforms, found {len(platforms)}")
                         return False
                 else:
                     self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
