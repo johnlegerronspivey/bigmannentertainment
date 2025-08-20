@@ -574,6 +574,19 @@ DISTRIBUTION_PLATFORMS = {
         "revenue_sharing": "Free distribution with premium promotion options",
         "platform_features": ["mixtape_distribution", "playlist_features", "artist_discovery", "mobile_app_integration"]
     },
+    "worldstarhiphop": {
+        "type": "streaming",
+        "name": "WorldStar Hip Hop",
+        "api_endpoint": "https://api.worldstarhiphop.com/v1",
+        "supported_formats": ["video", "audio"],
+        "max_file_size": 500 * 1024 * 1024,  # 500MB
+        "credentials_required": ["api_key", "content_creator_id"],
+        "target_demographics": "Hip-hop culture, ages 16-40, urban entertainment",
+        "content_guidelines": "Music videos, hip-hop content, viral videos, artist features",
+        "submission_process": "WorldStar editorial review and viral content curation",
+        "revenue_sharing": "Content licensing and advertising revenue sharing",
+        "platform_features": ["viral_content", "music_videos", "artist_promotion", "social_engagement"]
+    },
     
     # Radio Stations
     "iheartradio": {
