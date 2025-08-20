@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://music-royalty-1.preview.emergentagent.com/api"
+BASE_URL = "https://content-nexus-15.preview.emergentagent.com/api"
 
 class ComprehensiveLabelTester:
     def __init__(self):

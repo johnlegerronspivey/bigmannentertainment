@@ -13,7 +13,7 @@ import tempfile
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://music-royalty-1.preview.emergentagent.com/api"
+BASE_URL = "https://content-nexus-15.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "licensing.test@bigmannentertainment.com"
 TEST_USER_PASSWORD = "LicensingTest2025!"
 TEST_USER_NAME = "Licensing Test User"
@@ -1694,7 +1694,7 @@ class BackendTester:
         """Test API base URL configuration with environment variables"""
         try:
             # Verify we're using the correct base URL from environment
-            expected_base_url = "https://music-royalty-1.preview.emergentagent.com/api"
+            expected_base_url = "https://content-nexus-15.preview.emergentagent.com/api"
             
             if self.base_url == expected_base_url:
                 # Test that the base URL is accessible
@@ -8805,7 +8805,7 @@ class BackendTester:
             # Test with package_id as query parameters
             params = {
                 "package_id": "basic",
-                "origin_url": "https://music-royalty-1.preview.emergentagent.com"
+                "origin_url": "https://content-nexus-15.preview.emergentagent.com"
             }
             
             response = self.make_request('POST', '/payments/checkout/session', params=params)
