@@ -1,11 +1,62 @@
 from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import json
+import jwt
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel, Field
+import uuid
 
-from auth import get_current_user, require_admin
 from licensing_service import LicensingService
 from licensing_models import PlatformLicense, LicensingAgreement
+
+# Load environment
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# Database setup
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+# Authentication setup
+SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
+ALGORITHM = "HS256"
+security = HTTPBearer()
+
+# User Model (local copy to avoid circular imports)
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    username: str = ""
+    is_admin: bool = False
+    role: str = "user"
+
+# Authentication functions (local copies)
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    
+    user = await db.users.find_one({"email": email})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return User(**user)
+
+async def require_admin(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin and current_user.role not in ["admin", "moderator", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return current_user
 
 router = APIRouter(prefix="/api/licensing", tags=["Licensing System"])
 licensing_service = LicensingService()
