@@ -10241,6 +10241,11 @@ class BackendTester:
         print("-" * 80)
         self.run_tv_platforms_integration_tests()
         
+        # NEW: Comprehensive Licensing System Tests
+        print("\n🏢 TESTING COMPREHENSIVE PLATFORM LICENSING SYSTEM")
+        print("-" * 80)
+        self.run_licensing_tests()
+        
         # Print Summary
         self.print_summary()
     
