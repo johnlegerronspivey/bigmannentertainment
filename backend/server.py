@@ -462,6 +462,42 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 2 * 1024 * 1024 * 1024,  # 2GB
         "credentials_required": ["api_key", "client_id", "client_secret"]
     },
+    "theshaderoom": {
+        "type": "social_media",
+        "name": "The Shade Room",
+        "api_endpoint": "https://api.theshaderoom.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 100 * 1024 * 1024,  # 100MB
+        "credentials_required": ["api_key", "content_partner_id"],
+        "target_demographics": "Urban culture enthusiasts, ages 18-45, entertainment news",
+        "content_guidelines": "Celebrity news, entertainment content, viral moments, hip-hop culture",
+        "submission_process": "The Shade Room editorial review and approval",
+        "revenue_sharing": "Content licensing and partnership opportunities"
+    },
+    "hollywoodunlocked": {
+        "type": "social_media",
+        "name": "Hollywood Unlocked",
+        "api_endpoint": "https://api.hollywoodunlocked.com/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 150 * 1024 * 1024,  # 150MB
+        "credentials_required": ["api_key", "creator_id"],
+        "target_demographics": "Entertainment news audience, ages 21-50, celebrity culture",
+        "content_guidelines": "Celebrity interviews, entertainment news, exclusive content",
+        "submission_process": "Hollywood Unlocked content team review",
+        "revenue_sharing": "Exclusive content partnership revenue"
+    },
+    "tumblr": {
+        "type": "social_media",
+        "name": "Tumblr",
+        "api_endpoint": "https://api.tumblr.com/v2",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 100 * 1024 * 1024,  # 100MB
+        "credentials_required": ["api_key", "api_secret", "oauth_token", "oauth_token_secret"],
+        "target_demographics": "Creative community, ages 16-35, alternative culture",
+        "content_guidelines": "Creative content, multimedia posts, artistic expression, music promotion",
+        "submission_process": "Direct posting with community engagement",
+        "revenue_sharing": "Creator monetization through tips and merchandise"
+    },
     
     # Music Streaming Platforms
     "spotify": {
