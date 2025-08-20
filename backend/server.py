@@ -3597,6 +3597,16 @@ async def get_user_wallets(current_user: User = Depends(get_current_user)):
     wallets = await db.crypto_wallets.find({"user_id": current_user.id}).to_list(length=None)
     return {"wallets": wallets}
 
+# Include WebAuthn router
+try:
+    from webauthn_endpoints import webauthn_router
+    app.include_router(webauthn_router)
+    print("✅ WebAuthn router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ WebAuthn router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading WebAuthn router: {e}")
+
 # Include Payment router
 try:
     from payment_endpoints import payment_router
