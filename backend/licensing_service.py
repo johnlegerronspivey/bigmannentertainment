@@ -12,9 +12,10 @@ from licensing_models import (
 
 class LicensingService:
     def __init__(self):
-        mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/big_mann_entertainment')
+        mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+        db_name = os.environ.get('DB_NAME', 'test_database')
         self.client = MongoClient(mongo_url)
-        self.db = self.client.get_database()
+        self.db = self.client[db_name]
         
         # Collections
         self.platform_licenses = self.db.platform_licenses
