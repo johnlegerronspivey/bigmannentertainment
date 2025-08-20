@@ -16,7 +16,7 @@ export const EarningsDashboard = () => {
 
   const fetchEarnings = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       if (!token) {
         setError('Please log in to view earnings');
         setLoading(false);
