@@ -694,7 +694,6 @@ const AddArtistModal = ({ onClose, onSave }) => {
 
 // Export all components
 export { 
-  LabelDashboard, 
   ArtistManagement, 
   ARManagement,
   LabelOverview,
