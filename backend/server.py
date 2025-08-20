@@ -498,6 +498,58 @@ DISTRIBUTION_PLATFORMS = {
         "submission_process": "Direct posting with community engagement",
         "revenue_sharing": "Creator monetization through tips and merchandise"
     },
+    "models": {
+        "type": "social_media",
+        "name": "Models.com",
+        "api_endpoint": "https://api.models.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 200 * 1024 * 1024,  # 200MB
+        "credentials_required": ["api_key", "model_profile_id"],
+        "target_demographics": "Fashion industry, ages 16-45, modeling professionals",
+        "content_guidelines": "Fashion photography, portfolio content, modeling work, brand campaigns",
+        "submission_process": "Models.com profile verification and content approval",
+        "revenue_sharing": "Model booking commission and portfolio premium features",
+        "platform_features": ["portfolio_hosting", "casting_calls", "industry_networking", "brand_partnerships"]
+    },
+    "modelmanagement": {
+        "type": "social_media",
+        "name": "Model Management",
+        "api_endpoint": "https://api.modelmanagement.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 150 * 1024 * 1024,  # 150MB
+        "credentials_required": ["api_key", "agency_id"],
+        "target_demographics": "Modeling agencies, ages 18-50, fashion industry professionals",
+        "content_guidelines": "Professional portfolios, agency representation, casting materials",
+        "submission_process": "Agency verification and professional content review",
+        "revenue_sharing": "Agency booking fees and platform commissions",
+        "platform_features": ["agency_management", "model_booking", "casting_platform", "industry_tools"]
+    },
+    "onlyfans": {
+        "type": "social_media",
+        "name": "OnlyFans",
+        "api_endpoint": "https://api.onlyfans.com/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 1 * 1024 * 1024 * 1024,  # 1GB
+        "credentials_required": ["api_key", "creator_token"],
+        "target_demographics": "Content creators, ages 18+, subscription-based audience",
+        "content_guidelines": "Creator content, subscription-based material, exclusive content",
+        "submission_process": "Creator verification and content compliance review",
+        "revenue_sharing": "Creator subscription revenue sharing (80/20 split)",
+        "platform_features": ["subscription_model", "creator_monetization", "exclusive_content", "fan_interaction"]
+    },
+    "lemon8": {
+        "type": "social_media",
+        "name": "Lemon8",
+        "api_endpoint": "https://api.lemon8-app.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 100 * 1024 * 1024,  # 100MB
+        "credentials_required": ["api_key", "user_token"],
+        "target_demographics": "Lifestyle enthusiasts, ages 16-35, Gen Z and Millennials",
+        "content_guidelines": "Lifestyle content, fashion, beauty, travel, food, wellness",
+        "submission_process": "Lemon8 community guidelines review",
+        "revenue_sharing": "Creator fund and brand partnership opportunities",
+        "platform_features": ["lifestyle_content", "discovery_feed", "trend_sharing", "community_engagement"]
+    },
     
     # Music Streaming Platforms
     "spotify": {
