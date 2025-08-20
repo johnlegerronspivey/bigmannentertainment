@@ -698,7 +698,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Creator and Lifestyle Platforms Integration Testing Completed (RapHouseTV, Models.com, Model Management, OnlyFans, Lemon8)"
+    - "Licensing System Backend Testing Completed"
+    - "Licensing System Frontend Testing - Statutory Rates and Daily Compensation Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
