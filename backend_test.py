@@ -9759,6 +9759,18 @@ class BackendTester:
         print(f"✅ Passed: {mixtape_total_passed}")
         print(f"❌ Failed: {mixtape_total_failed}")
         
+        print(f"\n📊 NEW 5 PLATFORMS INTEGRATION TESTS SUMMARY:")
+        new_platforms_total_passed = (self.results['new_platforms_integration']['passed'] + 
+                                     self.results['new_platforms_count']['passed'] + 
+                                     self.results['new_platforms_categorization']['passed'] + 
+                                     self.results['new_platforms_features']['passed'])
+        new_platforms_total_failed = (self.results['new_platforms_integration']['failed'] + 
+                                     self.results['new_platforms_count']['failed'] + 
+                                     self.results['new_platforms_categorization']['failed'] + 
+                                     self.results['new_platforms_features']['failed'])
+        print(f"✅ Passed: {new_platforms_total_passed}")
+        print(f"❌ Failed: {new_platforms_total_failed}")
+        
         if self.results['distribution_platforms']['failed'] > 0:
             print(f"\n❌ Failed Tests Details:")
             for detail in self.results['distribution_platforms']['details']:
