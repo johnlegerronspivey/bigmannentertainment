@@ -698,7 +698,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "New 5 Platforms Integration Testing Completed (WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr)"
+    - "Creator and Lifestyle Platforms Integration Testing Completed (RapHouseTV, Models.com, Model Management, OnlyFans, Lemon8)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
