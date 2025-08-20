@@ -13805,5 +13805,5 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    tester.run_mixtape_platforms_integration_tests()
+    tester.run_new_5_platforms_tests()
     exit(0)
