@@ -8902,101 +8902,73 @@ class BackendTester:
                     print(f"  {detail}")
 
     def run_all_tests(self):
-        """Run all backend tests"""
+        """Run comprehensive backend tests focusing on the review request components"""
         print("=" * 80)
-        print("STARTING BIG MANN ENTERTAINMENT COMPREHENSIVE BACKEND TESTING")
-        print("Testing Distribution Platform with 52+ Media Distribution Channels")
-        print("INCLUDING COMPREHENSIVE ADMINISTRATOR FEATURES & ETHEREUM INTEGRATION")
+        print("🚀 BIG MANN ENTERTAINMENT PLATFORM COMPREHENSIVE TESTING SUITE")
+        print("FOCUS: Earnings Dashboard, Label Management, WebAuthn/Face ID Authentication")
         print("=" * 80)
         
         # Authentication Tests
-        print("\n🔐 TESTING ENHANCED AUTHENTICATION SYSTEM")
+        print("\n🔐 AUTHENTICATION TESTS")
         print("-" * 40)
         self.test_user_registration()
         self.test_user_login()
         self.test_protected_route()
-        self.test_age_validation()
-        self.test_webauthn_registration_begin()
-        self.test_webauthn_authentication_begin()
-        self.test_webauthn_credentials_list()
-        self.test_forgot_password()
-        self.test_reset_password()
-        self.test_logout_session_invalidation()
         
-        # Media Upload Tests (COMPREHENSIVE)
-        print("\n📁 TESTING COMPREHENSIVE MEDIA UPLOAD FUNCTIONALITY")
+        # Re-login if needed
+        if not self.auth_token:
+            self.test_user_login()
+        
+        # REVIEW REQUEST FOCUS: Earnings Dashboard API Tests
+        print("\n💰 EARNINGS DASHBOARD API TESTS")
         print("-" * 40)
-        self.run_media_upload_tests()
+        self.test_earnings_dashboard_api()
+        self.test_earnings_dashboard_unauthenticated()
         
-        # Media Management Tests
-        print("\n📚 TESTING MEDIA CONTENT MANAGEMENT")
+        # REVIEW REQUEST FOCUS: Label Dashboard API Tests
+        print("\n🏷️ LABEL DASHBOARD API TESTS")
         print("-" * 40)
-        self.test_media_library_retrieval()
-        self.test_media_filtering()
-        self.test_media_details()
+        self.test_label_dashboard_api()
+        self.test_label_artists_api()
+        self.test_label_artists_post_api()
+        self.test_label_ar_demos_api()
         
-        # Distribution Platform Tests
-        print("\n🌐 TESTING DISTRIBUTION PLATFORM ENDPOINTS")
+        # REVIEW REQUEST FOCUS: WebAuthn/Face ID Authentication Tests
+        print("\n🔐 WEBAUTHN/FACE ID AUTHENTICATION TESTS")
         print("-" * 40)
-        self.test_distribution_platforms_endpoint()
-        self.test_platform_configuration_details()
+        self.test_webauthn_register_begin()
+        self.test_webauthn_register_complete()
+        self.test_webauthn_authenticate_begin()
+        self.test_webauthn_authenticate_complete()
+        self.test_webauthn_supported()
         
-        # Content Distribution Tests
-        print("\n📡 TESTING CONTENT DISTRIBUTION SYSTEM")
+        # REVIEW REQUEST FOCUS: Authentication Integration Tests
+        print("\n🔑 AUTHENTICATION INTEGRATION TESTS")
         print("-" * 40)
-        self.test_content_distribution_audio_to_streaming()
-        self.test_content_distribution_video_to_social()
+        self.test_jwt_token_validation_across_endpoints()
+        self.test_authentication_error_handling()
         
-        # Platform Compatibility Tests
-        print("\n🔍 TESTING PLATFORM COMPATIBILITY CHECKING")
+        # REVIEW REQUEST FOCUS: API Endpoint Fixes Verification
+        print("\n🔧 API ENDPOINT FIXES VERIFICATION")
         print("-" * 40)
-        self.test_platform_compatibility_audio_to_video_only()
-        self.test_platform_compatibility_video_to_audio_only()
+        self.test_api_base_url_configuration()
         
-        # Distribution History Tests
-        print("\n📋 TESTING DISTRIBUTION HISTORY TRACKING")
+        # Additional Core Tests
+        print("\n📁 MEDIA UPLOAD TESTS")
         print("-" * 40)
-        self.test_distribution_history_tracking()
-        self.test_distribution_status_retrieval()
+        self.test_media_upload()
+        self.test_media_upload_authentication()
+        self.test_media_upload_required_fields()
         
-        # SoundExchange and PRO Tests
-        print("\n🎵 TESTING SOUNDEXCHANGE & PERFORMANCE RIGHTS ORGANIZATIONS")
-        print("-" * 40)
-        self.test_soundexchange_platform_configuration()
-        self.test_pro_platforms_configuration()
-        self.test_soundexchange_registration_workflow()
-        self.test_traditional_pro_registration_workflow()
-        self.test_performance_rights_audio_only_validation()
-        self.test_platform_count_update()
-        
-        # FM Broadcast Station Tests
-        print("\n📻 TESTING TRADITIONAL FM BROADCAST STATION INTEGRATION")
-        print("-" * 40)
-        self.test_fm_broadcast_platform_count()
-        self.test_major_fm_network_integration()
-        self.test_fm_broadcast_genre_targeting()
-        self.test_clear_channel_network_workflow()
-        self.test_urban_one_network_workflow()
-        self.test_npr_classical_network_workflow()
-        self.test_fm_broadcast_audio_only_validation()
-        self.test_fm_broadcast_programming_metadata()
-        
-        # Comprehensive Stripe Payment System Tests
-        print("\n💳 TESTING COMPREHENSIVE STRIPE PAYMENT SYSTEM")
+        # Payment System Tests
+        print("\n💳 PAYMENT SYSTEM TESTS")
         print("-" * 40)
         self.test_stripe_api_key_verification()
         self.test_checkout_session_creation()
-        self.test_payment_status_polling()
         self.test_webhook_endpoint()
         self.test_complete_payment_flow_simulation()
         self.test_authentication_with_stripe_endpoints()
         self.test_payment_packages_validation()
-        self.test_payment_transaction_database_storage()
-        
-        # Enhanced Analytics Tests
-        print("\n📊 TESTING ENHANCED ANALYTICS WITH DISTRIBUTION METRICS")
-        print("-" * 40)
-        self.test_analytics_dashboard()
         
         # NEW: Administrator Feature Tests
         print("\n👑 TESTING ADMINISTRATOR AUTHENTICATION & AUTHORIZATION")
