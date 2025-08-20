@@ -1804,7 +1804,7 @@ class BackendTester:
             return False
     
     def test_distribution_platforms_endpoint(self) -> bool:
-        """Test the /api/distribution/platforms endpoint to verify all 37+ platforms including SoundExchange and PROs are configured"""
+        """Test the /api/distribution/platforms endpoint to verify all platforms including new TV networks (BET, Revolt TV, MTV) are configured"""
         try:
             response = self.make_request('GET', '/distribution/platforms')
             
@@ -1813,30 +1813,32 @@ class BackendTester:
                 if 'platforms' in data and isinstance(data['platforms'], dict):
                     platforms = data['platforms']
                     
-                    # Check if we have the expected number of platforms (52+)
-                    if len(platforms) >= 52:
+                    # Check if we have the expected number of platforms (71+)
+                    if len(platforms) >= 71:
                         # Verify platform categories
                         social_media = [p for p in platforms.values() if p.get('type') == 'social_media']
                         streaming = [p for p in platforms.values() if p.get('type') == 'streaming']
+                        streaming_tv = [p for p in platforms.values() if p.get('type') == 'streaming_tv']
                         radio = [p for p in platforms.values() if p.get('type') == 'radio']
                         fm_broadcast = [p for p in platforms.values() if p.get('type') == 'fm_broadcast']
                         tv = [p for p in platforms.values() if p.get('type') == 'tv']
                         podcast = [p for p in platforms.values() if p.get('type') == 'podcast']
                         performance_rights = [p for p in platforms.values() if p.get('type') == 'performance_rights']
                         
-                        # Verify specific platforms exist including new FM broadcast platforms
+                        # Verify specific platforms exist including new TV networks
                         expected_platforms = ['instagram', 'twitter', 'facebook', 'tiktok', 'youtube', 
                                             'spotify', 'apple_music', 'soundcloud', 'iheartradio', 
                                             'siriusxm', 'cnn', 'fox_news', 'netflix', 'hulu', 
                                             'spotify_podcasts', 'apple_podcasts', 'soundexchange', 
                                             'ascap', 'bmi', 'sesac', 'clear_channel_pop', 'cumulus_country',
-                                            'entercom_rock', 'urban_one_hiphop', 'townsquare_adult_contemporary']
+                                            'entercom_rock', 'urban_one_hiphop', 'townsquare_adult_contemporary',
+                                            'bet', 'revolt_tv', 'mtv']  # New TV platforms
                         
                         missing_platforms = [p for p in expected_platforms if p not in platforms]
                         
                         if not missing_platforms:
                             self.log_result("distribution_platforms", "Distribution Platforms Endpoint", True, 
-                                          f"Found {len(platforms)} platforms across all categories (Social: {len(social_media)}, Streaming: {len(streaming)}, Radio: {len(radio)}, FM Broadcast: {len(fm_broadcast)}, TV: {len(tv)}, Podcast: {len(podcast)}, Performance Rights: {len(performance_rights)})")
+                                          f"Found {len(platforms)} platforms across all categories (Social: {len(social_media)}, Streaming: {len(streaming)}, Streaming TV: {len(streaming_tv)}, Radio: {len(radio)}, FM Broadcast: {len(fm_broadcast)}, TV: {len(tv)}, Podcast: {len(podcast)}, Performance Rights: {len(performance_rights)})")
                             return True
                         else:
                             self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
@@ -1844,7 +1846,7 @@ class BackendTester:
                             return False
                     else:
                         self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
-                                      f"Expected 52+ platforms, found {len(platforms)}")
+                                      f"Expected 71+ platforms, found {len(platforms)}")
                         return False
                 else:
                     self.log_result("distribution_platforms", "Distribution Platforms Endpoint", False, 
