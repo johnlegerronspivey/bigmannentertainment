@@ -587,6 +587,19 @@ DISTRIBUTION_PLATFORMS = {
         "revenue_sharing": "Content licensing and advertising revenue sharing",
         "platform_features": ["viral_content", "music_videos", "artist_promotion", "social_engagement"]
     },
+    "raphousetv": {
+        "type": "streaming",
+        "name": "RapHouseTV",
+        "api_endpoint": "https://api.raphousetv.com/v1",
+        "supported_formats": ["video", "audio"],
+        "max_file_size": 300 * 1024 * 1024,  # 300MB
+        "credentials_required": ["api_key", "artist_id"],
+        "target_demographics": "Hip-hop fans, ages 16-35, rap culture enthusiasts",
+        "content_guidelines": "Rap music videos, hip-hop content, artist interviews, freestyle sessions",
+        "submission_process": "RapHouseTV content review and curation",
+        "revenue_sharing": "Artist revenue sharing and promotional opportunities",
+        "platform_features": ["rap_videos", "artist_features", "hip_hop_promotion", "community_engagement"]
+    },
     
     # Radio Stations
     "iheartradio": {
