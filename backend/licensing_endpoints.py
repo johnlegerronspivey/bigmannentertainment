@@ -65,7 +65,7 @@ licensing_service = LicensingService()
 from server import DISTRIBUTION_PLATFORMS
 
 @router.post("/initialize-all-platforms")
-async def initialize_all_platform_licenses(current_user: dict = Depends(require_admin)):
+async def initialize_all_platform_licenses(current_user: User = Depends(require_admin)):
     """Initialize licenses for all 83+ platforms"""
     try:
         # Initialize licenses for all platforms
@@ -79,7 +79,7 @@ async def initialize_all_platform_licenses(current_user: dict = Depends(require_
         activations = {}
         for platform_id, license_id in created_licenses.items():
             activation_id = licensing_service.activate_platform_license(
-                platform_id, license_id, current_user.get("email", "admin")
+                platform_id, license_id, current_user.email
             )
             activations[platform_id] = activation_id
         
