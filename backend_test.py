@@ -9538,6 +9538,11 @@ class BackendTester:
         print("-" * 80)
         self.run_payment_system_tests()
         
+        # NEW: TV Platforms Integration Tests
+        print("\n📺 TESTING NEW TV PLATFORMS INTEGRATION (BET, REVOLT TV, MTV)")
+        print("-" * 80)
+        self.run_tv_platforms_integration_tests()
+        
         # Print Summary
         self.print_summary()
     
