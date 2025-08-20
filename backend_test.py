@@ -1912,6 +1912,203 @@ class BackendTester:
             self.log_result("distribution_platforms", "Platform Configuration Details", False, f"Exception: {str(e)}")
             return False
     
+    def test_new_tv_platforms_integration(self) -> bool:
+        """Test the newly added TV platforms: BET, Revolt TV, and MTV"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Test the 3 new TV platforms
+                new_tv_platforms = {
+                    'bet': {
+                        'expected_type': 'tv',
+                        'expected_name': 'BET (Black Entertainment Television)',
+                        'expected_max_file_size': 2 * 1024 * 1024 * 1024,  # 2GB
+                        'expected_formats': ['video', 'audio', 'image'],
+                        'expected_revenue_sharing': '70/30 split (creator/platform)',
+                        'expected_demographics': 'African American audience, ages 18-54'
+                    },
+                    'revolt_tv': {
+                        'expected_type': 'streaming_tv',
+                        'expected_name': 'Revolt TV',
+                        'expected_max_file_size': 1 * 1024 * 1024 * 1024,  # 1GB
+                        'expected_formats': ['video', 'audio'],
+                        'expected_revenue_sharing': '65/35 split (creator/platform)',
+                        'expected_demographics': 'Music lovers, ages 18-34, urban culture'
+                    },
+                    'mtv': {
+                        'expected_type': 'tv',
+                        'expected_name': 'MTV (Music Television)',
+                        'expected_max_file_size': 3 * 1024 * 1024 * 1024,  # 3GB
+                        'expected_formats': ['video', 'audio', 'image'],
+                        'expected_revenue_sharing': '60/40 split (creator/platform)',
+                        'expected_demographics': 'Gen Z and Millennials, ages 12-34'
+                    }
+                }
+                
+                all_platforms_valid = True
+                platform_details = []
+                
+                for platform_id, expected_config in new_tv_platforms.items():
+                    if platform_id in platforms:
+                        platform = platforms[platform_id]
+                        
+                        # Verify platform type
+                        if platform.get('type') != expected_config['expected_type']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Type Verification", False, 
+                                          f"Expected type '{expected_config['expected_type']}', got '{platform.get('type')}'")
+                            continue
+                        
+                        # Verify platform name
+                        if platform.get('name') != expected_config['expected_name']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Name Verification", False, 
+                                          f"Expected name '{expected_config['expected_name']}', got '{platform.get('name')}'")
+                            continue
+                        
+                        # Verify max file size
+                        if platform.get('max_file_size') != expected_config['expected_max_file_size']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} File Size Verification", False, 
+                                          f"Expected max file size {expected_config['expected_max_file_size']}, got {platform.get('max_file_size')}")
+                            continue
+                        
+                        # Verify supported formats
+                        if set(platform.get('supported_formats', [])) != set(expected_config['expected_formats']):
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Formats Verification", False, 
+                                          f"Expected formats {expected_config['expected_formats']}, got {platform.get('supported_formats')}")
+                            continue
+                        
+                        # Verify revenue sharing model
+                        if platform.get('revenue_sharing') != expected_config['expected_revenue_sharing']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Revenue Sharing Verification", False, 
+                                          f"Expected revenue sharing '{expected_config['expected_revenue_sharing']}', got '{platform.get('revenue_sharing')}'")
+                            continue
+                        
+                        # Verify target demographics
+                        if platform.get('target_demographics') != expected_config['expected_demographics']:
+                            all_platforms_valid = False
+                            self.log_result("distribution_platforms", f"{platform_id.upper()} Demographics Verification", False, 
+                                          f"Expected demographics '{expected_config['expected_demographics']}', got '{platform.get('target_demographics')}'")
+                            continue
+                        
+                        # If all checks pass, log success
+                        self.log_result("distribution_platforms", f"{platform_id.upper()} Configuration", True, 
+                                      f"All configuration verified: type={platform.get('type')}, max_size={platform.get('max_file_size')//1024//1024//1024}GB, formats={platform.get('supported_formats')}")
+                        
+                        platform_details.append(f"{platform_id.upper()}: {platform.get('name')} ({platform.get('type')})")
+                        
+                    else:
+                        all_platforms_valid = False
+                        self.log_result("distribution_platforms", f"{platform_id.upper()} Existence", False, 
+                                      f"Platform '{platform_id}' not found in platforms list")
+                
+                if all_platforms_valid:
+                    self.log_result("distribution_platforms", "New TV Platforms Integration", True, 
+                                  f"All 3 new TV platforms properly configured: {', '.join(platform_details)}")
+                    return True
+                else:
+                    self.log_result("distribution_platforms", "New TV Platforms Integration", False, 
+                                  "Some TV platforms have configuration issues")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "New TV Platforms Integration", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "New TV Platforms Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_tv_platform_categorization(self) -> bool:
+        """Test that TV platforms are properly categorized by type"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Categorize platforms by type
+                tv_platforms = [p for p_id, p in platforms.items() if p.get('type') == 'tv']
+                streaming_tv_platforms = [p for p_id, p in platforms.items() if p.get('type') == 'streaming_tv']
+                
+                # Check that BET and MTV are in TV category
+                bet_in_tv = any(p.get('name') == 'BET (Black Entertainment Television)' for p in tv_platforms)
+                mtv_in_tv = any(p.get('name') == 'MTV (Music Television)' for p in tv_platforms)
+                
+                # Check that Revolt TV is in streaming_tv category
+                revolt_in_streaming_tv = any(p.get('name') == 'Revolt TV' for p in streaming_tv_platforms)
+                
+                if bet_in_tv and mtv_in_tv and revolt_in_streaming_tv:
+                    self.log_result("distribution_platforms", "TV Platform Categorization", True, 
+                                  f"Correct categorization: TV platforms ({len(tv_platforms)}), Streaming TV platforms ({len(streaming_tv_platforms)})")
+                    return True
+                else:
+                    missing = []
+                    if not bet_in_tv:
+                        missing.append("BET not in TV category")
+                    if not mtv_in_tv:
+                        missing.append("MTV not in TV category")
+                    if not revolt_in_streaming_tv:
+                        missing.append("Revolt TV not in streaming_tv category")
+                    
+                    self.log_result("distribution_platforms", "TV Platform Categorization", False, 
+                                  f"Categorization issues: {', '.join(missing)}")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "TV Platform Categorization", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "TV Platform Categorization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_count_verification(self) -> bool:
+        """Test that platform count has increased from 68 to 71+ with new TV platforms"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                total_count = len(platforms)
+                
+                # Verify we have at least 71 platforms (68 + 3 new TV platforms)
+                if total_count >= 71:
+                    # Verify the specific new platforms exist
+                    new_platforms = ['bet', 'revolt_tv', 'mtv']
+                    found_new_platforms = [p for p in new_platforms if p in platforms]
+                    
+                    if len(found_new_platforms) == 3:
+                        self.log_result("distribution_platforms", "Platform Count Verification", True, 
+                                      f"Platform count increased to {total_count} (includes all 3 new TV platforms: {', '.join(found_new_platforms)})")
+                        return True
+                    else:
+                        missing_new = [p for p in new_platforms if p not in platforms]
+                        self.log_result("distribution_platforms", "Platform Count Verification", False, 
+                                      f"Total count is {total_count} but missing new platforms: {missing_new}")
+                        return False
+                else:
+                    self.log_result("distribution_platforms", "Platform Count Verification", False, 
+                                  f"Expected at least 71 platforms, found {total_count}")
+                    return False
+            else:
+                self.log_result("distribution_platforms", "Platform Count Verification", False, 
+                              f"Failed to get platforms: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("distribution_platforms", "Platform Count Verification", False, f"Exception: {str(e)}")
+            return False
+    
     def test_content_distribution_audio_to_streaming(self) -> bool:
         """Test distributing audio content to streaming platforms"""
         try:
