@@ -487,12 +487,21 @@ const ARManagement = () => {
   const searchIndustryContacts = async (query, category = 'all') => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/label/ar/industry-contacts`, {
-        params: { query, category }
+      const token = localStorage.getItem('accessToken');
+      const params = new URLSearchParams({ query, category });
+      const response = await fetch(`${API}/api/label/ar/industry-contacts?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      setIndustryContacts(response.data);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIndustryContacts(data);
+      }
     } catch (error) {
-      console.error('Error searching contacts:', error);
+      console.error('Error fetching contacts:', error);
     } finally {
       setLoading(false);
     }
