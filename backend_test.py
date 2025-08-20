@@ -159,7 +159,12 @@ class BackendTester:
             "mixtape_platforms_integration": {"passed": 0, "failed": 0, "details": []},
             "mixtape_platform_categorization": {"passed": 0, "failed": 0, "details": []},
             "mixtape_platform_count": {"passed": 0, "failed": 0, "details": []},
-            "mixtape_platform_features": {"passed": 0, "failed": 0, "details": []}
+            "mixtape_platform_features": {"passed": 0, "failed": 0, "details": []},
+            "new_platforms_integration": {"passed": 0, "failed": 0, "details": []},
+            "new_platforms_configuration": {"passed": 0, "failed": 0, "details": []},
+            "new_platforms_categorization": {"passed": 0, "failed": 0, "details": []},
+            "new_platforms_count": {"passed": 0, "failed": 0, "details": []},
+            "new_platforms_features": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
