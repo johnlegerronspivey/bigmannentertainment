@@ -9736,6 +9736,13 @@ class BackendTester:
         self.test_mixtape_platform_count_verification()
         self.test_mixtape_platform_specific_features()
         
+        print("\n--- NEW 5 PLATFORMS INTEGRATION TESTS ---")
+        print("Testing WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr")
+        self.test_new_5_platforms_integration()
+        self.test_new_platforms_count_verification()
+        self.test_new_platforms_categorization()
+        self.test_new_platforms_specific_features()
+        
         print(f"\n📊 TV Platforms Integration Tests Summary:")
         print(f"✅ Passed: {self.results['distribution_platforms']['passed']}")
         print(f"❌ Failed: {self.results['distribution_platforms']['failed']}")
