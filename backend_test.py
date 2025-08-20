@@ -164,7 +164,15 @@ class BackendTester:
             "new_platforms_configuration": {"passed": 0, "failed": 0, "details": []},
             "new_platforms_categorization": {"passed": 0, "failed": 0, "details": []},
             "new_platforms_count": {"passed": 0, "failed": 0, "details": []},
-            "new_platforms_features": {"passed": 0, "failed": 0, "details": []}
+            "new_platforms_features": {"passed": 0, "failed": 0, "details": []},
+            "licensing_backend_integration": {"passed": 0, "failed": 0, "details": []},
+            "licensing_dashboard": {"passed": 0, "failed": 0, "details": []},
+            "licensing_platform_initialization": {"passed": 0, "failed": 0, "details": []},
+            "licensing_platform_management": {"passed": 0, "failed": 0, "details": []},
+            "licensing_compliance": {"passed": 0, "failed": 0, "details": []},
+            "licensing_usage_tracking": {"passed": 0, "failed": 0, "details": []},
+            "licensing_authentication": {"passed": 0, "failed": 0, "details": []},
+            "licensing_platform_integration": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
