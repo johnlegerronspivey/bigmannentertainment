@@ -14251,5 +14251,17 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    tester.run_new_5_platforms_tests()
+    
+    # First ensure we have authentication
+    if not tester.test_user_login():
+        print("❌ Failed to authenticate - trying registration")
+        if not tester.test_user_registration():
+            print("❌ Failed to register user - cannot proceed with licensing tests")
+            exit(1)
+        if not tester.test_user_login():
+            print("❌ Failed to login after registration - cannot proceed with licensing tests")
+            exit(1)
+    
+    # Run comprehensive licensing system tests
+    tester.run_licensing_tests()
     exit(0)
