@@ -93,11 +93,20 @@ class WebAuthnService {
         type: credential.type
       };
 
-      const verificationResponse = await axios.post(`${this.apiBaseUrl}/webauthn/register/complete`, registrationResponse, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+      const verificationResponse = await fetch(`${this.apiBaseUrl}/api/webauthn/register/complete`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(registrationResponse)
       });
 
-      return verificationResponse.data;
+      if (!verificationResponse.ok) {
+        throw new Error('WebAuthn registration failed');
+      }
+
+      return verificationResponse.json();
 
     } catch (error) {
       console.error('WebAuthn registration error:', error);
