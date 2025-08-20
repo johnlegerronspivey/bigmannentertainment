@@ -16,21 +16,34 @@ export const EarningsDashboard = () => {
 
   const fetchEarnings = async () => {
     try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('Please log in to view earnings');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${API}/api/payments/earnings`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       
       if (response.ok) {
         const data = await response.json();
-        setEarnings(data.earnings);
-        setTransactions(data.recent_transactions);
+        setEarnings(data.earnings || {});
+        setTransactions(data.recent_transactions || []);
+        setError('');
+      } else if (response.status === 401) {
+        setError('Session expired. Please log in again.');
+        localStorage.removeItem('accessToken');
       } else {
         setError('Failed to load earnings data');
       }
     } catch (error) {
-      setError('Error loading earnings');
+      console.error('Earnings fetch error:', error);
+      setError('Error loading earnings. Please try again.');
     } finally {
       setLoading(false);
     }
