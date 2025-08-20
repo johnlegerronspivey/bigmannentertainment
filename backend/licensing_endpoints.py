@@ -325,3 +325,175 @@ async def update_platform_usage(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update platform usage: {str(e)}")
+
+@router.get("/statutory-rates")
+async def get_statutory_rates(
+    royalty_type: Optional[str] = None,
+    active_only: bool = True,
+    current_user: User = Depends(get_current_user)
+):
+    """Get current statutory rates for music licensing"""
+    try:
+        rates = licensing_service.get_statutory_rates(royalty_type=royalty_type, active_only=active_only)
+        
+        return {
+            "statutory_rates": rates,
+            "total_rates": len(rates),
+            "rate_source": "CRB (Copyright Royalty Board)",
+            "effective_year": "2025",
+            "business_entity": "Big Mann Entertainment",
+            "filters": {
+                "royalty_type": royalty_type,
+                "active_only": active_only
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve statutory rates: {str(e)}")
+
+@router.post("/daily-compensation")
+async def calculate_daily_compensation(
+    compensation_date: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Calculate daily compensation for all active platforms using statutory rates"""
+    try:
+        # Parse compensation date if provided
+        comp_date = None
+        if compensation_date:
+            comp_date = datetime.fromisoformat(compensation_date.replace('Z', '+00:00'))
+        
+        compensation_data = licensing_service.calculate_daily_compensation(comp_date)
+        
+        return {
+            "message": "Daily compensation calculated successfully",
+            "compensation_data": compensation_data,
+            "calculation_type": "statutory_rates_based",
+            "business_entity": "Big Mann Entertainment",
+            "calculated_by": current_user.email,
+            "calculation_date": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to calculate daily compensation: {str(e)}")
+
+@router.post("/daily-payouts")
+async def process_daily_payouts(
+    minimum_amount: float = 1.00,
+    current_user: User = Depends(require_admin)
+):
+    """Process daily compensation payouts (admin only)"""
+    try:
+        from decimal import Decimal
+        min_amount = Decimal(str(minimum_amount))
+        
+        payout_data = licensing_service.process_daily_payouts(minimum_amount=min_amount)
+        
+        return {
+            "message": "Daily payouts processed successfully",
+            "payout_data": payout_data,
+            "processing_type": "automated_statutory_payouts",
+            "business_entity": "Big Mann Entertainment",
+            "processed_by": current_user.email,
+            "processing_date": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process daily payouts: {str(e)}")
+
+@router.get("/compensation-dashboard")
+async def get_compensation_dashboard(
+    period_days: int = 30,
+    current_user: User = Depends(get_current_user)
+):
+    """Get comprehensive compensation and payout dashboard"""
+    try:
+        dashboard_data = licensing_service.get_compensation_dashboard(period_days=period_days)
+        
+        return {
+            "compensation_dashboard": dashboard_data,
+            "dashboard_type": "statutory_rates_compensation",
+            "business_entity": "Big Mann Entertainment",
+            "business_owner": "John LeGerron Spivey",
+            "last_updated": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve compensation dashboard: {str(e)}")
+
+@router.get("/compensation-history")
+async def get_compensation_history(
+    platform_id: Optional[str] = None,
+    days: int = 30,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user)
+):
+    """Get compensation history with optional platform filtering"""
+    try:
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        query = {
+            "compensation_date": {"$gte": start_date, "$lte": end_date}
+        }
+        if platform_id:
+            query["platform_id"] = platform_id
+        
+        compensations = list(licensing_service.daily_compensations.find(query).sort("compensation_date", -1).limit(limit))
+        
+        # Convert ObjectId and Decimal for JSON serialization
+        for comp in compensations:
+            comp["_id"] = str(comp["_id"])
+            for field in ["gross_revenue", "net_revenue", "total_compensation", "artist_compensation", 
+                         "songwriter_compensation", "publisher_compensation", "big_mann_commission"]:
+                if field in comp:
+                    comp[field] = float(comp[field])
+        
+        return {
+            "compensation_history": compensations,
+            "total_records": len(compensations),
+            "period_days": days,
+            "platform_filter": platform_id,
+            "business_entity": "Big Mann Entertainment"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve compensation history: {str(e)}")
+
+@router.get("/payout-history")
+async def get_payout_history(
+    recipient_type: Optional[str] = None,
+    days: int = 30,
+    limit: int = 50,
+    current_user: User = Depends(get_current_user)
+):
+    """Get payout history with optional recipient filtering"""
+    try:
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        query = {
+            "payout_date": {"$gte": start_date, "$lte": end_date}
+        }
+        if recipient_type:
+            query["recipient_type"] = recipient_type
+        
+        payouts = list(licensing_service.compensation_payouts.find(query).sort("payout_date", -1).limit(limit))
+        
+        # Convert ObjectId and Decimal for JSON serialization
+        for payout in payouts:
+            payout["_id"] = str(payout["_id"])
+            for field in ["total_amount", "tax_withholding", "net_payout"]:
+                if field in payout:
+                    payout[field] = float(payout[field])
+        
+        return {
+            "payout_history": payouts,
+            "total_records": len(payouts),
+            "period_days": days,
+            "recipient_filter": recipient_type,
+            "business_entity": "Big Mann Entertainment"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve payout history: {str(e)}")
