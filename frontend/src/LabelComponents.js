@@ -565,13 +565,24 @@ const DemoManagement = ({ demos, onUpdate }) => {
 
   const evaluateDemo = async (demoId, score, notes, status) => {
     try {
-      await axios.put(`${API}/label/ar/demos/${demoId}/evaluate`, {
-        score,
-        notes,
-        status
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API}/api/label/ar/demos/${demoId}/evaluate`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          score,
+          notes,
+          status
+        })
       });
-      onUpdate();
-      setSelectedDemo(null);
+      
+      if (response.ok) {
+        onUpdate();
+        setSelectedDemo(null);
+      }
     } catch (error) {
       console.error('Error evaluating demo:', error);
       alert('Error evaluating demo');
