@@ -13733,6 +13733,48 @@ class BackendTester:
             self.log_result("mlc_big_mann_integration", "MLC Big Mann Integration", False, f"Exception: {str(e)}")
             return False
 
+    def run_new_5_platforms_tests(self):
+        """Run tests specifically for the newly added 5 platforms integration"""
+        print("="*80)
+        print("🎵 NEW 5 PLATFORMS INTEGRATION TESTING FOR BIG MANN ENTERTAINMENT")
+        print("Testing WorldStar Hip Hop, The Shade Room, Tubi, Hollywood Unlocked, Tumblr")
+        print("="*80)
+        
+        print("\n--- Distribution Platforms Endpoint Tests ---")
+        self.test_distribution_platforms_endpoint()
+        
+        print("\n--- NEW 5 PLATFORMS INTEGRATION TESTS ---")
+        self.test_new_5_platforms_integration()
+        self.test_new_platforms_count_verification()
+        self.test_new_platforms_categorization()
+        self.test_new_platforms_specific_features()
+        
+        print(f"\n📊 NEW 5 PLATFORMS INTEGRATION TESTS SUMMARY:")
+        new_platforms_total_passed = (self.results['new_platforms_integration']['passed'] + 
+                                     self.results['new_platforms_count']['passed'] + 
+                                     self.results['new_platforms_categorization']['passed'] + 
+                                     self.results['new_platforms_features']['passed'])
+        new_platforms_total_failed = (self.results['new_platforms_integration']['failed'] + 
+                                     self.results['new_platforms_count']['failed'] + 
+                                     self.results['new_platforms_categorization']['failed'] + 
+                                     self.results['new_platforms_features']['failed'])
+        print(f"✅ Passed: {new_platforms_total_passed}")
+        print(f"❌ Failed: {new_platforms_total_failed}")
+        
+        if new_platforms_total_failed > 0:
+            print(f"\n❌ Failed New 5 Platforms Tests Details:")
+            for category in ['new_platforms_integration', 'new_platforms_count', 'new_platforms_categorization', 'new_platforms_features']:
+                for detail in self.results[category]['details']:
+                    if "❌ FAIL" in detail:
+                        print(f"  {detail}")
+        
+        # Detailed results for each platform
+        print(f"\n📋 DETAILED TEST RESULTS:")
+        for category in ['new_platforms_integration', 'new_platforms_count', 'new_platforms_categorization', 'new_platforms_features']:
+            print(f"\n{category.replace('_', ' ').title()}:")
+            for detail in self.results[category]['details']:
+                print(f"  {detail}")
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
