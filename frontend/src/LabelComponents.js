@@ -465,8 +465,18 @@ const ARManagement = () => {
   const fetchIndustryTrends = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/label/ar/industry-trends`);
-      setIndustryTrends(response.data);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API}/api/label/ar/industry-trends`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIndustryTrends(data);
+      }
     } catch (error) {
       console.error('Error fetching trends:', error);
     } finally {
