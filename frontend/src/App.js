@@ -172,12 +172,22 @@ class WebAuthnService {
         type: assertion.type
       };
 
-      const verificationResponse = await axios.post(`${this.apiBaseUrl}/webauthn/authenticate/complete`, {
-        email,
-        ...authenticationResponse
+      const verificationResponse = await fetch(`${this.apiBaseUrl}/api/webauthn/authenticate/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          ...authenticationResponse
+        })
       });
 
-      return verificationResponse.data;
+      if (!verificationResponse.ok) {
+        throw new Error('WebAuthn authentication failed');
+      }
+
+      return verificationResponse.json();
 
     } catch (error) {
       console.error('WebAuthn authentication error:', error);
