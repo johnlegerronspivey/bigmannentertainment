@@ -14,9 +14,9 @@ from typing import Dict, Any, Optional
 
 # Configuration
 BASE_URL = "https://music-royalty-1.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "owner@bigmannentertainment.com"
-TEST_USER_PASSWORD = "OwnerBigMann2025!"
-TEST_USER_NAME = "John LeGerron Spivey"
+TEST_USER_EMAIL = "licensing.test@bigmannentertainment.com"
+TEST_USER_PASSWORD = "LicensingTest2025!"
+TEST_USER_NAME = "Licensing Test User"
 TEST_BUSINESS_NAME = "Big Mann Entertainment"
 
 class BackendTester:
