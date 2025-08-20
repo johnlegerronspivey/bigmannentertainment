@@ -137,7 +137,7 @@ async def get_platform_licenses(
     category: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get platform licenses with optional filtering"""
     try:
@@ -165,7 +165,7 @@ async def get_platform_licenses(
 @router.get("/platforms/{platform_id}")
 async def get_platform_license_details(
     platform_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get detailed information for a specific platform license"""
     try:
@@ -188,21 +188,21 @@ async def get_platform_license_details(
 @router.post("/platforms/{platform_id}/activate")
 async def activate_platform_license(
     platform_id: str,
-    current_user: dict = Depends(require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Activate a platform license (admin only)"""
     try:
         activation_id = licensing_service.activate_platform_license(
             platform_id, 
             platform_id,  # Using platform_id as license_id for simplicity
-            current_user.get("email", "admin")
+            current_user.email
         )
         
         return {
             "message": f"Platform {platform_id} license activated successfully",
             "activation_id": activation_id,
             "platform_id": platform_id,
-            "activated_by": current_user.get("email", "admin"),
+            "activated_by": current_user.email,
             "activation_date": datetime.utcnow().isoformat()
         }
         
@@ -212,20 +212,20 @@ async def activate_platform_license(
 @router.post("/platforms/{platform_id}/deactivate")
 async def deactivate_platform_license(
     platform_id: str,
-    current_user: dict = Depends(require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Deactivate a platform license (admin only)"""
     try:
         deactivation_id = licensing_service.deactivate_platform_license(
             platform_id,
-            current_user.get("email", "admin")
+            current_user.email
         )
         
         return {
             "message": f"Platform {platform_id} license deactivated successfully",
             "deactivation_id": deactivation_id,
             "platform_id": platform_id,
-            "deactivated_by": current_user.get("email", "admin"),
+            "deactivated_by": current_user.email,
             "deactivation_date": datetime.utcnow().isoformat()
         }
         
@@ -235,7 +235,7 @@ async def deactivate_platform_license(
 @router.post("/compliance-check/{platform_id}")
 async def check_platform_compliance(
     platform_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Check compliance status for a specific platform"""
     try:
@@ -254,7 +254,7 @@ async def check_platform_compliance(
         raise HTTPException(status_code=500, detail=f"Failed to check platform compliance: {str(e)}")
 
 @router.get("/status")
-async def get_licensing_status(current_user: dict = Depends(get_current_user)):
+async def get_licensing_status(current_user: User = Depends(get_current_user)):
     """Get overall licensing system status and health"""
     try:
         status_data = licensing_service.get_licensing_status()
@@ -279,7 +279,7 @@ async def get_licensing_agreements(
     status: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get licensing agreements with optional filtering"""
     try:
@@ -308,7 +308,7 @@ async def get_licensing_agreements(
 async def update_platform_usage(
     platform_id: str,
     usage_data: Dict[str, Any],
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Update usage metrics for a platform"""
     try:
@@ -318,7 +318,7 @@ async def update_platform_usage(
             "message": f"Usage metrics updated for platform {platform_id}",
             "platform_id": platform_id,
             "usage_data": updated_usage,
-            "updated_by": current_user.get("email", "user"),
+            "updated_by": current_user.email,
             "update_date": datetime.utcnow().isoformat(),
             "check_date": datetime.utcnow().isoformat()
         }
