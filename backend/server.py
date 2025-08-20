@@ -3890,6 +3890,16 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading IPI router: {e}")
 
+# Include Licensing router
+try:
+    from licensing_endpoints import router as licensing_router
+    app.include_router(licensing_router)
+    print("✅ Licensing router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ Licensing router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading Licensing router: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
