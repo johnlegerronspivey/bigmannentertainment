@@ -97,7 +97,7 @@ async def initialize_all_platform_licenses(current_user: User = Depends(require_
         raise HTTPException(status_code=500, detail=f"Failed to initialize platform licenses: {str(e)}")
 
 @router.get("/dashboard")
-async def get_licensing_dashboard(current_user: dict = Depends(get_current_user)):
+async def get_licensing_dashboard(current_user: User = Depends(get_current_user)):
     """Get comprehensive licensing dashboard"""
     try:
         dashboard_data = licensing_service.get_licensing_dashboard()
