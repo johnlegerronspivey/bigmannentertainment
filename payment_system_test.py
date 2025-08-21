@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://content-nexus-15.preview.emergentagent.com/api"
+BASE_URL = "https://bme-media-system.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "payment.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "PaymentTester2025!"
 TEST_USER_NAME = "Payment System Tester"
@@ -145,7 +145,7 @@ class PaymentSystemTester:
             # Test with basic package
             params = {
                 "package_id": "basic",
-                "origin_url": "https://content-nexus-15.preview.emergentagent.com"
+                "origin_url": "https://bme-media-system.preview.emergentagent.com"
             }
             
             response = self.make_request('POST', '/payments/checkout/session', params=params)

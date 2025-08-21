@@ -6,7 +6,7 @@ Test API structure to understand routing
 import requests
 import json
 
-BASE_URL = "https://content-nexus-15.preview.emergentagent.com"
+BASE_URL = "https://bme-media-system.preview.emergentagent.com"
 
 def test_api_endpoints():
     """Test various API endpoints to understand the structure"""

@@ -10,7 +10,7 @@ import os
 from datetime import datetime, date
 
 # Configuration
-BASE_URL = "https://content-nexus-15.preview.emergentagent.com/api"
+BASE_URL = "https://bme-media-system.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "owner@bigmannentertainment.com"
 TEST_USER_PASSWORD = "OwnerBigMann2025!"
 

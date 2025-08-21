@@ -6,7 +6,7 @@ Test public label endpoints that don't require authentication
 import requests
 import json
 
-BASE_URL = "https://content-nexus-15.preview.emergentagent.com/api"
+BASE_URL = "https://bme-media-system.preview.emergentagent.com/api"
 
 def test_demo_submission_public():
     """Test POST /api/label/ar/demos (public endpoint - no auth required)"""
