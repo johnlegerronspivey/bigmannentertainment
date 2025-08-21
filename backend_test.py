@@ -379,46 +379,39 @@ class BackendTester:
             self.log_result("authentication", "Age Validation", False, f"Exception: {str(e)}")
             return False
     
-    def test_webauthn_registration_begin(self) -> bool:
-        """Test WebAuthn Face ID registration initiation"""
+    def test_webauthn_endpoints_removed(self) -> bool:
+        """Test that WebAuthn endpoints have been removed and return 404"""
         try:
-            if not self.auth_token:
-                self.log_result("authentication", "WebAuthn Registration Begin", False, "No auth token available")
-                return False
+            webauthn_endpoints = [
+                '/auth/webauthn/register/begin',
+                '/auth/webauthn/register/complete',
+                '/auth/webauthn/authenticate/begin',
+                '/auth/webauthn/authenticate/complete',
+                '/auth/webauthn/credentials'
+            ]
             
-            response = self.make_request('POST', '/auth/webauthn/register/begin')
-            
-            if response.status_code == 200:
-                data = response.json()
-                required_fields = ['challenge', 'rp', 'user', 'pubKeyCredParams']
-                
-                if all(field in data for field in required_fields):
-                    # Verify RP information
-                    rp = data['rp']
-                    if rp.get('name') == 'Big Mann Entertainment Media Platform':
-                        self.log_result("authentication", "WebAuthn Registration Begin", True, 
-                                      f"WebAuthn registration options generated successfully. Challenge length: {len(data['challenge'])}")
-                        return True
-                    else:
-                        self.log_result("authentication", "WebAuthn Registration Begin", False, 
-                                      f"Incorrect RP name: {rp.get('name')}")
-                        return False
+            all_removed = True
+            for endpoint in webauthn_endpoints:
+                response = self.make_request('POST', endpoint)
+                if response.status_code != 404:
+                    self.log_result("authentication", f"WebAuthn Endpoint Removed {endpoint}", False, 
+                                  f"Expected 404, got {response.status_code}")
+                    all_removed = False
                 else:
-                    self.log_result("authentication", "WebAuthn Registration Begin", False, 
-                                  f"Missing required fields. Present: {list(data.keys())}")
-                    return False
-            elif response.status_code == 500:
-                # WebAuthn library issue - acceptable for now
-                self.log_result("authentication", "WebAuthn Registration Begin", True, 
-                              "WebAuthn registration endpoint exists but has library compatibility issues (acceptable)")
+                    self.log_result("authentication", f"WebAuthn Endpoint Removed {endpoint}", True, 
+                                  "Correctly returns 404 - endpoint removed")
+            
+            if all_removed:
+                self.log_result("authentication", "WebAuthn Endpoints Removed", True, 
+                              "All WebAuthn endpoints correctly removed (return 404)")
                 return True
             else:
-                self.log_result("authentication", "WebAuthn Registration Begin", False, 
-                              f"Status: {response.status_code}, Response: {response.text}")
+                self.log_result("authentication", "WebAuthn Endpoints Removed", False, 
+                              "Some WebAuthn endpoints still exist")
                 return False
                 
         except Exception as e:
-            self.log_result("authentication", "WebAuthn Registration Begin", False, f"Exception: {str(e)}")
+            self.log_result("authentication", "WebAuthn Endpoints Removed", False, f"Exception: {str(e)}")
             return False
     
     def test_webauthn_authentication_begin(self) -> bool:
