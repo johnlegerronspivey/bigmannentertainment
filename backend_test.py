@@ -460,32 +460,48 @@ class BackendTester:
             self.log_result("authentication", "Token Refresh", False, f"Exception: {str(e)}")
             return False
     
-    def test_webauthn_credentials_list(self) -> bool:
-        """Test listing user's WebAuthn credentials"""
+    def test_unauthenticated_requests_rejected(self) -> bool:
+        """Test that unauthenticated requests to protected endpoints are rejected"""
         try:
-            if not self.auth_token:
-                self.log_result("authentication", "WebAuthn Credentials List", False, "No auth token available")
-                return False
+            protected_endpoints = [
+                ('/auth/me', 'GET'),
+                ('/media/upload', 'POST'),
+                ('/media/library', 'GET'),
+                ('/admin/users', 'GET'),
+                ('/admin/analytics', 'GET')
+            ]
             
-            response = self.make_request('GET', '/auth/webauthn/credentials')
+            all_rejected = True
+            # Temporarily clear auth token
+            original_token = self.auth_token
+            self.auth_token = None
             
-            if response.status_code == 200:
-                data = response.json()
-                if 'credentials' in data and isinstance(data['credentials'], list):
-                    self.log_result("authentication", "WebAuthn Credentials List", True, 
-                                  f"Successfully retrieved credentials list. Count: {len(data['credentials'])}")
-                    return True
+            for endpoint, method in protected_endpoints:
+                response = self.make_request(method, endpoint)
+                if response.status_code not in [401, 403]:
+                    self.log_result("authentication", f"Unauthenticated {method} {endpoint}", False, 
+                                  f"Expected 401/403, got {response.status_code}")
+                    all_rejected = False
                 else:
-                    self.log_result("authentication", "WebAuthn Credentials List", False, 
-                                  "Invalid response format")
-                    return False
+                    self.log_result("authentication", f"Unauthenticated {method} {endpoint}", True, 
+                                  f"Correctly rejected with {response.status_code}")
+            
+            # Restore auth token
+            self.auth_token = original_token
+            
+            if all_rejected:
+                self.log_result("authentication", "Unauthenticated Requests Rejected", True, 
+                              "All protected endpoints correctly reject unauthenticated requests")
+                return True
             else:
-                self.log_result("authentication", "WebAuthn Credentials List", False, 
-                              f"Status: {response.status_code}, Response: {response.text}")
+                self.log_result("authentication", "Unauthenticated Requests Rejected", False, 
+                              "Some protected endpoints allow unauthenticated access")
                 return False
                 
         except Exception as e:
-            self.log_result("authentication", "WebAuthn Credentials List", False, f"Exception: {str(e)}")
+            # Restore auth token in case of exception
+            self.auth_token = original_token if 'original_token' in locals() else self.auth_token
+            self.log_result("authentication", "Unauthenticated Requests Rejected", False, f"Exception: {str(e)}")
             return False
     
     def test_forgot_password(self) -> bool:
