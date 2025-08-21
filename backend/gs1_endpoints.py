@@ -227,6 +227,7 @@ async def create_music_product(
 @router.post("/locations", status_code=status.HTTP_201_CREATED)
 async def create_location(
     location_data: LocationCreate,
+    current_user: User = Depends(get_current_user),
     gs1_service: GS1USService = Depends(get_gs1_service)
 ):
     """Create new location with GLN and register with GS1"""
