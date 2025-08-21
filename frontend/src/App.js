@@ -12,6 +12,7 @@ import { ProjectManagement, MarketingManagement, FinancialManagement } from "./L
 import { PaymentPackages, PaymentCheckout, PaymentStatus, BankAccountManager, DigitalWalletManager } from "./PaymentComponents";
 import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
 import { LicensingDashboard, PlatformLicenseManager, LicensingStatus } from './LicensingComponents';
+import GS1Components, { GS1Dashboard } from './GS1Components';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
