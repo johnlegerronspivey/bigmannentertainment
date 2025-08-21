@@ -15373,12 +15373,12 @@ if __name__ == "__main__":
     if not tester.test_user_login():
         print("❌ Failed to authenticate - trying registration")
         if not tester.test_user_registration():
-            print("❌ Failed to register user - cannot proceed with licensing tests")
+            print("❌ Failed to register user - cannot proceed with GS1 tests")
             exit(1)
         if not tester.test_user_login():
-            print("❌ Failed to login after registration - cannot proceed with licensing tests")
+            print("❌ Failed to login after registration - cannot proceed with GS1 tests")
             exit(1)
     
-    # Run comprehensive licensing system tests
-    tester.run_licensing_tests()
+    # Run comprehensive GS1 US Data Hub system tests
+    tester.run_gs1_tests()
     exit(0)
