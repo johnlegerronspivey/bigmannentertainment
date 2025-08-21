@@ -2326,8 +2326,12 @@ async def generate_upc_code(
         if not product_code.isdigit():
             raise HTTPException(status_code=400, detail="Product code must contain only digits")
         
-        # Combine company prefix + product code
-        partial_upc = UPC_COMPANY_PREFIX + product_code
+        # For UPC-A, we need exactly 12 digits total
+        # Our company prefix is 10 digits, so we need to use first 6 digits + 5-digit product code + check digit
+        company_prefix_6_digit = UPC_COMPANY_PREFIX[:6]  # Use first 6 digits: 860004
+        
+        # Combine company prefix (6 digits) + product code (5 digits) = 11 digits
+        partial_upc = company_prefix_6_digit + product_code
         
         # Calculate check digit using proper UPC-A algorithm 
         def calculate_upc_check_digit(upc_without_check):
@@ -2346,7 +2350,7 @@ async def generate_upc_code(
         full_upc = partial_upc + check_digit
         
         return {
-            "upc_company_prefix": UPC_COMPANY_PREFIX,
+            "upc_company_prefix": company_prefix_6_digit,
             "product_code": product_code,
             "check_digit": check_digit,
             "full_upc_code": full_upc,
