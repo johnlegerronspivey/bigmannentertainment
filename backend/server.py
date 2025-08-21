@@ -2332,13 +2332,13 @@ async def generate_upc_code(
         # Calculate check digit using proper UPC-A algorithm 
         def calculate_upc_check_digit(upc_without_check):
             if len(upc_without_check) != 11:
-                raise ValueError("UPC must be 11 digits long for check digit calculation")
+                raise ValueError(f"UPC must be 11 digits long for check digit calculation, got {len(upc_without_check)} digits: {upc_without_check}")
             
-            # UPC-A algorithm: even positions (2nd, 4th, 6th, etc.) * 3 + odd positions
+            # UPC-A algorithm: odd positions (1st, 3rd, 5th, etc.) * 3 + even positions
             odd_sum = sum(int(upc_without_check[i]) for i in range(0, 11, 2))  # positions 0,2,4,6,8,10
             even_sum = sum(int(upc_without_check[i]) for i in range(1, 11, 2))  # positions 1,3,5,7,9
             
-            total = (even_sum * 3) + odd_sum
+            total = (odd_sum * 3) + even_sum
             check_digit = (10 - (total % 10)) % 10
             return str(check_digit)
         
