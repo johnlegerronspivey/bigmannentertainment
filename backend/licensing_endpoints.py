@@ -497,3 +497,6 @@ async def get_payout_history(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve payout history: {str(e)}")
+
+# Export the router
+licensing_router = router
