@@ -2320,6 +2320,10 @@ async def generate_upc_code(
 ):
     """Generate full UPC code from product code"""
     try:
+        # Handle empty string case
+        if not product_code or product_code.strip() == "":
+            raise HTTPException(status_code=400, detail="Product code cannot be empty")
+            
         if len(product_code) != 5:
             raise HTTPException(status_code=400, detail="Product code must be exactly 5 digits")
         
