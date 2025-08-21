@@ -3903,8 +3903,8 @@ except Exception as e:
 # Include GS1 router
 try:
     from gs1_endpoints import router as gs1_router
-    app.include_router(gs1_router)
-    print("✅ GS1 router successfully loaded")
+    app.include_router(gs1_router, prefix="/api/gs1", tags=["GS1 US Integration"])
+    print("✅ GS1 US Integration router successfully loaded")
 except ImportError as e:
     print(f"⚠️ GS1 router not available: {e}")
 except Exception as e:
