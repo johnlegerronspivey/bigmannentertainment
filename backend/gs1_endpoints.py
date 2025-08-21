@@ -78,7 +78,7 @@ class MusicReleaseCreate(BaseModel):
     release_date: datetime
     genre: Optional[str] = Field(None, max_length=100)
     duration_seconds: Optional[int] = Field(None, ge=1)
-    isrc: Optional[str] = Field(None, regex=r"^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$")
+    isrc: Optional[str] = Field(None, pattern=r"^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$")
     catalog_number: Optional[str] = Field(None, max_length=50)
     distribution_format: str = Field("Digital", max_length=50)
 
