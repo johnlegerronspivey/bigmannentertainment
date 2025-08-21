@@ -140,11 +140,11 @@ backend:
 frontend:
   - task: "Remove Face ID UI Components and WebAuthn Integration"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -155,6 +155,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Frontend testing not performed by testing agent - system limitations prevent UI testing. Main agent confirmed Face ID UI components and WebAuthn integration successfully removed from frontend while preserving standard authentication forms."
+      - working: "NA"
+        agent: "testing"
+        comment: "🎯 COMPREHENSIVE FACE ID REMOVAL TESTING INITIATED: User requested thorough testing of frontend login/register flows after Face ID/WebAuthn removal from Big Mann Entertainment platform. Testing will verify: 1) Login page has Face ID completely removed with password-only authentication, 2) Registration page has no Face ID enrollment options with standard form fields and age validation, 3) Navigation and authentication flows work properly, 4) UI is clean without broken elements from WebAuthn removal, 5) Big Mann Entertainment branding is maintained throughout. Setting needs_retesting to true to conduct comprehensive UI testing using playwright automation."
 
 metadata:
   created_by: "main_agent"
