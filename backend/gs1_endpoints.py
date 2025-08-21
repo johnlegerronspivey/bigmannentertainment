@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -8,6 +9,7 @@ import uuid
 from motor.motor_asyncio import AsyncIOMotorClient
 import io
 import logging
+import jwt
 
 from gs1_models import (
     GS1Product, GS1Location, BarcodeRequest, BarcodeResponse, 
@@ -20,8 +22,38 @@ mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'test_database')]
 
+# Authentication setup (same as main server)
+SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
+ALGORITHM = "HS256"
+security = HTTPBearer()
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# User model for authentication
+class User(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    is_active: bool = True
+    is_admin: bool = False
+    role: str = "user"
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current authenticated user"""
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    
+    user = await db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user)
 
 # Initialize GS1 service
 def get_gs1_service() -> GS1USService:
