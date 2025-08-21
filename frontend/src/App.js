@@ -840,7 +840,7 @@ const Home = () => {
               Complete Distribution Empire
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              Distribute your content across 83+ platforms including social media, streaming, radio, TV, podcasts, NFT marketplaces, and Web3 platforms
+              Distribute your content across 90+ platforms including social media, streaming, radio, TV, podcasts, NFT marketplaces, and Web3 platforms
             </p>
           </div>
           
