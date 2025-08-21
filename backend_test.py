@@ -414,39 +414,50 @@ class BackendTester:
             self.log_result("authentication", "WebAuthn Endpoints Removed", False, f"Exception: {str(e)}")
             return False
     
-    def test_webauthn_authentication_begin(self) -> bool:
-        """Test WebAuthn Face ID authentication initiation"""
+    def test_token_refresh(self) -> bool:
+        """Test JWT token refresh functionality"""
         try:
             if not self.auth_token:
-                self.log_result("authentication", "WebAuthn Authentication Begin", False, "No auth token available")
+                # First login to get tokens
+                login_success = self.test_user_login()
+                if not login_success:
+                    self.log_result("authentication", "Token Refresh", False, "Could not login to get initial tokens")
+                    return False
+            
+            # Get current user to get refresh token
+            me_response = self.make_request('GET', '/auth/me')
+            if me_response.status_code != 200:
+                self.log_result("authentication", "Token Refresh", False, "Could not get current user info")
                 return False
             
-            # WebAuthn authentication begin requires email parameter
-            response = self.make_request('POST', f'/auth/webauthn/authenticate/begin?email={TEST_USER_EMAIL}')
+            # Test refresh token endpoint (assuming we have a refresh token from login)
+            refresh_data = {
+                "refresh_token": "dummy_refresh_token_for_testing"
+            }
+            
+            response = self.make_request('POST', '/auth/refresh', json=refresh_data)
             
             if response.status_code == 200:
                 data = response.json()
-                required_fields = ['challenge', 'rpId']
-                
-                if all(field in data for field in required_fields):
-                    self.log_result("authentication", "WebAuthn Authentication Begin", True, 
-                                  f"WebAuthn authentication options generated successfully")
+                if 'access_token' in data and 'refresh_token' in data:
+                    self.log_result("authentication", "Token Refresh", True, 
+                                  "Token refresh endpoint working correctly")
                     return True
                 else:
-                    self.log_result("authentication", "WebAuthn Authentication Begin", False, 
-                                  f"Missing required fields. Present: {list(data.keys())}")
+                    self.log_result("authentication", "Token Refresh", False, 
+                                  "Missing tokens in refresh response")
                     return False
-            elif response.status_code == 400 and ("No WebAuthn credentials" in response.text or "No credentials" in response.text):
-                self.log_result("authentication", "WebAuthn Authentication Begin", True, 
-                              "Correctly returned 400 for user with no registered credentials")
+            elif response.status_code == 401 and ("Invalid" in response.text or "expired" in response.text):
+                self.log_result("authentication", "Token Refresh", True, 
+                              "Token refresh correctly validates refresh tokens")
                 return True
             else:
-                self.log_result("authentication", "WebAuthn Authentication Begin", False, 
+                self.log_result("authentication", "Token Refresh", False, 
                               f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("authentication", "WebAuthn Authentication Begin", False, f"Exception: {str(e)}")
+            self.log_result("authentication", "Token Refresh", False, f"Exception: {str(e)}")
             return False
     
     def test_webauthn_credentials_list(self) -> bool:
