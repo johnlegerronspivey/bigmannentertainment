@@ -681,6 +681,9 @@ const Header = () => {
                 <Link to="/licensing/status" className="hover:text-purple-400 transition-colors py-1 pl-4 block text-sm">Status</Link>
               </div>
               
+              {/* GS1 Integration */}
+              <Link to="/gs1" className="hover:text-purple-400 transition-colors py-2">📊 GS1 Integration</Link>
+              
               <Link to="/industry" className="hover:text-purple-400 transition-colors py-2">Industry</Link>
               <Link to="/sponsorship" className="hover:text-purple-400 transition-colors py-2">Sponsorship</Link>
               <Link to="/blockchain" className="hover:text-purple-400 transition-colors py-2">Blockchain</Link>
