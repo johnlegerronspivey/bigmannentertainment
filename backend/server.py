@@ -602,6 +602,45 @@ DISTRIBUTION_PLATFORMS = {
         "revenue_sharing": "Creator fund and brand partnership opportunities",
         "platform_features": ["lifestyle_content", "discovery_feed", "trend_sharing", "community_engagement"]
     },
+    "thesource": {
+        "type": "social_media",
+        "name": "The Source",
+        "api_endpoint": "https://api.thesource.com/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 200 * 1024 * 1024,  # 200MB
+        "credentials_required": ["api_key", "editorial_token", "content_partner_id"],
+        "target_demographics": "Hip-hop culture enthusiasts, ages 16-45, urban music fans",
+        "content_guidelines": "Hip-hop music, urban culture, artist interviews, music news, album reviews",
+        "submission_process": "The Source editorial team review and music industry validation",
+        "revenue_sharing": "Music promotion partnerships and advertising revenue sharing",
+        "platform_features": ["music_journalism", "artist_interviews", "album_premieres", "hip_hop_culture"]
+    },
+    "billboard": {
+        "type": "social_media",
+        "name": "Billboard",
+        "api_endpoint": "https://api.billboard.com/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 250 * 1024 * 1024,  # 250MB
+        "credentials_required": ["api_key", "billboard_partner_id", "charts_access_token"],
+        "target_demographics": "Music industry professionals, ages 18-65, mainstream music audience",
+        "content_guidelines": "Music industry news, chart performance, artist features, music business content",
+        "submission_process": "Billboard editorial review and music industry standards validation",
+        "revenue_sharing": "Music industry partnerships and premium content licensing",
+        "platform_features": ["chart_tracking", "industry_news", "artist_features", "music_business_insights"]
+    },
+    "tmz": {
+        "type": "social_media",
+        "name": "TMZ",
+        "api_endpoint": "https://api.tmz.com/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 300 * 1024 * 1024,  # 300MB
+        "credentials_required": ["api_key", "tmz_contributor_id", "entertainment_token"],
+        "target_demographics": "Entertainment news audience, ages 18-55, celebrity culture followers",
+        "content_guidelines": "Celebrity news, entertainment exclusives, music artist coverage, breaking entertainment news",
+        "submission_process": "TMZ editorial team review and entertainment news validation",
+        "revenue_sharing": "Exclusive content licensing and contributor revenue sharing",
+        "platform_features": ["breaking_news", "celebrity_coverage", "exclusive_content", "entertainment_reporting"]
+    },
     
     # Music Streaming Platforms
     "spotify": {
