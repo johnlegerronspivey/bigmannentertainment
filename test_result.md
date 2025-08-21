@@ -167,7 +167,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Remove WebAuthn Face ID Authentication System"
     - "Remove Face ID UI Components and WebAuthn Integration"
   stuck_tasks: []
   test_all: false
