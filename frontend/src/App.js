@@ -4254,6 +4254,12 @@ function App() {
             <Route path="/admin/licensing/platforms" element={<AdminRoute><PlatformLicenseManager /></AdminRoute>} />
             <Route path="/admin/licensing/status" element={<AdminRoute><LicensingStatus /></AdminRoute>} />
             
+            {/* GS1 Integration Routes */}
+            <Route path="/gs1" element={<ProtectedRoute><GS1Dashboard /></ProtectedRoute>} />
+            
+            {/* Admin GS1 Routes */}
+            <Route path="/admin/gs1" element={<AdminRoute><GS1Dashboard /></AdminRoute>} />
+            
             <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
           </Routes>
           <Footer />
