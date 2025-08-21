@@ -3900,6 +3900,16 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Error loading Licensing router: {e}")
 
+# Include GS1 router
+try:
+    from gs1_endpoints import router as gs1_router
+    app.include_router(gs1_router)
+    print("✅ GS1 router successfully loaded")
+except ImportError as e:
+    print(f"⚠️ GS1 router not available: {e}")
+except Exception as e:
+    print(f"❌ Error loading GS1 router: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
