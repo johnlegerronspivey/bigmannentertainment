@@ -11721,6 +11721,48 @@ class BackendTester:
             self.log_result("licensing_daily_payouts_admin", "Daily Payouts Admin Permissions", False, f"Exception: {str(e)}")
             return False
 
+    def run_gs1_tests(self):
+        """Run comprehensive GS1 US Data Hub system tests"""
+        print("\n🏷️ COMPREHENSIVE GS1 US DATA HUB SYSTEM TESTS")
+        print("-" * 60)
+        
+        # Core GS1 Business Information
+        print("\n📋 Business Information Tests")
+        print("-" * 30)
+        self.test_gs1_business_info()
+        
+        # Product Management with UPC/GTIN
+        print("\n🎵 Music Product Management Tests")
+        print("-" * 30)
+        self.test_gs1_products_creation()
+        self.test_gs1_products_listing()
+        
+        # Location Management with GLN
+        print("\n📍 Location Management Tests")
+        print("-" * 30)
+        self.test_gs1_locations_creation()
+        self.test_gs1_locations_listing()
+        
+        # Barcode Generation
+        print("\n📊 Barcode Generation Tests")
+        print("-" * 30)
+        self.test_gs1_barcode_generation()
+        
+        # Identifier Validation
+        print("\n✅ Identifier Validation Tests")
+        print("-" * 30)
+        self.test_gs1_validation()
+        
+        # Authentication & Security
+        print("\n🔐 Authentication & Security Tests")
+        print("-" * 30)
+        self.test_gs1_authentication()
+        
+        # Complete Integration Workflow
+        print("\n🔄 Complete Integration Workflow Tests")
+        print("-" * 30)
+        self.test_gs1_integration()
+
     def run_licensing_tests(self):
         """Run comprehensive licensing system tests"""
         print("\n🏢 COMPREHENSIVE LICENSING SYSTEM TESTS")
