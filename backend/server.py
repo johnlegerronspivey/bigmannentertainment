@@ -524,6 +524,58 @@ DISTRIBUTION_PLATFORMS = {
         "revenue_sharing": "Agency booking fees and platform commissions",
         "platform_features": ["agency_management", "model_booking", "casting_platform", "industry_tools"]
     },
+    "imgmodels": {
+        "type": "social_media",
+        "name": "IMG Models",
+        "api_endpoint": "https://api.imgmodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 200 * 1024 * 1024,  # 200MB
+        "credentials_required": ["api_key", "model_id", "agent_token"],
+        "target_demographics": "High fashion industry, ages 16-35, luxury brands and designers",
+        "content_guidelines": "High-end fashion photography, runway content, editorial work, brand campaigns",
+        "submission_process": "IMG Models talent scouting and representation approval",
+        "revenue_sharing": "Premium modeling contracts and brand partnership deals",
+        "platform_features": ["elite_representation", "luxury_brand_partnerships", "runway_casting", "editorial_placements"]
+    },
+    "elitemodelmanagement": {
+        "type": "social_media",
+        "name": "Elite Model Management",
+        "api_endpoint": "https://api.elitemodel.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 180 * 1024 * 1024,  # 180MB
+        "credentials_required": ["api_key", "elite_model_id", "agency_access_token"],
+        "target_demographics": "International fashion industry, ages 14-40, elite modeling market",
+        "content_guidelines": "Elite fashion content, international campaigns, haute couture, commercial work",
+        "submission_process": "Elite Model Management scouting and professional evaluation",
+        "revenue_sharing": "Elite modeling fees and international campaign revenues",
+        "platform_features": ["global_representation", "international_campaigns", "fashion_week_casting", "brand_ambassadorships"]
+    },
+    "lamodels": {
+        "type": "social_media",
+        "name": "LA Models",
+        "api_endpoint": "https://api.lamodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 150 * 1024 * 1024,  # 150MB
+        "credentials_required": ["api_key", "la_model_id", "west_coast_token"],
+        "target_demographics": "Commercial and fashion industry, ages 16-45, West Coast market",
+        "content_guidelines": "Commercial photography, fashion work, lifestyle brands, entertainment industry",
+        "submission_process": "LA Models talent representation and commercial evaluation",
+        "revenue_sharing": "Commercial modeling rates and entertainment industry partnerships",
+        "platform_features": ["commercial_representation", "entertainment_casting", "lifestyle_brands", "west_coast_market"]
+    },
+    "stormmanagement": {
+        "type": "social_media",
+        "name": "Storm Management LA",
+        "api_endpoint": "https://api.stormmanagement-la.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 175 * 1024 * 1024,  # 175MB
+        "credentials_required": ["api_key", "storm_model_id", "la_office_token"],
+        "target_demographics": "Fashion and commercial industry, ages 18-35, Los Angeles market",
+        "content_guidelines": "Fashion editorials, commercial campaigns, celebrity photography, brand partnerships",
+        "submission_process": "Storm Management LA talent scouting and representation approval",
+        "revenue_sharing": "Fashion industry rates and celebrity endorsement deals",
+        "platform_features": ["celebrity_representation", "fashion_editorials", "commercial_campaigns", "brand_collaborations"]
+    },
     "onlyfans": {
         "type": "social_media",
         "name": "OnlyFans",
