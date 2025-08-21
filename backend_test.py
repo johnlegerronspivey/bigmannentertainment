@@ -35,6 +35,9 @@ class BackendTester:
         self.test_project_id = None
         self.test_campaign_id = None
         self.test_transaction_id = None
+        self.test_upc_code = None
+        self.test_gtin_code = None
+        self.test_gln_code = None
         self.results = {
             "authentication": {"passed": 0, "failed": 0, "details": []},
             "media_upload": {"passed": 0, "failed": 0, "details": []},
