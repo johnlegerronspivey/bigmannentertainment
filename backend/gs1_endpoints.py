@@ -137,6 +137,7 @@ async def get_business_info(
 @router.post("/products", status_code=status.HTTP_201_CREATED)
 async def create_music_product(
     product_data: MusicReleaseCreate,
+    current_user: User = Depends(get_current_user),
     gs1_service: GS1USService = Depends(get_gs1_service)
 ):
     """Create new music product with UPC/GTIN and register with GS1"""
