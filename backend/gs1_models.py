@@ -88,8 +88,8 @@ class GS1Product(BaseModel):
         return v
 
 class BarcodeRequest(BaseModel):
-    upc_code: str = Field(..., regex=r"^\d{12,13}$")
-    format_type: str = Field("PNG", regex="^(PNG|JPEG|SVG)$")
+    upc_code: str = Field(..., pattern=r"^\d{12,13}$")
+    format_type: str = Field("PNG", pattern="^(PNG|JPEG|SVG)$")
     width: Optional[float] = Field(None, ge=0.1, le=2.0)
     height: Optional[float] = Field(None, ge=5.0, le=50.0)
     dpi: Optional[int] = Field(300, ge=72, le=600)
