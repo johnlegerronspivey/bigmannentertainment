@@ -180,7 +180,16 @@ class BackendTester:
             "licensing_compensation_history": {"passed": 0, "failed": 0, "details": []},
             "licensing_payout_history": {"passed": 0, "failed": 0, "details": []},
             "licensing_statutory_rates_auth": {"passed": 0, "failed": 0, "details": []},
-            "licensing_daily_payouts_admin": {"passed": 0, "failed": 0, "details": []}
+            "licensing_daily_payouts_admin": {"passed": 0, "failed": 0, "details": []},
+            "gs1_business_info": {"passed": 0, "failed": 0, "details": []},
+            "gs1_products_creation": {"passed": 0, "failed": 0, "details": []},
+            "gs1_locations_creation": {"passed": 0, "failed": 0, "details": []},
+            "gs1_barcode_generation": {"passed": 0, "failed": 0, "details": []},
+            "gs1_validation": {"passed": 0, "failed": 0, "details": []},
+            "gs1_products_listing": {"passed": 0, "failed": 0, "details": []},
+            "gs1_locations_listing": {"passed": 0, "failed": 0, "details": []},
+            "gs1_authentication": {"passed": 0, "failed": 0, "details": []},
+            "gs1_integration": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
