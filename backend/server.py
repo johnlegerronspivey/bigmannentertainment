@@ -1553,8 +1553,9 @@ async def register_user(user_data: UserCreate, request: Request):
     
     # Validate age (must be 18+)
     today = datetime.utcnow().date()
-    age = today.year - user_data.date_of_birth.year
-    if today < user_data.date_of_birth.replace(year=today.year):
+    birth_date = user_data.date_of_birth.date() if isinstance(user_data.date_of_birth, datetime) else user_data.date_of_birth
+    age = today.year - birth_date.year
+    if today < birth_date.replace(year=today.year):
         age -= 1
     
     if age < 18:
