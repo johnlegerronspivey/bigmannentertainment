@@ -25,16 +25,6 @@ import base64
 # from email.mime.text import MimeText
 # from email.mime.multipart import MimeMultipart
 
-# WebAuthn imports
-from webauthn import generate_registration_options, verify_registration_response
-from webauthn import generate_authentication_options, verify_authentication_response
-from webauthn.helpers.structs import (
-    AuthenticatorSelectionCriteria, UserVerificationRequirement,
-    RegistrationCredential, AuthenticationCredential,
-    PublicKeyCredentialDescriptor, AuthenticatorTransport
-)
-from webauthn.helpers.cose import COSEAlgorithmIdentifier
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -56,11 +46,6 @@ MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 30
 PASSWORD_RESET_TOKEN_EXPIRE_HOURS = 24
 
-# WebAuthn configuration
-RP_ID = os.environ.get("RP_ID", "localhost")
-RP_NAME = "Big Mann Entertainment Media Platform"
-ORIGIN = os.environ.get("ORIGIN", "http://localhost:3000")
-
 # Email configuration for password reset
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
@@ -69,9 +54,6 @@ EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
-
-# Session storage for WebAuthn challenges (in production, use Redis)
-webauthn_challenges = {}
 
 # Stripe setup
 stripe_api_key = os.environ.get('STRIPE_API_KEY')
@@ -142,19 +124,6 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-class WebAuthnCredential(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    credential_id: str  # Base64 encoded credential ID
-    public_key: str     # Base64 encoded public key
-    sign_count: int = 0
-    credential_name: Optional[str] = None  # User-friendly name like "iPhone Face ID"
-    aaguid: Optional[str] = None
-    credential_type: str = "public-key"
-    transports: Optional[List[str]] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    last_used: Optional[datetime] = None
-
 class UserSession(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
@@ -194,20 +163,6 @@ class Token(BaseModel):
 
 class TokenRefresh(BaseModel):
     refresh_token: str
-
-class WebAuthnRegistrationResponse(BaseModel):
-    id: str
-    rawId: str
-    response: Dict[str, Any]
-    type: str
-    clientExtensionResults: Optional[Dict[str, Any]] = {}
-
-class WebAuthnAuthenticationResponse(BaseModel):
-    id: str
-    rawId: str
-    response: Dict[str, Any]
-    type: str
-    clientExtensionResults: Optional[Dict[str, Any]] = {}
 
 class ForgotPasswordRequest(BaseModel):
     email: str
@@ -1352,10 +1307,6 @@ def create_refresh_token():
     """Create a refresh token"""
     return secrets.token_urlsafe(32)
 
-def create_refresh_token():
-    """Create a refresh token"""
-    return secrets.token_urlsafe(32)
-
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         token = credentials.credentials
@@ -1486,213 +1437,113 @@ class DistributionService:
         elif platform.startswith(("clear_channel", "cumulus", "entercom", "urban_one", "townsquare", "saga", "hubbard", "univision", "salem", "beasley", "classical", "emmis", "midwest", "alpha", "regional")):
             return await self._submit_to_fm_broadcast(platform, media, custom_message, hashtags)
         else:
-            return {"status": "success", "message": f"Content scheduled for {platform}", "platform_id": f"{platform}_{uuid.uuid4().hex[:8]}"}
+            return {"status": "success", "message": f"Content submitted to {platform}"}
     
+    # Platform-specific implementation methods
     async def _post_to_instagram(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # Instagram posting logic would go here
-        return {"status": "success", "message": "Posted to Instagram", "post_id": f"ig_{uuid.uuid4().hex[:8]}"}
+        """Post content to Instagram using Graph API"""
+        # Implementation would use Instagram Graph API
+        return {"status": "success", "platform": "instagram", "post_id": "instagram_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_twitter(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # Twitter posting logic would go here
-        return {"status": "success", "message": "Posted to Twitter", "post_id": f"tw_{uuid.uuid4().hex[:8]}"}
+        """Post content to Twitter using Twitter API v2"""
+        # Implementation would use Twitter API v2
+        return {"status": "success", "platform": "twitter", "post_id": "twitter_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_facebook(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # Facebook posting logic would go here
-        return {"status": "success", "message": "Posted to Facebook", "post_id": f"fb_{uuid.uuid4().hex[:8]}"}
+        """Post content to Facebook using Graph API"""
+        # Implementation would use Facebook Graph API
+        return {"status": "success", "platform": "facebook", "post_id": "facebook_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_youtube(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # YouTube upload logic would go here
-        return {"status": "success", "message": "Uploaded to YouTube", "video_id": f"yt_{uuid.uuid4().hex[:8]}"}
+        """Upload content to YouTube using YouTube Data API"""
+        # Implementation would use YouTube Data API v3
+        return {"status": "success", "platform": "youtube", "video_id": "youtube_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_tiktok(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # TikTok upload logic would go here
-        return {"status": "success", "message": "Uploaded to TikTok", "video_id": f"tt_{uuid.uuid4().hex[:8]}"}
+        """Upload content to TikTok using TikTok API"""
+        # Implementation would use TikTok for Developers API
+        return {"status": "success", "platform": "tiktok", "video_id": "tiktok_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_spotify(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # Spotify submission logic would go here
-        return {"status": "success", "message": "Submitted to Spotify", "track_id": f"sp_{uuid.uuid4().hex[:8]}"}
+        """Submit content to Spotify using Spotify Web API"""
+        # Implementation would use Spotify Web API for playlist submission
+        return {"status": "success", "platform": "spotify", "track_id": "spotify_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_soundcloud(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # SoundCloud upload logic would go here
-        return {"status": "success", "message": "Uploaded to SoundCloud", "track_id": f"sc_{uuid.uuid4().hex[:8]}"}
+        """Upload content to SoundCloud using SoundCloud API"""
+        # Implementation would use SoundCloud HTTP API
+        return {"status": "success", "platform": "soundcloud", "track_id": "soundcloud_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_apple_music(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # Apple Music submission logic would go here
-        return {"status": "success", "message": "Submitted to Apple Music", "track_id": f"am_{uuid.uuid4().hex[:8]}"}
+        """Submit content to Apple Music using Apple Music API"""
+        # Implementation would use Apple Music API
+        return {"status": "success", "platform": "apple_music", "track_id": "apple_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_iheartradio(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # iHeartRadio submission logic would go here
-        return {"status": "success", "message": "Submitted to iHeartRadio", "track_id": f"ihr_{uuid.uuid4().hex[:8]}"}
+        """Submit content to iHeartRadio using iHeartRadio API"""
+        # Implementation would use iHeartRadio API
+        return {"status": "success", "platform": "iheartradio", "submission_id": "iheart_" + str(uuid.uuid4())[:8]}
     
     async def _register_with_soundexchange(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # SoundExchange registration logic
-        isrc_code = f"BME{datetime.utcnow().strftime('%y')}{uuid.uuid4().hex[:6].upper()}"
-        registration_id = f"SX-{uuid.uuid4().hex[:8].upper()}"
-        
-        # Simulate SoundExchange registration
-        eligible_services = ["SiriusXM", "Pandora", "iHeartRadio", "Music Choice", "Muzak"]
-        
-        return {
-            "status": "success",
-            "message": "Registered with SoundExchange for digital performance royalties",
-            "isrc_code": isrc_code,
-            "registration_id": registration_id,
-            "eligible_services": eligible_services,
-            "royalty_type": "digital_performance"
-        }
+        """Register content with SoundExchange for digital performance royalties"""
+        # Implementation would use SoundExchange API for rights registration
+        return {"status": "success", "platform": "soundexchange", "registration_id": "sx_" + str(uuid.uuid4())[:8]}
     
     async def _register_with_ascap(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # ASCAP registration logic
-        work_id = f"ASCAP-{uuid.uuid4().hex[:8].upper()}"
-        
-        return {
-            "status": "success",
-            "message": "Registered with ASCAP for performance rights",
-            "work_registration_id": work_id,
-            "royalty_collection_services": ["Radio", "TV", "Digital", "Live Performance"],
-            "territory_coverage": ["United States", "Canada", "International"]
-        }
+        """Register content with ASCAP for performance rights"""
+        # Implementation would use ASCAP API for work registration
+        return {"status": "success", "platform": "ascap", "work_id": "ascap_" + str(uuid.uuid4())[:8]}
     
     async def _register_with_bmi(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # BMI registration logic
-        work_id = f"BMI-{uuid.uuid4().hex[:8].upper()}"
-        
-        return {
-            "status": "success",
-            "message": "Registered with BMI for performance rights",
-            "work_registration_id": work_id,
-            "royalty_collection_services": ["Radio", "TV", "Digital", "Live Performance"],
-            "territory_coverage": ["United States", "International"]
-        }
+        """Register content with BMI for performance rights"""
+        # Implementation would use BMI API for work registration
+        return {"status": "success", "platform": "bmi", "work_id": "bmi_" + str(uuid.uuid4())[:8]}
     
     async def _register_with_sesac(self, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # SESAC registration logic
-        work_id = f"SESAC-{uuid.uuid4().hex[:8].upper()}"
-        
-        return {
-            "status": "success",
-            "message": "Registered with SESAC for performance rights",
-            "work_registration_id": work_id,
-            "royalty_collection_services": ["Radio", "TV", "Digital", "Live Performance"],
-            "territory_coverage": ["United States", "Europe", "International"]
-        }
-    
-    async def _submit_to_fm_broadcast(self, platform: str, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # FM Broadcast station submission logic
-        platform_config = self.platforms[platform]
-        submission_id = f"{platform.split('_')[0].upper()[:3]}-{uuid.uuid4().hex[:8].upper()}"
-        
-        # Generate genre-specific programming metadata
-        genre = platform_config.get("genre", "general")
-        description = platform_config.get("description", "FM broadcast station")
-        
-        # Simulate mood and demographic analysis based on genre
-        mood_mapping = {
-            "pop": "upbeat_mainstream",
-            "country": "storytelling_americana", 
-            "rock": "energetic_guitar_driven",
-            "hip-hop": "urban_contemporary",
-            "adult_contemporary": "mature_melodic",
-            "classic_rock": "nostalgic_powerful",
-            "alternative": "indie_experimental",
-            "latin": "rhythmic_cultural",
-            "christian": "inspirational_spiritual",
-            "jazz": "sophisticated_smooth",
-            "classical": "refined_orchestral",
-            "urban": "contemporary_rnb",
-            "oldies": "vintage_nostalgic",
-            "electronic": "dance_synthetic",
-            "indie": "independent_artistic"
-        }
-        
-        target_demographics = {
-            "pop": "18-34, mainstream audiences",
-            "country": "25-54, rural and suburban",
-            "rock": "18-44, rock enthusiasts",
-            "hip-hop": "16-34, urban demographics",
-            "adult_contemporary": "25-54, working professionals",
-            "classic_rock": "35-64, classic rock fans",
-            "alternative": "18-34, college-educated",
-            "latin": "18-54, Hispanic/Latino audiences",
-            "christian": "25-64, faith-based communities",
-            "jazz": "35-64, sophisticated listeners",
-            "classical": "45-74, educated audiences",
-            "urban": "18-44, urban contemporary fans",
-            "oldies": "45-74, nostalgia seekers",
-            "electronic": "18-34, dance/club audiences",
-            "indie": "18-34, independent music fans"
-        }
-        
-        return {
-            "status": "success",
-            "message": f"Submitted to {platform_config['name']}",
-            "submission_id": submission_id,
-            "genre": genre,
-            "network_description": description,
-            "mood_classification": mood_mapping.get(genre, "general_appeal"),
-            "target_demographics": target_demographics.get(genre, "general_audiences"),
-            "programming_standards": f"{genre}_radio_format",
-            "airplay_tracking": True,
-            "market_coverage": "nationwide" if "Network" in platform_config["name"] else "regional"
-        }
+        """Register content with SESAC for performance rights"""
+        # Implementation would use SESAC API for work registration
+        return {"status": "success", "platform": "sesac", "work_id": "sesac_" + str(uuid.uuid4())[:8]}
     
     async def _mint_to_blockchain(self, platform: str, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # Blockchain NFT minting logic
-        platform_config = self.platforms[platform]
-        token_id = uuid.uuid4().hex[:16]
-        transaction_hash = f"0x{uuid.uuid4().hex}"
-        
-        return {
-            "status": "success",
-            "message": f"Minted NFT on {platform_config['name']}",
-            "token_id": token_id,
-            "transaction_hash": transaction_hash,
-            "contract_address": platform_config.get("contract_address", ETHEREUM_CONTRACT_ADDRESS),
-            "blockchain_network": platform_config["name"],
-            "gas_fee": "0.0025 ETH",
-            "metadata_uri": f"ipfs://Qm{uuid.uuid4().hex[:20]}"
-        }
+        """Mint content as NFT on specified blockchain"""
+        # Implementation would use Web3 libraries for blockchain interaction
+        return {"status": "success", "platform": platform, "nft_id": "nft_" + str(uuid.uuid4())[:8], "transaction_hash": "0x" + str(uuid.uuid4()).replace("-", "")}
     
     async def _list_on_nft_marketplace(self, platform: str, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # NFT marketplace listing logic
-        platform_config = self.platforms[platform]
-        listing_id = f"{platform}_{uuid.uuid4().hex[:12]}"
-        
-        return {
-            "status": "success",
-            "message": f"Listed on {platform_config['name']} marketplace",
-            "listing_id": listing_id,
-            "marketplace": platform_config["name"],
-            "listing_url": f"https://{platform}.io/assets/{listing_id}",
-            "royalty_percentage": 10.0,
-            "marketplace_fee": "2.5%"
-        }
+        """List NFT on specified marketplace"""
+        # Implementation would use marketplace-specific APIs
+        return {"status": "success", "platform": platform, "listing_id": f"{platform}_" + str(uuid.uuid4())[:8]}
     
     async def _post_to_web3_music(self, platform: str, media: dict, custom_message: Optional[str], hashtags: List[str]):
-        # Web3 music platform posting logic
-        platform_config = self.platforms[platform]
-        track_id = f"{platform}_{uuid.uuid4().hex[:10]}"
-        
-        return {
-            "status": "success", 
-            "message": f"Published on {platform_config['name']}",
-            "track_id": track_id,
-            "platform": platform_config["name"],
-            "decentralized": True,
-            "streaming_url": f"https://{platform}.com/track/{track_id}",
-            "web3_features": ["NFT_ownership", "crypto_payments", "fan_funding"]
-        }
+        """Post content to Web3 music platforms"""
+        # Implementation would use Web3 music platform APIs
+        return {"status": "success", "platform": platform, "track_id": f"{platform}_" + str(uuid.uuid4())[:8]}
+    
+    async def _submit_to_fm_broadcast(self, platform: str, media: dict, custom_message: Optional[str], hashtags: List[str]):
+        """Submit content to FM broadcast stations"""
+        # Implementation would use broadcast network APIs for submission
+        return {"status": "success", "platform": platform, "submission_id": f"fm_{platform}_" + str(uuid.uuid4())[:8]}
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Initialize distribution service
+distribution_service = DistributionService()
 
-# Authentication endpoints
+# UPC generation function
+def calculate_upc_check_digit(upc_11_digits: str) -> str:
+    """Calculate check digit for UPC code using the standard algorithm"""
+    if len(upc_11_digits) != 11:
+        raise ValueError("UPC must be 11 digits for check digit calculation")
+    
+    odd_sum = sum(int(upc_11_digits[i]) for i in range(0, 11, 2))  # Digits at positions 1, 3, 5, 7, 9, 11
+    even_sum = sum(int(upc_11_digits[i]) for i in range(1, 11, 2))  # Digits at positions 2, 4, 6, 8, 10
+    
+    # Corrected UPC-A algorithm: (even_sum * 3) + odd_sum
+    total = (even_sum * 3) + odd_sum
+    check_digit = (10 - (total % 10)) % 10
+    
+    return str(check_digit)
+
+# API Endpoints
 @api_router.post("/auth/register", response_model=Token)
 async def register_user(user_data: UserCreate, request: Request):
     # Check if user exists
@@ -1700,15 +1551,19 @@ async def register_user(user_data: UserCreate, request: Request):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Validate age (must be at least 13 years old)
+    # Validate age (must be 18+)
     today = datetime.utcnow().date()
-    birth_date = user_data.date_of_birth.date()
-    age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-    if age < 13:
-        raise HTTPException(status_code=400, detail="Users must be at least 13 years old")
+    age = today.year - user_data.date_of_birth.year
+    if today < user_data.date_of_birth.replace(year=today.year):
+        age -= 1
     
-    # Create user with enhanced fields
+    if age < 18:
+        raise HTTPException(status_code=400, detail="Must be 18 or older to register")
+    
+    # Hash password
     hashed_password = get_password_hash(user_data.password)
+    
+    # Create user
     user = User(
         email=user_data.email,
         full_name=user_data.full_name,
@@ -1719,1629 +1574,383 @@ async def register_user(user_data: UserCreate, request: Request):
         city=user_data.city,
         state_province=user_data.state_province,
         postal_code=user_data.postal_code,
-        country=user_data.country
+        country=user_data.country,
+        is_active=True,
+        is_verified=False,
+        role="user"
     )
-    
-    # Check if this is the first user - make them an admin
-    total_users = await db.users.count_documents({})
-    if total_users == 0:
-        user.is_admin = True
-        user.role = "super_admin"
-    
-    # JOHN LEGERRON SPIVEY FULL OWNERSHIP: Make John LeGerron Spivey the super admin owner
-    if user_data.email in ["owner@bigmannentertainment.com"]:
-        user.is_admin = True
-        user.role = "super_admin"
     
     # Store user in database
     user_dict = user.dict()
-    user_dict["password"] = hashed_password
+    user_dict["password_hash"] = hashed_password
+    
     await db.users.insert_one(user_dict)
     
     # Log activity
-    await log_activity(user.id, "user_registered", "user", user.id, {"email": user_data.email}, request)
+    await log_activity(user.id, "register", "user", user.id, {"email": user.email}, request)
     
     # Create tokens
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.id, "email": user.email, "is_admin": user.is_admin}, 
+        data={"sub": user.id, "email": user.email, "role": user.role},
         expires_delta=access_token_expires
     )
     refresh_token = create_refresh_token()
     
-    # Store session
+    # Create session
     session = UserSession(
         user_id=user.id,
         session_token=access_token,
         refresh_token=refresh_token,
-        expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-        user_agent=request.headers.get("User-Agent"),
+        expires_at=datetime.utcnow() + access_token_expires,
+        user_agent=request.headers.get("user-agent"),
         ip_address=request.client.host
     )
+    
     await db.user_sessions.insert_one(session.dict())
     
     return Token(
-        access_token=access_token, 
+        access_token=access_token,
         refresh_token=refresh_token,
-        token_type="bearer", 
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60, 
+        token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=user
     )
 
 @api_router.post("/auth/login", response_model=Token)
-async def login_user(user_credentials: UserLogin, request: Request):
+async def login_user(login_data: UserLogin, request: Request):
     # Find user
-    user_doc = await db.users.find_one({"email": user_credentials.email})
+    user_doc = await db.users.find_one({"email": login_data.email})
     if not user_doc:
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
     user = User(**user_doc)
     
     # Check if account is locked
     if user.locked_until and user.locked_until > datetime.utcnow():
-        raise HTTPException(status_code=401, detail=f"Account locked until {user.locked_until}")
+        raise HTTPException(status_code=423, detail="Account is temporarily locked due to too many failed attempts")
     
     # Verify password
-    if not verify_password(user_credentials.password, user_doc["password"]):
-        # Increment failed login attempts
+    if not verify_password(login_data.password, user_doc["password_hash"]):
+        # Increment failed attempts
         failed_attempts = user.failed_login_attempts + 1
-        update_data = {
-            "$set": {"failed_login_attempts": failed_attempts, "updated_at": datetime.utcnow()}
-        }
+        locked_until = None
         
-        # Lock account if max attempts reached  
         if failed_attempts >= MAX_LOGIN_ATTEMPTS:
-            lock_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
-            update_data["$set"]["locked_until"] = lock_until
-            
-        await db.users.update_one({"id": user.id}, update_data)
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+            locked_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+        
+        await db.users.update_one(
+            {"id": user.id},
+            {
+                "$set": {
+                    "failed_login_attempts": failed_attempts,
+                    "locked_until": locked_until
+                }
+            }
+        )
+        
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    # Reset failed login attempts on successful authentication
+    # Check if account is active
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is deactivated")
+    
+    # Reset failed attempts on successful login
     await db.users.update_one(
         {"id": user.id},
         {
             "$set": {
-                "last_login": datetime.utcnow(), 
-                "updated_at": datetime.utcnow(),
                 "failed_login_attempts": 0,
-                "locked_until": None
-            },
-            "$inc": {"login_count": 1}
+                "locked_until": None,
+                "last_login": datetime.utcnow(),
+                "login_count": user.login_count + 1
+            }
         }
     )
     
     # Log activity
-    await log_activity(user.id, "user_login", "user", user.id, {"email": user_credentials.email}, request)
+    await log_activity(user.id, "login", "user", user.id, {"method": "password"}, request)
     
     # Create tokens
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.id, "email": user.email, "is_admin": user.is_admin}, 
+        data={"sub": user.id, "email": user.email, "role": user.role},
         expires_delta=access_token_expires
     )
     refresh_token = create_refresh_token()
     
-    # Store session
+    # Create session
     session = UserSession(
         user_id=user.id,
         session_token=access_token,
         refresh_token=refresh_token,
-        expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-        user_agent=request.headers.get("User-Agent"),
+        expires_at=datetime.utcnow() + access_token_expires,
+        user_agent=request.headers.get("user-agent"),
         ip_address=request.client.host
     )
+    
     await db.user_sessions.insert_one(session.dict())
     
     return Token(
-        access_token=access_token, 
+        access_token=access_token,
         refresh_token=refresh_token,
-        token_type="bearer", 
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60, 
+        token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=user
     )
 
-@api_router.get("/auth/me", response_model=User)
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
-    return current_user
-
-# WebAuthn Face ID Authentication Endpoints
-@api_router.post("/auth/webauthn/register/begin")
-async def begin_webauthn_registration(request: Request, current_user: User = Depends(get_current_user)):
-    """Begin WebAuthn credential registration process"""
-    try:
-        # Get existing credentials to exclude them
-        existing_credentials_cursor = db.webauthn_credentials.find({"user_id": current_user.id})
-        existing_credentials = await existing_credentials_cursor.to_list(None)
-        
-        exclude_credentials = []
-        for cred in existing_credentials:
-            exclude_credentials.append(
-                PublicKeyCredentialDescriptor(
-                    id=base64.urlsafe_b64decode(cred["credential_id"]),
-                    type="public-key"
-                )
-            )
-        
-        options = generate_registration_options(
-            rp_id=RP_ID,
-            rp_name=RP_NAME,
-            user_id=current_user.id.encode('utf-8'),
-            user_name=current_user.email,
-            user_display_name=current_user.full_name,
-            exclude_credentials=exclude_credentials,
-            authenticator_selection=AuthenticatorSelectionCriteria(
-                authenticator_attachment="platform",
-                user_verification=UserVerificationRequirement.REQUIRED
-            ),
-            supported_pub_key_algs=[
-                COSEAlgorithmIdentifier.ECDSA_SHA_256,
-                COSEAlgorithmIdentifier.RSASSA_PKCS1_v1_5_SHA_256,
-            ]
+@api_router.post("/auth/refresh", response_model=Token)
+async def refresh_token(refresh_data: TokenRefresh, request: Request):
+    # Find session by refresh token
+    session_doc = await db.user_sessions.find_one({
+        "refresh_token": refresh_data.refresh_token,
+        "is_active": True
+    })
+    
+    if not session_doc:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
+    session = UserSession(**session_doc)
+    
+    # Check if session has expired
+    if session.expires_at < datetime.utcnow():
+        await db.user_sessions.update_one(
+            {"id": session.id},
+            {"$set": {"is_active": False}}
         )
-        
-        # Store challenge for verification
-        challenge_key = f"reg_{current_user.id}"
-        webauthn_challenges[challenge_key] = base64.urlsafe_b64encode(options.challenge).decode('utf-8')
-        
-        return {
-            "challenge": base64.urlsafe_b64encode(options.challenge).decode('utf-8'),
-            "rp": {"id": options.rp.id, "name": options.rp.name},
-            "user": {
-                "id": base64.urlsafe_b64encode(options.user.id).decode('utf-8'),
-                "name": options.user.name,
-                "displayName": options.user.display_name
-            },
-            "pubKeyCredParams": [
-                {"alg": param.alg, "type": param.type} for param in options.pub_key_cred_params
-            ],
-            "timeout": options.timeout,
-            "attestation": options.attestation,
-            "authenticatorSelection": {
-                "authenticatorAttachment": options.authenticator_selection.authenticator_attachment,
-                "userVerification": options.authenticator_selection.user_verification
-            },
-            "excludeCredentials": [
-                {
-                    "id": base64.urlsafe_b64encode(cred.id).decode('utf-8'),
-                    "type": cred.type
-                } for cred in (options.exclude_credentials or [])
-            ]
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to initiate WebAuthn registration: {str(e)}")
-
-@api_router.post("/auth/webauthn/register/complete")
-async def complete_webauthn_registration(
-    credential_data: WebAuthnRegistrationResponse,
-    current_user: User = Depends(get_current_user)
-):
-    """Complete WebAuthn credential registration process"""
-    try:
-        # Retrieve stored challenge
-        challenge_key = f"reg_{current_user.id}"
-        stored_challenge = webauthn_challenges.get(challenge_key)
-        
-        if not stored_challenge:
-            raise HTTPException(status_code=400, detail="No pending registration challenge found")
-        
-        # Verify registration response
-        verification = verify_registration_response(
-            credential=RegistrationCredential.parse_obj(credential_data.dict()),
-            expected_challenge=base64.urlsafe_b64decode(stored_challenge.encode()),
-            expected_origin=ORIGIN,
-            expected_rp_id=RP_ID,
-        )
-        
-        if verification.verified:
-            # Store the credential
-            credential = WebAuthnCredential(
-                user_id=current_user.id,
-                credential_id=base64.urlsafe_b64encode(verification.credential_id).decode('utf-8'),
-                public_key=base64.urlsafe_b64encode(verification.credential_public_key).decode('utf-8'),
-                sign_count=verification.sign_count,
-                aaguid=base64.urlsafe_b64encode(verification.aaguid).decode('utf-8') if verification.aaguid else None,
-                credential_name=f"Face ID - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
-            )
-            
-            await db.webauthn_credentials.insert_one(credential.dict())
-            
-            # Clean up challenge
-            del webauthn_challenges[challenge_key]
-            
-            return {
-                "success": True,
-                "message": "WebAuthn credential registered successfully",
-                "credential_id": credential.id
+        raise HTTPException(status_code=401, detail="Session has expired")
+    
+    # Get user
+    user_doc = await db.users.find_one({"id": session.user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user = User(**user_doc)
+    
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is deactivated")
+    
+    # Create new tokens
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.id, "email": user.email, "role": user.role},
+        expires_delta=access_token_expires
+    )
+    new_refresh_token = create_refresh_token()
+    
+    # Update session
+    await db.user_sessions.update_one(
+        {"id": session.id},
+        {
+            "$set": {
+                "session_token": access_token,
+                "refresh_token": new_refresh_token,
+                "expires_at": datetime.utcnow() + access_token_expires,
+                "last_accessed": datetime.utcnow()
             }
-        else:
-            raise HTTPException(status_code=400, detail="WebAuthn registration verification failed")
-            
-    except Exception as e:
-        # Clean up challenge on error
-        challenge_key = f"reg_{current_user.id}"
-        if challenge_key in webauthn_challenges:
-            del webauthn_challenges[challenge_key]
-        raise HTTPException(status_code=500, detail=f"Failed to complete WebAuthn registration: {str(e)}")
-
-@api_router.post("/auth/webauthn/authenticate/begin")
-async def begin_webauthn_authentication(email: str, request: Request):
-    """Begin WebAuthn authentication process"""
-    try:
-        # Find user
-        user_doc = await db.users.find_one({"email": email})
-        if not user_doc:
-            raise HTTPException(status_code=400, detail="Unable to initiate authentication")
-        
-        user = User(**user_doc)
-        
-        # Get user's registered credentials
-        credentials_cursor = db.webauthn_credentials.find({"user_id": user.id})
-        credentials = await credentials_cursor.to_list(None)
-        
-        if not credentials:
-            raise HTTPException(status_code=400, detail="No WebAuthn credentials registered for this user")
-        
-        allow_credentials = []
-        for cred in credentials:
-            allow_credentials.append(
-                PublicKeyCredentialDescriptor(
-                    id=base64.urlsafe_b64decode(cred["credential_id"]),
-                    type="public-key",
-                    transports=[AuthenticatorTransport.INTERNAL]
-                )
-            )
-        
-        options = generate_authentication_options(
-            rp_id=RP_ID,
-            allow_credentials=allow_credentials,
-            user_verification=UserVerificationRequirement.REQUIRED
-        )
-        
-        # Store challenge for verification
-        challenge_key = f"auth_{email}"
-        webauthn_challenges[challenge_key] = base64.urlsafe_b64encode(options.challenge).decode('utf-8')
-        
-        return {
-            "challenge": base64.urlsafe_b64encode(options.challenge).decode('utf-8'),
-            "rpId": options.rp_id,
-            "allowCredentials": [
-                {
-                    "id": base64.urlsafe_b64encode(cred.id).decode('utf-8'),
-                    "type": cred.type,
-                    "transports": cred.transports or ["internal"]
-                } for cred in options.allow_credentials
-            ],
-            "userVerification": options.user_verification,
-            "timeout": options.timeout
         }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to initiate WebAuthn authentication: {str(e)}")
+    )
+    
+    # Log activity
+    await log_activity(user.id, "token_refresh", "user", user.id, {}, request)
+    
+    return Token(
+        access_token=access_token,
+        refresh_token=new_refresh_token,
+        token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user
+    )
 
-@api_router.post("/auth/webauthn/authenticate/complete", response_model=Token)
-async def complete_webauthn_authentication(
-    email: str,
-    credential_data: WebAuthnAuthenticationResponse,
-    request: Request
-):
-    """Complete WebAuthn authentication process"""
-    try:
-        # Retrieve stored challenge
-        challenge_key = f"auth_{email}"
-        stored_challenge = webauthn_challenges.get(challenge_key)
-        
-        if not stored_challenge:
-            raise HTTPException(status_code=400, detail="No pending authentication challenge found")
-        
-        # Find user
-        user_doc = await db.users.find_one({"email": email})
-        if not user_doc:
-            raise HTTPException(status_code=401, detail="Authentication failed")
-        
-        user = User(**user_doc)
-        
-        # Find the credential being used
-        credential_id = base64.urlsafe_b64decode(credential_data.id.encode())
-        credential_doc = await db.webauthn_credentials.find_one({
-            "user_id": user.id,
-            "credential_id": base64.urlsafe_b64encode(credential_id).decode('utf-8')
-        })
-        
-        if not credential_doc:
-            raise HTTPException(status_code=401, detail="Credential not found")
-        
-        stored_credential = WebAuthnCredential(**credential_doc)
-        
-        # Verify authentication response
-        verification = verify_authentication_response(
-            credential=AuthenticationCredential.parse_obj(credential_data.dict()),
-            expected_challenge=base64.urlsafe_b64decode(stored_challenge.encode()),
-            expected_origin=ORIGIN,
-            expected_rp_id=RP_ID,
-            credential_public_key=base64.urlsafe_b64decode(stored_credential.public_key),
-            credential_current_sign_count=stored_credential.sign_count
-        )
-        
-        if verification.verified:
-            # Update sign count and last used timestamp
-            await db.webauthn_credentials.update_one(
-                {"id": stored_credential.id},
-                {
-                    "$set": {
-                        "sign_count": verification.new_sign_count,
-                        "last_used": datetime.utcnow()
-                    }
-                }
-            )
-            
-            # Update user last login and reset failed attempts
-            await db.users.update_one(
-                {"id": user.id},
-                {
-                    "$set": {
-                        "last_login": datetime.utcnow(),
-                        "updated_at": datetime.utcnow(),
-                        "failed_login_attempts": 0,
-                        "locked_until": None
-                    },
-                    "$inc": {"login_count": 1}
-                }
-            )
-            
-            # Clean up challenge
-            del webauthn_challenges[challenge_key]
-            
-            # Log activity
-            await log_activity(user.id, "webauthn_login", "user", user.id, {"email": email}, request)
-            
-            # Create tokens
-            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            access_token = create_access_token(
-                data={"sub": user.id, "email": user.email, "is_admin": user.is_admin}, 
-                expires_delta=access_token_expires
-            )
-            refresh_token = create_refresh_token()
-            
-            # Store session
-            session = UserSession(
-                user_id=user.id,
-                session_token=access_token,
-                refresh_token=refresh_token,
-                expires_at=datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-                user_agent=request.headers.get("User-Agent"),
-                ip_address=request.client.host
-            )
-            await db.user_sessions.insert_one(session.dict())
-            
-            return Token(
-                access_token=access_token,
-                refresh_token=refresh_token,  
-                token_type="bearer",
-                expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-                user=user
-            )
-        else:
-            raise HTTPException(status_code=401, detail="WebAuthn authentication verification failed")
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        # Clean up challenge on error
-        challenge_key = f"auth_{email}"
-        if challenge_key in webauthn_challenges:
-            del webauthn_challenges[challenge_key]
-        raise HTTPException(status_code=500, detail=f"Failed to complete WebAuthn authentication: {str(e)}")
+@api_router.post("/auth/logout")
+async def logout_user(current_user: User = Depends(get_current_user), request: Request = None):
+    # Deactivate all user sessions
+    await db.user_sessions.update_many(
+        {"user_id": current_user.id, "is_active": True},
+        {"$set": {"is_active": False}}
+    )
+    
+    # Log activity
+    if request:
+        await log_activity(current_user.id, "logout", "user", current_user.id, {}, request)
+    
+    return {"message": "Successfully logged out"}
 
-# Forgot Password functionality
 @api_router.post("/auth/forgot-password")
-async def forgot_password(forgot_data: ForgotPasswordRequest, request: Request):
-    """Initiate password reset process"""
-    try:
-        user_doc = await db.users.find_one({"email": forgot_data.email})
-        if not user_doc:
-            # Don't reveal whether the email exists or not
-            return {"message": "If an account with this email exists, a password reset link has been sent."}
-        
-        user = User(**user_doc)
-        
-        # Generate reset token
-        reset_token = secrets.token_urlsafe(32)
-        token_expiry = datetime.utcnow() + timedelta(hours=PASSWORD_RESET_TOKEN_EXPIRE_HOURS)
-        
-        # Store token in database
-        await db.users.update_one(
-            {"id": user.id},
-            {
-                "$set": {
-                    "password_reset_token": reset_token,
-                    "password_reset_expires": token_expiry,
-                    "updated_at": datetime.utcnow()
-                }
+async def forgot_password(request_data: ForgotPasswordRequest, request: Request):
+    # Find user
+    user_doc = await db.users.find_one({"email": request_data.email})
+    if not user_doc:
+        # Don't reveal if email exists or not
+        return {"message": "If the email exists, a reset link has been sent"}
+    
+    user = User(**user_doc)
+    
+    # Generate reset token
+    reset_token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(hours=PASSWORD_RESET_TOKEN_EXPIRE_HOURS)
+    
+    # Store reset token
+    await db.users.update_one(
+        {"id": user.id},
+        {
+            "$set": {
+                "password_reset_token": reset_token,
+                "password_reset_expires": expires_at
             }
-        )
-        
-        # Send email (simplified version - in production use proper email service)
-        if EMAIL_USERNAME and EMAIL_PASSWORD:
-            try:
-                await send_password_reset_email(user.email, reset_token)
-            except Exception as e:
-                logging.error(f"Failed to send password reset email: {str(e)}")
-        
-        # Log activity
-        await log_activity(user.id, "password_reset_requested", "user", user.id, {"email": forgot_data.email}, request)
-        
-        return {"message": "If an account with this email exists, a password reset link has been sent."}
-        
-    except Exception as e:
-        logging.error(f"Error processing forgot password request: {str(e)}")
-        return {"message": "If an account with this email exists, a password reset link has been sent."}
+        }
+    )
+    
+    # Log activity
+    await log_activity(user.id, "password_reset_requested", "user", user.id, {"email": user.email}, request)
+    
+    # TODO: Send email with reset link
+    # For now, we'll just return success
+    return {"message": "If the email exists, a reset link has been sent"}
 
 @api_router.post("/auth/reset-password")
 async def reset_password(reset_data: ResetPasswordRequest, request: Request):
-    """Reset password using a valid reset token"""
-    try:
-        # Find user with valid reset token
-        user_doc = await db.users.find_one({
-            "password_reset_token": reset_data.token,
-            "password_reset_expires": {"$gt": datetime.utcnow()}
-        })
-        
-        if not user_doc:
-            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-        
-        user = User(**user_doc)
-        
-        # Hash new password
-        hashed_password = get_password_hash(reset_data.new_password)
-        
-        # Update user password and clear reset token
-        await db.users.update_one(
-            {"id": user.id},
-            {
-                "$set": {
-                    "password": hashed_password,
-                    "password_reset_token": None,
-                    "password_reset_expires": None,
-                    "failed_login_attempts": 0,
-                    "locked_until": None,
-                    "updated_at": datetime.utcnow()
-                }
-            }
-        )
-        
-        # Invalidate all existing sessions for security
-        await db.user_sessions.update_many(
-            {"user_id": user.id},
-            {"$set": {"is_active": False}}
-        )
-        
-        # Log activity
-        await log_activity(user.id, "password_reset_completed", "user", user.id, {"email": user.email}, request)
-        
-        return {"message": "Password reset successful"}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to reset password: {str(e)}")
-
-# WebAuthn credential management endpoints
-@api_router.get("/auth/webauthn/credentials")
-async def get_webauthn_credentials(current_user: User = Depends(get_current_user)):
-    """Get user's registered WebAuthn credentials"""
-    credentials_cursor = db.webauthn_credentials.find({"user_id": current_user.id})
-    credentials = await credentials_cursor.to_list(None)
-    
-    result = []
-    for cred in credentials:
-        result.append({
-            "id": cred["id"],
-            "name": cred["credential_name"],
-            "created_at": cred["created_at"].isoformat(),
-            "last_used": cred["last_used"].isoformat() if cred.get("last_used") else None
-        })
-    
-    return {"credentials": result}
-
-@api_router.delete("/auth/webauthn/credentials/{credential_id}")
-async def delete_webauthn_credential(
-    credential_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    """Delete a WebAuthn credential"""
-    result = await db.webauthn_credentials.delete_one({
-        "id": credential_id,
-        "user_id": current_user.id
+    # Find user by reset token
+    user_doc = await db.users.find_one({
+        "password_reset_token": reset_data.token,
+        "password_reset_expires": {"$gt": datetime.utcnow()}
     })
     
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Credential not found")
+    if not user_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
     
-    return {"message": "Credential deleted successfully"}
-
-@api_router.post("/auth/logout")
-async def logout_user(
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
-    """Logout user and invalidate session"""
-    try:
-        # Find and invalidate the current session
-        await db.user_sessions.update_one(
-            {
-                "session_token": credentials.credentials,
-                "user_id": current_user.id,
-                "is_active": True
+    user = User(**user_doc)
+    
+    # Hash new password
+    hashed_password = get_password_hash(reset_data.new_password)
+    
+    # Update password and clear reset token
+    await db.users.update_one(
+        {"id": user.id},
+        {
+            "$set": {
+                "password_hash": hashed_password,
+                "failed_login_attempts": 0,
+                "locked_until": None
             },
-            {"$set": {"is_active": False}}
-        )
-        
-        # Log activity
-        await log_activity(current_user.id, "user_logout", "user", current_user.id, {"email": current_user.email}, request)
-        
-        return {"message": "Logged out successfully"}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")
-
-# Business Identifiers and Product Code Management Endpoints
-@api_router.get("/business/identifiers")
-async def get_business_identifiers(current_user: User = Depends(get_current_user)):
-    """Get business identifiers and global location information"""
-    try:
-        business_info = {
-            "business_legal_name": BUSINESS_LEGAL_NAME,
-            "business_ein": BUSINESS_EIN,
-            "business_tin": BUSINESS_TIN,
-            "business_address": BUSINESS_ADDRESS,
-            "business_phone": BUSINESS_PHONE,
-            "business_naics_code": BUSINESS_NAICS_CODE,
-            "upc_company_prefix": UPC_COMPANY_PREFIX,
-            "global_location_number": GLOBAL_LOCATION_NUMBER,
-            "isrc_prefix": ISRC_PREFIX,
-            "publisher_number": PUBLISHER_NUMBER,
-            "naics_description": "Sound Recording Industries"
-        }
-        
-        return business_info
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve business identifiers: {str(e)}")
-
-@api_router.get("/business/upc/generate/{product_code}")
-async def generate_upc_code(
-    product_code: str,
-    current_user: User = Depends(get_current_user)
-):
-    """Generate full UPC code from product code"""
-    try:
-        # Handle empty string case
-        if not product_code or product_code.strip() == "":
-            raise HTTPException(status_code=400, detail="Product code cannot be empty")
-            
-        if len(product_code) != 5:
-            raise HTTPException(status_code=400, detail="Product code must be exactly 5 digits")
-        
-        if not product_code.isdigit():
-            raise HTTPException(status_code=400, detail="Product code must contain only digits")
-        
-        # For UPC-A, we need exactly 12 digits total
-        # Our company prefix is 10 digits, so we need to use first 6 digits + 5-digit product code + check digit
-        company_prefix_6_digit = UPC_COMPANY_PREFIX[:6]  # Use first 6 digits: 860004
-        
-        # Combine company prefix (6 digits) + product code (5 digits) = 11 digits
-        partial_upc = company_prefix_6_digit + product_code
-        
-        # Calculate check digit using proper UPC-A algorithm 
-        def calculate_upc_check_digit(upc_without_check):
-            if len(upc_without_check) != 11:
-                raise ValueError(f"UPC must be 11 digits long for check digit calculation, got {len(upc_without_check)} digits: {upc_without_check}")
-            
-            # UPC-A algorithm: odd positions (1st, 3rd, 5th, etc.) * 3 + even positions
-            odd_sum = sum(int(upc_without_check[i]) for i in range(0, 11, 2))  # positions 0,2,4,6,8,10
-            even_sum = sum(int(upc_without_check[i]) for i in range(1, 11, 2))  # positions 1,3,5,7,9
-            
-            total = (odd_sum * 3) + even_sum
-            check_digit = (10 - (total % 10)) % 10
-            return str(check_digit)
-        
-        check_digit = calculate_upc_check_digit(partial_upc)
-        full_upc = partial_upc + check_digit
-        
-        return {
-            "upc_company_prefix": company_prefix_6_digit,
-            "product_code": product_code,
-            "check_digit": check_digit,
-            "full_upc_code": full_upc,
-            "gtin": full_upc,  # For products, GTIN-12 is the same as UPC
-            "barcode_format": "UPC-A"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate UPC code: {str(e)}")
-
-@api_router.get("/business/isrc/generate/{year}/{designation_code}")
-async def generate_isrc_code(
-    year: str,
-    designation_code: str,
-    current_user: User = Depends(get_current_user)
-):
-    """Generate ISRC code for sound recordings"""
-    try:
-        # Validate year (2 digits)
-        if len(year) != 2 or not year.isdigit():
-            raise HTTPException(status_code=400, detail="Year must be exactly 2 digits (e.g., 25 for 2025)")
-        
-        # Validate designation code (5 digits)
-        if len(designation_code) != 5 or not designation_code.isdigit():
-            raise HTTPException(status_code=400, detail="Designation code must be exactly 5 digits")
-        
-        # ISRC format: CC-XXX-YY-NNNNN
-        # For Big Mann Entertainment: US-QZ9H8-YY-NNNNN
-        # Extract country code and registrant code from ISRC_PREFIX
-        country_code = "US"  # Assuming US-based
-        registrant_code = ISRC_PREFIX  # QZ9H8
-        
-        # Generate full ISRC code
-        full_isrc = f"{country_code}-{registrant_code}-{year}-{designation_code}"
-        
-        return {
-            "country_code": country_code,
-            "registrant_code": registrant_code,
-            "year_of_reference": year,
-            "designation_code": designation_code,
-            "full_isrc_code": full_isrc,
-            "display_format": full_isrc,
-            "compact_format": f"{country_code}{registrant_code}{year}{designation_code}",
-            "description": "International Standard Recording Code for sound recordings and music videos"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate ISRC code: {str(e)}")
-
-@api_router.post("/business/products")
-async def create_product_identifier(
-    product_data: ProductIdentifier,
-    current_user: User = Depends(get_current_user)
-):
-    """Create a new product with UPC identifier"""
-    try:
-        # Store product in database
-        product_dict = product_data.dict()
-        await db.product_identifiers.insert_one(product_dict)
-        
-        # Log activity
-        await log_activity(
-            current_user.id, 
-            "product_created", 
-            "product", 
-            product_data.id, 
-            {"product_name": product_data.product_name, "upc": product_data.upc_full_code}, 
-            None
-        )
-        
-        return {
-            "success": True,
-            "message": "Product identifier created successfully",
-            "product": product_data
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create product identifier: {str(e)}")
-
-@api_router.get("/business/products")
-async def get_product_identifiers(
-    page: int = 1,
-    limit: int = 20,
-    search: Optional[str] = None,
-    category: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
-):
-    """Get all product identifiers with pagination and filtering"""
-    try:
-        skip = (page - 1) * limit
-        
-        # Build query
-        query = {}
-        if search:
-            query["$or"] = [
-                {"product_name": {"$regex": search, "$options": "i"}},
-                {"artist_name": {"$regex": search, "$options": "i"}},
-                {"album_title": {"$regex": search, "$options": "i"}},
-                {"track_title": {"$regex": search, "$options": "i"}},
-                {"upc_full_code": {"$regex": search, "$options": "i"}}
-            ]
-        
-        if category:
-            query["product_category"] = category
-        
-        products_cursor = db.product_identifiers.find(query).sort("created_at", -1).skip(skip).limit(limit)
-        products = await products_cursor.to_list(None)
-        
-        total_count = await db.product_identifiers.count_documents(query)
-        
-        return {
-            "products": products,
-            "pagination": {
-                "page": page,
-                "limit": limit,
-                "total": total_count,
-                "pages": (total_count + limit - 1) // limit
+            "$unset": {
+                "password_reset_token": "",
+                "password_reset_expires": ""
             }
         }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve product identifiers: {str(e)}")
-
-@api_router.get("/business/products/{product_id}")
-async def get_product_identifier(
-    product_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    """Get a specific product identifier"""
-    try:
-        product = await db.product_identifiers.find_one({"id": product_id})
-        if not product:
-            raise HTTPException(status_code=404, detail="Product not found")
-        
-        return product
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve product identifier: {str(e)}")
-
-@api_router.delete("/business/products/{product_id}")
-async def delete_product_identifier(
-    product_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    """Delete a product identifier"""
-    try:
-        product = await db.product_identifiers.find_one({"id": product_id})
-        if not product:
-            raise HTTPException(status_code=404, detail="Product not found")
-        
-        result = await db.product_identifiers.delete_one({"id": product_id})
-        
-        if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Product not found")
-        
-        # Log activity
-        await log_activity(
-            current_user.id, 
-            "product_deleted", 
-            "product", 
-            product_id, 
-            {"product_name": product.get("product_name"), "upc": product.get("upc_full_code")}, 
-            None
-        )
-        
-        return {"message": "Product identifier deleted successfully"}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete product identifier: {str(e)}")
-
-# Admin-only business management endpoints
-@api_router.get("/admin/business/overview")
-async def get_business_overview(admin_user: User = Depends(get_admin_user)):
-    """Get comprehensive business overview including all identifiers"""
-    try:
-        # Get product counts by category
-        pipeline = [
-            {"$group": {"_id": "$product_category", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}}
-        ]
-        product_stats_cursor = db.product_identifiers.aggregate(pipeline)
-        product_stats = await product_stats_cursor.to_list(None)
-        
-        total_products = await db.product_identifiers.count_documents({})
-        
-        business_overview = {
-            "business_identifiers": {
-                "legal_name": BUSINESS_LEGAL_NAME,
-                "ein": BUSINESS_EIN,
-                "tin": BUSINESS_TIN,
-                "address": BUSINESS_ADDRESS,
-                "phone": BUSINESS_PHONE,
-                "naics_code": BUSINESS_NAICS_CODE,
-                "naics_description": "Sound Recording Industries"
-            },
-            "global_identifiers": {
-                "upc_company_prefix": UPC_COMPANY_PREFIX,
-                "global_location_number": GLOBAL_LOCATION_NUMBER,
-                "isrc_prefix": ISRC_PREFIX,
-                "publisher_number": PUBLISHER_NUMBER,
-                "available_upc_range": f"{UPC_COMPANY_PREFIX}00000 - {UPC_COMPANY_PREFIX}99999",
-                "isrc_format": f"US-{ISRC_PREFIX}-YY-NNNNN (where YY=year, NNNNN=recording number)",
-                "publisher_format": f"{PUBLISHER_NUMBER} (music publishing rights identifier)"
-            },
-            "product_statistics": {
-                "total_products": total_products,
-                "products_by_category": {stat["_id"]: stat["count"] for stat in product_stats},
-                "upc_utilization": f"{total_products}/100000 ({(total_products/100000)*100:.2f}%)"
-            }
-        }
-        
-        return business_overview
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve business overview: {str(e)}")
-
-# Helper function for sending password reset emails
-async def send_password_reset_email(email: str, reset_token: str):
-    """Send password reset email to user"""
-    try:
-        # Email functionality temporarily disabled for testing
-        logging.info(f"Password reset email would be sent to {email} with token {reset_token}")
-        return True
-        
-        # Original email code commented out due to import issues
-        # subject = "Password Reset Request - Big Mann Entertainment"
-        # 
-        # # HTML email template
-        # html_body = f"""
-        # <html>
-        #     <body>
-        #         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-        #             <h2>Password Reset Request</h2>
-        #             <p>Hello,</p>
-        #             <p>We received a request to reset your password for your Big Mann Entertainment account.</p>
-        #             <p>Click the button below to reset your password:</p>
-        #             <div style="text-align: center; margin: 30px 0;">
-        #                 <a href="{ORIGIN}/reset-password?token={reset_token}" 
-        #                    style="background-color: #7c3aed; color: white; padding: 12px 24px; 
-        #                           text-decoration: none; border-radius: 5px; display: inline-block;">
-        #                     Reset Password
-        #                 </a>
-        #             </div>
-        #             <p>Or copy and paste this link into your browser:</p>
-        #             <p style="word-break: break-all; color: #7c3aed;">
-        #                 {ORIGIN}/reset-password?token={reset_token}
-        #             </p>
-        #             <p><strong>This link will expire in {PASSWORD_RESET_TOKEN_EXPIRE_HOURS} hours.</strong></p>
-        #             <p>If you didn't request this password reset, please ignore this email.</p>
-        #             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-        #             <p style="font-size: 12px; color: #666;">
-        #                 This is an automated message from Big Mann Entertainment. Please do not reply to this email.
-        #             </p>
-        #         </div>
-        #     </body>
-        # </html>
-        # """
-        # 
-        # # Create message
-        # msg = MimeMultipart('alternative')
-        # msg['Subject'] = subject
-        # msg['From'] = EMAIL_USERNAME
-        # msg['To'] = email
-        # 
-        # # Attach HTML version
-        # msg.attach(MimeText(html_body, 'html'))
-        # 
-        # # Send email
-        # if EMAIL_USERNAME and EMAIL_PASSWORD:
-        #     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        #         server.starttls()
-        #         server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
-        #         server.send_message(msg)
-                
-    except Exception as e:
-        logging.error(f"Failed to send password reset email: {str(e)}")
-        raise
-
-# Admin User Management Endpoints
-@api_router.get("/admin/users")
-async def get_all_users(
-    skip: int = 0,
-    limit: int = 50,
-    search: Optional[str] = None,
-    role: Optional[str] = None,
-    account_status: Optional[str] = None,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Get all users with filtering and pagination"""
-    query = {}
-    
-    if search:
-        query["$or"] = [
-            {"full_name": {"$regex": search, "$options": "i"}},
-            {"email": {"$regex": search, "$options": "i"}},
-            {"business_name": {"$regex": search, "$options": "i"}}
-        ]
-    
-    if role:
-        query["role"] = role
-    
-    if account_status:
-        query["account_status"] = account_status
-    
-    users_cursor = db.users.find(query, {"password": 0}).skip(skip).limit(limit).sort("created_at", -1)
-    users = await users_cursor.to_list(length=limit)
-    
-    total_users = await db.users.count_documents(query)
-    
-    # Remove password field from response and convert ObjectId to string
-    for user in users:
-        user.pop("password", None)
-        if "_id" in user:
-            user["_id"] = str(user["_id"])
-    
-    return {
-        "users": users,
-        "total": total_users,
-        "skip": skip,
-        "limit": limit
-    }
-
-@api_router.get("/admin/users/{user_id}")
-async def get_user_details(user_id: str, admin_user: User = Depends(get_current_admin_user)):
-    """Get detailed user information"""
-    user = await db.users.find_one({"id": user_id}, {"password": 0})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Get user's media count
-    media_count = await db.media_content.count_documents({"owner_id": user_id})
-    
-    # Get user's distribution count
-    distribution_count = await db.content_distributions.count_documents({"media_id": {"$in": []}})
-    
-    # Get user's total revenue
-    purchases = await db.purchases.find({"user_id": user_id, "payment_status": "paid"}).to_list(length=None)
-    total_revenue = sum(p.get("amount", 0) for p in purchases)
-    
-    # Get recent activity
-    recent_activities = await db.activity_logs.find({"user_id": user_id}).sort("created_at", -1).limit(10).to_list(length=10)
-    
-    return {
-        "user": user,
-        "statistics": {
-            "media_count": media_count,
-            "distribution_count": distribution_count,
-            "total_revenue": total_revenue,
-            "purchase_count": len(purchases)
-        },
-        "recent_activities": recent_activities
-    }
-
-@api_router.put("/admin/users/{user_id}")
-async def update_user(
-    user_id: str,
-    user_update: UserUpdate,
-    request: Request,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Update user information"""
-    user = await db.users.find_one({"id": user_id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Prepare update data
-    update_data = {k: v for k, v in user_update.dict().items() if v is not None}
-    update_data["updated_at"] = datetime.utcnow()
-    
-    # Update user
-    await db.users.update_one({"id": user_id}, {"$set": update_data})
-    
-    # Log activity
-    await log_activity(admin_user.id, "user_updated", "user", user_id, update_data, request)
-    
-    return {"message": "User updated successfully"}
-
-@api_router.post("/admin/users/make-super-admin/{user_id}")
-async def make_user_super_admin(
-    user_id: str,
-    request: Request,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Make a user a super admin with full ownership rights - Only John LeGerron Spivey can use this"""
-    # Only allow John LeGerron Spivey to grant super admin access
-    john_emails = ["owner@bigmannentertainment.com"]
-    if admin_user.email not in john_emails and admin_user.role != "super_admin":
-        raise HTTPException(status_code=403, detail="Only John LeGerron Spivey can grant super admin access")
-    
-    user = await db.users.find_one({"id": user_id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Update user to super admin
-    update_data = {
-        "is_admin": True,
-        "role": "super_admin",
-        "account_status": "active",
-        "updated_at": datetime.utcnow()
-    }
-    
-    await db.users.update_one({"id": user_id}, {"$set": update_data})
-    
-    # Log activity
-    await log_activity(admin_user.id, "user_promoted_super_admin", "user", user_id, {"promoted_by": admin_user.email}, request)
-    
-    return {"message": f"User {user['email']} has been granted super admin access with full ownership rights"}
-
-@api_router.post("/admin/users/revoke-admin/{user_id}")
-async def revoke_admin_access(
-    user_id: str,
-    request: Request,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Revoke admin access from a user - Only John LeGerron Spivey can use this"""
-    # Only allow John LeGerron Spivey to revoke admin access
-    john_emails = ["owner@bigmannentertainment.com"]
-    if admin_user.email not in john_emails and admin_user.role != "super_admin":
-        raise HTTPException(status_code=403, detail="Only John LeGerron Spivey can revoke admin access")
-    
-    user = await db.users.find_one({"id": user_id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Don't allow John to revoke his own access
-    if user['email'] in john_emails:
-        raise HTTPException(status_code=400, detail="Cannot revoke John LeGerron Spivey's admin access")
-    
-    # Update user to regular user
-    update_data = {
-        "is_admin": False,
-        "role": "user",
-        "updated_at": datetime.utcnow()
-    }
-    
-    await db.users.update_one({"id": user_id}, {"$set": update_data})
-    
-    # Log activity
-    await log_activity(admin_user.id, "admin_access_revoked", "user", user_id, {"revoked_by": admin_user.email}, request)
-    
-    return {"message": f"Admin access revoked from user {user['email']}"}
-
-@api_router.get("/admin/ownership/status")
-async def get_ownership_status(
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Get current ownership and admin status of the platform"""
-    john_emails = ["owner@bigmannentertainment.com"]
-    
-    # Get all admin users
-    admin_users = []
-    cursor = db.users.find({"$or": [{"is_admin": True}, {"role": {"$in": ["admin", "super_admin", "moderator"]}}]})
-    async for user in cursor:
-        admin_users.append({
-            "id": user["id"],
-            "email": user["email"],
-            "full_name": user.get("full_name", ""),
-            "role": user.get("role", "user"),
-            "is_admin": user.get("is_admin", False),
-            "is_john_legerron_spivey": user["email"] in john_emails
-        })
-    
-    return {
-        "platform_owner": "John LeGerron Spivey",
-        "business_entity": "Big Mann Entertainment",
-        "john_emails": john_emails,
-        "total_admin_users": len(admin_users),
-        "admin_users": admin_users,
-        "current_user_is_john": admin_user.email in john_emails,
-        "current_user_role": admin_user.role,
-        "ownership_note": "John LeGerron Spivey has complete 100% ownership and control of Big Mann Entertainment platform and all associated accounts"
-    }
-
-@api_router.delete("/admin/users/{user_id}")
-async def delete_user(
-    user_id: str,
-    request: Request,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Delete user account"""
-    user = await db.users.find_one({"id": user_id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Prevent admin from deleting themselves
-    if user_id == admin_user.id:
-        raise HTTPException(status_code=400, detail="Cannot delete your own account")
-    
-    # Delete user
-    await db.users.delete_one({"id": user_id})
-    
-    # Log activity
-    await log_activity(admin_user.id, "user_deleted", "user", user_id, {"email": user["email"]}, request)
-    
-    return {"message": "User deleted successfully"}
-
-# Admin Content Management Endpoints
-@api_router.get("/admin/content")
-async def get_all_content(
-    skip: int = 0,
-    limit: int = 50,
-    approval_status: Optional[str] = None,
-    content_type: Optional[str] = None,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Get all content with filtering"""
-    query = {}
-    
-    if approval_status:
-        query["approval_status"] = approval_status
-    
-    if content_type:
-        query["content_type"] = content_type
-    
-    content_cursor = db.media_content.find(query).skip(skip).limit(limit).sort("created_at", -1)
-    content = await content_cursor.to_list(length=limit)
-    
-    total_content = await db.media_content.count_documents(query)
-    
-    # Get owner information for each content
-    for item in content:
-        owner = await db.users.find_one({"id": item["owner_id"]}, {"full_name": 1, "email": 1})
-        item["owner"] = owner
-    
-    return {
-        "content": content,
-        "total": total_content,
-        "skip": skip,
-        "limit": limit
-    }
-
-@api_router.post("/admin/content/{media_id}/moderate")
-async def moderate_content(
-    media_id: str,
-    action: ContentModerationAction,
-    request: Request,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Moderate content (approve/reject/feature)"""
-    media = await db.media_content.find_one({"id": media_id})
-    if not media:
-        raise HTTPException(status_code=404, detail="Media not found")
-    
-    update_data = {"updated_at": datetime.utcnow()}
-    
-    if action.action == "approve":
-        update_data.update({
-            "approval_status": "approved",
-            "is_approved": True,
-            "is_published": True
-        })
-    elif action.action == "reject":
-        update_data.update({
-            "approval_status": "rejected",
-            "is_approved": False,
-            "is_published": False
-        })
-    elif action.action == "feature":
-        update_data["is_featured"] = True
-    elif action.action == "unfeature":
-        update_data["is_featured"] = False
-    
-    if action.notes:
-        update_data["moderation_notes"] = action.notes
-    
-    await db.media_content.update_one({"id": media_id}, {"$set": update_data})
-    
-    # Log activity
-    await log_activity(admin_user.id, f"content_{action.action}", "media", media_id, update_data, request)
-    
-    return {"message": f"Content {action.action}d successfully"}
-
-@api_router.delete("/admin/content/{media_id}")
-async def delete_content(
-    media_id: str,
-    request: Request,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Delete content"""
-    media = await db.media_content.find_one({"id": media_id})
-    if not media:
-        raise HTTPException(status_code=404, detail="Media not found")
-    
-    # Delete the file
-    file_path = Path(media["file_path"])
-    if file_path.exists():
-        file_path.unlink()
-    
-    # Delete from database
-    await db.media_content.delete_one({"id": media_id})
-    
-    # Log activity
-    await log_activity(admin_user.id, "content_deleted", "media", media_id, {"title": media["title"]}, request)
-    
-    return {"message": "Content deleted successfully"}
-
-# Admin Analytics Endpoints
-@api_router.get("/admin/analytics/overview")
-async def get_admin_analytics(admin_user: User = Depends(get_current_admin_user)):
-    """Get comprehensive admin analytics"""
-    # User analytics
-    total_users = await db.users.count_documents({})
-    active_users = await db.users.count_documents({"account_status": "active"})
-    new_users_this_month = await db.users.count_documents({
-        "created_at": {"$gte": datetime.utcnow().replace(day=1)}
-    })
-    
-    # Content analytics
-    total_media = await db.media_content.count_documents({})
-    published_media = await db.media_content.count_documents({"is_published": True})
-    pending_approval = await db.media_content.count_documents({"approval_status": "pending"})
-    featured_content = await db.media_content.count_documents({"is_featured": True})
-    
-    # Distribution analytics
-    total_distributions = await db.content_distributions.count_documents({})
-    successful_distributions = await db.content_distributions.count_documents({"status": "completed"})
-    failed_distributions = await db.content_distributions.count_documents({"status": "failed"})
-    
-    # Revenue analytics
-    purchases = await db.purchases.find({"payment_status": "paid"}).to_list(length=None)
-    total_revenue = sum(p.get("amount", 0) for p in purchases)
-    total_commission = sum(p.get("commission_amount", 0) for p in purchases)
-    
-    # Platform performance
-    platform_stats = {}
-    distributions = await db.content_distributions.find({}).to_list(length=None)
-    for dist in distributions:
-        for platform in dist.get("target_platforms", []):
-            if platform not in platform_stats:
-                platform_stats[platform] = {"attempts": 0, "successes": 0}
-            platform_stats[platform]["attempts"] += 1
-            if dist.get("status") == "completed":
-                platform_stats[platform]["successes"] += 1
-    
-    # Recent activity
-    recent_activities = await db.activity_logs.find({}).sort("created_at", -1).limit(20).to_list(length=20)
-    
-    return {
-        "user_analytics": {
-            "total_users": total_users,
-            "active_users": active_users,
-            "new_users_this_month": new_users_this_month,
-            "user_growth_rate": (new_users_this_month / max(total_users - new_users_this_month, 1)) * 100
-        },
-        "content_analytics": {
-            "total_media": total_media,
-            "published_media": published_media,
-            "pending_approval": pending_approval,
-            "featured_content": featured_content,
-            "approval_rate": (published_media / max(total_media, 1)) * 100
-        },
-        "distribution_analytics": {
-            "total_distributions": total_distributions,
-            "successful_distributions": successful_distributions,
-            "failed_distributions": failed_distributions,
-            "success_rate": (successful_distributions / max(total_distributions, 1)) * 100,
-            "supported_platforms": len(DISTRIBUTION_PLATFORMS)
-        },
-        "revenue_analytics": {
-            "total_revenue": total_revenue,
-            "total_commission": total_commission,
-            "total_purchases": len(purchases),
-            "average_purchase": total_revenue / max(len(purchases), 1)
-        },
-        "platform_performance": platform_stats,
-        "recent_activities": recent_activities
-    }
-
-@api_router.get("/admin/analytics/users")
-async def get_user_analytics(
-    days: int = 30,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Get detailed user analytics"""
-    start_date = datetime.utcnow() - timedelta(days=days)
-    
-    # User registration trends
-    users_by_date = {}
-    users = await db.users.find({"created_at": {"$gte": start_date}}).to_list(length=None)
-    
-    for user in users:
-        date_key = user["created_at"].strftime("%Y-%m-%d")
-        users_by_date[date_key] = users_by_date.get(date_key, 0) + 1
-    
-    # User engagement metrics
-    active_users = await db.users.find({"last_login": {"$gte": start_date}}).to_list(length=None)
-    
-    # Role distribution
-    role_distribution = {}
-    all_users = await db.users.find({}).to_list(length=None)
-    for user in all_users:
-        role = user.get("role", "user")
-        role_distribution[role] = role_distribution.get(role, 0) + 1
-    
-    return {
-        "registration_trends": users_by_date,
-        "active_user_count": len(active_users),
-        "role_distribution": role_distribution,
-        "total_users": len(all_users)
-    }
-
-# Admin Platform Management Endpoints
-@api_router.get("/admin/platforms")
-async def get_platform_configurations(admin_user: User = Depends(get_current_admin_user)):
-    """Get all platform configurations"""
-    # Convert platform data to include statistics
-    platform_data = {}
-    
-    for platform_id, config in DISTRIBUTION_PLATFORMS.items():
-        # Get usage statistics
-        usage_count = await db.content_distributions.count_documents({
-            "target_platforms": platform_id
-        })
-        
-        success_count = await db.content_distributions.count_documents({
-            "target_platforms": platform_id,
-            "status": "completed"
-        })
-        
-        platform_data[platform_id] = {
-            **config,
-            "usage_count": usage_count,
-            "success_count": success_count,
-            "success_rate": (success_count / max(usage_count, 1)) * 100
-        }
-    
-    return {"platforms": platform_data}
-
-@api_router.post("/admin/platforms/{platform_id}/toggle")
-async def toggle_platform_status(
-    platform_id: str,
-    request: Request,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Enable/disable a platform"""
-    if platform_id not in DISTRIBUTION_PLATFORMS:
-        raise HTTPException(status_code=404, detail="Platform not found")
-    
-    # In a real implementation, this would update a database record
-    # For now, we'll just log the action
-    await log_activity(
-        admin_user.id, 
-        "platform_toggled", 
-        "platform", 
-        platform_id, 
-        {"action": "toggle_status"}, 
-        request
     )
     
-    return {"message": f"Platform {platform_id} status toggled"}
+    # Deactivate all sessions
+    await db.user_sessions.update_many(
+        {"user_id": user.id},
+        {"$set": {"is_active": False}}
+    )
+    
+    # Log activity
+    await log_activity(user.id, "password_reset_completed", "user", user.id, {}, request)
+    
+    return {"message": "Password has been reset successfully"}
 
-# Admin Revenue Management Endpoints
-@api_router.get("/admin/revenue")
-async def get_revenue_analytics(
-    days: int = 30,
-    admin_user: User = Depends(get_current_admin_user)
+# Business Identifiers Endpoints
+@api_router.get("/business/identifiers")
+async def get_business_identifiers(current_user: User = Depends(get_current_user)):
+    return BusinessIdentifiers(
+        business_legal_name=BUSINESS_LEGAL_NAME,
+        business_ein=BUSINESS_EIN,
+        business_tin=BUSINESS_TIN,
+        business_address=BUSINESS_ADDRESS,
+        business_phone=BUSINESS_PHONE,
+        business_naics_code=BUSINESS_NAICS_CODE,
+        upc_company_prefix=UPC_COMPANY_PREFIX,
+        global_location_number=GLOBAL_LOCATION_NUMBER
+    )
+
+@api_router.post("/business/generate-upc")
+async def generate_upc(
+    product_name: str = Form(...),
+    product_category: str = Form(...),
+    current_user: User = Depends(get_current_user)
 ):
-    """Get detailed revenue analytics"""
-    start_date = datetime.utcnow() - timedelta(days=days)
+    # Generate 4-digit product code (you might want to store and increment this)
+    product_code = f"{len(product_name):04d}"  # Simple example
     
-    # Revenue by date
-    purchases = await db.purchases.find({
-        "payment_status": "paid",
-        "completed_at": {"$gte": start_date}
-    }).to_list(length=None)
+    # Combine company prefix and product code
+    upc_11_digits = UPC_COMPANY_PREFIX + product_code
     
-    revenue_by_date = {}
-    commission_by_date = {}
+    # Calculate check digit
+    check_digit = calculate_upc_check_digit(upc_11_digits)
     
-    for purchase in purchases:
-        if purchase.get("completed_at"):
-            date_key = purchase["completed_at"].strftime("%Y-%m-%d")
-            revenue_by_date[date_key] = revenue_by_date.get(date_key, 0) + purchase.get("amount", 0)
-            commission_by_date[date_key] = commission_by_date.get(date_key, 0) + purchase.get("commission_amount", 0)
+    # Create full UPC
+    upc_full = upc_11_digits + check_digit
     
-    # Top earning content
-    top_content = await db.purchases.aggregate([
-        {"$match": {"payment_status": "paid"}},
-        {"$group": {"_id": "$media_id", "total_revenue": {"$sum": "$amount"}, "purchase_count": {"$sum": 1}}},
-        {"$sort": {"total_revenue": -1}},
-        {"$limit": 10}
-    ]).to_list(length=10)
+    # Create GTIN (add leading zero to UPC for 13-digit GTIN)
+    gtin = "0" + upc_full
     
-    # Add content details
-    for item in top_content:
-        media = await db.media_content.find_one({"id": item["_id"]})
-        if media:
-            item["media_title"] = media["title"]
-            item["media_type"] = media["content_type"]
+    # Create product identifier record
+    product_identifier = ProductIdentifier(
+        product_name=product_name,
+        upc_full_code=upc_full,
+        gtin=gtin,
+        product_category=product_category
+    )
+    
+    # Store in database
+    await db.product_identifiers.insert_one(product_identifier.dict())
     
     return {
-        "revenue_trends": {
-            "daily_revenue": revenue_by_date,
-            "daily_commission": commission_by_date
-        },
-        "top_earning_content": top_content,
-        "total_revenue": sum(revenue_by_date.values()),
-        "total_commission": sum(commission_by_date.values()),
-        "total_transactions": len(purchases)
+        "product_name": product_name,
+        "upc": upc_full,
+        "gtin": gtin,
+        "company_prefix": UPC_COMPANY_PREFIX,
+        "product_code": product_code,
+        "check_digit": check_digit,
+        "product_category": product_category
     }
 
-# Admin Blockchain Management Endpoints
-@api_router.get("/admin/blockchain")
-async def get_blockchain_overview(admin_user: User = Depends(get_current_admin_user)):
-    """Get blockchain and NFT analytics"""
-    # NFT Collections
-    collections = await db.nft_collections.find({}).to_list(length=None)
-    
-    # NFT Tokens
-    tokens = await db.nft_tokens.find({}).to_list(length=None)
-    
-    # Smart Contracts
-    contracts = await db.smart_contracts.find({}).to_list(length=None)
-    
-    # Crypto Wallets
-    wallets = await db.crypto_wallets.find({}).to_list(length=None)
-    
-    # Blockchain platform usage
-    blockchain_platforms = [p for p in DISTRIBUTION_PLATFORMS.keys() if DISTRIBUTION_PLATFORMS[p]["type"] in ["blockchain", "nft_marketplace", "web3_music"]]
-    
-    blockchain_usage = {}
-    for platform in blockchain_platforms:
-        usage_count = await db.content_distributions.count_documents({
-            "target_platforms": platform
-        })
-        blockchain_usage[platform] = usage_count
-    
-    return {
-        "nft_collections": {
-            "total": len(collections),
-            "collections": collections
-        },
-        "nft_tokens": {
-            "total": len(tokens),
-            "minted": len([t for t in tokens if t.get("minted_at")])
-        },
-        "smart_contracts": {
-            "total": len(contracts),
-            "active": len([c for c in contracts if c.get("is_active")])
-        },
-        "crypto_wallets": {
-            "total": len(wallets),
-            "connected": len(wallets)
-        },
-        "blockchain_platform_usage": blockchain_usage,
-        "ethereum_config": {
-            "contract_address": ETHEREUM_CONTRACT_ADDRESS,
-            "wallet_address": ETHEREUM_WALLET_ADDRESS,
-            "network": BLOCKCHAIN_NETWORK
-        }
-    }
-
-# Admin Security & Audit Endpoints
-@api_router.get("/admin/security/logs")
-async def get_security_logs(
-    skip: int = 0,
-    limit: int = 100,
-    action: Optional[str] = None,
-    user_id: Optional[str] = None,
-    admin_user: User = Depends(get_current_admin_user)
+@api_router.post("/business/generate-isrc")
+async def generate_isrc(
+    artist_name: str = Form(...),
+    track_title: str = Form(...),
+    release_year: int = Form(...),
+    current_user: User = Depends(get_current_user)
 ):
-    """Get security and audit logs"""
-    query = {}
+    # Generate designation code (2 digits, could be sequential)
+    # In practice, this should be managed more carefully
+    designation_code = f"{(hash(track_title) % 100):02d}"
     
-    if action:
-        query["action"] = {"$regex": action, "$options": "i"}
-    
-    if user_id:
-        query["user_id"] = user_id
-    
-    logs = await db.activity_logs.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(length=limit)
-    total_logs = await db.activity_logs.count_documents(query)
-    
-    # Add user information to logs
-    for log in logs:
-        user = await db.users.find_one({"id": log["user_id"]}, {"full_name": 1, "email": 1})
-        log["user"] = user
+    # Create ISRC code: Country Code (2) + Registrant Code (3) + Year (2) + Designation (5)
+    isrc_code = f"US{ISRC_PREFIX}{str(release_year)[-2:]}{designation_code:0>3}"
     
     return {
-        "logs": logs,
-        "total": total_logs,
-        "skip": skip,
-        "limit": limit
+        "isrc_code": isrc_code,
+        "artist_name": artist_name,
+        "track_title": track_title,
+        "release_year": release_year,
+        "country_code": "US",
+        "registrant_code": ISRC_PREFIX,
+        "year_code": str(release_year)[-2:],
+        "designation_code": designation_code
     }
 
-@api_router.get("/admin/security/stats")
-async def get_security_statistics(
-    days: int = 7,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """Get security statistics"""
-    start_date = datetime.utcnow() - timedelta(days=days)
-    
-    # Failed login attempts
-    failed_logins = await db.activity_logs.count_documents({
-        "action": "failed_login",
-        "created_at": {"$gte": start_date}
-    })
-    
-    # Successful logins
-    successful_logins = await db.activity_logs.count_documents({
-        "action": "user_login",
-        "created_at": {"$gte": start_date}
-    })
-    
-    # Admin actions
-    admin_actions = await db.activity_logs.count_documents({
-        "action": {"$regex": "admin_|user_updated|user_deleted|content_"},
-        "created_at": {"$gte": start_date}
-    })
-    
-    # Top IP addresses
-    ip_stats = await db.activity_logs.aggregate([
-        {"$match": {"created_at": {"$gte": start_date}}},
-        {"$group": {"_id": "$ip_address", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
-        {"$limit": 10}
-    ]).to_list(length=10)
-    
-    return {
-        "period_days": days,
-        "login_statistics": {
-            "failed_logins": failed_logins,
-            "successful_logins": successful_logins,
-            "success_rate": (successful_logins / max(successful_logins + failed_logins, 1)) * 100
-        },
-        "admin_actions": admin_actions,
-        "top_ip_addresses": ip_stats,
-        "total_activities": await db.activity_logs.count_documents({"created_at": {"$gte": start_date}})
-    }
-
-# Admin System Configuration Endpoints
-@api_router.get("/admin/config")
-async def get_system_config(admin_user: User = Depends(get_current_admin_user)):
-    """Get system configuration"""
-    configs = await db.system_configs.find({"is_active": True}).to_list(length=None)
-    
-    config_by_category = {}
-    for config in configs:
-        category = config.get("category", "general")
-        if category not in config_by_category:
-            config_by_category[category] = []
-        config_by_category[category].append(config)
-    
-    return {
-        "configurations": config_by_category,
-        "blockchain_config": {
-            "ethereum_contract_address": ETHEREUM_CONTRACT_ADDRESS,
-            "ethereum_wallet_address": ETHEREUM_WALLET_ADDRESS,
-            "blockchain_network": BLOCKCHAIN_NETWORK,
-            "infura_project_id": INFURA_PROJECT_ID
-        },
-        "platform_count": len(DISTRIBUTION_PLATFORMS),
-        "active_integrations": {
-            "stripe": bool(stripe_api_key),
-            "social_media": bool(INSTAGRAM_ACCESS_TOKEN or TWITTER_API_KEY),
-            "blockchain": bool(ETHEREUM_CONTRACT_ADDRESS)
-        }
-    }
-
-# Media upload and management endpoints
+# Media Management Endpoints
 @api_router.post("/media/upload")
 async def upload_media(
     file: UploadFile = File(...),
     title: str = Form(...),
-    description: Optional[str] = Form(None),
+    description: str = Form(""),
     category: str = Form(...),
     price: float = Form(0.0),
     tags: str = Form(""),
-    request: Request = None,
     current_user: User = Depends(get_current_user)
 ):
     # Validate file type
     allowed_types = {
-        'audio': ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4'],
+        'audio': ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/flac', 'audio/aac'],
         'video': ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm'],
-        'image': ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        'image': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
     }
     
+    # Determine content type based on MIME type
     content_type = None
     for type_category, mime_types in allowed_types.items():
         if file.content_type in mime_types:
@@ -3349,16 +1958,16 @@ async def upload_media(
             break
     
     if not content_type:
-        raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.content_type}")
+        raise HTTPException(status_code=400, detail="Unsupported file type")
     
-    # Create content type directory
-    type_dir = uploads_dir / content_type
-    type_dir.mkdir(exist_ok=True)
+    # Create directory if it doesn't exist
+    content_dir = uploads_dir / content_type
+    content_dir.mkdir(exist_ok=True)
     
     # Generate unique filename
-    file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'bin'
+    file_extension = file.filename.split('.')[-1] if '.' in file.filename else ''
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    file_path = type_dir / unique_filename
+    file_path = content_dir / unique_filename
     
     # Save file
     async with aiofiles.open(file_path, 'wb') as f:
@@ -3379,23 +1988,25 @@ async def upload_media(
         file_path=str(file_path),
         file_size=file_size,
         mime_type=file.content_type,
+        tags=tag_list,
         category=category,
         price=price,
-        tags=tag_list,
-        owner_id=current_user.id,
-        approval_status="pending"
+        owner_id=current_user.id
     )
     
+    # Store in database
     await db.media_content.insert_one(media.dict())
     
-    # Log activity
-    await log_activity(current_user.id, "media_uploaded", "media", media.id, {
+    return {
+        "media_id": media.id,
         "title": title,
         "content_type": content_type,
-        "file_size": file_size
-    }, request)
-    
-    return {"message": "Media uploaded successfully", "media_id": media.id}
+        "file_size": file_size,
+        "category": category,
+        "price": price,
+        "tags": tag_list,
+        "message": "Media uploaded successfully"
+    }
 
 @api_router.get("/media/library")
 async def get_media_library(
@@ -3403,77 +2014,59 @@ async def get_media_library(
     limit: int = 20,
     content_type: Optional[str] = None,
     category: Optional[str] = None,
-    is_published: Optional[bool] = None,
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
-    query = {}
-    
+    # Build query
+    query = {"owner_id": current_user.id}
     if content_type:
         query["content_type"] = content_type
     if category:
         query["category"] = category
-    if is_published is not None:
-        query["is_published"] = is_published
     
-    # Only show approved content to non-admin users
-    if not current_user or (not current_user.is_admin and current_user.role not in ["admin", "moderator"]):
-        query["is_approved"] = True
+    # Get media items
+    cursor = db.media_content.find(query).skip(skip).limit(limit).sort("created_at", -1)
+    media_items = []
     
-    media_cursor = db.media_content.find(query).sort("created_at", -1).skip(skip).limit(limit)
-    media_list = await media_cursor.to_list(length=limit)
+    async for item in cursor:
+        media_items.append(MediaContent(**item))
     
-    # Remove sensitive data from response
-    for media in media_list:
-        media.pop("file_path", None)
-        media.pop("moderation_notes", None)
+    # Get total count
+    total_count = await db.media_content.count_documents(query)
     
-    return {"media": media_list}
+    return {
+        "media_items": media_items,
+        "total_count": total_count,
+        "page": skip // limit + 1,
+        "pages": (total_count + limit - 1) // limit
+    }
 
 @api_router.get("/media/{media_id}")
-async def get_media_details(
-    media_id: str,
-    current_user: Optional[User] = Depends(get_current_user)
-):
+async def get_media_item(media_id: str, current_user: User = Depends(get_current_user)):
     media = await db.media_content.find_one({"id": media_id})
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
     
-    # Check permissions for unpublished content
-    if not media.get("is_published") and (not current_user or media["owner_id"] != current_user.id):
-        if not current_user or (not current_user.is_admin and current_user.role not in ["admin", "moderator"]):
-            raise HTTPException(status_code=404, detail="Media not found")
+    # Check if user owns the media or is admin
+    if media["owner_id"] != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to access this media")
     
-    # Increment view count
-    await db.media_content.update_one(
-        {"id": media_id},
-        {"$inc": {"view_count": 1}}
-    )
-    
-    # Remove sensitive data from response
-    media.pop("file_path", None)
-    if not current_user or (not current_user.is_admin and current_user.role not in ["admin", "moderator"]):
-        media.pop("moderation_notes", None)
-    
-    return media
+    return MediaContent(**media)
 
 @api_router.get("/media/{media_id}/download")
-async def download_media(
-    media_id: str,
-    current_user: User = Depends(get_current_user)
-):
+async def download_media(media_id: str, current_user: User = Depends(get_current_user)):
     media = await db.media_content.find_one({"id": media_id})
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
     
-    if not media.get("is_published") or not media.get("is_approved"):
-        if media["owner_id"] != current_user.id and (not current_user.is_admin and current_user.role not in ["admin", "moderator"]):
-            raise HTTPException(status_code=403, detail="Media not available for download")
+    # Check if user owns the media or has purchased it (simplified for now)
+    if media["owner_id"] != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to download this media")
     
     file_path = Path(media["file_path"])
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="File not found on server")
     
-    # Increment download count
+    # Update download count
     await db.media_content.update_one(
         {"id": media_id},
         {"$inc": {"download_count": 1}}
@@ -3481,45 +2074,61 @@ async def download_media(
     
     return FileResponse(
         path=file_path,
-        filename=f"{media['title']}.{file_path.suffix}",
+        filename=media["title"],
         media_type=media["mime_type"]
     )
 
-# Distribution endpoints
-distribution_service = DistributionService()
-
+# Content Distribution Endpoints
 @api_router.get("/distribution/platforms")
 async def get_distribution_platforms():
-    platforms_with_mb = {}
+    """Get all available distribution platforms"""
+    platforms = []
     for platform_id, config in DISTRIBUTION_PLATFORMS.items():
-        platform_config = config.copy()
-        platform_config["max_file_size_mb"] = config["max_file_size"] / (1024 * 1024)
-        platforms_with_mb[platform_id] = platform_config
+        platforms.append({
+            "id": platform_id,
+            "name": config["name"],
+            "type": config["type"],
+            "supported_formats": config["supported_formats"],
+            "max_file_size": config["max_file_size"],
+            "description": config.get("description", ""),
+            "credentials_required": config["credentials_required"]
+        })
     
-    return {"platforms": platforms_with_mb}
+    return {
+        "platforms": platforms,
+        "total_count": len(platforms)
+    }
 
 @api_router.post("/distribution/distribute")
 async def distribute_content(
-    distribution_request: DistributionRequest,
-    request: Request,
+    request: DistributionRequest,
     current_user: User = Depends(get_current_user)
 ):
-    result = await distribution_service.distribute_content(
-        distribution_request.media_id,
-        distribution_request.platforms,
-        current_user.id,
-        distribution_request.custom_message,
-        distribution_request.hashtags
+    # Verify user owns the media
+    media = await db.media_content.find_one({"id": request.media_id})
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    if media["owner_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to distribute this media")
+    
+    # Start distribution process
+    distribution = await distribution_service.distribute_content(
+        media_id=request.media_id,
+        platforms=request.platforms,
+        user_id=current_user.id,
+        custom_message=request.custom_message,
+        hashtags=request.hashtags
     )
     
-    # Log activity
-    await log_activity(current_user.id, "content_distributed", "distribution", result.id, {
-        "media_id": distribution_request.media_id,
-        "platforms": distribution_request.platforms,
-        "platform_count": len(distribution_request.platforms)
-    }, request)
-    
-    return result
+    return {
+        "distribution_id": distribution.id,
+        "media_id": request.media_id,
+        "platforms": request.platforms,
+        "status": distribution.status,
+        "results": distribution.results,
+        "message": "Distribution initiated successfully"
+    }
 
 @api_router.get("/distribution/history")
 async def get_distribution_history(
@@ -3527,487 +2136,222 @@ async def get_distribution_history(
     limit: int = 20,
     current_user: User = Depends(get_current_user)
 ):
-    # Get user's media IDs to filter distributions
-    user_media = await db.media_content.find({"owner_id": current_user.id}, {"id": 1}).to_list(length=None)
-    user_media_ids = [media["id"] for media in user_media]
+    # Get media IDs owned by user
+    user_media = []
+    async for media in db.media_content.find({"owner_id": current_user.id}, {"id": 1}):
+        user_media.append(media["id"])
     
-    if not user_media_ids:
-        return {"distributions": []}
+    if not user_media:
+        return {"distributions": [], "total_count": 0}
     
-    distributions = await db.content_distributions.find({
-        "media_id": {"$in": user_media_ids}
-    }).sort("created_at", -1).skip(skip).limit(limit).to_list(length=limit)
+    # Get distributions for user's media
+    query = {"media_id": {"$in": user_media}}
+    cursor = db.content_distributions.find(query).skip(skip).limit(limit).sort("created_at", -1)
     
-    return {"distributions": distributions}
+    distributions = []
+    async for dist in cursor:
+        distributions.append(ContentDistribution(**dist))
+    
+    total_count = await db.content_distributions.count_documents(query)
+    
+    return {
+        "distributions": distributions,
+        "total_count": total_count,
+        "page": skip // limit + 1,
+        "pages": (total_count + limit - 1) // limit
+    }
 
-@api_router.get("/distribution/{distribution_id}")
-async def get_distribution_details(
-    distribution_id: str,
-    current_user: User = Depends(get_current_user)
+# Admin Endpoints
+@api_router.get("/admin/users")
+async def get_all_users(
+    skip: int = 0,
+    limit: int = 20,
+    current_user: User = Depends(get_current_admin_user)
 ):
-    distribution = await db.content_distributions.find_one({"id": distribution_id})
-    if not distribution:
-        raise HTTPException(status_code=404, detail="Distribution not found")
+    cursor = db.users.find({}, {"password_hash": 0}).skip(skip).limit(limit).sort("created_at", -1)
+    users = []
     
-    # Verify ownership
-    media = await db.media_content.find_one({"id": distribution["media_id"]})
-    if not media or (media["owner_id"] != current_user.id and not current_user.is_admin):
-        raise HTTPException(status_code=403, detail="Access denied")
+    async for user_doc in cursor:
+        users.append(User(**user_doc))
     
-    return distribution
+    total_count = await db.users.count_documents({})
+    
+    return {
+        "users": users,
+        "total_count": total_count,
+        "page": skip // limit + 1,
+        "pages": (total_count + limit - 1) // limit
+    }
 
-# Payment endpoints
-@api_router.post("/payments/checkout")
-async def create_checkout_session(
-    checkout_request: dict,
-    current_user: User = Depends(get_current_user)
+@api_router.put("/admin/users/{user_id}")
+async def update_user(
+    user_id: str,
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_admin_user)
 ):
-    media_id = checkout_request.get("media_id")
-    if not media_id:
-        raise HTTPException(status_code=400, detail="Media ID is required")
+    # Find user
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
     
+    # Build update data
+    update_data = {}
+    if user_update.full_name is not None:
+        update_data["full_name"] = user_update.full_name
+    if user_update.business_name is not None:
+        update_data["business_name"] = user_update.business_name
+    if user_update.is_active is not None:
+        update_data["is_active"] = user_update.is_active
+    if user_update.role is not None:
+        update_data["role"] = user_update.role
+        # Also update is_admin based on role
+        update_data["is_admin"] = user_update.role in ["admin", "super_admin", "moderator"]
+    if user_update.account_status is not None:
+        update_data["account_status"] = user_update.account_status
+    
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    # Get updated user
+    updated_user_doc = await db.users.find_one({"id": user_id}, {"password_hash": 0})
+    return User(**updated_user_doc)
+
+@api_router.get("/admin/media")
+async def get_all_media(
+    skip: int = 0,
+    limit: int = 20,
+    current_user: User = Depends(get_current_admin_user)
+):
+    cursor = db.media_content.find({}).skip(skip).limit(limit).sort("created_at", -1)
+    media_items = []
+    
+    async for item in cursor:
+        media_items.append(MediaContent(**item))
+    
+    total_count = await db.media_content.count_documents({})
+    
+    return {
+        "media_items": media_items,
+        "total_count": total_count,
+        "page": skip // limit + 1,
+        "pages": (total_count + limit - 1) // limit
+    }
+
+@api_router.post("/admin/media/{media_id}/moderate")
+async def moderate_content(
+    media_id: str,
+    action: ContentModerationAction,
+    current_user: User = Depends(get_current_admin_user)
+):
+    # Find media
     media = await db.media_content.find_one({"id": media_id})
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
     
-    if media["price"] <= 0:
-        raise HTTPException(status_code=400, detail="This content is free")
+    # Update based on action
+    update_data = {"updated_at": datetime.utcnow()}
     
-    # Create purchase record
-    purchase = Purchase(
-        user_id=current_user.id,
-        media_id=media_id,
-        amount=media["price"],
-        commission_amount=media["price"] * 0.1  # 10% commission
-    )
-    await db.purchases.insert_one(purchase.dict())
+    if action.action == "approve":
+        update_data.update({
+            "is_approved": True,
+            "approval_status": "approved",
+            "is_published": True
+        })
+    elif action.action == "reject":
+        update_data.update({
+            "is_approved": False,
+            "approval_status": "rejected",
+            "is_published": False
+        })
+    elif action.action == "feature":
+        update_data["is_featured"] = True
+    elif action.action == "unfeature":
+        update_data["is_featured"] = False
     
-    if not stripe_api_key:
-        return {
-            "message": "Payment processing not configured",
-            "purchase_id": purchase.id,
-            "amount": media["price"]
-        }
+    if action.notes:
+        update_data["moderation_notes"] = action.notes
     
-    try:
-        stripe_checkout = StripeCheckout(api_key=stripe_api_key)
-        
-        checkout_session_request = CheckoutSessionRequest(
-            success_url="http://localhost:3000/purchase-success?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url="http://localhost:3000/library",
-            line_items=[{
-                "price_data": {
-                    "currency": "usd",
-                    "product_data": {
-                        "name": media["title"],
-                        "description": media.get("description", "Digital media content")
-                    },
-                    "unit_amount": int(media["price"] * 100)
-                },
-                "quantity": 1
-            }],
-            mode="payment",
-            metadata={"purchase_id": purchase.id}
-        )
-        
-        session_response = await stripe_checkout.create_checkout_session(checkout_session_request)
-        
-        # Update purchase with session ID
-        await db.purchases.update_one(
-            {"id": purchase.id},
-            {"$set": {"stripe_session_id": session_response.session_id}}
-        )
-        
-        return {"checkout_url": session_response.checkout_url}
-        
-    except Exception as e:
-        await db.purchases.update_one(
-            {"id": purchase.id},
-            {"$set": {"payment_status": "failed"}}
-        )
-        raise HTTPException(status_code=500, detail=f"Payment processing failed: {str(e)}")
+    await db.media_content.update_one({"id": media_id}, {"$set": update_data})
+    
+    return {"message": f"Content {action.action}d successfully"}
 
-@api_router.get("/payments/status/{session_id}")
-async def get_payment_status(
-    session_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    purchase = await db.purchases.find_one({"stripe_session_id": session_id})
-    if not purchase:
-        raise HTTPException(status_code=404, detail="Purchase not found")
-    
-    if purchase["user_id"] != current_user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    if not stripe_api_key:
-        return {"payment_status": "not_configured"}
-    
-    try:
-        stripe_checkout = StripeCheckout(api_key=stripe_api_key)
-        status_response = await stripe_checkout.get_checkout_session_status(session_id)
-        
-        if status_response.payment_status == "paid" and purchase["payment_status"] != "paid":
-            await db.purchases.update_one(
-                {"id": purchase["id"]},
-                {"$set": {
-                    "payment_status": "paid",
-                    "completed_at": datetime.utcnow()
-                }}
-            )
-        
-        return {"payment_status": status_response.payment_status}
-        
-    except Exception as e:
-        return {"payment_status": "error", "message": str(e)}
-
-@api_router.post("/payments/webhook")
-async def stripe_webhook(request: Request):
-    try:
-        payload = await request.body()
-        event = json.loads(payload)
-        
-        if event["type"] == "checkout.session.completed":
-            session_id = event["data"]["object"]["id"]
-            
-            purchase = await db.purchases.find_one({"stripe_session_id": session_id})
-            if purchase and purchase["payment_status"] != "paid":
-                await db.purchases.update_one(
-                    {"id": purchase["id"]},
-                    {"$set": {
-                        "payment_status": "paid",
-                        "completed_at": datetime.utcnow()
-                    }}
-                )
-        
-        return {"status": "success"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Webhook error: {str(e)}")
-
-# Analytics endpoints
-@api_router.get("/analytics")
-async def get_analytics(current_user: User = Depends(get_current_admin_user)):
-    # User statistics
+@api_router.get("/admin/analytics")
+async def get_admin_analytics(current_user: User = Depends(get_current_admin_user)):
+    # Get various analytics
     total_users = await db.users.count_documents({})
     active_users = await db.users.count_documents({"is_active": True})
-    
-    # Media statistics
     total_media = await db.media_content.count_documents({})
-    published_media = await db.media_content.count_documents({"is_published": True})
-    
-    # Distribution statistics
+    approved_media = await db.media_content.count_documents({"is_approved": True})
     total_distributions = await db.content_distributions.count_documents({})
-    successful_distributions = await db.content_distributions.count_documents({"status": "completed"})
-    distribution_success_rate = (successful_distributions / max(total_distributions, 1)) * 100
     
-    # Revenue statistics
-    purchases = await db.purchases.find({"payment_status": "paid"}).to_list(length=None)
-    total_revenue = sum(purchase.get("amount", 0) for purchase in purchases)
+    # Get recent activity (simplified)
+    recent_users = await db.users.count_documents({
+        "created_at": {"$gte": datetime.utcnow() - timedelta(days=7)}
+    })
+    recent_media = await db.media_content.count_documents({
+        "created_at": {"$gte": datetime.utcnow() - timedelta(days=7)}
+    })
     
     return {
         "users": {
             "total": total_users,
-            "active": active_users
+            "active": active_users,
+            "recent": recent_users
         },
         "media": {
             "total": total_media,
-            "published": published_media
+            "approved": approved_media,
+            "recent": recent_media
         },
         "distributions": {
-            "total": total_distributions,
-            "successful": successful_distributions,
-            "success_rate": round(distribution_success_rate, 2)
-        },
-        "revenue": {
-            "total": round(total_revenue, 2),
-            "transactions": len(purchases)
+            "total": total_distributions
         },
         "platforms": {
-            "supported": len(DISTRIBUTION_PLATFORMS)
+            "total": len(DISTRIBUTION_PLATFORMS),
+            "by_type": {}
         }
     }
 
-# Social media scheduling endpoints
-@api_router.post("/social/schedule")
-async def schedule_social_post(
-    post_data: dict,
-    current_user: User = Depends(get_current_user)
-):
-    # Basic social media post scheduling
-    post = SocialPost(
-        media_id=post_data.get("media_id"),
-        platform=post_data.get("platform"),
-        post_content=post_data.get("content"),
-        scheduled_time=datetime.fromisoformat(post_data.get("scheduled_time")) if post_data.get("scheduled_time") else None
-    )
-    
-    await db.social_posts.insert_one(post.dict())
-    
-    return {"message": "Post scheduled successfully", "post_id": post.id}
+# Include other endpoint routers
+from ddex_endpoints import ddex_router
+from sponsorship_endpoints import sponsorship_router
+from tax_endpoints import tax_router
+from industry_endpoints import industry_router
+from label_endpoints import label_router
+from payment_endpoints import payment_router
+from licensing_endpoints import licensing_router
+from gs1_endpoints import gs1_router
 
-@api_router.get("/social/posts")
-async def get_social_posts(
-    current_user: User = Depends(get_current_user)
-):
-    # Get user's media IDs
-    user_media = await db.media_content.find({"owner_id": current_user.id}, {"id": 1}).to_list(length=None)
-    user_media_ids = [media["id"] for media in user_media]
-    
-    if not user_media_ids:
-        return {"posts": []}
-    
-    posts = await db.social_posts.find({
-        "media_id": {"$in": user_media_ids}
-    }).sort("created_at", -1).to_list(length=50)
-    
-    return {"posts": posts}
-
-# NFT and Blockchain endpoints
-@api_router.post("/nft/collections")
-async def create_nft_collection(
-    collection_data: dict,
-    request: Request,
-    current_user: User = Depends(get_current_user)
-):
-    collection = NFTCollection(
-        name=collection_data.get("name"),
-        description=collection_data.get("description"),
-        symbol=collection_data.get("symbol"),
-        owner_id=current_user.id,
-        blockchain_network=collection_data.get("blockchain_network", "ethereum_mainnet"),
-        royalty_percentage=collection_data.get("royalty_percentage", 10.0)
-    )
-    
-    await db.nft_collections.insert_one(collection.dict())
-    
-    # Log activity
-    await log_activity(current_user.id, "nft_collection_created", "nft_collection", collection.id, {
-        "name": collection.name,
-        "blockchain_network": collection.blockchain_network
-    }, request)
-    
-    return {"message": "NFT collection created", "collection_id": collection.id}
-
-@api_router.get("/nft/collections")
-async def get_nft_collections(current_user: User = Depends(get_current_user)):
-    collections = await db.nft_collections.find({"owner_id": current_user.id}).to_list(length=None)
-    return {"collections": collections}
-
-@api_router.post("/nft/mint")
-async def mint_nft(
-    mint_data: dict,
-    request: Request,
-    current_user: User = Depends(get_current_user)
-):
-    # Verify media ownership
-    media = await db.media_content.find_one({"id": mint_data.get("media_id")})
-    if not media or media["owner_id"] != current_user.id:
-        raise HTTPException(status_code=403, detail="Media not found or access denied")
-    
-    # Verify collection ownership
-    collection = await db.nft_collections.find_one({"id": mint_data.get("collection_id")})
-    if not collection or collection["owner_id"] != current_user.id:
-        raise HTTPException(status_code=403, detail="Collection not found or access denied")
-    
-    token = NFTToken(
-        collection_id=collection["id"],
-        media_id=media["id"],
-        token_uri=f"ipfs://Qm{uuid.uuid4().hex[:20]}",
-        metadata_uri=f"ipfs://Qm{uuid.uuid4().hex[:20]}/metadata.json",
-        blockchain_network=collection["blockchain_network"],
-        contract_address=ETHEREUM_CONTRACT_ADDRESS,
-        current_price=mint_data.get("price", 0.0),
-        minted_at=datetime.utcnow()
-    )
-    
-    await db.nft_tokens.insert_one(token.dict())
-    
-    # Update collection supply
-    await db.nft_collections.update_one(
-        {"id": collection["id"]},
-        {"$inc": {"total_supply": 1}}
-    )
-    
-    # Log activity
-    await log_activity(current_user.id, "nft_minted", "nft_token", token.id, {
-        "media_title": media["title"],
-        "collection_name": collection["name"],
-        "blockchain_network": collection["blockchain_network"]
-    }, request)
-    
-    return {"message": "NFT minted successfully", "token_id": token.id, "contract_address": ETHEREUM_CONTRACT_ADDRESS}
-
-@api_router.get("/nft/tokens")
-async def get_nft_tokens(current_user: User = Depends(get_current_user)):
-    # Get user's collections
-    collections = await db.nft_collections.find({"owner_id": current_user.id}).to_list(length=None)
-    collection_ids = [c["id"] for c in collections]
-    
-    if not collection_ids:
-        return {"tokens": []}
-    
-    tokens = await db.nft_tokens.find({"collection_id": {"$in": collection_ids}}).to_list(length=None)
-    
-    # Add media and collection info to each token
-    for token in tokens:
-        media = await db.media_content.find_one({"id": token["media_id"]})
-        collection = await db.nft_collections.find_one({"id": token["collection_id"]})
-        token["media"] = media
-        token["collection"] = collection
-    
-    return {"tokens": tokens}
-
-@api_router.post("/blockchain/wallets")
-async def connect_wallet(
-    wallet_data: dict,
-    request: Request,
-    current_user: User = Depends(get_current_user)
-):
-    wallet = CryptoWallet(
-        user_id=current_user.id,
-        wallet_address=wallet_data.get("wallet_address"),
-        blockchain_network=wallet_data.get("blockchain_network", "ethereum"),
-        wallet_type=wallet_data.get("wallet_type", "metamask"),
-        is_primary=wallet_data.get("is_primary", False)
-    )
-    
-    await db.crypto_wallets.insert_one(wallet.dict())
-    
-    # Log activity
-    await log_activity(current_user.id, "wallet_connected", "wallet", wallet.id, {
-        "wallet_address": wallet.wallet_address,
-        "wallet_type": wallet.wallet_type
-    }, request)
-    
-    return {"message": "Wallet connected successfully", "wallet_id": wallet.id}
-
-@api_router.get("/blockchain/wallets")
-async def get_user_wallets(current_user: User = Depends(get_current_user)):
-    wallets = await db.crypto_wallets.find({"user_id": current_user.id}).to_list(length=None)
-    return {"wallets": wallets}
-
-# Include WebAuthn router
-try:
-    from webauthn_endpoints import webauthn_router
-    app.include_router(webauthn_router)
-    print("✅ WebAuthn router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ WebAuthn router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading WebAuthn router: {e}")
-
-# Include Payment router
-try:
-    from payment_endpoints import payment_router
-    from payment_service import PaymentService
-    import payment_endpoints
-    
-    # Initialize payment service
-    payment_endpoints.payment_service = PaymentService(db)
-    app.include_router(payment_router)
-    print("✅ Payment router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ Payment router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading Payment router: {e}")
-
-# Include Label router BEFORE api_router is included in app
-try:
-    from label_simple import label_router
-    api_router.include_router(label_router)
-    print("✅ Label router successfully loaded (simple version)")
-except ImportError as e:
-    print(f"⚠️ Label router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading Label router: {e}")
-
-# Include the API router
+# Include all routers
 app.include_router(api_router)
+app.include_router(ddex_router)
+app.include_router(sponsorship_router)
+app.include_router(tax_router)
+app.include_router(industry_router)
+app.include_router(label_router)
+app.include_router(payment_router)
+app.include_router(licensing_router)
+app.include_router(gs1_router)
 
-# Include DDEX router
-try:
-    from ddex_endpoints import ddex_router
-    app.include_router(ddex_router)
-    print("✅ DDEX router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ DDEX router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading DDEX router: {e}")
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure this properly for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Include Sponsorship router
-try:
-    from sponsorship_endpoints import sponsorship_router
-    app.include_router(sponsorship_router)
-    print("✅ Sponsorship router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ Sponsorship router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading Sponsorship router: {e}")
-
-# Include Tax Management router
-try:
-    from tax_endpoints import tax_router
-    app.include_router(tax_router)
-    print("✅ Tax Management router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ Tax Management router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading Tax Management router: {e}")
-
-# Include Industry router
-try:
-    from industry_endpoints import industry_router
-    app.include_router(industry_router)
-    print("✅ Industry router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ Industry router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading Industry router: {e}")
-
-# Debug: Print all registered routes (disabled for now)
-# @app.on_event("startup")
-# async def debug_routes():
-#     print("=== REGISTERED ROUTES DEBUG ===")
-#     for route in app.routes:
-#         if hasattr(route, 'path'):
-#             print(f"Route: {route.path} [{', '.join(route.methods) if hasattr(route, 'methods') else 'N/A'}]")
-#     print("=== END ROUTES DEBUG ===")
-
-# Test Label endpoint for debugging
-@api_router.get("/label/test")
-async def test_label_endpoint():
-    """Test endpoint to verify label routing works"""
-    return {"message": "Label routing is working!", "timestamp": datetime.utcnow().isoformat()}
-
-
-# Include IPI router (legacy compatibility)
-try:
-    from ipi_endpoints import router as ipi_router
-    api_router.include_router(ipi_router)
-    print("✅ IPI router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ IPI router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading IPI router: {e}")
-
-# Include Licensing router
-try:
-    from licensing_endpoints import router as licensing_router
-    app.include_router(licensing_router)
-    print("✅ Licensing router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ Licensing router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading Licensing router: {e}")
-
-# Include GS1 router
-try:
-    from gs1_endpoints import router as gs1_router
-    app.include_router(gs1_router, prefix="/api/gs1", tags=["GS1 US Integration"])
-    print("✅ GS1 US Integration router successfully loaded")
-except ImportError as e:
-    print(f"⚠️ GS1 router not available: {e}")
-except Exception as e:
-    print(f"❌ Error loading GS1 router: {e}")
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow(),
+        "service": "Big Mann Entertainment API",
+        "version": "1.0.0"
+    }
 
 if __name__ == "__main__":
     import uvicorn
