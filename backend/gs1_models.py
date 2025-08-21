@@ -104,7 +104,7 @@ class BarcodeResponse(BaseModel):
 class DistributionPlatform(BaseModel):
     platform_name: str = Field(..., max_length=100)
     platform_type: str = Field("DSP", max_length=50)  # DSP, Distributor, Aggregator
-    gln: Optional[str] = Field(None, regex=r"^\d{13}$")
+    gln: Optional[str] = Field(None, pattern=r"^\d{13}$")
     api_endpoint: Optional[str] = None
     is_active: bool = True
     
