@@ -785,8 +785,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Licensing System Backend Testing Completed"
-    - "Licensing System Frontend Testing - Statutory Rates and Daily Compensation Implementation"
+    - "7 New Platform Integration - Modeling and Entertainment Media"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
