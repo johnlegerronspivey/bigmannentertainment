@@ -9815,7 +9815,560 @@ class BackendTester:
                     if "❌ FAIL" in detail:
                         print(f"  {detail}")
 
-    def run_all_tests(self):
+    def test_gs1_business_info(self) -> bool:
+        """Test GS1 business information endpoint"""
+        try:
+            response = self.make_request('GET', '/gs1/business-info')
+            
+            if response.status_code == 200:
+                data = response.json()
+                expected_fields = ["business_entity", "business_owner", "ein", "tin"]
+                
+                if all(field in data for field in expected_fields):
+                    # Verify specific Big Mann Entertainment data
+                    if (data.get("business_entity") == "Big Mann Entertainment" and
+                        data.get("business_owner") == "John LeGerron Spivey" and
+                        data.get("ein") == "270658077" and
+                        data.get("tin") == "12800"):
+                        self.log_result("gs1_business_info", "Business Information", True, 
+                                      f"Successfully retrieved Big Mann Entertainment business info: EIN {data['ein']}, TIN {data['tin']}")
+                        return True
+                    else:
+                        self.log_result("gs1_business_info", "Business Information", False, 
+                                      f"Incorrect business data: {data}")
+                        return False
+                else:
+                    self.log_result("gs1_business_info", "Business Information", False, 
+                                  f"Missing required fields. Present: {list(data.keys())}")
+                    return False
+            else:
+                self.log_result("gs1_business_info", "Business Information", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_business_info", "Business Information", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_products_creation(self) -> bool:
+        """Test GS1 music product creation with UPC/GTIN generation"""
+        try:
+            if not self.auth_token:
+                self.log_result("gs1_products_creation", "Product Creation", False, "No auth token available")
+                return False
+            
+            from datetime import datetime, timedelta
+            
+            # Create test music release data
+            product_data = {
+                "title": "Big Mann Entertainment Test Release",
+                "artist_name": "John LeGerron Spivey",
+                "label_name": "Big Mann Entertainment",
+                "release_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                "genre": "Hip-Hop",
+                "duration_seconds": 240,
+                "catalog_number": "BME2025001",
+                "distribution_format": "Digital"
+            }
+            
+            response = self.make_request('POST', '/gs1/products', json=product_data)
+            
+            if response.status_code == 201:
+                data = response.json()
+                required_fields = ["message", "product", "gs1_registration", "business_entity"]
+                
+                if all(field in data for field in required_fields):
+                    product = data["product"]
+                    # Verify UPC/GTIN generation with company prefix
+                    if (product.get("upc") and len(product["upc"]) == 12 and 
+                        product["upc"].startswith("8600043402") and
+                        product.get("gtin") and len(product["gtin"]) == 13 and
+                        data.get("business_entity") == "Big Mann Entertainment"):
+                        
+                        self.test_upc_code = product["upc"]  # Store for barcode testing
+                        self.test_gtin_code = product["gtin"]  # Store for validation testing
+                        
+                        self.log_result("gs1_products_creation", "Product Creation", True, 
+                                      f"Successfully created music product with UPC: {product['upc']}, GTIN: {product['gtin']}")
+                        return True
+                    else:
+                        self.log_result("gs1_products_creation", "Product Creation", False, 
+                                      f"Invalid UPC/GTIN format or missing company prefix: UPC={product.get('upc')}, GTIN={product.get('gtin')}")
+                        return False
+                else:
+                    self.log_result("gs1_products_creation", "Product Creation", False, 
+                                  f"Missing required fields. Present: {list(data.keys())}")
+                    return False
+            else:
+                self.log_result("gs1_products_creation", "Product Creation", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_products_creation", "Product Creation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_locations_creation(self) -> bool:
+        """Test GS1 location creation with GLN generation"""
+        try:
+            if not self.auth_token:
+                self.log_result("gs1_locations_creation", "Location Creation", False, "No auth token available")
+                return False
+            
+            # Create test location data for Big Mann Entertainment facility
+            location_data = {
+                "location_name": "Big Mann Entertainment Headquarters",
+                "organization_name": "Big Mann Entertainment",
+                "street_address": "1314 Lincoln Heights Street",
+                "address_locality": "Alexander City",
+                "address_region": "Alabama",
+                "postal_code": "35010",
+                "country_code": "US",
+                "gln_type": "Legal Entity",
+                "supply_chain_role": "Music Distribution",
+                "industry": "Entertainment"
+            }
+            
+            response = self.make_request('POST', '/gs1/locations', json=location_data)
+            
+            if response.status_code == 201:
+                data = response.json()
+                required_fields = ["message", "location", "gs1_registration", "business_entity"]
+                
+                if all(field in data for field in required_fields):
+                    location = data["location"]
+                    # Verify GLN generation with company prefix
+                    if (location.get("gln") and len(location["gln"]) == 13 and 
+                        location["gln"].startswith("8600043402") and
+                        data.get("business_entity") == "Big Mann Entertainment"):
+                        
+                        self.test_gln_code = location["gln"]  # Store for validation testing
+                        
+                        self.log_result("gs1_locations_creation", "Location Creation", True, 
+                                      f"Successfully created location with GLN: {location['gln']}")
+                        return True
+                    else:
+                        self.log_result("gs1_locations_creation", "Location Creation", False, 
+                                      f"Invalid GLN format or missing company prefix: GLN={location.get('gln')}")
+                        return False
+                else:
+                    self.log_result("gs1_locations_creation", "Location Creation", False, 
+                                  f"Missing required fields. Present: {list(data.keys())}")
+                    return False
+            else:
+                self.log_result("gs1_locations_creation", "Location Creation", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_locations_creation", "Location Creation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_barcode_generation(self) -> bool:
+        """Test barcode generation for UPC codes in multiple formats"""
+        try:
+            # Use generated UPC code or fallback to test code
+            test_upc = getattr(self, 'test_upc_code', '860004340201')  # Company prefix + test product code
+            
+            formats_to_test = ["PNG", "JPEG", "SVG"]
+            successful_formats = []
+            
+            for format_type in formats_to_test:
+                barcode_request = {
+                    "upc_code": test_upc,
+                    "format_type": format_type,
+                    "width": 1.0,
+                    "height": 25.0,
+                    "dpi": 300
+                }
+                
+                response = self.make_request('POST', '/gs1/barcode/generate', json=barcode_request)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    required_fields = ["upc_code", "format_type", "content_type", "data", "size_bytes"]
+                    
+                    if all(field in data for field in required_fields):
+                        # Verify response data
+                        if (data["upc_code"] == test_upc and 
+                            data["format_type"] == format_type and
+                            data["data"] and  # Base64 encoded data
+                            data["size_bytes"] > 0):
+                            successful_formats.append(format_type)
+                        else:
+                            self.log_result("gs1_barcode_generation", f"Barcode Generation {format_type}", False, 
+                                          f"Invalid response data for {format_type}")
+                    else:
+                        self.log_result("gs1_barcode_generation", f"Barcode Generation {format_type}", False, 
+                                      f"Missing required fields for {format_type}")
+                else:
+                    self.log_result("gs1_barcode_generation", f"Barcode Generation {format_type}", False, 
+                                  f"Status: {response.status_code} for {format_type}")
+            
+            if len(successful_formats) == len(formats_to_test):
+                self.log_result("gs1_barcode_generation", "Barcode Generation", True, 
+                              f"Successfully generated barcodes in all formats: {', '.join(successful_formats)}")
+                return True
+            elif len(successful_formats) > 0:
+                self.log_result("gs1_barcode_generation", "Barcode Generation", False, 
+                              f"Partial success - only {len(successful_formats)}/{len(formats_to_test)} formats worked: {successful_formats}")
+                return False
+            else:
+                self.log_result("gs1_barcode_generation", "Barcode Generation", False, 
+                              "Failed to generate barcodes in any format")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_barcode_generation", "Barcode Generation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_validation(self) -> bool:
+        """Test validation of UPC, GTIN, and GLN identifiers"""
+        try:
+            # Test cases with expected results
+            test_cases = [
+                # Valid UPC with company prefix
+                {"identifier": "860004340201", "type": "UPC", "should_be_valid": True},
+                # Valid GTIN 
+                {"identifier": "0860004340201", "type": "GTIN", "should_be_valid": True},
+                # Valid GLN with company prefix
+                {"identifier": getattr(self, 'test_gln_code', '8600043402013'), "type": "GLN", "should_be_valid": True},
+                # Invalid UPC (wrong length)
+                {"identifier": "86000434020", "type": "UPC", "should_be_valid": False},
+                # Invalid GTIN (wrong check digit)
+                {"identifier": "0860004340200", "type": "GTIN", "should_be_valid": False},
+                # Invalid GLN (non-numeric)
+                {"identifier": "860004340201A", "type": "GLN", "should_be_valid": False}
+            ]
+            
+            successful_validations = 0
+            total_validations = len(test_cases)
+            
+            for test_case in test_cases:
+                response = self.make_request('POST', '/gs1/validate', 
+                                           params={
+                                               "identifier": test_case["identifier"],
+                                               "identifier_type": test_case["type"]
+                                           })
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    required_fields = ["is_valid", "identifier", "identifier_type", "validation_message"]
+                    
+                    if all(field in data for field in required_fields):
+                        # Check if validation result matches expectation
+                        if data["is_valid"] == test_case["should_be_valid"]:
+                            successful_validations += 1
+                        else:
+                            self.log_result("gs1_validation", f"Validation {test_case['type']}", False, 
+                                          f"Unexpected validation result for {test_case['identifier']}: expected {test_case['should_be_valid']}, got {data['is_valid']}")
+                    else:
+                        self.log_result("gs1_validation", f"Validation {test_case['type']}", False, 
+                                      f"Missing required fields for {test_case['identifier']}")
+                else:
+                    self.log_result("gs1_validation", f"Validation {test_case['type']}", False, 
+                                  f"Status: {response.status_code} for {test_case['identifier']}")
+            
+            if successful_validations == total_validations:
+                self.log_result("gs1_validation", "Identifier Validation", True, 
+                              f"Successfully validated all {total_validations} test cases with correct results")
+                return True
+            else:
+                self.log_result("gs1_validation", "Identifier Validation", False, 
+                              f"Only {successful_validations}/{total_validations} validations were correct")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_validation", "Identifier Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_products_listing(self) -> bool:
+        """Test listing and filtering of GS1 products"""
+        try:
+            # Test basic product listing
+            response = self.make_request('GET', '/gs1/products')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["products", "pagination", "business_entity"]
+                
+                if all(field in data for field in required_fields):
+                    # Verify business entity branding
+                    if data.get("business_entity") == "Big Mann Entertainment":
+                        products = data["products"]
+                        pagination = data["pagination"]
+                        
+                        # Test filtering by artist
+                        filter_response = self.make_request('GET', '/gs1/products', 
+                                                          params={"artist_filter": "John LeGerron Spivey"})
+                        
+                        if filter_response.status_code == 200:
+                            filter_data = filter_response.json()
+                            self.log_result("gs1_products_listing", "Products Listing", True, 
+                                          f"Successfully retrieved products list with {len(products)} products and filtering works")
+                            return True
+                        else:
+                            self.log_result("gs1_products_listing", "Products Listing", False, 
+                                          f"Filtering failed: {filter_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("gs1_products_listing", "Products Listing", False, 
+                                      f"Incorrect business entity: {data.get('business_entity')}")
+                        return False
+                else:
+                    self.log_result("gs1_products_listing", "Products Listing", False, 
+                                  f"Missing required fields. Present: {list(data.keys())}")
+                    return False
+            else:
+                self.log_result("gs1_products_listing", "Products Listing", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_products_listing", "Products Listing", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_locations_listing(self) -> bool:
+        """Test listing and filtering of GS1 locations"""
+        try:
+            # Test basic location listing
+            response = self.make_request('GET', '/gs1/locations')
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["locations", "pagination", "business_entity"]
+                
+                if all(field in data for field in required_fields):
+                    # Verify business entity branding
+                    if data.get("business_entity") == "Big Mann Entertainment":
+                        locations = data["locations"]
+                        pagination = data["pagination"]
+                        
+                        # Test filtering by organization
+                        filter_response = self.make_request('GET', '/gs1/locations', 
+                                                          params={"organization_filter": "Big Mann Entertainment"})
+                        
+                        if filter_response.status_code == 200:
+                            filter_data = filter_response.json()
+                            self.log_result("gs1_locations_listing", "Locations Listing", True, 
+                                          f"Successfully retrieved locations list with {len(locations)} locations and filtering works")
+                            return True
+                        else:
+                            self.log_result("gs1_locations_listing", "Locations Listing", False, 
+                                          f"Filtering failed: {filter_response.status_code}")
+                            return False
+                    else:
+                        self.log_result("gs1_locations_listing", "Locations Listing", False, 
+                                      f"Incorrect business entity: {data.get('business_entity')}")
+                        return False
+                else:
+                    self.log_result("gs1_locations_listing", "Locations Listing", False, 
+                                  f"Missing required fields. Present: {list(data.keys())}")
+                    return False
+            else:
+                self.log_result("gs1_locations_listing", "Locations Listing", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_locations_listing", "Locations Listing", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_authentication(self) -> bool:
+        """Test GS1 endpoints authentication requirements"""
+        try:
+            # Test endpoints that should require authentication
+            auth_required_endpoints = [
+                ('POST', '/gs1/products'),
+                ('POST', '/gs1/locations')
+            ]
+            
+            # Store current token and clear it
+            current_token = self.auth_token
+            self.auth_token = None
+            
+            auth_working = True
+            
+            for method, endpoint in auth_required_endpoints:
+                test_data = {}
+                if endpoint == '/gs1/products':
+                    test_data = {
+                        "title": "Test",
+                        "artist_name": "Test Artist",
+                        "label_name": "Test Label",
+                        "release_date": "2025-01-01T00:00:00"
+                    }
+                elif endpoint == '/gs1/locations':
+                    test_data = {
+                        "location_name": "Test Location",
+                        "organization_name": "Test Org"
+                    }
+                
+                response = self.make_request(method, endpoint, json=test_data)
+                
+                if response.status_code not in [401, 403]:
+                    auth_working = False
+                    self.log_result("gs1_authentication", f"Auth Required {endpoint}", False, 
+                                  f"Should require authentication but got status: {response.status_code}")
+            
+            # Restore token
+            self.auth_token = current_token
+            
+            # Test endpoints that should NOT require authentication
+            public_endpoints = [
+                ('GET', '/gs1/business-info'),
+                ('GET', '/gs1/products'),
+                ('GET', '/gs1/locations'),
+                ('POST', '/gs1/barcode/generate'),
+                ('POST', '/gs1/validate')
+            ]
+            
+            for method, endpoint in public_endpoints:
+                test_data = {}
+                if endpoint == '/gs1/barcode/generate':
+                    test_data = {"upc_code": "860004340201", "format_type": "PNG"}
+                elif endpoint == '/gs1/validate':
+                    # Use params instead of json for GET-like POST
+                    response = self.make_request(method, endpoint, 
+                                               params={"identifier": "860004340201", "identifier_type": "UPC"})
+                else:
+                    response = self.make_request(method, endpoint, json=test_data)
+                
+                if method == 'POST' and endpoint == '/gs1/validate':
+                    continue  # Already handled above
+                else:
+                    response = self.make_request(method, endpoint, json=test_data)
+                
+                if response.status_code in [401, 403]:
+                    auth_working = False
+                    self.log_result("gs1_authentication", f"Public Access {endpoint}", False, 
+                                  f"Should be public but requires authentication: {response.status_code}")
+            
+            if auth_working:
+                self.log_result("gs1_authentication", "Authentication Requirements", True, 
+                              "All GS1 endpoints have correct authentication requirements")
+                return True
+            else:
+                self.log_result("gs1_authentication", "Authentication Requirements", False, 
+                              "Some GS1 endpoints have incorrect authentication requirements")
+                return False
+                
+        except Exception as e:
+            # Restore token in case of exception
+            if 'current_token' in locals():
+                self.auth_token = current_token
+            self.log_result("gs1_authentication", "Authentication Requirements", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_gs1_integration(self) -> bool:
+        """Test complete GS1 integration workflow"""
+        try:
+            if not self.auth_token:
+                self.log_result("gs1_integration", "Complete Integration", False, "No auth token available")
+                return False
+            
+            # Step 1: Get business info
+            business_response = self.make_request('GET', '/gs1/business-info')
+            if business_response.status_code != 200:
+                self.log_result("gs1_integration", "Complete Integration", False, 
+                              f"Business info failed: {business_response.status_code}")
+                return False
+            
+            business_data = business_response.json()
+            
+            # Step 2: Create a product
+            from datetime import datetime, timedelta
+            product_data = {
+                "title": "GS1 Integration Test Track",
+                "artist_name": "John LeGerron Spivey",
+                "label_name": "Big Mann Entertainment",
+                "release_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                "genre": "Hip-Hop",
+                "duration_seconds": 180
+            }
+            
+            product_response = self.make_request('POST', '/gs1/products', json=product_data)
+            if product_response.status_code != 201:
+                self.log_result("gs1_integration", "Complete Integration", False, 
+                              f"Product creation failed: {product_response.status_code}")
+                return False
+            
+            product_result = product_response.json()
+            test_upc = product_result["product"]["upc"]
+            
+            # Step 3: Create a location
+            location_data = {
+                "location_name": "GS1 Test Facility",
+                "organization_name": "Big Mann Entertainment",
+                "street_address": "1314 Lincoln Heights Street",
+                "address_locality": "Alexander City",
+                "address_region": "Alabama",
+                "postal_code": "35010",
+                "country_code": "US"
+            }
+            
+            location_response = self.make_request('POST', '/gs1/locations', json=location_data)
+            if location_response.status_code != 201:
+                self.log_result("gs1_integration", "Complete Integration", False, 
+                              f"Location creation failed: {location_response.status_code}")
+                return False
+            
+            location_result = location_response.json()
+            test_gln = location_result["location"]["gln"]
+            
+            # Step 4: Generate barcode
+            barcode_request = {
+                "upc_code": test_upc,
+                "format_type": "PNG"
+            }
+            
+            barcode_response = self.make_request('POST', '/gs1/barcode/generate', json=barcode_request)
+            if barcode_response.status_code != 200:
+                self.log_result("gs1_integration", "Complete Integration", False, 
+                              f"Barcode generation failed: {barcode_response.status_code}")
+                return False
+            
+            # Step 5: Validate identifiers
+            upc_validation = self.make_request('POST', '/gs1/validate', 
+                                             params={"identifier": test_upc, "identifier_type": "UPC"})
+            gln_validation = self.make_request('POST', '/gs1/validate', 
+                                             params={"identifier": test_gln, "identifier_type": "GLN"})
+            
+            if upc_validation.status_code != 200 or gln_validation.status_code != 200:
+                self.log_result("gs1_integration", "Complete Integration", False, 
+                              "Validation failed")
+                return False
+            
+            # Step 6: List products and locations
+            products_list = self.make_request('GET', '/gs1/products')
+            locations_list = self.make_request('GET', '/gs1/locations')
+            
+            if products_list.status_code != 200 or locations_list.status_code != 200:
+                self.log_result("gs1_integration", "Complete Integration", False, 
+                              "Listing failed")
+                return False
+            
+            # Verify all components work together
+            integration_success = (
+                business_data.get("business_entity") == "Big Mann Entertainment" and
+                test_upc.startswith("8600043402") and
+                test_gln.startswith("8600043402") and
+                len(test_upc) == 12 and
+                len(test_gln) == 13
+            )
+            
+            if integration_success:
+                self.log_result("gs1_integration", "Complete Integration", True, 
+                              f"Complete GS1 workflow successful: Business info ✓, Product created (UPC: {test_upc}) ✓, Location created (GLN: {test_gln}) ✓, Barcode generated ✓, Validation ✓, Listing ✓")
+                return True
+            else:
+                self.log_result("gs1_integration", "Complete Integration", False, 
+                              "Integration workflow completed but data validation failed")
+                return False
+                
+        except Exception as e:
+            self.log_result("gs1_integration", "Complete Integration", False, f"Exception: {str(e)}")
+            return False
         """Run comprehensive backend tests focusing on the review request components"""
         print("=" * 80)
         print("🚀 BIG MANN ENTERTAINMENT PLATFORM COMPREHENSIVE TESTING SUITE")
