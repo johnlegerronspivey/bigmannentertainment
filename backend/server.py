@@ -1700,6 +1700,11 @@ async def login_user(login_data: UserLogin, request: Request):
         user=user
     )
 
+@api_router.get("/auth/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information"""
+    return current_user
+
 @api_router.post("/auth/refresh", response_model=Token)
 async def refresh_token(refresh_data: TokenRefresh, request: Request):
     # Find session by refresh token
