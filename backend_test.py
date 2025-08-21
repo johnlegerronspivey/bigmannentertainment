@@ -2712,6 +2712,474 @@ class BackendTester:
         except Exception as e:
             self.log_result("new_platforms_features", "New Creator/Lifestyle Platforms Specific Features", False, f"Exception: {str(e)}")
             return False
+
+    # ===== 7 NEW PLATFORM INTEGRATION TESTS (MODELING AGENCIES + ENTERTAINMENT MEDIA) =====
+    
+    def test_7_new_platforms_integration(self) -> bool:
+        """Test the 7 new platform integrations (4 modeling agencies + 3 entertainment media outlets)"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Expected 7 new platforms
+                expected_new_platforms = {
+                    # Modeling Agencies (4)
+                    'imgmodels': 'IMG Models',
+                    'elitemodelmanagement': 'Elite Model Management', 
+                    'lamodels': 'LA Models',
+                    'stormmanagement': 'Storm Management LA',
+                    # Entertainment Media Outlets (3)
+                    'thesource': 'The Source',
+                    'billboard': 'Billboard',
+                    'tmz': 'TMZ'
+                }
+                
+                missing_platforms = []
+                found_platforms = []
+                
+                for platform_key, platform_name in expected_new_platforms.items():
+                    if platform_key in platforms:
+                        platform_config = platforms[platform_key]
+                        if platform_config.get('name') == platform_name:
+                            found_platforms.append(f"{platform_key} ({platform_name})")
+                        else:
+                            missing_platforms.append(f"{platform_key} (name mismatch: expected '{platform_name}', got '{platform_config.get('name')}')")
+                    else:
+                        missing_platforms.append(f"{platform_key} ({platform_name})")
+                
+                if not missing_platforms:
+                    self.log_result("new_7_platforms_integration", "7 New Platforms Integration", True, 
+                                  f"Successfully found all 7 new platforms: {', '.join(found_platforms)}")
+                    return True
+                else:
+                    self.log_result("new_7_platforms_integration", "7 New Platforms Integration", False, 
+                                  f"Missing platforms: {', '.join(missing_platforms)}. Found: {', '.join(found_platforms)}")
+                    return False
+            else:
+                self.log_result("new_7_platforms_integration", "7 New Platforms Integration", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "7 New Platforms Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_count_83_to_90_verification(self) -> bool:
+        """Test that platform count increased from 83 to 90 platforms with the 7 new additions"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                total_platforms = len(platforms)
+                expected_minimum = 90  # Should be at least 90 with the new additions
+                
+                if total_platforms >= expected_minimum:
+                    self.log_result("new_7_platforms_integration", "Platform Count 83 to 90 Verification", True, 
+                                  f"Platform count successfully increased to {total_platforms} (expected minimum: {expected_minimum})")
+                    return True
+                else:
+                    self.log_result("new_7_platforms_integration", "Platform Count 83 to 90 Verification", False, 
+                                  f"Platform count insufficient: {total_platforms} (expected minimum: {expected_minimum})")
+                    return False
+            else:
+                self.log_result("new_7_platforms_integration", "Platform Count 83 to 90 Verification", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "Platform Count 83 to 90 Verification", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_modeling_agencies_configuration(self) -> bool:
+        """Test configuration of the 4 new modeling agency platforms"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Test IMG Models configuration
+                imgmodels = platforms.get('imgmodels', {})
+                if imgmodels:
+                    expected_img_config = {
+                        'type': 'social_media',
+                        'name': 'IMG Models',
+                        'api_endpoint': 'https://api.imgmodels.com/v1',
+                        'max_file_size': 200 * 1024 * 1024,  # 200MB
+                        'target_demographics': 'High fashion industry, ages 16-35, luxury brands and designers',
+                        'content_guidelines': 'High-end fashion photography, runway content, editorial work, brand campaigns',
+                        'submission_process': 'IMG Models talent scouting and representation approval',
+                        'revenue_sharing': 'Premium modeling contracts and brand partnership deals'
+                    }
+                    
+                    img_config_correct = all(
+                        imgmodels.get(key) == value for key, value in expected_img_config.items()
+                    )
+                    
+                    if not img_config_correct:
+                        self.log_result("new_7_platforms_integration", "Modeling Agencies Configuration", False, 
+                                      "IMG Models configuration incorrect")
+                        return False
+                
+                # Test Elite Model Management configuration
+                elite = platforms.get('elitemodelmanagement', {})
+                if elite:
+                    expected_elite_config = {
+                        'type': 'social_media',
+                        'name': 'Elite Model Management',
+                        'api_endpoint': 'https://api.elitemodel.com/v1',
+                        'max_file_size': 180 * 1024 * 1024,  # 180MB
+                        'target_demographics': 'International fashion industry, ages 14-40, elite modeling market',
+                        'content_guidelines': 'Elite fashion content, international campaigns, haute couture, commercial work',
+                        'submission_process': 'Elite Model Management scouting and professional evaluation'
+                    }
+                    
+                    elite_config_correct = all(
+                        elite.get(key) == value for key, value in expected_elite_config.items()
+                    )
+                    
+                    if not elite_config_correct:
+                        self.log_result("new_7_platforms_integration", "Modeling Agencies Configuration", False, 
+                                      "Elite Model Management configuration incorrect")
+                        return False
+                
+                # Test LA Models configuration
+                lamodels = platforms.get('lamodels', {})
+                if lamodels:
+                    expected_la_config = {
+                        'type': 'social_media',
+                        'name': 'LA Models',
+                        'api_endpoint': 'https://api.lamodels.com/v1',
+                        'max_file_size': 150 * 1024 * 1024,  # 150MB
+                        'target_demographics': 'Commercial and fashion industry, ages 16-45, West Coast market',
+                        'content_guidelines': 'Commercial photography, fashion work, lifestyle brands, entertainment industry'
+                    }
+                    
+                    la_config_correct = all(
+                        lamodels.get(key) == value for key, value in expected_la_config.items()
+                    )
+                    
+                    if not la_config_correct:
+                        self.log_result("new_7_platforms_integration", "Modeling Agencies Configuration", False, 
+                                      "LA Models configuration incorrect")
+                        return False
+                
+                # Test Storm Management LA configuration
+                storm = platforms.get('stormmanagement', {})
+                if storm:
+                    expected_storm_config = {
+                        'type': 'social_media',
+                        'name': 'Storm Management LA',
+                        'api_endpoint': 'https://api.stormmanagement-la.com/v1',
+                        'max_file_size': 175 * 1024 * 1024,  # 175MB
+                        'target_demographics': 'Fashion and commercial industry, ages 18-35, Los Angeles market',
+                        'content_guidelines': 'Fashion editorials, commercial campaigns, celebrity photography, brand partnerships'
+                    }
+                    
+                    storm_config_correct = all(
+                        storm.get(key) == value for key, value in expected_storm_config.items()
+                    )
+                    
+                    if not storm_config_correct:
+                        self.log_result("new_7_platforms_integration", "Modeling Agencies Configuration", False, 
+                                      "Storm Management LA configuration incorrect")
+                        return False
+                
+                self.log_result("new_7_platforms_integration", "Modeling Agencies Configuration", True, 
+                              "All 4 modeling agency platforms configured correctly with proper demographics and guidelines")
+                return True
+            else:
+                self.log_result("new_7_platforms_integration", "Modeling Agencies Configuration", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "Modeling Agencies Configuration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_entertainment_media_configuration(self) -> bool:
+        """Test configuration of the 3 new entertainment media outlet platforms"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Test The Source configuration
+                thesource = platforms.get('thesource', {})
+                if thesource:
+                    expected_source_config = {
+                        'type': 'social_media',
+                        'name': 'The Source',
+                        'api_endpoint': 'https://api.thesource.com/v1',
+                        'max_file_size': 200 * 1024 * 1024,  # 200MB
+                        'target_demographics': 'Hip-hop culture enthusiasts, ages 16-45, urban music fans',
+                        'content_guidelines': 'Hip-hop music, urban culture, artist interviews, music news, album reviews',
+                        'submission_process': 'The Source editorial team review and music industry validation',
+                        'revenue_sharing': 'Music promotion partnerships and advertising revenue sharing'
+                    }
+                    
+                    source_config_correct = all(
+                        thesource.get(key) == value for key, value in expected_source_config.items()
+                    )
+                    
+                    if not source_config_correct:
+                        self.log_result("new_7_platforms_integration", "Entertainment Media Configuration", False, 
+                                      "The Source configuration incorrect")
+                        return False
+                
+                # Test Billboard configuration
+                billboard = platforms.get('billboard', {})
+                if billboard:
+                    expected_billboard_config = {
+                        'type': 'social_media',
+                        'name': 'Billboard',
+                        'api_endpoint': 'https://api.billboard.com/v1',
+                        'max_file_size': 250 * 1024 * 1024,  # 250MB
+                        'target_demographics': 'Music industry professionals, ages 18-65, mainstream music audience',
+                        'content_guidelines': 'Music industry news, chart performance, artist features, music business content',
+                        'submission_process': 'Billboard editorial review and music industry standards validation',
+                        'revenue_sharing': 'Music industry partnerships and premium content licensing'
+                    }
+                    
+                    billboard_config_correct = all(
+                        billboard.get(key) == value for key, value in expected_billboard_config.items()
+                    )
+                    
+                    if not billboard_config_correct:
+                        self.log_result("new_7_platforms_integration", "Entertainment Media Configuration", False, 
+                                      "Billboard configuration incorrect")
+                        return False
+                
+                # Test TMZ configuration
+                tmz = platforms.get('tmz', {})
+                if tmz:
+                    expected_tmz_config = {
+                        'type': 'social_media',
+                        'name': 'TMZ',
+                        'api_endpoint': 'https://api.tmz.com/v1',
+                        'max_file_size': 300 * 1024 * 1024,  # 300MB
+                        'target_demographics': 'Entertainment news audience, ages 18-55, celebrity culture followers',
+                        'content_guidelines': 'Celebrity news, entertainment exclusives, music artist coverage, breaking entertainment news',
+                        'submission_process': 'TMZ editorial team review and entertainment news validation',
+                        'revenue_sharing': 'Exclusive content licensing and contributor revenue sharing'
+                    }
+                    
+                    tmz_config_correct = all(
+                        tmz.get(key) == value for key, value in expected_tmz_config.items()
+                    )
+                    
+                    if not tmz_config_correct:
+                        self.log_result("new_7_platforms_integration", "Entertainment Media Configuration", False, 
+                                      "TMZ configuration incorrect")
+                        return False
+                
+                self.log_result("new_7_platforms_integration", "Entertainment Media Configuration", True, 
+                              "All 3 entertainment media outlet platforms configured correctly with proper editorial workflows")
+                return True
+            else:
+                self.log_result("new_7_platforms_integration", "Entertainment Media Configuration", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "Entertainment Media Configuration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_7_platforms_categorization(self) -> bool:
+        """Test that all 7 new platforms are properly categorized as social_media type"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # All 7 new platforms should be categorized as social_media
+                new_platforms = ['imgmodels', 'elitemodelmanagement', 'lamodels', 'stormmanagement', 
+                               'thesource', 'billboard', 'tmz']
+                
+                incorrectly_categorized = []
+                correctly_categorized = []
+                
+                for platform_key in new_platforms:
+                    platform = platforms.get(platform_key, {})
+                    if platform.get('type') == 'social_media':
+                        correctly_categorized.append(platform_key)
+                    else:
+                        incorrectly_categorized.append(f"{platform_key} (type: {platform.get('type', 'missing')})")
+                
+                if not incorrectly_categorized:
+                    # Count total social media platforms
+                    social_media_platforms = [p for p in platforms.values() if p.get('type') == 'social_media']
+                    
+                    self.log_result("new_7_platforms_integration", "7 Platforms Categorization", True, 
+                                  f"All 7 new platforms correctly categorized as social_media. Total social media platforms: {len(social_media_platforms)}")
+                    return True
+                else:
+                    self.log_result("new_7_platforms_integration", "7 Platforms Categorization", False, 
+                                  f"Incorrectly categorized platforms: {', '.join(incorrectly_categorized)}")
+                    return False
+            else:
+                self.log_result("new_7_platforms_integration", "7 Platforms Categorization", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "7 Platforms Categorization", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_api_endpoints_structure(self) -> bool:
+        """Test that all 7 new platforms have properly configured API endpoints"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Expected API endpoints for the 7 new platforms
+                expected_endpoints = {
+                    'imgmodels': 'https://api.imgmodels.com/v1',
+                    'elitemodelmanagement': 'https://api.elitemodel.com/v1',
+                    'lamodels': 'https://api.lamodels.com/v1',
+                    'stormmanagement': 'https://api.stormmanagement-la.com/v1',
+                    'thesource': 'https://api.thesource.com/v1',
+                    'billboard': 'https://api.billboard.com/v1',
+                    'tmz': 'https://api.tmz.com/v1'
+                }
+                
+                incorrect_endpoints = []
+                correct_endpoints = []
+                
+                for platform_key, expected_endpoint in expected_endpoints.items():
+                    platform = platforms.get(platform_key, {})
+                    actual_endpoint = platform.get('api_endpoint')
+                    
+                    if actual_endpoint == expected_endpoint:
+                        correct_endpoints.append(platform_key)
+                    else:
+                        incorrect_endpoints.append(f"{platform_key} (expected: {expected_endpoint}, got: {actual_endpoint})")
+                
+                if not incorrect_endpoints:
+                    self.log_result("new_7_platforms_integration", "Platform API Endpoints Structure", True, 
+                                  f"All 7 new platforms have correctly configured API endpoints: {', '.join(correct_endpoints)}")
+                    return True
+                else:
+                    self.log_result("new_7_platforms_integration", "Platform API Endpoints Structure", False, 
+                                  f"Incorrect API endpoints: {', '.join(incorrect_endpoints)}")
+                    return False
+            else:
+                self.log_result("new_7_platforms_integration", "Platform API Endpoints Structure", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "Platform API Endpoints Structure", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_credentials_requirements_verification(self) -> bool:
+        """Test that all 7 new platforms have appropriate credentials requirements"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                # Expected credentials for each platform type
+                expected_credentials = {
+                    'imgmodels': ['api_key', 'model_id', 'agent_token'],
+                    'elitemodelmanagement': ['api_key', 'elite_model_id', 'agency_access_token'],
+                    'lamodels': ['api_key', 'la_model_id', 'west_coast_token'],
+                    'stormmanagement': ['api_key', 'storm_model_id', 'la_office_token'],
+                    'thesource': ['api_key', 'editorial_token', 'content_partner_id'],
+                    'billboard': ['api_key', 'billboard_partner_id', 'charts_access_token'],
+                    'tmz': ['api_key', 'tmz_contributor_id', 'entertainment_token']
+                }
+                
+                incorrect_credentials = []
+                correct_credentials = []
+                
+                for platform_key, expected_creds in expected_credentials.items():
+                    platform = platforms.get(platform_key, {})
+                    actual_creds = platform.get('credentials_required', [])
+                    
+                    if set(actual_creds) == set(expected_creds):
+                        correct_credentials.append(platform_key)
+                    else:
+                        incorrect_credentials.append(f"{platform_key} (expected: {expected_creds}, got: {actual_creds})")
+                
+                if not incorrect_credentials:
+                    self.log_result("new_7_platforms_integration", "Credentials Requirements Verification", True, 
+                                  f"All 7 new platforms have correct credentials requirements: {', '.join(correct_credentials)}")
+                    return True
+                else:
+                    self.log_result("new_7_platforms_integration", "Credentials Requirements Verification", False, 
+                                  f"Incorrect credentials requirements: {', '.join(incorrect_credentials)}")
+                    return False
+            else:
+                self.log_result("new_7_platforms_integration", "Credentials Requirements Verification", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "Credentials Requirements Verification", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_platform_metadata_completeness(self) -> bool:
+        """Test that all 7 new platforms have complete metadata including industry-specific features"""
+        try:
+            response = self.make_request('GET', '/distribution/platforms')
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get('platforms', {})
+                
+                new_platforms = ['imgmodels', 'elitemodelmanagement', 'lamodels', 'stormmanagement', 
+                               'thesource', 'billboard', 'tmz']
+                
+                # Required metadata fields for all platforms
+                required_fields = ['type', 'name', 'api_endpoint', 'supported_formats', 'max_file_size', 
+                                 'credentials_required', 'target_demographics', 'content_guidelines', 
+                                 'submission_process', 'revenue_sharing']
+                
+                incomplete_platforms = []
+                complete_platforms = []
+                
+                for platform_key in new_platforms:
+                    platform = platforms.get(platform_key, {})
+                    missing_fields = [field for field in required_fields if field not in platform or not platform[field]]
+                    
+                    if not missing_fields:
+                        complete_platforms.append(platform_key)
+                    else:
+                        incomplete_platforms.append(f"{platform_key} (missing: {', '.join(missing_fields)})")
+                
+                if not incomplete_platforms:
+                    self.log_result("new_7_platforms_integration", "Platform Metadata Completeness", True, 
+                                  f"All 7 new platforms have complete metadata with industry-specific features: {', '.join(complete_platforms)}")
+                    return True
+                else:
+                    self.log_result("new_7_platforms_integration", "Platform Metadata Completeness", False, 
+                                  f"Incomplete platform metadata: {', '.join(incomplete_platforms)}")
+                    return False
+            else:
+                self.log_result("new_7_platforms_integration", "Platform Metadata Completeness", False, 
+                              f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("new_7_platforms_integration", "Platform Metadata Completeness", False, f"Exception: {str(e)}")
+            return False
     
     def test_content_distribution_audio_to_streaming(self) -> bool:
         """Test distributing audio content to streaming platforms"""
