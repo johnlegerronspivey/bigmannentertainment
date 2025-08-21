@@ -13569,15 +13569,15 @@ class BackendTester:
                     # Verify response structure
                     required_fields = ['upc_company_prefix', 'product_code', 'check_digit', 'full_upc_code', 'gtin', 'barcode_format']
                     if all(field in data for field in required_fields):
-                        # Verify values
-                        if (data['upc_company_prefix'] == '8600043402' and 
+                        # Verify values - Updated for corrected UPC algorithm
+                        if (data['upc_company_prefix'] == '860004' and  # First 6 digits of company prefix
                             data['product_code'] == product_code and
                             len(data['full_upc_code']) == 12 and
-                            data['full_upc_code'].startswith('8600043402') and
+                            data['full_upc_code'].startswith('860004') and  # Should start with 6-digit prefix
                             data['barcode_format'] == 'UPC-A'):
                             
-                            # Verify check digit calculation
-                            partial_upc = '8600043402' + product_code
+                            # Verify check digit calculation with corrected algorithm
+                            partial_upc = '860004' + product_code  # 6-digit prefix + 5-digit product code
                             odd_sum = sum(int(partial_upc[i]) for i in range(0, len(partial_upc), 2))
                             even_sum = sum(int(partial_upc[i]) for i in range(1, len(partial_upc), 2))
                             total = (odd_sum * 3) + even_sum
