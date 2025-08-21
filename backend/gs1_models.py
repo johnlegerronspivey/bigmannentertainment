@@ -32,8 +32,8 @@ class GS1Location(BaseModel):
     industry: str = Field("Entertainment", max_length=100)
     
     # Hierarchy
-    parent_gln: Optional[str] = Field(None, regex=r"^\d{13}$")
-    entity_gln: Optional[str] = Field(None, regex=r"^\d{13}$")
+    parent_gln: Optional[str] = Field(None, pattern=r"^\d{13}$")
+    entity_gln: Optional[str] = Field(None, pattern=r"^\d{13}$")
     
     # Status
     gln_status: str = Field("ACTIVE", max_length=20)
