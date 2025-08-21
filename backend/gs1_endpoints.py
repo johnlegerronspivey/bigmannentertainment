@@ -500,3 +500,6 @@ async def list_locations(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list locations: {str(e)}"
         )
+
+# Export the router
+gs1_router = router
