@@ -10,7 +10,7 @@ import os
 from typing import Dict, Any
 
 # Configuration
-BASE_URL = "https://bme-media-system.preview.emergentagent.com/api"
+BASE_URL = "https://bme-media-hub.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "platform.test@bigmannentertainment.com"
 TEST_USER_PASSWORD = "PlatformTest2025!"
 
