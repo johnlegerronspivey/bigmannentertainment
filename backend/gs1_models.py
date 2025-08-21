@@ -66,7 +66,7 @@ class GS1Product(BaseModel):
     brand_name_language: str = Field("ENG", max_length=3)
     
     # Music industry identifiers
-    isrc: Optional[str] = Field(None, regex=r"^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$")
+    isrc: Optional[str] = Field(None, pattern=r"^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$")
     catalog_number: Optional[str] = Field(None, max_length=50)
     distribution_format: str = Field("Digital", max_length=50)
     
