@@ -758,7 +758,7 @@ const Home = () => {
         media: { total: 0 },
         distributions: { total: 0 },
         revenue: { total: 0 },
-        platforms: { supported: 83 }
+        platforms: { supported: "90+" }
       });
     }
   };
