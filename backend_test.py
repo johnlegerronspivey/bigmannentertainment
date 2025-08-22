@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Big Mann Entertainment Media Distribution Platform
-Tests all critical backend functionality including authentication, media management, payments, and analytics.
+Comprehensive Backend Testing Suite for Big Mann Entertainment Media Distribution Platform
+Tests ALL critical backend functionality including authentication, media management, payments, and analytics.
+Identifies ALL errors, issues, and failures in the platform.
 """
 
 import requests
 import json
 import os
 import time
+import uuid
 from pathlib import Path
 import tempfile
 from typing import Dict, Any, Optional
+from datetime import datetime, timedelta
 
 # Configuration
 BASE_URL = "https://bme-media-hub.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "licensing.test@bigmannentertainment.com"
-TEST_USER_PASSWORD = "LicensingTest2025!"
-TEST_USER_NAME = "Licensing Test User"
+# Use unique test credentials for each run
+TEST_USER_EMAIL = f"test.user.{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
+TEST_USER_PASSWORD = "BigMannTest2025!"
+TEST_USER_NAME = "Big Mann Test User"
 TEST_BUSINESS_NAME = "Big Mann Entertainment"
 
 class BackendTester:
