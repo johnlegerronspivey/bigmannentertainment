@@ -28,7 +28,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Create payment router
-payment_router = APIRouter(prefix="/api/payments", tags=["Payments"])
+payment_router = APIRouter(prefix="/payments", tags=["Payments"])
 
 # Initialize payment service (will be properly initialized in main app)
 payment_service = None
