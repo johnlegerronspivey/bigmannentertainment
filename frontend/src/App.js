@@ -357,20 +357,89 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden pb-4">
+          <div className="md:hidden pb-4 border-t border-purple-600 mt-4">
             <div className="flex flex-col space-y-2">
-              <Link to="/library" className="hover:text-purple-200 py-1">Library</Link>
-              <Link to="/upload" className="hover:text-purple-200 py-1">Upload</Link>
-              <Link to="/distribute" className="hover:text-purple-200 py-1">Distribute</Link>
-              <Link to="/platforms" className="hover:text-purple-200 py-1">Platforms</Link>
-              <Link to="/business" className="hover:text-purple-200 py-1">Business</Link>
-              <Link to="/earnings" className="hover:text-purple-200 py-1">Earnings</Link>
-              <Link to="/pricing" className="hover:text-purple-200 py-1">Pricing</Link>
-              <Link to="/label/dashboard" className="hover:text-purple-200 py-1">Label</Link>
+              <Link 
+                to="/library" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Library
+              </Link>
+              <Link 
+                to="/upload" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Upload
+              </Link>
+              <Link 
+                to="/distribute" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Distribute
+              </Link>
+              <Link 
+                to="/platforms" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Platforms
+              </Link>
+              <Link 
+                to="/business" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Business
+              </Link>
+              <Link 
+                to="/industry" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Industry
+              </Link>
+              <Link 
+                to="/earnings" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Earnings
+              </Link>
+              <Link 
+                to="/pricing" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+              <Link 
+                to="/label/dashboard" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Label
+              </Link>
               {isAdmin() && (
-                <Link to="/admin/users" className="hover:text-purple-200 py-1">Admin</Link>
+                <Link 
+                  to="/admin/users" 
+                  className="hover:text-purple-200 py-2 px-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Admin
+                </Link>
               )}
-              <button onClick={handleLogout} className="hover:text-purple-200 py-1 text-left">Logout</button>
+              <button 
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }} 
+                className="hover:text-purple-200 py-2 px-2 text-left"
+              >
+                Logout
+              </button>
             </div>
           </div>
         )}
