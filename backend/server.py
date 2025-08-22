@@ -21,9 +21,11 @@ import asyncio
 import aiohttp
 import secrets
 import base64
-# import smtplib
-# from email.mime.text import MimeText
-# from email.mime.multipart import MimeMultipart
+import smtplib
+from email.mime.text import MimeText
+from email.mime.multipart import MimeMultipart
+from email.mime.base import MimeBase
+from email import encoders
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
