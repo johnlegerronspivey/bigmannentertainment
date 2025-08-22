@@ -1048,10 +1048,10 @@ const ForgotPassword = () => {
             </div>
           )}
 
-          {/* Development Reset Data Display */}
-          {resetData && (
+          {/* Development Reset Data Display - Only show if email service failed */}
+          {resetData && resetData.reset_token && (
             <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded space-y-3">
-              <div className="font-semibold">Password Reset Link (Development)</div>
+              <div className="font-semibold">Email Service Unavailable - Development Fallback</div>
               <div className="text-sm">
                 <p className="mb-2">{resetData.instructions}</p>
                 <div className="bg-blue-50 p-3 rounded border break-all">
