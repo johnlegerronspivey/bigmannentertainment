@@ -12544,6 +12544,64 @@ class BackendTester:
             self.log_result("licensing_daily_payouts_admin", "Daily Payouts Admin Permissions", False, f"Exception: {str(e)}")
             return False
 
+    def run_password_reset_tests(self):
+        """Run comprehensive password reset functionality tests"""
+        print("\n🔐 TESTING PASSWORD RESET FUNCTIONALITY")
+        print("=" * 60)
+        
+        # Ensure we have a user registered first
+        if not self.test_user_login():
+            print("❌ Failed to authenticate - trying registration")
+            if not self.test_user_registration():
+                print("❌ Failed to register user - cannot proceed with password reset tests")
+                return False
+            if not self.test_user_login():
+                print("❌ Failed to login after registration - cannot proceed with password reset tests")
+                return False
+        
+        # Test forgot password flow
+        print("\n📧 Testing Forgot Password Flow...")
+        self.test_forgot_password_existing_email()
+        self.test_forgot_password_nonexistent_email()
+        
+        # Test reset password flow
+        print("\n🔑 Testing Reset Password Flow...")
+        self.test_reset_password_valid_token()
+        self.test_reset_password_invalid_token()
+        
+        # Test security validations
+        print("\n🛡️ Testing Security Validations...")
+        self.test_login_with_new_password()
+        self.test_login_with_old_password_fails()
+        self.test_reset_token_single_use()
+        self.test_failed_login_attempts_reset()
+        
+        # Test edge cases
+        print("\n⚠️ Testing Edge Cases...")
+        self.test_multiple_reset_requests()
+        self.test_password_validation_in_reset()
+        
+        # Print summary
+        print("\n" + "=" * 60)
+        print("🔐 PASSWORD RESET TEST SUMMARY")
+        print("=" * 60)
+        
+        auth_results = self.results["authentication"]
+        total_tests = auth_results["passed"] + auth_results["failed"]
+        success_rate = (auth_results["passed"] / total_tests * 100) if total_tests > 0 else 0
+        
+        print(f"✅ Passed: {auth_results['passed']}")
+        print(f"❌ Failed: {auth_results['failed']}")
+        print(f"📊 Success Rate: {success_rate:.1f}%")
+        
+        if auth_results["failed"] > 0:
+            print("\n❌ FAILED TESTS:")
+            for detail in auth_results["details"]:
+                if "❌ FAIL" in detail:
+                    print(f"  {detail}")
+        
+        return auth_results["failed"] == 0
+
     def run_gs1_tests(self):
         """Run comprehensive GS1 US Data Hub system tests"""
         print("\n🏷️ COMPREHENSIVE GS1 US DATA HUB SYSTEM TESTS")
