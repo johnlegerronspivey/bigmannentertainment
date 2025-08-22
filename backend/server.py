@@ -1632,7 +1632,11 @@ async def login_user(login_data: UserLogin, request: Request):
         raise HTTPException(status_code=423, detail="Account is temporarily locked due to too many failed attempts")
     
     # Verify password
-    if not verify_password(login_data.password, user_doc["password_hash"]):
+    password_hash = user_doc.get("password_hash")
+    if not password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not verify_password(login_data.password, password_hash):
         # Increment failed attempts
         failed_attempts = user.failed_login_attempts + 1
         locked_until = None
