@@ -330,6 +330,7 @@ const Navigation = () => {
                     <Link to="/admin/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">User Management</Link>
                     <Link to="/admin/content" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Content Moderation</Link>
                     <Link to="/admin/analytics" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Analytics</Link>
+                    <Link to="/admin/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Notifications</Link>
                     <Link to="/admin/ddex" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">DDEX Admin</Link>
                     <Link to="/admin/sponsorship" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sponsorship Admin</Link>
                     <Link to="/admin/industry" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Industry Admin</Link>
