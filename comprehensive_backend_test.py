@@ -642,12 +642,26 @@ class ComprehensiveBackendTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if isinstance(data, list) and len(data) >= 90:
+                
+                # Handle both list format and object format with platforms key
+                platforms = data
+                if isinstance(data, dict) and 'platforms' in data:
+                    platforms = data['platforms']
+                    total_count = data.get('total_count', len(platforms))
+                elif isinstance(data, list):
+                    platforms = data
+                    total_count = len(platforms)
+                else:
+                    self.log_result("distribution", "Platform Listing", False, 
+                                  "Invalid response format", True)
+                    return
+                
+                if isinstance(platforms, list) and len(platforms) >= 90:
                     self.log_result("distribution", "Platform Listing", True, 
-                                  f"Retrieved {len(data)} distribution platforms (90+ requirement met)")
+                                  f"Retrieved {len(platforms)} distribution platforms (90+ requirement met)")
                     
                     # Check for key platforms
-                    platform_names = [p.get('name', '').lower() for p in data]
+                    platform_names = [p.get('name', '').lower() for p in platforms]
                     key_platforms = ['instagram', 'spotify', 'youtube', 'tiktok', 'facebook']
                     missing_platforms = [p for p in key_platforms if p not in ' '.join(platform_names)]
                     
@@ -659,7 +673,7 @@ class ComprehensiveBackendTester:
                                       f"Missing key platforms: {missing_platforms}")
                 else:
                     self.log_result("distribution", "Platform Listing", False, 
-                                  f"Only {len(data) if isinstance(data, list) else 0} platforms found (need 90+)", True)
+                                  f"Only {len(platforms) if isinstance(platforms, list) else 0} platforms found (need 90+)", True)
             elif response.status_code == 404:
                 self.log_result("distribution", "Platform Listing", False, 
                               "Distribution platforms endpoint not found", True)
