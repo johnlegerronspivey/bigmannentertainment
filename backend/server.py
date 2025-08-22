@@ -1349,6 +1349,76 @@ async def log_activity(user_id: str, action: str, resource_type: str, resource_i
     )
     await db.activity_logs.insert_one(activity.dict())
 
+class NotificationRequest(BaseModel):
+    email: str
+    subject: str
+    message: str
+    user_name: Optional[str] = "User"
+
+# Notification endpoint for admin use
+@api_router.post("/admin/send-notification")
+async def send_notification(
+    notification: NotificationRequest,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Send notification email to user"""
+    try:
+        email_sent = await email_service.send_notification_email(
+            notification.email,
+            notification.subject,
+            notification.message,
+            notification.user_name
+        )
+        
+        if email_sent:
+            return {"message": "Notification sent successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to send notification")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Email service error: {str(e)}")
+
+# Bulk notification endpoint
+@api_router.post("/admin/send-bulk-notification")
+async def send_bulk_notification(
+    subject: str = Form(...),
+    message: str = Form(...),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Send notification to all active users"""
+    try:
+        # Get all active users
+        users = []
+        async for user_doc in db.users.find({"is_active": True}):
+            users.append(User(**user_doc))
+        
+        success_count = 0
+        failure_count = 0
+        
+        for user in users:
+            try:
+                email_sent = await email_service.send_notification_email(
+                    user.email,
+                    subject,
+                    message,
+                    user.full_name
+                )
+                if email_sent:
+                    success_count += 1
+                else:
+                    failure_count += 1
+            except Exception as e:
+                print(f"Failed to send notification to {user.email}: {str(e)}")
+                failure_count += 1
+        
+        return {
+            "message": f"Bulk notification completed",
+            "total_users": len(users),
+            "successful": success_count,
+            "failed": failure_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Bulk notification failed: {str(e)}")
+
 # Distribution Service Classes
 class DistributionService:
     def __init__(self):
