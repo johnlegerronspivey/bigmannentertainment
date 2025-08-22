@@ -2679,6 +2679,51 @@ async def moderate_content(
     
     return {"message": f"Content {action.action}d successfully"}
 
+# Add missing admin content endpoints
+@api_router.get("/admin/content/pending")
+async def get_pending_content(
+    skip: int = 0,
+    limit: int = 20,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get content pending approval"""
+    cursor = db.media_content.find({"approval_status": "pending"}).skip(skip).limit(limit).sort("created_at", -1)
+    media_items = []
+    
+    async for item in cursor:
+        media_items.append(MediaContent(**item))
+    
+    total_count = await db.media_content.count_documents({"approval_status": "pending"})
+    
+    return {
+        "media_items": media_items,
+        "total_count": total_count,
+        "page": skip // limit + 1,
+        "pages": (total_count + limit - 1) // limit
+    }
+
+@api_router.get("/admin/content/reported")
+async def get_reported_content(
+    skip: int = 0,
+    limit: int = 20,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get reported content"""
+    cursor = db.media_content.find({"$or": [{"approval_status": "reported"}, {"moderation_notes": {"$exists": True}}]}).skip(skip).limit(limit).sort("created_at", -1)
+    media_items = []
+    
+    async for item in cursor:
+        media_items.append(MediaContent(**item))
+    
+    total_count = await db.media_content.count_documents({"$or": [{"approval_status": "reported"}, {"moderation_notes": {"$exists": True}}]})
+    
+    return {
+        "media_items": media_items,
+        "total_count": total_count,
+        "page": skip // limit + 1,
+        "pages": (total_count + limit - 1) // limit
+    }
+
 @api_router.get("/admin/analytics")
 async def get_admin_analytics(current_user: User = Depends(get_current_admin_user)):
     # Get various analytics
