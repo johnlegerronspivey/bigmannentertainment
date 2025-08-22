@@ -1560,13 +1560,201 @@ const NotFound = () => {
   );
 };
 
-// Simple placeholder components for other routes
-const Library = () => <div className="p-8"><h1 className="text-2xl font-bold">Media Library</h1><p>Your uploaded content will appear here.</p></div>;
-const Upload = () => <div className="p-8"><h1 className="text-2xl font-bold">Upload Content</h1><p>Upload your audio, video, and image files here.</p></div>;
-const Distribute = () => <div className="p-8"><h1 className="text-2xl font-bold">Distribute Content</h1><p>Distribute your content across platforms.</p></div>;
-const Platforms = () => <div className="p-8"><h1 className="text-2xl font-bold">Platforms</h1><p>View all 90+ distribution platforms.</p></div>;
-const Pricing = () => <div className="p-8"><h1 className="text-2xl font-bold">Pricing</h1><p>Choose your subscription plan.</p></div>;
-const Profile = () => <div className="p-8"><h1 className="text-2xl font-bold">Profile</h1><p>Manage your account settings.</p></div>;
+// Enhanced placeholder components for other routes
+const Library = () => (
+  <div className="max-w-4xl mx-auto p-6">
+    <h1 className="text-3xl font-bold text-gray-900 mb-4">Media Library</h1>
+    <div className="bg-white p-6 rounded-lg shadow">
+      <p className="text-gray-600 mb-4">Your uploaded content will appear here.</p>
+      <div className="flex space-x-4">
+        <Link to="/upload" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+          Upload Content
+        </Link>
+        <Link to="/distribute" className="border border-purple-600 text-purple-600 px-4 py-2 rounded hover:bg-purple-50">
+          Distribute Content
+        </Link>
+      </div>
+    </div>
+  </div>
+);
+
+const Upload = () => (
+  <div className="max-w-4xl mx-auto p-6">
+    <h1 className="text-3xl font-bold text-gray-900 mb-4">Upload Content</h1>
+    <div className="bg-white p-6 rounded-lg shadow">
+      <p className="text-gray-600 mb-4">Upload your audio, video, and image files here.</p>
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+        <div className="text-gray-400 mb-2">
+          <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <p className="text-gray-600">Drag and drop files here, or click to select</p>
+        <p className="text-sm text-gray-400 mt-2">Supports: MP3, WAV, MP4, AVI, JPG, PNG</p>
+      </div>
+    </div>
+  </div>
+);
+
+const Distribute = () => (
+  <div className="max-w-4xl mx-auto p-6">
+    <h1 className="text-3xl font-bold text-gray-900 mb-4">Distribute Content</h1>
+    <div className="bg-white p-6 rounded-lg shadow">
+      <p className="text-gray-600 mb-4">Distribute your content across 90+ platforms.</p>
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
+        <div className="p-4 border rounded-lg">
+          <h3 className="font-semibold mb-2">Social Media</h3>
+          <p className="text-sm text-gray-600">Instagram, TikTok, Facebook, Twitter, YouTube</p>
+        </div>
+        <div className="p-4 border rounded-lg">
+          <h3 className="font-semibold mb-2">Streaming</h3>
+          <p className="text-sm text-gray-600">Spotify, Apple Music, Amazon Music, Tidal</p>
+        </div>
+      </div>
+      <Link to="/platforms" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+        View All Platforms
+      </Link>
+    </div>
+  </div>
+);
+
+const Platforms = () => (
+  <div className="max-w-6xl mx-auto p-6">
+    <h1 className="text-3xl font-bold text-gray-900 mb-4">Distribution Platforms</h1>
+    <p className="text-gray-600 mb-6">Distribute your content across 90+ platforms worldwide</p>
+    
+    <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-xl font-semibold mb-3 text-purple-600">Social Media</h3>
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>• Instagram</p>
+          <p>• TikTok</p>
+          <p>• Facebook</p>
+          <p>• Twitter/X</p>
+          <p>• YouTube</p>
+          <p>• Snapchat</p>
+          <p>• LinkedIn</p>
+          <p>• Pinterest</p>
+        </div>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-xl font-semibold mb-3 text-purple-600">Music Streaming</h3>
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>• Spotify</p>
+          <p>• Apple Music</p>
+          <p>• Amazon Music</p>
+          <p>• Tidal</p>
+          <p>• SoundCloud</p>
+          <p>• Pandora</p>
+          <p>• Deezer</p>
+          <p>• Bandcamp</p>
+        </div>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-xl font-semibold mb-3 text-purple-600">TV & Broadcasting</h3>
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>• Netflix</p>
+          <p>• Hulu</p>
+          <p>• HBO Max</p>
+          <p>• MTV</p>
+          <p>• BET</p>
+          <p>• CNN</p>
+          <p>• ESPN</p>
+          <p>• Tubi</p>
+        </div>
+      </div>
+    </div>
+    
+    <div className="text-center bg-purple-50 p-6 rounded-lg">
+      <p className="text-lg font-semibold text-purple-800 mb-2">90+ Platforms Available</p>
+      <p className="text-purple-600">Including Web3, NFT Marketplaces, Radio Stations, and More</p>
+    </div>
+  </div>
+);
+
+const Pricing = () => (
+  <div className="max-w-4xl mx-auto p-6">
+    <h1 className="text-3xl font-bold text-gray-900 mb-4">Pricing Plans</h1>
+    <p className="text-gray-600 mb-8">Choose the plan that fits your distribution needs</p>
+    
+    <div className="grid md:grid-cols-3 gap-6">
+      <div className="bg-white p-6 rounded-lg shadow border">
+        <h3 className="text-xl font-semibold mb-2">Basic</h3>
+        <p className="text-3xl font-bold text-purple-600 mb-4">$9.99<span className="text-sm text-gray-500">/month</span></p>
+        <ul className="space-y-2 text-sm text-gray-600 mb-6">
+          <li>• 10 releases per month</li>
+          <li>• Basic distribution to 20+ platforms</li>
+          <li>• Standard analytics</li>
+          <li>• Email support</li>
+        </ul>
+        <button className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+          Choose Basic
+        </button>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow border-2 border-purple-600">
+        <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold mb-4 inline-block">
+          MOST POPULAR
+        </div>
+        <h3 className="text-xl font-semibold mb-2">Pro</h3>
+        <p className="text-3xl font-bold text-purple-600 mb-4">$29.99<span className="text-sm text-gray-500">/month</span></p>
+        <ul className="space-y-2 text-sm text-gray-600 mb-6">
+          <li>• Unlimited releases</li>
+          <li>• Distribution to 90+ platforms</li>
+          <li>• Advanced analytics</li>
+          <li>• Priority support</li>
+          <li>• Royalty management</li>
+        </ul>
+        <button className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+          Choose Pro
+        </button>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow border">
+        <h3 className="text-xl font-semibold mb-2">Enterprise</h3>
+        <p className="text-3xl font-bold text-purple-600 mb-4">$99.99<span className="text-sm text-gray-500">/month</span></p>
+        <ul className="space-y-2 text-sm text-gray-600 mb-6">
+          <li>• Everything in Pro</li>
+          <li>• White-label solutions</li>
+          <li>• API access</li>
+          <li>• Dedicated account manager</li>
+          <li>• Custom integrations</li>
+        </ul>
+        <button className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+          Choose Enterprise
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const Profile = () => (
+  <div className="max-w-4xl mx-auto p-6">
+    <h1 className="text-3xl font-bold text-gray-900 mb-4">Profile Settings</h1>
+    <div className="bg-white p-6 rounded-lg shadow">
+      <p className="text-gray-600 mb-4">Manage your account settings and preferences.</p>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Your full name" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="your@email.com" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+          <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Your business name" />
+        </div>
+        <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 // Admin Components
 const AdminUsers = () => <div className="p-8"><h1 className="text-2xl font-bold">User Management</h1><p>Admin users management.</p></div>;
