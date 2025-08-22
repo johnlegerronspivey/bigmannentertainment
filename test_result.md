@@ -185,7 +185,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Remove Face ID UI Components and WebAuthn Integration"
+    - "Password Reset Functionality Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
