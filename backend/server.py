@@ -48,11 +48,13 @@ MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 30
 PASSWORD_RESET_TOKEN_EXPIRE_HOURS = 24
 
-# Email configuration for password reset
+# Email configuration for password reset and notifications
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-EMAIL_USERNAME = os.environ.get("EMAIL_USERNAME", "")
+EMAIL_USERNAME = os.environ.get("EMAIL_USERNAME", "no-reply@bigmannentertainment.com")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
+EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "Big Mann Entertainment")
+EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS", "no-reply@bigmannentertainment.com")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
