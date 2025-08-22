@@ -38,6 +38,8 @@ class BackendTester:
         self.test_upc_code = None
         self.test_gtin_code = None
         self.test_gln_code = None
+        self.reset_token = None
+        self.new_password = None
         self.results = {
             "authentication": {"passed": 0, "failed": 0, "details": []},
             "media_upload": {"passed": 0, "failed": 0, "details": []},
