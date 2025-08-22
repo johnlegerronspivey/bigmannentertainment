@@ -1532,7 +1532,253 @@ class DistributionService:
 # Initialize distribution service
 distribution_service = DistributionService()
 
-# UPC generation function
+# Email Service Functions
+class EmailService:
+    def __init__(self):
+        self.smtp_server = SMTP_SERVER
+        self.smtp_port = SMTP_PORT
+        self.username = EMAIL_USERNAME
+        self.password = EMAIL_PASSWORD
+        self.from_name = EMAIL_FROM_NAME
+        self.from_address = EMAIL_FROM_ADDRESS
+    
+    async def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None):
+        """Send email using SMTP"""
+        try:
+            # Create message
+            msg = MimeMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = f"{self.from_name} <{self.from_address}>"
+            msg['To'] = to_email
+            
+            # Add text version if provided
+            if text_content:
+                text_part = MimeText(text_content, 'plain')
+                msg.attach(text_part)
+            
+            # Add HTML version
+            html_part = MimeText(html_content, 'html')
+            msg.attach(html_part)
+            
+            # Send email
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                if self.username and self.password:
+                    server.login(self.username, self.password)
+                server.send_message(msg)
+            
+            return True
+        except Exception as e:
+            print(f"Failed to send email: {str(e)}")
+            return False
+    
+    async def send_password_reset_email(self, to_email: str, reset_token: str, user_name: str):
+        """Send password reset email"""
+        reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
+        
+        subject = "Reset Your Big Mann Entertainment Password"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Reset Your Password</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: white; }}
+                .header {{ background: linear-gradient(135deg, #7c3aed, #3b82f6); padding: 40px 20px; text-align: center; }}
+                .header img {{ width: 80px; height: 80px; margin-bottom: 20px; }}
+                .header h1 {{ color: white; margin: 0; font-size: 28px; }}
+                .content {{ padding: 40px 20px; }}
+                .content h2 {{ color: #1f2937; margin-bottom: 20px; }}
+                .content p {{ color: #4b5563; line-height: 1.6; margin-bottom: 20px; }}
+                .button {{ display: inline-block; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; margin: 20px 0; }}
+                .button:hover {{ background: linear-gradient(135deg, #6d28d9, #2563eb); }}
+                .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }}
+                .security-note {{ background-color: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+                .security-note p {{ color: #92400e; margin: 0; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <img src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <h1>Big Mann Entertainment</h1>
+                </div>
+                
+                <div class="content">
+                    <h2>Reset Your Password</h2>
+                    <p>Hello {user_name},</p>
+                    <p>We received a request to reset your password for your Big Mann Entertainment account. Click the button below to create a new password:</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="{reset_url}" class="button">Reset My Password</a>
+                    </div>
+                    
+                    <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px; font-family: monospace;">{reset_url}</p>
+                    
+                    <div class="security-note">
+                        <p><strong>Security Notice:</strong> This link will expire in 24 hours. If you didn't request this password reset, please ignore this email and your password will remain unchanged.</p>
+                    </div>
+                    
+                    <p>If you're having trouble accessing your account or need assistance, please contact our support team.</p>
+                    
+                    <p>Best regards,<br>The Big Mann Entertainment Team</p>
+                </div>
+                
+                <div class="footer">
+                    <p>© 2025 Big Mann Entertainment. All rights reserved.</p>
+                    <p>This is an automated message. Please do not reply to this email.</p>
+                    <p>If you need help, contact us through our support channels.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Big Mann Entertainment - Password Reset
+        
+        Hello {user_name},
+        
+        We received a request to reset your password for your Big Mann Entertainment account.
+        
+        Click this link to reset your password:
+        {reset_url}
+        
+        This link will expire in 24 hours. If you didn't request this password reset, please ignore this email.
+        
+        Best regards,
+        The Big Mann Entertainment Team
+        
+        © 2025 Big Mann Entertainment. All rights reserved.
+        """
+        
+        return await self.send_email(to_email, subject, html_content, text_content)
+    
+    async def send_welcome_email(self, to_email: str, user_name: str):
+        """Send welcome email to new users"""
+        subject = "Welcome to Big Mann Entertainment!"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Welcome to Big Mann Entertainment</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: white; }}
+                .header {{ background: linear-gradient(135deg, #7c3aed, #3b82f6); padding: 40px 20px; text-align: center; }}
+                .header img {{ width: 80px; height: 80px; margin-bottom: 20px; }}
+                .header h1 {{ color: white; margin: 0; font-size: 28px; }}
+                .content {{ padding: 40px 20px; }}
+                .content h2 {{ color: #1f2937; margin-bottom: 20px; }}
+                .content p {{ color: #4b5563; line-height: 1.6; margin-bottom: 20px; }}
+                .button {{ display: inline-block; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; margin: 20px 0; }}
+                .features {{ background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+                .features ul {{ list-style: none; padding: 0; }}
+                .features li {{ padding: 10px 0; border-bottom: 1px solid #e5e7eb; }}
+                .features li:last-child {{ border-bottom: none; }}
+                .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <img src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <h1>Big Mann Entertainment</h1>
+                </div>
+                
+                <div class="content">
+                    <h2>Welcome to the Empire!</h2>
+                    <p>Hello {user_name},</p>
+                    <p>Welcome to Big Mann Entertainment - your complete media distribution empire! We're excited to have you join our community of creators and entertainers.</p>
+                    
+                    <div class="features">
+                        <h3>What you can do now:</h3>
+                        <ul>
+                            <li>📤 Upload audio, video, and image content</li>
+                            <li>🌍 Distribute to 90+ platforms worldwide</li>
+                            <li>💰 Track earnings and manage royalties</li>
+                            <li>🎯 Access professional label services</li>
+                            <li>🔗 Connect with industry partners</li>
+                            <li>📊 Monitor your content performance</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <a href="{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/upload" class="button">Start Uploading Content</a>
+                    </div>
+                    
+                    <p>If you need help getting started or have any questions, our support team is here to help you succeed.</p>
+                    
+                    <p>Best regards,<br>The Big Mann Entertainment Team</p>
+                </div>
+                
+                <div class="footer">
+                    <p>© 2025 Big Mann Entertainment. All rights reserved.</p>
+                    <p>This is an automated message. Please do not reply to this email.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return await self.send_email(to_email, subject, html_content)
+    
+    async def send_notification_email(self, to_email: str, subject: str, message: str, user_name: str = "User"):
+        """Send general notification email"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>{subject}</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: white; }}
+                .header {{ background: linear-gradient(135deg, #7c3aed, #3b82f6); padding: 40px 20px; text-align: center; }}
+                .header img {{ width: 80px; height: 80px; margin-bottom: 20px; }}
+                .header h1 {{ color: white; margin: 0; font-size: 28px; }}
+                .content {{ padding: 40px 20px; }}
+                .content h2 {{ color: #1f2937; margin-bottom: 20px; }}
+                .content p {{ color: #4b5563; line-height: 1.6; margin-bottom: 20px; }}
+                .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <img src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <h1>Big Mann Entertainment</h1>
+                </div>
+                
+                <div class="content">
+                    <h2>{subject}</h2>
+                    <p>Hello {user_name},</p>
+                    <div>{message}</div>
+                    <p>Best regards,<br>The Big Mann Entertainment Team</p>
+                </div>
+                
+                <div class="footer">
+                    <p>© 2025 Big Mann Entertainment. All rights reserved.</p>
+                    <p>This is an automated message. Please do not reply to this email.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return await self.send_email(to_email, subject, html_content)
+
+# Initialize email service
+email_service = EmailService()
 def calculate_upc_check_digit(upc_11_digits: str) -> str:
     """Calculate check digit for UPC code using the standard algorithm"""
     if len(upc_11_digits) != 11:
