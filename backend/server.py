@@ -2240,11 +2240,14 @@ async def generate_upc(
     product_category: str = Form(...),
     current_user: User = Depends(get_current_user)
 ):
-    # Generate 4-digit product code (you might want to store and increment this)
-    product_code = f"{len(product_name):04d}"  # Simple example
+    # Use first 6 digits of company prefix for UPC-A format
+    company_prefix_6 = UPC_COMPANY_PREFIX[:6]  # "860004"
     
-    # Combine company prefix and product code
-    upc_11_digits = UPC_COMPANY_PREFIX + product_code
+    # Generate 5-digit product code (to make 11 digits total with 6-digit prefix)
+    product_code = f"{abs(hash(product_name + product_category)) % 100000:05d}"
+    
+    # Combine company prefix and product code (11 digits total)
+    upc_11_digits = company_prefix_6 + product_code
     
     # Calculate check digit
     check_digit = calculate_upc_check_digit(upc_11_digits)
