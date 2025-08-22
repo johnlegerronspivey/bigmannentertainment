@@ -1846,6 +1846,70 @@ class EmailService:
         """
         
         return await self.send_email(to_email, subject, html_content)
+    
+    async def send_notification_email(self, to_email: str, subject: str, message: str, user_name: str = "User"):
+        """Send notification email to user"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>{subject}</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: white; }}
+                .header {{ background: linear-gradient(135deg, #7c3aed, #3b82f6); padding: 40px 20px; text-align: center; }}
+                .header img {{ width: 80px; height: 80px; margin-bottom: 20px; }}
+                .header h1 {{ color: white; margin: 0; font-size: 28px; }}
+                .content {{ padding: 40px 20px; }}
+                .content h2 {{ color: #1f2937; margin-bottom: 20px; }}
+                .content p {{ color: #4b5563; line-height: 1.6; margin-bottom: 20px; }}
+                .message-content {{ background-color: #f9fafb; border-left: 4px solid #7c3aed; padding: 20px; margin: 20px 0; border-radius: 4px; }}
+                .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <img src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <h1>Big Mann Entertainment</h1>
+                </div>
+                
+                <div class="content">
+                    <h2>{subject}</h2>
+                    <p>Hello {user_name},</p>
+                    
+                    <div class="message-content">
+                        <p>{message}</p>
+                    </div>
+                    
+                    <p>Best regards,<br>The Big Mann Entertainment Team</p>
+                </div>
+                
+                <div class="footer">
+                    <p>© 2025 Big Mann Entertainment. All rights reserved.</p>
+                    <p>This is an automated message. Please do not reply to this email.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Big Mann Entertainment - {subject}
+        
+        Hello {user_name},
+        
+        {message}
+        
+        Best regards,
+        The Big Mann Entertainment Team
+        
+        © 2025 Big Mann Entertainment. All rights reserved.
+        """
+        
+        return await self.send_email(to_email, subject, html_content, text_content)
 
 # Initialize email service
 email_service = EmailService()
