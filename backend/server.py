@@ -2283,15 +2283,19 @@ async def generate_upc(
 async def generate_isrc(
     artist_name: str = Form(...),
     track_title: str = Form(...),
-    release_year: int = Form(...),
+    release_year: int = Form(default=datetime.utcnow().year),
     current_user: User = Depends(get_current_user)
 ):
-    # Generate designation code (2 digits, could be sequential)
-    # In practice, this should be managed more carefully
-    designation_code = f"{(hash(track_title) % 100):02d}"
+    # Generate 5-digit designation code
+    designation_code = f"{abs(hash(track_title + artist_name)) % 100000:05d}"
     
     # Create ISRC code: Country Code (2) + Registrant Code (3) + Year (2) + Designation (5)
-    isrc_code = f"US{ISRC_PREFIX}{str(release_year)[-2:]}{designation_code:0>3}"
+    # Format: CC-XXX-YY-NNNNN
+    country_code = "US"
+    registrant_code = ISRC_PREFIX[:3]  # Use first 3 characters
+    year_code = str(release_year)[-2:]  # Last 2 digits of year
+    
+    isrc_code = f"{country_code}-{registrant_code}-{year_code}-{designation_code}"
     
     return {
         "isrc_code": isrc_code,
