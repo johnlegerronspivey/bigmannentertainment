@@ -1837,6 +1837,13 @@ async def register_user(user_data: UserCreate, request: Request):
     
     await db.users.insert_one(user_dict)
     
+    # Send welcome email
+    try:
+        await email_service.send_welcome_email(user.email, user.full_name)
+    except Exception as e:
+        print(f"Failed to send welcome email: {str(e)}")
+        # Don't fail registration if email fails
+    
     # Log activity
     await log_activity(user.id, "register", "user", user.id, {"email": user.email}, request)
     
