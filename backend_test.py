@@ -194,7 +194,13 @@ class BackendTester:
             "gs1_products_listing": {"passed": 0, "failed": 0, "details": []},
             "gs1_locations_listing": {"passed": 0, "failed": 0, "details": []},
             "gs1_authentication": {"passed": 0, "failed": 0, "details": []},
-            "gs1_integration": {"passed": 0, "failed": 0, "details": []}
+            "gs1_integration": {"passed": 0, "failed": 0, "details": []},
+            "email_service_validation": {"passed": 0, "failed": 0, "details": []},
+            "password_reset_email": {"passed": 0, "failed": 0, "details": []},
+            "registration_welcome_email": {"passed": 0, "failed": 0, "details": []},
+            "admin_notification_endpoints": {"passed": 0, "failed": 0, "details": []},
+            "email_template_validation": {"passed": 0, "failed": 0, "details": []},
+            "email_error_handling": {"passed": 0, "failed": 0, "details": []}
         }
     
     def log_result(self, category: str, test_name: str, success: bool, details: str = ""):
