@@ -1519,6 +1519,48 @@ const AdminNotifications = () => {
     </div>
   );
 };
+
+// 404 Error Page Component
+const NotFound = () => {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+      <div className="max-w-md w-full text-center">
+        <div className="mb-8">
+          <img 
+            src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+            alt="Big Mann Entertainment Logo" 
+            className="w-24 h-24 object-contain mx-auto mb-6"
+          />
+        </div>
+        <h1 className="text-6xl font-bold text-purple-600 mb-4">404</h1>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Page Not Found</h2>
+        <p className="text-gray-600 mb-8">
+          The page you're looking for doesn't exist or has been moved.
+        </p>
+        <div className="space-y-4">
+          <Link 
+            to="/" 
+            className="block bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-md transition-colors"
+          >
+            Return Home
+          </Link>
+          <Link 
+            to="/platforms" 
+            className="block border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-bold py-3 px-6 rounded-md transition-colors"
+          >
+            View Platforms
+          </Link>
+        </div>
+        
+        <div className="mt-8 text-sm text-gray-500">
+          <p>If you believe this is an error, please contact our support team.</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Simple placeholder components for other routes
 const Library = () => <div className="p-8"><h1 className="text-2xl font-bold">Media Library</h1><p>Your uploaded content will appear here.</p></div>;
 const Upload = () => <div className="p-8"><h1 className="text-2xl font-bold">Upload Content</h1><p>Upload your audio, video, and image files here.</p></div>;
 const Distribute = () => <div className="p-8"><h1 className="text-2xl font-bold">Distribute Content</h1><p>Distribute your content across platforms.</p></div>;
