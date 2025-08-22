@@ -1810,9 +1810,17 @@ async def forgot_password(request_data: ForgotPasswordRequest, request: Request)
     # Log activity
     await log_activity(user.id, "password_reset_requested", "user", user.id, {"email": user.email}, request)
     
-    # TODO: Send email with reset link
-    # For now, we'll just return success
-    return {"message": "If the email exists, a reset link has been sent"}
+    # For development/testing: Return the reset token and instructions
+    # In production, this would be sent via email
+    reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
+    
+    return {
+        "message": "Password reset initiated successfully",
+        "reset_token": reset_token,
+        "reset_url": reset_url,
+        "expires_in_hours": PASSWORD_RESET_TOKEN_EXPIRE_HOURS,
+        "instructions": "Copy the reset URL above and paste it in your browser to reset your password. In production, this would be sent to your email."
+    }
 
 @api_router.post("/auth/reset-password")
 async def reset_password(reset_data: ResetPasswordRequest, request: Request):
