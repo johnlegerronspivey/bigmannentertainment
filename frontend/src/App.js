@@ -127,7 +127,11 @@ const AuthProvider = ({ children }) => {
   const forgotPassword = async (email) => {
     try {
       const response = await axios.post(`${API}/auth/forgot-password`, { email });
-      return { success: true, message: response.data.message };
+      return { 
+        success: true, 
+        message: response.data.message,
+        data: response.data
+      };
     } catch (error) {
       return { 
         success: false, 
