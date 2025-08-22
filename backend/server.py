@@ -2071,17 +2071,32 @@ async def forgot_password(request_data: ForgotPasswordRequest, request: Request)
     # Log activity
     await log_activity(user.id, "password_reset_requested", "user", user.id, {"email": user.email}, request)
     
-    # For development/testing: Return the reset token and instructions
-    # In production, this would be sent via email
-    reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
-    
-    return {
-        "message": "Password reset initiated successfully",
-        "reset_token": reset_token,
-        "reset_url": reset_url,
-        "expires_in_hours": PASSWORD_RESET_TOKEN_EXPIRE_HOURS,
-        "instructions": "Copy the reset URL above and paste it in your browser to reset your password. In production, this would be sent to your email."
-    }
+    # Send password reset email
+    try:
+        email_sent = await email_service.send_password_reset_email(user.email, reset_token, user.full_name)
+        if email_sent:
+            return {"message": "If the email exists, a reset link has been sent"}
+        else:
+            # Fallback to development mode if email fails
+            reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
+            return {
+                "message": "Email service unavailable. Please use the development reset link below.",
+                "reset_token": reset_token,
+                "reset_url": reset_url,
+                "expires_in_hours": PASSWORD_RESET_TOKEN_EXPIRE_HOURS,
+                "instructions": "Email service is currently unavailable. Use the reset URL below for testing purposes."
+            }
+    except Exception as e:
+        print(f"Email service error: {str(e)}")
+        # Fallback to development mode if email fails
+        reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
+        return {
+            "message": "Email service unavailable. Please use the development reset link below.",
+            "reset_token": reset_token,
+            "reset_url": reset_url,
+            "expires_in_hours": PASSWORD_RESET_TOKEN_EXPIRE_HOURS,
+            "instructions": "Email service is currently unavailable. Use the reset URL below for testing purposes."
+        }
 
 @api_router.post("/auth/reset-password")
 async def reset_password(reset_data: ResetPasswordRequest, request: Request):
