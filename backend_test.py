@@ -16250,16 +16250,20 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    # First ensure we have authentication
-    if not tester.test_user_login():
-        print("❌ Failed to authenticate - trying registration")
-        if not tester.test_user_registration():
-            print("❌ Failed to register user - cannot proceed with GS1 tests")
-            exit(1)
-        if not tester.test_user_login():
-            print("❌ Failed to login after registration - cannot proceed with GS1 tests")
-            exit(1)
+    print("🎯 BIG MANN ENTERTAINMENT - PASSWORD RESET TESTING")
+    print("=" * 60)
+    print("Testing the fixed password reset functionality for Big Mann Entertainment platform")
+    print("Focus: Forgot password flow, reset password flow, security validations, and edge cases")
+    print("=" * 60)
     
-    # Run comprehensive GS1 US Data Hub system tests
-    tester.run_gs1_tests()
-    exit(0)
+    # Run comprehensive password reset tests
+    success = tester.run_password_reset_tests()
+    
+    if success:
+        print("\n🎉 ALL PASSWORD RESET TESTS PASSED!")
+        print("The password reset system is working correctly.")
+        exit(0)
+    else:
+        print("\n❌ SOME PASSWORD RESET TESTS FAILED!")
+        print("Please review the failed tests above.")
+        exit(1)
