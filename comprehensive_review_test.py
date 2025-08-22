@@ -193,8 +193,8 @@ class ComprehensiveReviewTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if 'upc_code' in data and 'gtin' in data:
-                    upc_code = data['upc_code']
+                if 'upc' in data and 'gtin' in data:
+                    upc_code = data['upc']
                     gtin = data['gtin']
                     
                     # Validate UPC format (12 digits)
