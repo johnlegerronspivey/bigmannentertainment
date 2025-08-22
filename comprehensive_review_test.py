@@ -249,8 +249,8 @@ class ComprehensiveReviewTester:
                 if 'isrc_code' in data:
                     isrc_code = data['isrc_code']
                     
-                    # Validate ISRC format (12 characters: CC-XXX-YY-NNNNN)
-                    if len(isrc_code) == 12 and '-' in isrc_code:
+                    # Validate ISRC format (12 characters with dashes: CC-XXX-YY-NNNNN)
+                    if len(isrc_code) == 12 and isrc_code.count('-') == 3:
                         self.log_result("upc_isrc_generation", "ISRC Generation", True, 
                                       f"Successfully generated ISRC: {isrc_code}")
                         return True
