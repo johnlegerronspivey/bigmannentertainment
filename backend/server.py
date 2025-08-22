@@ -22,10 +22,20 @@ import aiohttp
 import secrets
 import base64
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
-from email.mime.base import MimeBase
-from email import encoders
+try:
+    from email.mime.text import MimeText
+    from email.mime.multipart import MimeMultipart
+    from email.mime.base import MimeBase
+    from email import encoders
+except ImportError:
+    # Fallback for import issues
+    import email.mime.text as mime_text
+    import email.mime.multipart as mime_multipart
+    import email.mime.base as mime_base
+    import email.encoders as encoders
+    MimeText = mime_text.MIMEText
+    MimeMultipart = mime_multipart.MIMEMultipart
+    MimeBase = mime_base.MIMEBase
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
