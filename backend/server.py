@@ -2301,6 +2301,40 @@ async def generate_isrc(
         "designation_code": designation_code
     }
 
+# Add missing business/products endpoint
+@api_router.get("/business/products")
+async def get_business_products(
+    skip: int = 0,
+    limit: int = 20,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all product identifiers for the business"""
+    try:
+        # Get products from database
+        cursor = db.product_identifiers.find({}).skip(skip).limit(limit).sort("created_at", -1)
+        products = []
+        
+        async for product_doc in cursor:
+            products.append(ProductIdentifier(**product_doc))
+        
+        # Get total count
+        total_count = await db.product_identifiers.count_documents({})
+        
+        return {
+            "products": products,
+            "total_count": total_count,
+            "page": skip // limit + 1,
+            "pages": (total_count + limit - 1) // limit
+        }
+    except Exception as e:
+        return {
+            "products": [],
+            "total_count": 0,
+            "page": 1,
+            "pages": 0,
+            "message": "No products found"
+        }
+
 # Media Management Endpoints
 @api_router.post("/media/upload")
 async def upload_media(
