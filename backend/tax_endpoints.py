@@ -868,3 +868,57 @@ async def update_tax_settings(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update tax settings: {str(e)}")
+
+# Missing Business Info Endpoint - ADD FOR IMPROVED FUNCTIONALITY  
+@tax_router.get("/business-info")
+async def get_business_tax_info(current_user: User = Depends(get_current_user)):
+    """Get business tax information (accessible to regular users)"""
+    try:
+        # Get business tax information
+        business_info = await db.business_tax_info.find_one({}, {"_id": 0})
+        
+        if not business_info:
+            # Return default business information from environment variables
+            business_info = {
+                "business_legal_name": os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment'),
+                "business_ein": os.environ.get('BUSINESS_EIN', '270658077'),
+                "business_tin": os.environ.get('BUSINESS_TIN', '12800'),
+                "business_address": os.environ.get('BUSINESS_ADDRESS', '123 Music Row, Nashville, TN 37203'),
+                "business_phone": os.environ.get('BUSINESS_PHONE', '+1-615-555-0100'),
+                "principal_name": os.environ.get('PRINCIPAL_NAME', 'John LeGerron Spivey'),
+                "business_type": "Entertainment Services",
+                "filing_status": "active",
+                "tax_year": 2025,
+                "accounting_method": "accrual",
+                "fiscal_year_end": "12-31"
+            }
+        
+        # Get basic license status
+        total_licenses = await db.business_licenses.count_documents({})
+        active_licenses = await db.business_licenses.count_documents({"status": "active"})
+        
+        # Get basic registration status
+        total_registrations = await db.business_registrations.count_documents({})
+        active_registrations = await db.business_registrations.count_documents({"status": "active"})
+        
+        return {
+            "business_information": business_info,
+            "compliance_status": {
+                "licenses": {
+                    "total": total_licenses,
+                    "active": active_licenses,
+                    "compliance_score": (active_licenses / max(total_licenses, 1)) * 100 if total_licenses > 0 else 100
+                },
+                "registrations": {
+                    "total": total_registrations,
+                    "active": active_registrations,
+                    "compliance_score": (active_registrations / max(total_registrations, 1)) * 100 if total_registrations > 0 else 100
+                },
+                "overall_status": "compliant" if (total_licenses == active_licenses and total_registrations == active_registrations) else "needs_attention"
+            },
+            "tax_year": 2025,
+            "user_access_level": "standard" if not current_user.is_admin else "admin"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve business information: {str(e)}")
