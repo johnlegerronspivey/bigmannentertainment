@@ -92,7 +92,7 @@ except ImportError:
     from tax_service import TaxCalculationService, Form1099Generator, TaxReportingService, TaxIntegrationService
 
 # Create Tax router
-tax_router = APIRouter(prefix="/api/tax", tags=["Tax Management"])
+tax_router = APIRouter(prefix="/tax", tags=["Tax Management"])
 
 # Initialize services
 tax_calculator = TaxCalculationService()
