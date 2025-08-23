@@ -3278,8 +3278,8 @@ try:
     import payment_endpoints
     from payment_service import PaymentService
     
-    # Initialize the payment service
-    payment_service_instance = PaymentService()
+    # Initialize the payment service with database
+    payment_service_instance = PaymentService(db)
     payment_endpoints.payment_service = payment_service_instance
     print("✅ Payment service initialized successfully")
 except ImportError as e:
