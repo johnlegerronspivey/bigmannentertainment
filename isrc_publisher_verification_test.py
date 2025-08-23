@@ -303,19 +303,34 @@ class ISRCPublisherTester:
         publisher_number_found = False
         
         if isinstance(response_data, dict):
+            # Check for ISRC prefix - look deeper in nested structures
+            def search_nested_dict(obj, target_value, description):
+                if isinstance(obj, dict):
+                    for key, value in obj.items():
+                        if target_value in str(value):
+                            return True, f"{key}: {value}"
+                        elif isinstance(value, (dict, list)):
+                            found, details = search_nested_dict(value, target_value, description)
+                            if found:
+                                return True, f"{key}.{details}"
+                elif isinstance(obj, list):
+                    for i, item in enumerate(obj):
+                        found, details = search_nested_dict(item, target_value, description)
+                        if found:
+                            return True, f"[{i}].{details}"
+                return False, ""
+            
             # Check for ISRC prefix
-            for key, value in response_data.items():
-                if "isrc" in key.lower() and "QZ9H8" in str(value):
-                    isrc_prefix_found = True
-                    self.log_test("ISRC Prefix in Industry Identifiers", True, f"Found ISRC prefix QZ9H8 in {key}: {value}")
-                    break
+            isrc_found, isrc_details = search_nested_dict(response_data, "QZ9H8", "ISRC prefix")
+            if isrc_found:
+                isrc_prefix_found = True
+                self.log_test("ISRC Prefix in Industry Identifiers", True, f"Found ISRC prefix QZ9H8 in {isrc_details}")
             
             # Check for Publisher number
-            for key, value in response_data.items():
-                if "publisher" in key.lower() and "PA04UV" in str(value):
-                    publisher_number_found = True
-                    self.log_test("Publisher Number in Industry Identifiers", True, f"Found Publisher number PA04UV in {key}: {value}")
-                    break
+            publisher_found, publisher_details = search_nested_dict(response_data, "PA04UV", "Publisher number")
+            if publisher_found:
+                publisher_number_found = True
+                self.log_test("Publisher Number in Industry Identifiers", True, f"Found Publisher number PA04UV in {publisher_details}")
         
         if not isrc_prefix_found:
             self.log_test("ISRC Prefix in Industry Identifiers", False, "ISRC prefix QZ9H8 not found in industry identifiers", response_data)
