@@ -3226,6 +3226,96 @@ async def get_reported_content(
         "pages": (total_count + limit - 1) // limit
     }
 
+# Missing Media Analytics Endpoint - ADD FOR IMPROVED FUNCTIONALITY
+@api_router.get("/media/analytics")
+async def get_media_analytics(
+    days: int = 30,
+    current_user: User = Depends(get_current_user)
+):
+    """Get media analytics for current user"""
+    try:
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        # Get user's media
+        query = {"owner_id": current_user.id}
+        total_media = await db.media_content.count_documents(query)
+        
+        # Get media by content type
+        media_by_type = {}
+        for content_type in ["audio", "video", "image"]:
+            count = await db.media_content.count_documents({
+                "owner_id": current_user.id,
+                "content_type": content_type
+            })
+            media_by_type[content_type] = count
+        
+        # Get recent uploads
+        recent_media = await db.media_content.count_documents({
+            "owner_id": current_user.id,
+            "created_at": {"$gte": start_date}
+        })
+        
+        # Get approval status
+        approved_media = await db.media_content.count_documents({
+            "owner_id": current_user.id,
+            "is_approved": True
+        })
+        
+        pending_approval = await db.media_content.count_documents({
+            "owner_id": current_user.id,
+            "approval_status": "pending"
+        })
+        
+        # Calculate storage usage (simplified)
+        storage_pipeline = [
+            {"$match": {"owner_id": current_user.id}},
+            {"$group": {"_id": None, "total_size": {"$sum": "$file_size"}}}
+        ]
+        
+        storage_result = await db.media_content.aggregate(storage_pipeline).to_list(1)
+        total_storage = storage_result[0]["total_size"] if storage_result else 0
+        
+        # Get most popular media (by download count)
+        popular_media_pipeline = [
+            {"$match": {"owner_id": current_user.id}},
+            {"$sort": {"download_count": -1}},
+            {"$limit": 5},
+            {"$project": {"title": 1, "content_type": 1, "download_count": 1, "created_at": 1}}
+        ]
+        
+        popular_media_cursor = db.media_content.aggregate(popular_media_pipeline)
+        popular_media = await popular_media_cursor.to_list(5)
+        
+        # Clean popular media data
+        for media in popular_media:
+            media.pop("_id", None)
+        
+        return {
+            "analytics_period": f"{days} days",
+            "overview": {
+                "total_media": total_media,
+                "recent_uploads": recent_media,
+                "approved_media": approved_media,
+                "pending_approval": pending_approval,
+                "approval_rate": (approved_media / max(total_media, 1)) * 100
+            },
+            "content_breakdown": media_by_type,
+            "storage": {
+                "total_bytes": total_storage,
+                "total_mb": round(total_storage / (1024 * 1024), 2),
+                "total_gb": round(total_storage / (1024 * 1024 * 1024), 3)
+            },
+            "popular_content": popular_media,
+            "upload_trends": {
+                "recent_activity": recent_media,
+                "daily_average": round(recent_media / max(days, 1), 2)
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get media analytics: {str(e)}")
+
 @api_router.get("/admin/analytics")
 async def get_admin_analytics(current_user: User = Depends(get_current_admin_user)):
     # Get various analytics
