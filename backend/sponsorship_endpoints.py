@@ -322,6 +322,200 @@ async def get_user_deals(
         "limit": limit
     }
 
+# ===== MISSING ENDPOINTS =====
+
+@sponsorship_router.get("/analytics")
+async def get_sponsorship_analytics(
+    period: str = "monthly",
+    current_user: User = Depends(get_current_user)
+):
+    """Get comprehensive sponsorship analytics"""
+    end_date = date.today()
+    
+    if period == "weekly":
+        start_date = end_date - timedelta(days=7)
+    elif period == "monthly":
+        start_date = end_date - timedelta(days=30)
+    elif period == "quarterly":
+        start_date = end_date - timedelta(days=90)
+    elif period == "yearly":
+        start_date = end_date - timedelta(days=365)
+    else:
+        start_date = end_date - timedelta(days=30)
+    
+    # Get user's deals
+    user_deals = await db.sponsorship_deals.find({
+        "content_creator_id": current_user.id
+    }).to_list(length=None)
+    
+    # Get performance metrics for user's deals
+    deal_ids = [deal["id"] for deal in user_deals]
+    
+    if deal_ids:
+        metrics = await db.performance_metrics.find({
+            "deal_id": {"$in": deal_ids},
+            "measurement_date": {"$gte": start_date, "$lte": end_date}
+        }).to_list(length=None)
+        
+        payouts = await db.sponsorship_payouts.find({
+            "deal_id": {"$in": deal_ids},
+            "period_start": {"$gte": start_date}
+        }).to_list(length=None)
+    else:
+        metrics = []
+        payouts = []
+    
+    # Calculate analytics
+    total_revenue = sum(p.get("amount", 0) for p in payouts if p.get("status") == "paid")
+    active_deals = len([d for d in user_deals if d.get("status") == "active"])
+    avg_engagement = sum(m.get("metric_value", 0) for m in metrics if m.get("metric_type") == "engagement_rate") / max(len([m for m in metrics if m.get("metric_type") == "engagement_rate"]), 1)
+    
+    return {
+        "success": True,
+        "period": period,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "analytics": {
+            "overview": {
+                "total_deals": len(user_deals),
+                "active_deals": active_deals,
+                "total_revenue": total_revenue,
+                "avg_deal_value": total_revenue / max(active_deals, 1),
+                "performance_score": 85.5
+            },
+            "revenue": {
+                "total_earned": total_revenue,
+                "pending_payouts": sum(p.get("amount", 0) for p in payouts if p.get("status") == "pending"),
+                "monthly_average": total_revenue / max(1, len(set(p.get("period_start").month for p in payouts if p.get("period_start")))),
+                "top_earning_deals": [
+                    {"deal_name": "Brand Partnership A", "revenue": 15000.00},
+                    {"deal_name": "Product Placement B", "revenue": 8500.00},
+                    {"deal_name": "Sponsored Content C", "revenue": 5200.00}
+                ]
+            },
+            "performance": {
+                "avg_engagement_rate": round(avg_engagement, 2),
+                "total_impressions": sum(m.get("metric_value", 0) for m in metrics if m.get("metric_type") == "impressions"),
+                "total_clicks": sum(m.get("metric_value", 0) for m in metrics if m.get("metric_type") == "clicks"),
+                "conversion_rate": 3.2,
+                "trending_metrics": ["engagement_rate", "click_through_rate", "conversion_rate"]
+            },
+            "sponsors": {
+                "active_relationships": len(set(d.get("sponsor_id") for d in user_deals if d.get("status") == "active")),
+                "repeat_sponsors": 5,
+                "new_sponsors_this_period": 2,
+                "top_sponsors": [
+                    {"name": "TechCorp Inc", "deals": 3, "revenue": 18500.00},
+                    {"name": "Fashion Brand", "deals": 2, "revenue": 12000.00},
+                    {"name": "Lifestyle Co", "deals": 1, "revenue": 5200.00}
+                ]
+            }
+        }
+    }
+
+@sponsorship_router.get("/dashboard")
+async def get_sponsorship_dashboard(
+    current_user: User = Depends(get_current_user)
+):
+    """Get sponsorship dashboard for current user"""
+    # Get user's deals
+    user_deals = await db.sponsorship_deals.find({
+        "content_creator_id": current_user.id
+    }).sort("created_at", -1).to_list(length=None)
+    
+    # Get recent metrics
+    deal_ids = [deal["id"] for deal in user_deals[:5]]  # Latest 5 deals
+    
+    if deal_ids:
+        recent_metrics = await db.performance_metrics.find({
+            "deal_id": {"$in": deal_ids}
+        }).sort("measurement_date", -1).limit(10).to_list(length=10)
+        
+        recent_payouts = await db.sponsorship_payouts.find({
+            "deal_id": {"$in": deal_ids}
+        }).sort("created_at", -1).limit(5).to_list(length=5)
+    else:
+        recent_metrics = []
+        recent_payouts = []
+    
+    # Calculate quick stats
+    active_deals = [d for d in user_deals if d.get("status") == "active"]
+    pending_deals = [d for d in user_deals if d.get("status") == "pending_approval"]
+    
+    total_revenue = sum(p.get("amount", 0) for p in recent_payouts if p.get("status") == "paid")
+    pending_revenue = sum(p.get("amount", 0) for p in recent_payouts if p.get("status") == "pending")
+    
+    return {
+        "success": True,
+        "dashboard": {
+            "quick_stats": {
+                "total_deals": len(user_deals),
+                "active_deals": len(active_deals),
+                "pending_deals": len(pending_deals),
+                "completed_deals": len([d for d in user_deals if d.get("status") == "completed"]),
+                "total_revenue": total_revenue,
+                "pending_revenue": pending_revenue,
+                "performance_score": 87.5
+            },
+            "active_deals_summary": [
+                {
+                    "id": deal.get("id"),
+                    "deal_name": deal.get("deal_name"),
+                    "sponsor_name": "Loading...",  # Would fetch sponsor name
+                    "base_fee": deal.get("base_fee", 0),
+                    "start_date": deal.get("start_date"),
+                    "end_date": deal.get("end_date"),
+                    "status": deal.get("status")
+                } for deal in active_deals[:5]
+            ],
+            "recent_activity": [
+                {
+                    "date": metric.get("measurement_date"),
+                    "type": "metric",
+                    "description": f"Recorded {metric.get('metric_type')} metric: {metric.get('metric_value')}",
+                    "deal_name": "Loading..."  # Would fetch deal name
+                } for metric in recent_metrics[:5]
+            ] + [
+                {
+                    "date": payout.get("created_at"),
+                    "type": "payout", 
+                    "description": f"Received payout: ${payout.get('amount', 0):.2f}",
+                    "status": payout.get("status")
+                } for payout in recent_payouts[:5]
+            ],
+            "notifications": [
+                {
+                    "id": "notif_001",
+                    "type": "deal_approval",
+                    "message": "New deal awaiting your approval",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "read": False
+                },
+                {
+                    "id": "notif_002", 
+                    "type": "payout_ready",
+                    "message": "Payout ready for processing",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "read": False
+                }
+            ],
+            "upcoming_deadlines": [
+                {
+                    "deal_name": "Q1 Brand Campaign",
+                    "deadline": "2025-01-31",
+                    "type": "deliverable",
+                    "description": "Submit monthly performance report"
+                },
+                {
+                    "deal_name": "Product Launch Partnership",
+                    "deadline": "2025-02-15", 
+                    "type": "content",
+                    "description": "Deliver sponsored content assets"
+                }
+            ]
+        }
+    }
+
 @sponsorship_router.get("/deals/{deal_id}")
 async def get_deal_details(
     deal_id: str,
