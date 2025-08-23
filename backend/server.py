@@ -2778,16 +2778,18 @@ from payment_endpoints import payment_router
 from licensing_endpoints import licensing_router
 from gs1_endpoints import gs1_router
 
-# Include all routers
+# Include all routers in the api_router to get /api prefix
+api_router.include_router(ddex_router)
+api_router.include_router(sponsorship_router)
+api_router.include_router(tax_router)
+api_router.include_router(industry_router)
+api_router.include_router(label_router)
+api_router.include_router(payment_router)
+api_router.include_router(licensing_router)
+api_router.include_router(gs1_router)
+
+# Include the main api_router in the app
 app.include_router(api_router)
-app.include_router(ddex_router)
-app.include_router(sponsorship_router)
-app.include_router(tax_router)
-app.include_router(industry_router)
-app.include_router(label_router)
-app.include_router(payment_router)
-app.include_router(licensing_router)
-app.include_router(gs1_router)
 
 # CORS middleware
 app.add_middleware(
