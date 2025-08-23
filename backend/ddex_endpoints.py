@@ -11,7 +11,7 @@ from ddex_models import *
 from ddex_service import DDEXService
 
 # Create DDEX router
-ddex_router = APIRouter(prefix="/api/ddex", tags=["DDEX"])
+ddex_router = APIRouter(prefix="/ddex", tags=["DDEX"])
 
 # Initialize DDEX service
 ddex_service = DDEXService()
