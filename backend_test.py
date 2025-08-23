@@ -13,9 +13,9 @@ from typing import Dict, Any, Optional
 
 # Configuration
 BACKEND_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "licensing.test@bigmannentertainment.com"
-TEST_USER_PASSWORD = "BigMann2025!"
-TEST_USER_NAME = "Licensing Test User"
+TEST_USER_EMAIL = "backend.tester@bigmannentertainment.com"
+TEST_USER_PASSWORD = "TestPassword123!"
+TEST_USER_NAME = "Backend Tester"
 
 class BackendTester:
     def __init__(self):
