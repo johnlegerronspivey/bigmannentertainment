@@ -211,21 +211,8 @@ async def distribute_content_globally(
         service = IndustryIntegrationService(db)
         results = await service.distribute_content_to_all_platforms(product_id, product)
         
-        # Log distribution activity
-        from server import log_activity
-        await log_activity(
-            current_user.id,
-            "global_content_distribution",
-            "product",
-            product_id,
-            {
-                "product_name": product.get("product_name"),
-                "total_platforms": results["total_platforms"],
-                "successful": results["successful_distributions"],
-                "failed": results["failed_distributions"]
-            },
-            request
-        )
+        # Log distribution activity (simplified to avoid circular import)
+        # await log_activity(...) - removed to avoid circular import
         
         return {
             "success": True,
