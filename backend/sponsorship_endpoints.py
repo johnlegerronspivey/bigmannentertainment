@@ -184,16 +184,16 @@ async def get_sponsors(
         "limit": limit
     }
 
-# Missing Sponsors Endpoint - ADD FOR IMPROVED FUNCTIONALITY
-@sponsorship_router.get("/sponsors")
-async def get_sponsors(
+# Missing Public Sponsors Endpoint - ADD FOR IMPROVED FUNCTIONALITY
+@sponsorship_router.get("/sponsors/public")
+async def get_public_sponsors(
     skip: int = 0,
     limit: int = 20,
     status: Optional[str] = None,
     industry: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Get list of available sponsors"""
+    """Get list of available sponsors (public access)"""
     try:
         query = {}
         if status:
