@@ -58,7 +58,7 @@ async def require_admin(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
 
-router = APIRouter(prefix="/api/licensing", tags=["Licensing System"])
+router = APIRouter(prefix="/licensing", tags=["Licensing System"])
 licensing_service = LicensingService()
 
 # Import the existing platforms configuration
