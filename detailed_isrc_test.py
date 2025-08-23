@@ -23,8 +23,8 @@ def authenticate():
         return response.json().get("access_token")
     return None
 
-def test_upc_generation():
-    """Test UPC generation endpoint in detail"""
+def test_isrc_generation():
+    """Test ISRC generation endpoint in detail"""
     token = authenticate()
     if not token:
         print("❌ Authentication failed")
@@ -33,20 +33,17 @@ def test_upc_generation():
     headers = {"Authorization": f"Bearer {token}"}
     
     test_data = {
-        "product_name": "Test Song for ISRC Verification",
         "artist_name": "ISRC Test Artist",
-        "album_title": "ISRC Test Album",
         "track_title": "ISRC Verification Track",
-        "product_category": "audio",
+        "album_title": "ISRC Test Album",
         "record_label": "Big Mann Entertainment",
-        "publisher_name": "Big Mann Entertainment Publishing",
-        "songwriter_credits": "Test Songwriter"
+        "release_year": 2025
     }
     
-    print("🎼 Testing /business/generate-upc endpoint")
+    print("🎼 Testing /business/generate-isrc endpoint")
     print("=" * 50)
     
-    response = requests.post(f"{BACKEND_URL}/business/generate-upc", json=test_data, headers=headers)
+    response = requests.post(f"{BACKEND_URL}/business/generate-isrc", json=test_data, headers=headers)
     
     print(f"Status Code: {response.status_code}")
     print(f"Response:")
@@ -57,7 +54,11 @@ def test_upc_generation():
     if isinstance(response_data, dict):
         for key, value in response_data.items():
             if "isrc" in key.lower() or ("QZ9H8" in str(value) or "QZ9-H8" in str(value)):
-                print(f"\n✅ Found potential ISRC field: {key} = {value}")
+                print(f"\n✅ Found ISRC field: {key} = {value}")
+                if "QZ9H8" in str(value) or "QZ9-H8" in str(value):
+                    print("✅ ISRC contains correct QZ9H8 prefix!")
+                else:
+                    print("❌ ISRC does not contain QZ9H8 prefix")
 
 if __name__ == "__main__":
-    test_upc_generation()
+    test_isrc_generation()
