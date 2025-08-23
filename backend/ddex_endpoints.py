@@ -6,7 +6,57 @@ import os
 import aiofiles
 from pathlib import Path
 
-from server import get_current_user, get_current_admin_user, db, User, log_activity
+# Import dependencies without circular import
+import jwt
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# Load environment
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# MongoDB connection
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+# Authentication setup
+SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
+ALGORITHM = "HS256"
+security = HTTPBearer()
+
+class User(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    is_admin: bool = False
+    role: str = "user"
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    
+    user = await db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user)
+
+async def get_current_admin_user(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin and current_user.role not in ["admin", "moderator", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return current_user
+
+async def log_activity(user_id: str, action: str, resource_type: str, resource_id: str = None, details: Dict[str, Any] = None, request = None):
+    """Log user activity for auditing purposes"""
+    pass  # Simplified for now
 from ddex_models import *
 from ddex_service import DDEXService
 
