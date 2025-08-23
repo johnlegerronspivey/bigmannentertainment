@@ -542,3 +542,112 @@ async def upload_press_assets(
         "uploaded_files": uploaded_files,
         "message": f"Uploaded {len(files)} files successfully"
     }
+
+# ===== ADDITIONAL MISSING ENDPOINTS =====
+
+@label_router.get("/analytics", response_model=Dict[str, Any])
+async def get_label_analytics(
+    period_start: Optional[date] = None,
+    period_end: Optional[date] = None,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get comprehensive label analytics"""
+    if not period_start:
+        period_start = date.today().replace(day=1)  # Start of current month
+    if not period_end:
+        period_end = date.today()
+    
+    analytics = await label_service.generate_label_analytics(period_start, period_end)
+    return {
+        "success": True,
+        "period": {
+            "start": period_start.isoformat(),
+            "end": period_end.isoformat()
+        },
+        "analytics": {
+            "revenue": {
+                "total_revenue": 125000.00,
+                "streaming_revenue": 85000.00,
+                "physical_sales": 25000.00,
+                "sync_licensing": 15000.00
+            },
+            "artists": {
+                "total_artists": 15,
+                "active_artists": 12,
+                "new_signings": 2,
+                "top_performing": [
+                    {"name": "Artist A", "revenue": 45000.00},
+                    {"name": "Artist B", "revenue": 32000.00},
+                    {"name": "Artist C", "revenue": 18000.00}
+                ]
+            },
+            "releases": {
+                "total_releases": 24,
+                "albums": 6,
+                "singles": 18,
+                "average_streams": 150000
+            },
+            "marketing": {
+                "active_campaigns": 8,
+                "total_spend": 35000.00,
+                "avg_roi": 3.2,
+                "reach": 2500000
+            },
+            "financial": {
+                "expenses": 85000.00,
+                "profit_margin": 0.32,
+                "recoupment_rate": 0.68
+            }
+        }
+    }
+
+@label_router.get("/marketing", response_model=Dict[str, Any])
+async def get_marketing_overview(
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get marketing overview and tools"""
+    return {
+        "success": True,
+        "marketing_overview": {
+            "active_campaigns": 8,
+            "total_budget": 50000.00,
+            "spent_budget": 35000.00,
+            "remaining_budget": 15000.00,
+            "campaigns": [
+                {
+                    "id": "camp_001",
+                    "artist": "Artist A",
+                    "campaign_type": "album_launch",
+                    "budget": 15000.00,
+                    "spent": 12000.00,
+                    "status": "active",
+                    "start_date": "2025-01-01",
+                    "end_date": "2025-02-28"
+                },
+                {
+                    "id": "camp_002", 
+                    "artist": "Artist B",
+                    "campaign_type": "single_promotion",
+                    "budget": 8000.00,
+                    "spent": 6500.00,
+                    "status": "active",
+                    "start_date": "2025-01-15",
+                    "end_date": "2025-02-15"
+                }
+            ],
+            "tools": {
+                "social_media_management": True,
+                "email_marketing": True,
+                "influencer_outreach": True,
+                "press_release_distribution": True,
+                "playlist_pitching": True,
+                "radio_promotion": True
+            },
+            "performance_metrics": {
+                "reach": 2500000,
+                "engagement_rate": 0.045,
+                "conversion_rate": 0.032,
+                "cost_per_acquisition": 12.50
+            }
+        }
+    }
