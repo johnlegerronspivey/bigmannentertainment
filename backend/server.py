@@ -3273,6 +3273,20 @@ from payment_endpoints import payment_router
 from licensing_endpoints import licensing_router
 from gs1_endpoints import gs1_router
 
+# Initialize Payment Service
+try:
+    import payment_endpoints
+    from payment_service import PaymentService
+    
+    # Initialize the payment service
+    payment_service_instance = PaymentService()
+    payment_endpoints.payment_service = payment_service_instance
+    print("✅ Payment service initialized successfully")
+except ImportError as e:
+    print(f"⚠️ Payment service initialization failed: {str(e)}")
+except Exception as e:
+    print(f"⚠️ Payment service initialization error: {str(e)}")
+
 # Include all routers in the api_router to get /api prefix
 api_router.include_router(ddex_router)
 api_router.include_router(sponsorship_router)
