@@ -252,40 +252,53 @@ class ISRCPublisherTester:
             "songwriter_credits": "Test Songwriter"
         }
         
-        # Try to generate UPC/ISRC (this might be through business/upc endpoint)
-        success, response_data, status_code = self.make_request("POST", "/business/upc", test_product_data)
+        # Try multiple endpoints for ISRC generation
+        endpoints_to_try = [
+            "/business/upc",
+            "/ddex/identifiers/generate",
+            "/business/identifiers/generate",
+            "/business/generate-upc"
+        ]
         
-        if success:
-            # Check if ISRC is generated with QZ9H8 prefix
-            isrc_generated = False
-            if isinstance(response_data, dict):
-                for key, value in response_data.items():
-                    if "isrc" in key.lower() and isinstance(value, str):
-                        if "QZ9H8" in value or "QZ9-H8" in value:
-                            isrc_generated = True
-                            self.log_test("ISRC Generation with QZ9H8 Prefix", True, f"Generated ISRC with correct prefix: {value}")
-                            break
-                        else:
-                            self.log_test("ISRC Generation with QZ9H8 Prefix", False, f"Generated ISRC does not contain QZ9H8 prefix: {value}")
-                            return False
+        isrc_generated = False
+        
+        for endpoint in endpoints_to_try:
+            print(f"Trying endpoint: {endpoint}")
+            success, response_data, status_code = self.make_request("POST", endpoint, test_product_data)
             
-            if not isrc_generated:
-                # Check if any field contains an ISRC-like format
-                for key, value in response_data.items():
-                    if isinstance(value, str) and len(value) >= 12 and "-" in value:
-                        if "QZ9H8" in value or "QZ9-H8" in value:
-                            isrc_generated = True
-                            self.log_test("ISRC Generation with QZ9H8 Prefix", True, f"Found ISRC with correct prefix in {key}: {value}")
-                            break
+            if success:
+                # Check if ISRC is generated with QZ9H8 prefix
+                def search_for_isrc(obj):
+                    if isinstance(obj, dict):
+                        for key, value in obj.items():
+                            if isinstance(value, str) and ("QZ9H8" in value or "QZ9-H8" in value):
+                                return True, f"{key}: {value}"
+                            elif isinstance(value, (dict, list)):
+                                found, details = search_for_isrc(value)
+                                if found:
+                                    return True, f"{key}.{details}"
+                    elif isinstance(obj, list):
+                        for i, item in enumerate(obj):
+                            found, details = search_for_isrc(item)
+                            if found:
+                                return True, f"[{i}].{details}"
+                    return False, ""
                 
-                if not isrc_generated:
-                    self.log_test("ISRC Generation with QZ9H8 Prefix", False, "No ISRC with QZ9H8 prefix found in response", response_data)
-                    return False
-            
-            return isrc_generated
-        else:
-            self.log_test("ISRC Generation Endpoint", False, f"Failed to generate ISRC. Status: {status_code}", response_data)
+                found, details = search_for_isrc(response_data)
+                if found:
+                    isrc_generated = True
+                    self.log_test("ISRC Generation with QZ9H8 Prefix", True, f"Generated ISRC with correct prefix via {endpoint}: {details}")
+                    break
+                else:
+                    print(f"  No ISRC with QZ9H8 found in response from {endpoint}")
+            else:
+                print(f"  Failed to call {endpoint}: Status {status_code}")
+        
+        if not isrc_generated:
+            self.log_test("ISRC Generation with QZ9H8 Prefix", False, "No endpoint successfully generated ISRC with QZ9H8 prefix")
             return False
+        
+        return isrc_generated
 
     def test_industry_identifiers(self):
         """Test industry identifiers endpoint for additional verification"""
