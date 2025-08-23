@@ -184,6 +184,62 @@ async def get_sponsors(
         "limit": limit
     }
 
+# Missing Sponsors Endpoint - ADD FOR IMPROVED FUNCTIONALITY
+@sponsorship_router.get("/sponsors")
+async def get_sponsors(
+    skip: int = 0,
+    limit: int = 20,
+    status: Optional[str] = None,
+    industry: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get list of available sponsors"""
+    try:
+        query = {}
+        if status:
+            query["status"] = status
+        if industry:
+            query["industry"] = {"$regex": industry, "$options": "i"}
+        
+        # Get sponsors from database
+        sponsors = await db.sponsors.find(query).skip(skip).limit(limit).sort("created_at", -1).to_list(limit)
+        total = await db.sponsors.count_documents(query)
+        
+        # Clean sponsors data for public API response
+        public_sponsors = []
+        for sponsor in sponsors:
+            sponsor.pop("_id", None)
+            # Only include public information
+            public_sponsor = {
+                "id": sponsor.get("id"),
+                "brand_name": sponsor.get("brand_name"),
+                "industry": sponsor.get("industry"),
+                "description": sponsor.get("description"),
+                "is_active": sponsor.get("is_active", False),
+                "website": sponsor.get("website"),
+                "logo_url": sponsor.get("logo_url"),
+                "sponsorship_types": sponsor.get("sponsorship_types", []),
+                "target_demographics": sponsor.get("target_demographics", []),
+                "budget_range": sponsor.get("budget_range", "Contact for details"),
+                "contact_available": True if sponsor.get("contact_email") else False
+            }
+            public_sponsors.append(public_sponsor)
+        
+        return {
+            "sponsors": public_sponsors,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "available_filters": {
+                "industries": ["Music", "Entertainment", "Technology", "Fashion", "Sports", "Gaming"],
+                "sponsorship_types": ["Event", "Content", "Product Placement", "Brand Ambassador"],
+                "status_options": ["active", "inactive", "pending"]
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve sponsors: {str(e)}")
+
 @sponsorship_router.get("/sponsors/{sponsor_id}")
 async def get_sponsor_details(
     sponsor_id: str,
