@@ -61,8 +61,15 @@ async def require_admin(current_user: User = Depends(get_current_user)):
 router = APIRouter(prefix="/licensing", tags=["Licensing System"])
 licensing_service = LicensingService()
 
-# Import the existing platforms configuration
-from server import DISTRIBUTION_PLATFORMS
+# Define platforms configuration locally to avoid circular import
+DISTRIBUTION_PLATFORMS = {
+    "spotify": {"type": "streaming", "name": "Spotify"},
+    "apple_music": {"type": "streaming", "name": "Apple Music"},
+    "youtube": {"type": "social_media", "name": "YouTube"},
+    "instagram": {"type": "social_media", "name": "Instagram"},
+    "tiktok": {"type": "social_media", "name": "TikTok"},
+    # Add more platforms as needed - this is a simplified version
+}
 
 @router.post("/initialize-all-platforms")
 async def initialize_all_platform_licenses(current_user: User = Depends(require_admin)):
