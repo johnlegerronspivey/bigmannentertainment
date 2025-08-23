@@ -17,7 +17,7 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/industry", tags=["Industry Integration"])
+router = APIRouter(prefix="/industry", tags=["Industry Integration"])
 
 # Database connection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
