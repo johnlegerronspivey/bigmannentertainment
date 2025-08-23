@@ -2488,6 +2488,185 @@ async def download_media(media_id: str, current_user: User = Depends(get_current
         media_type=media["mime_type"]
     )
 
+# MISSING MEDIA ENDPOINTS - IMPLEMENTING FOR 100% FUNCTIONALITY
+
+@api_router.put("/media/{media_id}")
+async def update_media(
+    media_id: str,
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    category: Optional[str] = Form(None),
+    price: Optional[float] = Form(None),
+    tags: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Update media metadata"""
+    media = await db.media_content.find_one({"id": media_id})
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    # Check if user owns the media
+    if media["owner_id"] != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to update this media")
+    
+    # Build update data
+    update_data = {"updated_at": datetime.utcnow()}
+    
+    if title is not None:
+        update_data["title"] = title
+    if description is not None:
+        update_data["description"] = description
+    if category is not None:
+        update_data["category"] = category
+    if price is not None:
+        update_data["price"] = price
+    if tags is not None:
+        tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+        update_data["tags"] = tag_list
+    
+    # Update in database
+    await db.media_content.update_one({"id": media_id}, {"$set": update_data})
+    
+    # Get updated media
+    updated_media = await db.media_content.find_one({"id": media_id})
+    
+    return {
+        "message": "Media updated successfully",
+        "media": MediaContent(**updated_media)
+    }
+
+@api_router.delete("/media/{media_id}")
+async def delete_media(media_id: str, current_user: User = Depends(get_current_user)):
+    """Delete media and its associated file"""
+    media = await db.media_content.find_one({"id": media_id})
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    # Check if user owns the media
+    if media["owner_id"] != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this media")
+    
+    # Delete file from filesystem
+    file_path = Path(media["file_path"])
+    try:
+        if file_path.exists():
+            file_path.unlink()
+    except Exception:
+        pass  # File deletion failed, but we'll still remove from database
+    
+    # Remove from database
+    await db.media_content.delete_one({"id": media_id})
+    
+    # Log activity
+    await log_activity(
+        current_user.id,
+        "media_deleted",
+        "media",
+        media_id,
+        {"title": media["title"], "content_type": media["content_type"]}
+    )
+    
+    return {"message": "Media deleted successfully"}
+
+@api_router.post("/media/{media_id}/metadata")
+async def update_media_metadata(
+    media_id: str,
+    metadata: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """Update detailed media metadata"""
+    media = await db.media_content.find_one({"id": media_id})
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    # Check if user owns the media
+    if media["owner_id"] != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to update this media")
+    
+    # Update metadata
+    update_data = {
+        "updated_at": datetime.utcnow(),
+        "metadata": metadata
+    }
+    
+    await db.media_content.update_one({"id": media_id}, {"$set": update_data})
+    
+    return {
+        "message": "Metadata updated successfully",
+        "metadata": metadata
+    }
+
+@api_router.get("/media/search")
+async def search_media(
+    q: str,  # search query
+    content_type: Optional[str] = None,
+    category: Optional[str] = None,
+    tags: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 20,
+    current_user: User = Depends(get_current_user)
+):
+    """Search media content"""
+    # Build search query
+    search_conditions = []
+    
+    # Text search on title and description
+    if q:
+        search_conditions.append({
+            "$or": [
+                {"title": {"$regex": q, "$options": "i"}},
+                {"description": {"$regex": q, "$options": "i"}}
+            ]
+        })
+    
+    # Filter by content type
+    if content_type:
+        search_conditions.append({"content_type": content_type})
+    
+    # Filter by category
+    if category:
+        search_conditions.append({"category": category})
+    
+    # Filter by tags
+    if tags:
+        tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+        search_conditions.append({"tags": {"$in": tag_list}})
+    
+    # Only show user's own media or public approved media
+    visibility_condition = {
+        "$or": [
+            {"owner_id": current_user.id},
+            {"is_published": True, "is_approved": True}
+        ]
+    }
+    search_conditions.append(visibility_condition)
+    
+    # Combine all conditions
+    query = {"$and": search_conditions} if search_conditions else {}
+    
+    # Execute search
+    cursor = db.media_content.find(query).skip(skip).limit(limit).sort("created_at", -1)
+    media_items = []
+    
+    async for item in cursor:
+        media_items.append(MediaContent(**item))
+    
+    # Get total count
+    total_count = await db.media_content.count_documents(query)
+    
+    return {
+        "media_items": media_items,
+        "total_count": total_count,
+        "search_query": q,
+        "filters": {
+            "content_type": content_type,
+            "category": category,
+            "tags": tags
+        },
+        "page": skip // limit + 1,
+        "pages": (total_count + limit - 1) // limit
+    }
+
 # Content Distribution Endpoints
 @api_router.get("/distribution/platforms")
 async def get_distribution_platforms():
