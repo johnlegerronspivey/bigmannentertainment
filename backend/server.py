@@ -2236,77 +2236,180 @@ async def get_business_identifiers(current_user: User = Depends(get_current_user
 
 @api_router.post("/business/generate-upc")
 async def generate_upc(
-    product_name: str = Form(...),
-    product_category: str = Form(...),
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    # Use first 6 digits of company prefix for UPC-A format
-    company_prefix_6 = UPC_COMPANY_PREFIX[:6]  # "860004"
-    
-    # Generate 5-digit product code (to make 11 digits total with 6-digit prefix)
-    product_code = f"{abs(hash(product_name + product_category)) % 100000:05d}"
-    
-    # Combine company prefix and product code (11 digits total)
-    upc_11_digits = company_prefix_6 + product_code
-    
-    # Calculate check digit
-    check_digit = calculate_upc_check_digit(upc_11_digits)
-    
-    # Create full UPC
-    upc_full = upc_11_digits + check_digit
-    
-    # Create GTIN (add leading zero to UPC for 13-digit GTIN)
-    gtin = "0" + upc_full
-    
-    # Create product identifier record
-    product_identifier = ProductIdentifier(
-        product_name=product_name,
-        upc_full_code=upc_full,
-        gtin=gtin,
-        product_category=product_category
-    )
-    
-    # Store in database
-    await db.product_identifiers.insert_one(product_identifier.dict())
-    
-    return {
-        "product_name": product_name,
-        "upc": upc_full,
-        "gtin": gtin,
-        "company_prefix": UPC_COMPANY_PREFIX,
-        "product_code": product_code,
-        "check_digit": check_digit,
-        "product_category": product_category
-    }
+    """Generate UPC code - accepts both Form and JSON data"""
+    try:
+        # Handle both Form and JSON data
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/json" in content_type:
+            # Handle JSON data
+            body = await request.json()
+            product_name = body.get("product_name")
+            product_category = body.get("product_category")
+        else:
+            # Handle Form data
+            form_data = await request.form()
+            product_name = form_data.get("product_name")
+            product_category = form_data.get("product_category")
+        
+        if not product_name or not product_category:
+            raise HTTPException(status_code=400, detail="product_name and product_category are required")
+        
+        # Use first 6 digits of company prefix for UPC-A format
+        company_prefix_6 = UPC_COMPANY_PREFIX[:6]  # "860004"
+        
+        # Generate 5-digit product code (to make 11 digits total with 6-digit prefix)
+        product_code = f"{abs(hash(product_name + product_category)) % 100000:05d}"
+        
+        # Combine company prefix and product code (11 digits total)
+        upc_11_digits = company_prefix_6 + product_code
+        
+        # Calculate check digit
+        check_digit = calculate_upc_check_digit(upc_11_digits)
+        
+        # Create full UPC
+        upc_full = upc_11_digits + check_digit
+        
+        # Create GTIN (add leading zero to UPC for 13-digit GTIN)
+        gtin = "0" + upc_full
+        
+        # Create product identifier record
+        product_identifier = ProductIdentifier(
+            product_name=product_name,
+            upc_full_code=upc_full,
+            gtin=gtin,
+            product_category=product_category
+        )
+        
+        # Store in database
+        await db.product_identifiers.insert_one(product_identifier.dict())
+        
+        # Log activity
+        await log_activity(
+            current_user.id,
+            "upc_generated",
+            "product_identifier",
+            product_identifier.id,
+            {
+                "product_name": product_name,
+                "upc": upc_full,
+                "product_category": product_category
+            }
+        )
+        
+        return {
+            "success": True,
+            "message": "UPC generated successfully",
+            "data": {
+                "product_name": product_name,
+                "upc": upc_full,
+                "gtin": gtin,
+                "company_prefix": UPC_COMPANY_PREFIX,
+                "product_code": product_code,
+                "check_digit": check_digit,
+                "product_category": product_category,
+                "generated_at": datetime.utcnow().isoformat()
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate UPC: {str(e)}")
 
 @api_router.post("/business/generate-isrc")
 async def generate_isrc(
-    artist_name: str = Form(...),
-    track_title: str = Form(...),
-    release_year: int = Form(default=datetime.utcnow().year),
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    # Generate 5-digit designation code
-    designation_code = f"{abs(hash(track_title + artist_name)) % 100000:05d}"
-    
-    # Create ISRC code: Country Code (2) + Registrant Code (3) + Year (2) + Designation (5)
-    # Format: CC-XXX-YY-NNNNN
-    country_code = "US"
-    registrant_code = ISRC_PREFIX[:3]  # Use first 3 characters
-    year_code = str(release_year)[-2:]  # Last 2 digits of year
-    
-    isrc_code = f"{country_code}-{registrant_code}-{year_code}-{designation_code}"
-    
-    return {
-        "isrc_code": isrc_code,
-        "artist_name": artist_name,
-        "track_title": track_title,
-        "release_year": release_year,
-        "country_code": "US",
-        "registrant_code": ISRC_PREFIX,
-        "year_code": str(release_year)[-2:],
-        "designation_code": designation_code
-    }
+    """Generate ISRC code - accepts both Form and JSON data"""
+    try:
+        # Handle both Form and JSON data
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/json" in content_type:
+            # Handle JSON data
+            body = await request.json()
+            artist_name = body.get("artist_name")
+            track_title = body.get("track_title")
+            release_year = body.get("release_year", datetime.utcnow().year)
+        else:
+            # Handle Form data
+            form_data = await request.form()
+            artist_name = form_data.get("artist_name")
+            track_title = form_data.get("track_title")
+            release_year = int(form_data.get("release_year", datetime.utcnow().year))
+        
+        if not artist_name or not track_title:
+            raise HTTPException(status_code=400, detail="artist_name and track_title are required")
+        
+        # Validate release year
+        current_year = datetime.utcnow().year
+        if not isinstance(release_year, int) or release_year < 1900 or release_year > current_year + 5:
+            release_year = current_year
+        
+        # Generate 5-digit designation code
+        designation_code = f"{abs(hash(track_title + artist_name)) % 100000:05d}"
+        
+        # Create ISRC code: Country Code (2) + Registrant Code (3) + Year (2) + Designation (5)
+        # Format: CC-XXX-YY-NNNNN
+        country_code = "US"
+        registrant_code = ISRC_PREFIX[:3]  # Use first 3 characters
+        year_code = str(release_year)[-2:]  # Last 2 digits of year
+        
+        isrc_code = f"{country_code}-{registrant_code}-{year_code}-{designation_code}"
+        
+        # Store ISRC record in database
+        isrc_record = {
+            "id": str(uuid.uuid4()),
+            "isrc_code": isrc_code,
+            "artist_name": artist_name,
+            "track_title": track_title,
+            "release_year": release_year,
+            "country_code": country_code,
+            "registrant_code": ISRC_PREFIX,
+            "year_code": year_code,
+            "designation_code": designation_code,
+            "generated_by": current_user.id,
+            "generated_at": datetime.utcnow(),
+            "status": "active"
+        }
+        
+        await db.isrc_codes.insert_one(isrc_record)
+        
+        # Log activity
+        await log_activity(
+            current_user.id,
+            "isrc_generated",
+            "isrc_code",
+            isrc_record["id"],
+            {
+                "isrc_code": isrc_code,
+                "artist_name": artist_name,
+                "track_title": track_title,
+                "release_year": release_year
+            }
+        )
+        
+        return {
+            "success": True,
+            "message": "ISRC generated successfully",
+            "data": {
+                "isrc_code": isrc_code,
+                "artist_name": artist_name,
+                "track_title": track_title,
+                "release_year": release_year,
+                "country_code": country_code,
+                "registrant_code": ISRC_PREFIX,
+                "year_code": year_code,
+                "designation_code": designation_code,
+                "generated_at": datetime.utcnow().isoformat()
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate ISRC: {str(e)}")
 
 # Add missing business/products endpoint
 @api_router.get("/business/products")
