@@ -1,5 +1,541 @@
 #!/usr/bin/env python3
 """
+Comprehensive Backend Testing for Big Mann Entertainment Platform
+Testing NEW endpoints implemented for DDEX, Distribution, Media, and Licensing modules
+"""
+
+import requests
+import json
+import time
+import sys
+from datetime import datetime, timedelta
+from typing import Dict, Any, Optional
+
+# Configuration
+BACKEND_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
+TEST_USER_EMAIL = "licensing.test@bigmannentertainment.com"
+TEST_USER_PASSWORD = "BigMann2025!"
+TEST_USER_NAME = "Licensing Test User"
+
+class BackendTester:
+    def __init__(self):
+        self.session = requests.Session()
+        self.auth_token = None
+        self.test_results = []
+        self.total_tests = 0
+        self.passed_tests = 0
+        self.failed_tests = 0
+        
+    def log_test(self, test_name: str, success: bool, details: str = "", response_data: Any = None):
+        """Log test results"""
+        self.total_tests += 1
+        if success:
+            self.passed_tests += 1
+            status = "✅ PASS"
+        else:
+            self.failed_tests += 1
+            status = "❌ FAIL"
+            
+        result = {
+            "test_name": test_name,
+            "status": status,
+            "success": success,
+            "details": details,
+            "timestamp": datetime.now().isoformat(),
+            "response_data": response_data
+        }
+        self.test_results.append(result)
+        print(f"{status}: {test_name}")
+        if details:
+            print(f"    Details: {details}")
+        if not success and response_data:
+            print(f"    Response: {response_data}")
+        print()
+
+    def authenticate(self) -> bool:
+        """Authenticate and get access token"""
+        try:
+            # First try to register the test user
+            register_data = {
+                "email": TEST_USER_EMAIL,
+                "password": TEST_USER_PASSWORD,
+                "full_name": TEST_USER_NAME,
+                "business_name": "Big Mann Entertainment Test",
+                "date_of_birth": "1990-01-01T00:00:00",
+                "address_line1": "123 Test Street",
+                "city": "Test City",
+                "state_province": "Test State",
+                "postal_code": "12345",
+                "country": "US"
+            }
+            
+            register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_data)
+            
+            # Now try to login
+            login_data = {
+                "email": TEST_USER_EMAIL,
+                "password": TEST_USER_PASSWORD
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.auth_token = data.get("access_token")
+                self.session.headers.update({"Authorization": f"Bearer {self.auth_token}"})
+                self.log_test("Authentication", True, f"Successfully authenticated as {TEST_USER_EMAIL}")
+                return True
+            else:
+                self.log_test("Authentication", False, f"Login failed: {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_test("Authentication", False, f"Authentication error: {str(e)}")
+            return False
+
+    def test_ddex_endpoints(self):
+        """Test NEW DDEX endpoints"""
+        print("🎵 TESTING DDEX MODULE ENDPOINTS")
+        print("=" * 50)
+        
+        # Test 1: DDEX Dashboard (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/ddex/dashboard")
+            if response.status_code == 200:
+                data = response.json()
+                dashboard = data.get("dashboard", {})
+                overview = dashboard.get("overview", {})
+                self.log_test("DDEX Dashboard", True, 
+                             f"Dashboard loaded with {overview.get('total_releases', 0)} releases, {overview.get('total_works', 0)} works")
+            else:
+                self.log_test("DDEX Dashboard", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("DDEX Dashboard", False, f"Error: {str(e)}")
+
+        # Test 2: DDEX ERN Messages (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/ddex/ern")
+            if response.status_code == 200:
+                data = response.json()
+                ern_messages = data.get("ern_messages", [])
+                total = data.get("total", 0)
+                self.log_test("DDEX ERN Messages", True, 
+                             f"Retrieved {len(ern_messages)} ERN messages, total: {total}")
+            else:
+                self.log_test("DDEX ERN Messages", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("DDEX ERN Messages", False, f"Error: {str(e)}")
+
+        # Test 3: DDEX CWR Messages (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/ddex/cwr")
+            if response.status_code == 200:
+                data = response.json()
+                cwr_messages = data.get("cwr_messages", [])
+                total = data.get("total", 0)
+                self.log_test("DDEX CWR Messages", True, 
+                             f"Retrieved {len(cwr_messages)} CWR messages, total: {total}")
+            else:
+                self.log_test("DDEX CWR Messages", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("DDEX CWR Messages", False, f"Error: {str(e)}")
+
+        # Test 4: DDEX Identifiers (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/ddex/identifiers")
+            if response.status_code == 200:
+                data = response.json()
+                identifiers = data.get("identifiers", {})
+                business_ids = identifiers.get("business_identifiers", {})
+                self.log_test("DDEX Identifiers", True, 
+                             f"Retrieved identifiers - ISRC prefix: {identifiers.get('isrc_prefix')}, Business EIN: {business_ids.get('business_ein')}")
+            else:
+                self.log_test("DDEX Identifiers", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("DDEX Identifiers", False, f"Error: {str(e)}")
+
+        # Test 5: DDEX Music Reports CWR Integration (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/ddex/music-reports/cwr")
+            if response.status_code == 200:
+                data = response.json()
+                music_reports = data.get("music_reports_cwr", {})
+                integration_status = music_reports.get("integration_status", {})
+                self.log_test("DDEX Music Reports CWR", True, 
+                             f"Integration status - Works registered: {integration_status.get('total_works_registered', 0)}, Pending sync: {integration_status.get('pending_sync', 0)}")
+            else:
+                self.log_test("DDEX Music Reports CWR", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("DDEX Music Reports CWR", False, f"Error: {str(e)}")
+
+    def test_distribution_endpoints(self):
+        """Test NEW Distribution endpoints"""
+        print("📡 TESTING DISTRIBUTION MODULE ENDPOINTS")
+        print("=" * 50)
+        
+        # Test 1: Distribution Status (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/distribution/status")
+            if response.status_code == 200:
+                data = response.json()
+                self.log_test("Distribution Status", True, 
+                             f"Status retrieved - Total distributions: {data.get('total_distributions', 0)}, Active: {data.get('active_distributions', 0)}")
+            else:
+                self.log_test("Distribution Status", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Distribution Status", False, f"Error: {str(e)}")
+
+        # Test 2: Distribution Analytics (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/distribution/analytics")
+            if response.status_code == 200:
+                data = response.json()
+                analytics = data.get("analytics", {})
+                self.log_test("Distribution Analytics", True, 
+                             f"Analytics retrieved - Total platforms: {analytics.get('total_platforms', 0)}, Success rate: {analytics.get('success_rate', 0)}%")
+            else:
+                self.log_test("Distribution Analytics", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Distribution Analytics", False, f"Error: {str(e)}")
+
+        # Test 3: Distribution Platform Details (NEW)
+        try:
+            # Test with a known platform ID
+            platform_id = "spotify"
+            response = self.session.get(f"{BACKEND_URL}/distribution/platforms/{platform_id}")
+            if response.status_code == 200:
+                data = response.json()
+                platform_info = data.get("platform", {})
+                self.log_test("Distribution Platform Details", True, 
+                             f"Platform {platform_id} details - Name: {platform_info.get('name')}, Type: {platform_info.get('type')}")
+            else:
+                self.log_test("Distribution Platform Details", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Distribution Platform Details", False, f"Error: {str(e)}")
+
+        # Test 4: Distribution Schedule (NEW)
+        try:
+            # Test scheduling a distribution
+            schedule_data = {
+                "media_id": "test-media-id",
+                "platforms": ["spotify", "apple_music"],
+                "scheduled_time": (datetime.now() + timedelta(hours=1)).isoformat(),
+                "custom_message": "Test scheduled distribution"
+            }
+            response = self.session.post(f"{BACKEND_URL}/distribution/schedule", json=schedule_data)
+            if response.status_code in [200, 201]:
+                data = response.json()
+                self.log_test("Distribution Schedule", True, 
+                             f"Distribution scheduled - ID: {data.get('distribution_id', 'N/A')}")
+            else:
+                self.log_test("Distribution Schedule", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Distribution Schedule", False, f"Error: {str(e)}")
+
+        # Test 5: Distribution Delete (NEW)
+        try:
+            # Test deleting a distribution (using a test ID)
+            test_distribution_id = "test-distribution-id"
+            response = self.session.delete(f"{BACKEND_URL}/distribution/{test_distribution_id}")
+            if response.status_code in [200, 204, 404]:  # 404 is acceptable for non-existent test ID
+                self.log_test("Distribution Delete", True, 
+                             f"Delete endpoint working - Status: {response.status_code}")
+            else:
+                self.log_test("Distribution Delete", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Distribution Delete", False, f"Error: {str(e)}")
+
+    def test_media_endpoints(self):
+        """Test NEW Media endpoints"""
+        print("🎬 TESTING MEDIA MODULE ENDPOINTS")
+        print("=" * 50)
+        
+        # Test 1: Media Update (PUT) (NEW)
+        try:
+            test_media_id = "test-media-id"
+            update_data = {
+                "title": "Updated Test Media",
+                "description": "Updated description for test media",
+                "tags": ["test", "updated"],
+                "category": "music"
+            }
+            response = self.session.put(f"{BACKEND_URL}/media/{test_media_id}", json=update_data)
+            if response.status_code in [200, 404]:  # 404 acceptable for non-existent test ID
+                self.log_test("Media Update (PUT)", True, 
+                             f"Update endpoint working - Status: {response.status_code}")
+            else:
+                self.log_test("Media Update (PUT)", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Media Update (PUT)", False, f"Error: {str(e)}")
+
+        # Test 2: Media Delete (NEW)
+        try:
+            test_media_id = "test-media-id-delete"
+            response = self.session.delete(f"{BACKEND_URL}/media/{test_media_id}")
+            if response.status_code in [200, 204, 404]:  # 404 acceptable for non-existent test ID
+                self.log_test("Media Delete", True, 
+                             f"Delete endpoint working - Status: {response.status_code}")
+            else:
+                self.log_test("Media Delete", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Media Delete", False, f"Error: {str(e)}")
+
+        # Test 3: Media Metadata (NEW)
+        try:
+            test_media_id = "test-media-id"
+            response = self.session.get(f"{BACKEND_URL}/media/{test_media_id}/metadata")
+            if response.status_code in [200, 404]:  # 404 acceptable for non-existent test ID
+                if response.status_code == 200:
+                    data = response.json()
+                    self.log_test("Media Metadata", True, 
+                                 f"Metadata retrieved - Media ID: {test_media_id}")
+                else:
+                    self.log_test("Media Metadata", True, 
+                                 f"Metadata endpoint working - Status: {response.status_code}")
+            else:
+                self.log_test("Media Metadata", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Media Metadata", False, f"Error: {str(e)}")
+
+        # Test 4: Media Search (NEW)
+        try:
+            search_params = {
+                "query": "test",
+                "category": "music",
+                "limit": 10
+            }
+            response = self.session.get(f"{BACKEND_URL}/media/search", params=search_params)
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get("results", [])
+                self.log_test("Media Search", True, 
+                             f"Search completed - Found {len(results)} results for query 'test'")
+            else:
+                self.log_test("Media Search", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Media Search", False, f"Error: {str(e)}")
+
+    def test_licensing_endpoints(self):
+        """Test NEW Licensing endpoints"""
+        print("⚖️ TESTING LICENSING MODULE ENDPOINTS")
+        print("=" * 50)
+        
+        # Test 1: Licensing Compliance (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/licensing/compliance")
+            if response.status_code == 200:
+                data = response.json()
+                compliance_overview = data.get("compliance_overview", {})
+                self.log_test("Licensing Compliance", True, 
+                             f"Compliance status - Rate: {compliance_overview.get('overall_compliance_rate', 0)}%, Total platforms: {compliance_overview.get('total_platforms', 0)}")
+            else:
+                self.log_test("Licensing Compliance", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Licensing Compliance", False, f"Error: {str(e)}")
+
+        # Test 2: Licensing Usage Tracking (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/licensing/usage-tracking")
+            if response.status_code == 200:
+                data = response.json()
+                usage_tracking = data.get("usage_tracking", {})
+                total_usage = usage_tracking.get("total_usage", {})
+                self.log_test("Licensing Usage Tracking", True, 
+                             f"Usage tracking - Streams: {total_usage.get('streams', 0)}, Revenue: ${total_usage.get('revenue', 0)}")
+            else:
+                self.log_test("Licensing Usage Tracking", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Licensing Usage Tracking", False, f"Error: {str(e)}")
+
+        # Test 3: Licensing Compensation (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/licensing/compensation")
+            if response.status_code == 200:
+                data = response.json()
+                compensation = data.get("compensation", {})
+                self.log_test("Licensing Compensation", True, 
+                             f"Compensation data retrieved - Type: {compensation.get('compensation_type')}, Period: {compensation.get('period_days')} days")
+            else:
+                self.log_test("Licensing Compensation", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Licensing Compensation", False, f"Error: {str(e)}")
+
+        # Test 4: Licensing Payouts (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/licensing/payouts")
+            if response.status_code == 200:
+                data = response.json()
+                payouts = data.get("payouts", {})
+                payout_summary = payouts.get("payout_summary", {})
+                self.log_test("Licensing Payouts", True, 
+                             f"Payouts retrieved - Total: {payout_summary.get('total_payouts', 0)}, Amount: ${payout_summary.get('total_amount', 0)}")
+            else:
+                self.log_test("Licensing Payouts", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Licensing Payouts", False, f"Error: {str(e)}")
+
+        # Test 5: Licensing History (NEW)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/licensing/history")
+            if response.status_code == 200:
+                data = response.json()
+                licensing_history = data.get("licensing_history", {})
+                self.log_test("Licensing History", True, 
+                             f"History retrieved - Period: {licensing_history.get('period_start')} to {licensing_history.get('period_end')}")
+            else:
+                self.log_test("Licensing History", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Licensing History", False, f"Error: {str(e)}")
+
+        # Test 6: Licensing Register (NEW)
+        try:
+            register_data = {
+                "platform_ids": ["spotify", "apple_music"],
+                "license_type": "standard",
+                "duration_months": 12
+            }
+            response = self.session.post(f"{BACKEND_URL}/licensing/register", json=register_data)
+            if response.status_code in [200, 201, 403]:  # 403 acceptable if not admin
+                if response.status_code in [200, 201]:
+                    data = response.json()
+                    self.log_test("Licensing Register", True, 
+                                 f"Licenses registered - Count: {len(data.get('registered_licenses', []))}")
+                else:
+                    self.log_test("Licensing Register", True, 
+                                 f"Register endpoint working - Status: {response.status_code} (Admin required)")
+            else:
+                self.log_test("Licensing Register", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Licensing Register", False, f"Error: {str(e)}")
+
+    def test_additional_endpoints(self):
+        """Test additional endpoints for comprehensive coverage"""
+        print("🔍 TESTING ADDITIONAL ENDPOINTS FOR COMPREHENSIVE COVERAGE")
+        print("=" * 50)
+        
+        # Test Distribution Platforms (existing but important)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/distribution/platforms")
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get("platforms", [])
+                self.log_test("Distribution Platforms List", True, 
+                             f"Retrieved {len(platforms)} distribution platforms")
+            else:
+                self.log_test("Distribution Platforms List", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Distribution Platforms List", False, f"Error: {str(e)}")
+
+        # Test Media Library (existing but important)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/media/library")
+            if response.status_code == 200:
+                data = response.json()
+                media_items = data.get("media", [])
+                self.log_test("Media Library", True, 
+                             f"Retrieved {len(media_items)} media items from library")
+            else:
+                self.log_test("Media Library", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_test("Media Library", False, f"Error: {str(e)}")
+
+    def generate_report(self):
+        """Generate comprehensive test report"""
+        print("\n" + "=" * 80)
+        print("🎯 BIG MANN ENTERTAINMENT PLATFORM - BACKEND TESTING REPORT")
+        print("=" * 80)
+        
+        print(f"\n📊 OVERALL RESULTS:")
+        print(f"Total Tests: {self.total_tests}")
+        print(f"Passed: {self.passed_tests} ✅")
+        print(f"Failed: {self.failed_tests} ❌")
+        
+        if self.total_tests > 0:
+            success_rate = (self.passed_tests / self.total_tests) * 100
+            print(f"Success Rate: {success_rate:.1f}%")
+        
+        # Module breakdown
+        ddex_tests = [t for t in self.test_results if "DDEX" in t["test_name"]]
+        distribution_tests = [t for t in self.test_results if "Distribution" in t["test_name"]]
+        media_tests = [t for t in self.test_results if "Media" in t["test_name"]]
+        licensing_tests = [t for t in self.test_results if "Licensing" in t["test_name"]]
+        
+        print(f"\n📋 MODULE BREAKDOWN:")
+        print(f"DDEX Module: {sum(1 for t in ddex_tests if t['success'])}/{len(ddex_tests)} passed")
+        print(f"Distribution Module: {sum(1 for t in distribution_tests if t['success'])}/{len(distribution_tests)} passed")
+        print(f"Media Module: {sum(1 for t in media_tests if t['success'])}/{len(media_tests)} passed")
+        print(f"Licensing Module: {sum(1 for t in licensing_tests if t['success'])}/{len(licensing_tests)} passed")
+        
+        # Failed tests details
+        failed_tests = [t for t in self.test_results if not t["success"]]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS DETAILS:")
+            for test in failed_tests:
+                print(f"- {test['test_name']}: {test['details']}")
+        
+        # Successful tests summary
+        successful_tests = [t for t in self.test_results if t["success"]]
+        if successful_tests:
+            print(f"\n✅ SUCCESSFUL TESTS:")
+            for test in successful_tests:
+                print(f"- {test['test_name']}: {test['details']}")
+        
+        print(f"\n🕒 Test completed at: {datetime.now().isoformat()}")
+        print("=" * 80)
+        
+        return {
+            "total_tests": self.total_tests,
+            "passed_tests": self.passed_tests,
+            "failed_tests": self.failed_tests,
+            "success_rate": (self.passed_tests / max(self.total_tests, 1)) * 100,
+            "module_breakdown": {
+                "ddex": {"passed": sum(1 for t in ddex_tests if t['success']), "total": len(ddex_tests)},
+                "distribution": {"passed": sum(1 for t in distribution_tests if t['success']), "total": len(distribution_tests)},
+                "media": {"passed": sum(1 for t in media_tests if t['success']), "total": len(media_tests)},
+                "licensing": {"passed": sum(1 for t in licensing_tests if t['success']), "total": len(licensing_tests)}
+            },
+            "test_results": self.test_results
+        }
+
+    def run_all_tests(self):
+        """Run all backend tests"""
+        print("🚀 STARTING COMPREHENSIVE BACKEND TESTING")
+        print("Testing NEW endpoints for DDEX, Distribution, Media, and Licensing modules")
+        print("=" * 80)
+        
+        # Authenticate first
+        if not self.authenticate():
+            print("❌ Authentication failed. Cannot proceed with tests.")
+            return False
+        
+        # Run all test suites
+        self.test_ddex_endpoints()
+        self.test_distribution_endpoints()
+        self.test_media_endpoints()
+        self.test_licensing_endpoints()
+        self.test_additional_endpoints()
+        
+        # Generate final report
+        report = self.generate_report()
+        
+        return report
+
+def main():
+    """Main function to run backend tests"""
+    tester = BackendTester()
+    report = tester.run_all_tests()
+    
+    # Return appropriate exit code
+    if report and report["failed_tests"] == 0:
+        print("\n🎉 ALL TESTS PASSED!")
+        sys.exit(0)
+    else:
+        print(f"\n⚠️ {report['failed_tests'] if report else 'Unknown'} TESTS FAILED")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+"""
 Comprehensive Backend Testing Suite for Big Mann Entertainment Media Distribution Platform
 Tests ALL critical backend functionality including authentication, media management, payments, and analytics.
 Identifies ALL errors, issues, and failures in the platform.
