@@ -118,7 +118,7 @@ except ImportError:
     SponsorshipRecommendationEngine = sponsorship_service.SponsorshipRecommendationEngine
 
 # Create Sponsorship router
-sponsorship_router = APIRouter(prefix="/api/sponsorship", tags=["Sponsorship"])
+sponsorship_router = APIRouter(prefix="/sponsorship", tags=["Sponsorship"])
 
 # Initialize services
 bonus_calculator = SponsorshipBonusCalculator()
