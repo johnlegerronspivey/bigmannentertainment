@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-202
 ALGORITHM = "HS256"
 security = HTTPBearer()
 
-router = APIRouter()
+gs1_router = APIRouter(prefix="/gs1", tags=["GS1 Integration"])
 logger = logging.getLogger(__name__)
 
 # User model for authentication
