@@ -127,14 +127,14 @@ class LocationCreate(BaseModel):
     supply_chain_role: Optional[str] = Field(None, max_length=100)
     industry: str = Field("Entertainment", max_length=100)
 
-@router.get("/business-info")
+@gs1_router.get("/business-info")
 async def get_business_info(
     gs1_service: GS1USService = Depends(get_gs1_service)
 ):
     """Get Big Mann Entertainment business information"""
     return gs1_service.get_big_mann_entertainment_info()
 
-@router.post("/products", status_code=status.HTTP_201_CREATED)
+@gs1_router.post("/products", status_code=status.HTTP_201_CREATED)
 async def create_music_product(
     product_data: MusicReleaseCreate,
     current_user: User = Depends(get_current_user),
@@ -224,7 +224,7 @@ async def create_music_product(
             detail=f"Failed to create music product: {str(e)}"
         )
 
-@router.post("/locations", status_code=status.HTTP_201_CREATED)
+@gs1_router.post("/locations", status_code=status.HTTP_201_CREATED)
 async def create_location(
     location_data: LocationCreate,
     current_user: User = Depends(get_current_user),
@@ -311,7 +311,7 @@ async def create_location(
             detail=f"Failed to create location: {str(e)}"
         )
 
-@router.post("/barcode/generate", response_model=BarcodeResponse)
+@gs1_router.post("/barcode/generate", response_model=BarcodeResponse)
 async def generate_barcode(
     request: BarcodeRequest
 ):
@@ -339,7 +339,7 @@ async def generate_barcode(
             detail=f"Failed to generate barcode: {str(e)}"
         )
 
-@router.post("/validate")
+@gs1_router.post("/validate")
 async def validate_identifier(
     identifier: str,
     identifier_type: str,
@@ -394,7 +394,7 @@ async def validate_identifier(
             detail=f"Validation failed: {str(e)}"
         )
 
-@router.get("/products")
+@gs1_router.get("/products")
 async def list_products(
     skip: int = 0,
     limit: int = 50,
@@ -450,7 +450,7 @@ async def list_products(
             detail=f"Failed to list products: {str(e)}"
         )
 
-@router.get("/locations")
+@gs1_router.get("/locations")
 async def list_locations(
     skip: int = 0,
     limit: int = 50,
