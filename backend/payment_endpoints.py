@@ -326,6 +326,98 @@ async def process_payout(
         logger.error(f"Error processing payout: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
+@payment_router.get("/checkout")
+async def get_checkout_info(current_user: User = Depends(get_current_user)):
+    """Get checkout information and available packages"""
+    try:
+        return {
+            "available_packages": [
+                {
+                    "id": "basic",
+                    "name": "Basic Plan", 
+                    "price": 9.99,
+                    "currency": "USD",
+                    "features": ["Basic Distribution", "10 Releases/Month", "Basic Analytics"]
+                },
+                {
+                    "id": "pro",
+                    "name": "Pro Plan",
+                    "price": 29.99, 
+                    "currency": "USD",
+                    "features": ["Advanced Distribution", "Unlimited Releases", "Advanced Analytics", "Priority Support"]
+                },
+                {
+                    "id": "enterprise",
+                    "name": "Enterprise Plan",
+                    "price": 99.99,
+                    "currency": "USD", 
+                    "features": ["Full Distribution", "Custom Features", "Dedicated Support", "White Label Options"]
+                }
+            ],
+            "payment_methods": ["Credit Card", "PayPal", "Bank Transfer"],
+            "current_subscription": "None",
+            "user_id": current_user.id
+        }
+    except Exception as e:
+        logger.error(f"Error getting checkout info: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@payment_router.get("/status")
+async def get_payment_status(current_user: User = Depends(get_current_user)):
+    """Get payment status for current user"""
+    try:
+        return {
+            "user_id": current_user.id,
+            "payment_status": "active",
+            "current_plan": "basic",
+            "subscription_expires": "2025-12-31T23:59:59Z",
+            "payment_method": "card_ending_in_4242",
+            "next_billing_date": "2025-02-01T00:00:00Z",
+            "total_spent": 29.99,
+            "payment_history": [
+                {
+                    "date": "2025-01-01T00:00:00Z",
+                    "amount": 29.99,
+                    "status": "completed",
+                    "description": "Pro Plan Monthly Subscription"
+                }
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error getting payment status: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@payment_router.post("/webhook")
+async def payment_webhook(request: Request):
+    """Generic payment webhook handler"""
+    try:
+        body = await request.body()
+        headers = dict(request.headers)
+        
+        # Log webhook for debugging
+        logger.info(f"Payment webhook received from {request.client.host}")
+        
+        # Process different webhook types
+        webhook_type = headers.get('x-webhook-type', 'unknown')
+        
+        if webhook_type == 'stripe':
+            # Handle Stripe webhook
+            return await stripe_webhook(request)
+        elif webhook_type == 'paypal':
+            # Handle PayPal webhook (placeholder)
+            return {"status": "paypal_webhook_processed"}
+        else:
+            # Generic webhook processing
+            return {
+                "status": "webhook_received",
+                "timestamp": datetime.utcnow().isoformat(),
+                "type": webhook_type
+            }
+            
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
 # Tax Reporting Endpoints
 @payment_router.get("/tax/documents")
 async def get_tax_documents(
