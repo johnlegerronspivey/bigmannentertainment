@@ -897,3 +897,131 @@ class LicensingService:
                 "tin": "12800"
             }
         }
+    
+    def get_comprehensive_compliance_status(self) -> Dict[str, Any]:
+        """Get comprehensive compliance status across all platforms"""
+        try:
+            # Get all platform licenses
+            active_licenses = list(self.platform_licenses.find({"license_status": "active"}))
+            
+            platform_compliance = {}
+            total_compliant = 0
+            
+            for license_doc in active_licenses:
+                platform_id = license_doc["platform_id"]
+                compliance_check = self.check_platform_compliance(platform_id)
+                
+                platform_compliance[platform_id] = compliance_check
+                if compliance_check.get("compliant", False):
+                    total_compliant += 1
+            
+            overall_compliance_rate = (total_compliant / max(len(active_licenses), 1)) * 100
+            
+            return {
+                "overall_compliance_rate": overall_compliance_rate,
+                "total_platforms": len(active_licenses),
+                "compliant_platforms": total_compliant,
+                "platform_compliance": platform_compliance,
+                "business_entity": "Big Mann Entertainment"
+            }
+            
+        except Exception as e:
+            return {
+                "error": f"Failed to get compliance status: {str(e)}",
+                "overall_compliance_rate": 0,
+                "total_platforms": 0,
+                "compliant_platforms": 0
+            }
+    
+    def check_platform_compliance(self, platform_id: str) -> Dict[str, Any]:
+        """Check compliance for a specific platform"""
+        try:
+            # Get platform license
+            license_doc = self.platform_licenses.find_one({"platform_id": platform_id})
+            
+            if not license_doc:
+                return {
+                    "compliant": False,
+                    "score": 0,
+                    "issues": ["No active license found"],
+                    "platform_id": platform_id
+                }
+            
+            issues = []
+            score = 100
+            
+            # Check license expiration
+            end_date = license_doc.get("end_date")
+            if end_date and datetime.fromisoformat(end_date.replace('Z', '+00:00')) < datetime.utcnow():
+                issues.append("License expired")
+                score -= 30
+            
+            # Check usage limits
+            usage_count = license_doc.get("usage_count", 0)
+            monthly_limit = license_doc.get("monthly_limit", 1000)
+            
+            if usage_count > monthly_limit * 0.9:  # 90% of limit
+                issues.append("Approaching usage limit")
+                score -= 20
+            
+            if usage_count > monthly_limit:
+                issues.append("Usage limit exceeded")
+                score -= 40
+            
+            # Check compliance records
+            recent_violations = list(self.compliance_checks.find({
+                "platform_id": platform_id,
+                "compliance_status": {"$in": ["violation", "warning"]},
+                "created_at": {"$gte": datetime.utcnow() - timedelta(days=30)}
+            }))
+            
+            if recent_violations:
+                issues.append(f"{len(recent_violations)} recent compliance issues")
+                score -= len(recent_violations) * 10
+            
+            return {
+                "compliant": score >= 80,
+                "score": max(0, score),
+                "issues": issues,
+                "platform_id": platform_id
+            }
+            
+        except Exception as e:
+            return {
+                "compliant": False,
+                "score": 0,
+                "issues": [f"Error checking compliance: {str(e)}"],
+                "platform_id": platform_id
+            }
+    
+    def get_platform_usage_metrics(self, platform_id: str) -> Dict[str, Any]:
+        """Get usage metrics for a specific platform"""
+        try:
+            # Get recent usage data
+            recent_usage = list(self.license_usage.find({
+                "platform_id": platform_id,
+                "usage_date": {"$gte": datetime.utcnow() - timedelta(days=30)}
+            }).sort("usage_date", -1).limit(30))
+            
+            # Calculate totals
+            total_streams = sum(usage.get("content_uploads", 0) * 100 for usage in recent_usage)  # Mock streams
+            total_downloads = sum(usage.get("content_uploads", 0) * 10 for usage in recent_usage)  # Mock downloads
+            total_revenue = sum(usage.get("revenue_generated", 0) for usage in recent_usage)
+            total_plays = total_streams + (total_downloads * 2)
+            
+            return {
+                "streams": total_streams,
+                "downloads": total_downloads,
+                "revenue": total_revenue,
+                "plays": total_plays,
+                "platform_id": platform_id
+            }
+            
+        except Exception as e:
+            return {
+                "streams": 0,
+                "downloads": 0,
+                "revenue": 0.0,
+                "plays": 0,
+                "error": str(e)
+            }
