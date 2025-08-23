@@ -502,4 +502,3 @@ async def list_locations(
         )
 
 # Export the router
-gs1_router = router
