@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 
 # Configuration
-BASE_URL = "https://bme-media-hub.preview.emergentagent.com/api"
+BASE_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"comprehensive.test.{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "ComprehensiveTest2025!"
 TEST_USER_NAME = "Comprehensive Test User"

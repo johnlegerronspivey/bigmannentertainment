@@ -13,7 +13,7 @@ import tempfile
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://bme-media-hub.preview.emergentagent.com/api"
+BASE_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "stripe.test@bigmannentertainment.com"
 TEST_USER_PASSWORD = "StripeTest2025!"
 TEST_USER_NAME = "Stripe Test User"

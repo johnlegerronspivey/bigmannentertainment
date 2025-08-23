@@ -7,7 +7,7 @@ Tests the specific configurations and metadata for the 7 new platforms
 import requests
 import json
 
-BASE_URL = "https://bme-media-hub.preview.emergentagent.com/api"
+BASE_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
 
 def test_platform_details():
     """Test detailed platform configurations"""

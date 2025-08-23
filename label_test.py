@@ -10,7 +10,7 @@ import os
 from datetime import datetime, date
 
 # Configuration
-BASE_URL = "https://bme-media-hub.preview.emergentagent.com/api"
+BASE_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "owner@bigmannentertainment.com"
 TEST_USER_PASSWORD = "OwnerBigMann2025!"
 

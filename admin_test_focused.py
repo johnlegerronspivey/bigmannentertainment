@@ -10,7 +10,7 @@ import os
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://bme-media-hub.preview.emergentagent.com/api"
+BASE_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
 
 class AdminTester:
     def __init__(self):
