@@ -1817,27 +1817,260 @@ const Upload = () => {
   );
 };
 
-const Distribute = () => (
-  <div className="max-w-4xl mx-auto p-6">
-    <h1 className="text-3xl font-bold text-gray-900 mb-4">Distribute Content</h1>
-    <div className="bg-white p-6 rounded-lg shadow">
-      <p className="text-gray-600 mb-4">Distribute your content across 90+ platforms.</p>
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-semibold mb-2">Social Media</h3>
-          <p className="text-sm text-gray-600">Instagram, TikTok, Facebook, Twitter, YouTube</p>
+const Distribute = () => {
+  const [selectedMedia, setSelectedMedia] = useState(null);
+  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
+  const [userMedia, setUserMedia] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [distributions, setDistributions] = useState([]);
+
+  // Distribution platforms (91+ platforms as shown in backend)
+  const platforms = {
+    "Social Media": [
+      { id: "instagram", name: "Instagram", icon: "📸", active: true },
+      { id: "tiktok", name: "TikTok", icon: "🎵", active: true },
+      { id: "facebook", name: "Facebook", icon: "👥", active: true },
+      { id: "twitter", name: "Twitter", icon: "🐦", active: true },
+      { id: "youtube", name: "YouTube", icon: "📺", active: true },
+      { id: "snapchat", name: "Snapchat", icon: "👻", active: true },
+    ],
+    "Streaming Services": [
+      { id: "spotify", name: "Spotify", icon: "🎶", active: true },
+      { id: "apple_music", name: "Apple Music", icon: "🍎", active: true },
+      { id: "amazon_music", name: "Amazon Music", icon: "🛒", active: true },
+      { id: "tidal", name: "Tidal", icon: "🌊", active: true },
+      { id: "deezer", name: "Deezer", icon: "🎧", active: true },
+      { id: "pandora", name: "Pandora", icon: "📻", active: true },
+    ],
+    "Radio & Broadcast": [
+      { id: "iheartradio", name: "iHeartRadio", icon: "❤️", active: true },
+      { id: "siriusxm", name: "SiriusXM", icon: "📡", active: true },
+      { id: "clear_channel", name: "Clear Channel", icon: "📻", active: true },
+      { id: "cumulus", name: "Cumulus Media", icon: "☁️", active: true },
+    ],
+    "Television & Video": [
+      { id: "netflix", name: "Netflix", icon: "🎬", active: true },
+      { id: "hulu", name: "Hulu", icon: "📺", active: true },
+      { id: "amazon_prime", name: "Amazon Prime", icon: "🎥", active: true },
+      { id: "hbo_max", name: "HBO Max", icon: "🎭", active: true },
+    ]
+  };
+
+  // Load user media on component mount
+  useEffect(() => {
+    loadUserMedia();
+    loadDistributions();
+  }, []);
+
+  const loadUserMedia = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/media`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setUserMedia(response.data.media_items || []);
+    } catch (error) {
+      console.error('Error loading media:', error);
+    }
+  };
+
+  const loadDistributions = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/distribution`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setDistributions(response.data.distributions || []);
+    } catch (error) {
+      console.error('Error loading distributions:', error);
+    }
+  };
+
+  const handlePlatformToggle = (platformId) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platformId)
+        ? prev.filter(id => id !== platformId)
+        : [...prev, platformId]
+    );
+  };
+
+  const startDistribution = async () => {
+    if (!selectedMedia || selectedPlatforms.length === 0) {
+      alert('Please select media and at least one platform');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/distribution/distribute`, {
+        media_id: selectedMedia.id,
+        platforms: selectedPlatforms,
+        custom_message: `Distributing ${selectedMedia.title} to ${selectedPlatforms.length} platforms`
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      alert('Distribution started successfully!');
+      loadDistributions();
+    } catch (error) {
+      console.error('Distribution error:', error);
+      alert('Failed to start distribution: ' + (error.response?.data?.detail || error.message));
+    }
+    setLoading(false);
+  };
+
+  const totalPlatforms = Object.values(platforms).reduce((sum, category) => sum + category.length, 0);
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Distribute Content</h1>
+        <p className="text-gray-600">Distribute your content across {totalPlatforms}+ platforms with a single click</p>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Media Selection */}
+        <div className="lg:col-span-1">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-4">Select Content</h3>
+            {userMedia.length > 0 ? (
+              <div className="space-y-3">
+                {userMedia.map((media) => (
+                  <div
+                    key={media.id}
+                    onClick={() => setSelectedMedia(media)}
+                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                      selectedMedia?.id === media.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 rounded flex items-center justify-center ${
+                        media.content_type === 'audio' ? 'bg-blue-100 text-blue-600' :
+                        media.content_type === 'video' ? 'bg-green-100 text-green-600' :
+                        'bg-yellow-100 text-yellow-600'
+                      }`}>
+                        {media.content_type === 'audio' ? '🎵' :
+                         media.content_type === 'video' ? '🎥' : '🖼️'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{media.title}</p>
+                        <p className="text-sm text-gray-500">{media.content_type}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No content available</p>
+                <Link to="/upload" className="text-purple-600 hover:text-purple-800">
+                  Upload your first file
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-semibold mb-2">Streaming</h3>
-          <p className="text-sm text-gray-600">Spotify, Apple Music, Amazon Music, Tidal</p>
+
+        {/* Platform Selection */}
+        <div className="lg:col-span-2">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Select Platforms ({selectedPlatforms.length} selected)</h3>
+              <div className="space-x-2">
+                <button
+                  onClick={() => setSelectedPlatforms([])}
+                  className="text-gray-600 hover:text-gray-800 px-3 py-1 text-sm"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => {
+                    const allIds = Object.values(platforms).flat().map(p => p.id);
+                    setSelectedPlatforms(allIds);
+                  }}
+                  className="text-purple-600 hover:text-purple-800 px-3 py-1 text-sm"
+                >
+                  Select All
+                </button>
+              </div>
+            </div>
+
+            {Object.entries(platforms).map(([category, platformList]) => (
+              <div key={category} className="mb-6">
+                <h4 className="font-medium text-gray-900 mb-3">{category}</h4>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {platformList.map((platform) => (
+                    <div
+                      key={platform.id}
+                      onClick={() => handlePlatformToggle(platform.id)}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        selectedPlatforms.includes(platform.id) 
+                          ? 'border-purple-500 bg-purple-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">{platform.icon}</span>
+                        <div>
+                          <p className="font-medium">{platform.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {platform.active ? 'Active' : 'Coming Soon'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div className="mt-6 pt-6 border-t">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  {selectedPlatforms.length} of {totalPlatforms}+ platforms selected
+                </div>
+                <button
+                  onClick={startDistribution}
+                  disabled={!selectedMedia || selectedPlatforms.length === 0 || loading}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Distributing...' : `Distribute to ${selectedPlatforms.length} Platforms`}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <Link to="/platforms" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-        View All Platforms
-      </Link>
+
+      {/* Recent Distributions */}
+      {distributions.length > 0 && (
+        <div className="mt-8 bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Recent Distributions</h3>
+          <div className="space-y-3">
+            {distributions.slice(0, 5).map((dist, index) => (
+              <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                <div>
+                  <p className="font-medium">{dist.media_title || 'Content'}</p>
+                  <p className="text-sm text-gray-500">
+                    {dist.target_platforms?.length || 0} platforms • {dist.status}
+                  </p>
+                </div>
+                <span className={`px-2 py-1 rounded text-sm ${
+                  dist.status === 'completed' ? 'bg-green-100 text-green-800' :
+                  dist.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {dist.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const Platforms = () => (
   <div className="max-w-6xl mx-auto p-6">
