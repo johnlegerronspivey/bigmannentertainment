@@ -1583,20 +1583,21 @@ const Library = () => {
         return;
       }
 
-      // Try different potential API endpoints
+      // Try the correct backend endpoint
       let response;
       try {
-        response = await axios.get(`${API}/media`, {
+        // Primary endpoint - correct backend endpoint
+        response = await axios.get(`${API}/media/library`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       } catch (firstError) {
-        console.log('First attempt failed, trying alternative endpoint...');
+        console.log('Library endpoint failed, trying user-media endpoint...');
         try {
-          response = await axios.get(`${API}/media/user-media`, {
+          response = await axios.get(`${API}/media`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
         } catch (secondError) {
-          console.log('Second attempt failed, trying list endpoint...');
+          console.log('Media endpoint failed, trying list endpoint...');
           response = await axios.get(`${API}/media/list`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
