@@ -1578,23 +1578,244 @@ const Library = () => (
   </div>
 );
 
-const Upload = () => (
-  <div className="max-w-4xl mx-auto p-6">
-    <h1 className="text-3xl font-bold text-gray-900 mb-4">Upload Content</h1>
-    <div className="bg-white p-6 rounded-lg shadow">
-      <p className="text-gray-600 mb-4">Upload your audio, video, and image files here.</p>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-        <div className="text-gray-400 mb-2">
-          <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <p className="text-gray-600">Drag and drop files here, or click to select</p>
-        <p className="text-sm text-gray-400 mt-2">Supports: MP3, WAV, MP4, AVI, JPG, PNG</p>
+const Upload = () => {
+  const [dragActive, setDragActive] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+
+  // Handle drag events
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  // Handle drop event
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const newFiles = Array.from(e.dataTransfer.files);
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  // Handle file selection
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const newFiles = Array.from(e.target.files);
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  // Upload files
+  const uploadFiles = async () => {
+    if (files.length === 0) return;
+
+    setUploading(true);
+    const token = localStorage.getItem('token');
+
+    for (const file of files) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', file.name);
+        formData.append('description', `Uploaded file: ${file.name}`);
+        formData.append('category', getFileCategory(file.type));
+
+        const response = await axios.post(`${API}/media/upload`, formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log(`Upload progress: ${progress}%`);
+          }
+        });
+
+        if (response.data) {
+          setUploadedFiles(prev => [...prev, response.data]);
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert(`Failed to upload ${file.name}: ${error.response?.data?.detail || error.message}`);
+      }
+    }
+
+    setUploading(false);
+    setFiles([]);
+  };
+
+  // Get file category based on MIME type
+  const getFileCategory = (mimeType) => {
+    if (mimeType.startsWith('audio/')) return 'audio';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('image/')) return 'image';
+    return 'other';
+  };
+
+  // Remove file from upload queue
+  const removeFile = (index) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Content</h1>
+        <p className="text-gray-600">Upload your audio, video, and image files for distribution</p>
       </div>
+
+      {/* Upload Area */}
+      <div className="bg-white p-6 rounded-lg shadow mb-6">
+        <div 
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragActive ? 'border-purple-400 bg-purple-50' : 'border-gray-300'
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <div className="text-gray-400 mb-4">
+            <svg className="mx-auto h-16 w-16" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <p className="text-lg font-medium text-gray-700 mb-2">
+            {dragActive ? 'Drop files here' : 'Drag and drop files here'}
+          </p>
+          <p className="text-gray-500 mb-4">or</p>
+          <label className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md cursor-pointer inline-block transition-colors">
+            Choose Files
+            <input
+              type="file"
+              multiple
+              accept="audio/*,video/*,image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </label>
+          <p className="text-sm text-gray-400 mt-4">
+            Supports: MP3, WAV, FLAC, MP4, AVI, MOV, JPG, PNG, GIF (Max 100MB per file)
+          </p>
+        </div>
+      </div>
+
+      {/* File Queue */}
+      {files.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Upload Queue ({files.length} files)</h3>
+            <div className="space-x-2">
+              <button
+                onClick={() => setFiles([])}
+                className="text-red-600 hover:text-red-800 px-3 py-1 text-sm"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={uploadFiles}
+                disabled={uploading}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded disabled:opacity-50"
+              >
+                {uploading ? 'Uploading...' : 'Upload All'}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded flex items-center justify-center ${
+                    file.type.startsWith('audio/') ? 'bg-blue-100 text-blue-600' :
+                    file.type.startsWith('video/') ? 'bg-green-100 text-green-600' :
+                    file.type.startsWith('image/') ? 'bg-yellow-100 text-yellow-600' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {file.type.startsWith('audio/') ? '🎵' :
+                     file.type.startsWith('video/') ? '🎥' :
+                     file.type.startsWith('image/') ? '🖼️' : '📄'}
+                  </div>
+                  <div>
+                    <p className="font-medium">{file.name}</p>
+                    <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Uploaded Files */}
+      {uploadedFiles.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Recently Uploaded ({uploadedFiles.length} files)</h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {uploadedFiles.map((file, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className={`w-10 h-10 rounded flex items-center justify-center ${
+                    file.content_type === 'audio' ? 'bg-blue-100 text-blue-600' :
+                    file.content_type === 'video' ? 'bg-green-100 text-green-600' :
+                    file.content_type === 'image' ? 'bg-yellow-100 text-yellow-600' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {file.content_type === 'audio' ? '🎵' :
+                     file.content_type === 'video' ? '🎥' :
+                     file.content_type === 'image' ? '🖼️' : '📄'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{file.title}</p>
+                    <p className="text-sm text-gray-500">{file.content_type}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Link
+                    to={`/library`}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm text-center"
+                  >
+                    View in Library
+                  </Link>
+                  <Link
+                    to={`/distribute?media=${file.id}`}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm text-center"
+                  >
+                    Distribute
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const Distribute = () => (
   <div className="max-w-4xl mx-auto p-6">
