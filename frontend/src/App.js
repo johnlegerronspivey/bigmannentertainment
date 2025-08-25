@@ -2115,6 +2115,10 @@ const Distribute = () => {
   const [userMedia, setUserMedia] = useState([]);
   const [loading, setLoading] = useState(false);
   const [distributions, setDistributions] = useState([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const location = useLocation();
 
   // Distribution platforms (91+ platforms as shown in backend)
   const platforms = {
@@ -2152,18 +2156,91 @@ const Distribute = () => {
   useEffect(() => {
     loadUserMedia();
     loadDistributions();
-  }, []);
+    
+    // Check for pre-selected media from URL parameters
+    const urlParams = new URLSearchParams(location.search);
+    const mediaId = urlParams.get('media');
+    const mediaTitle = urlParams.get('title');
+    
+    if (mediaId) {
+      // Pre-select media if coming from library
+      setSelectedMedia({
+        id: mediaId,
+        title: decodeURIComponent(mediaTitle || 'Selected Media')
+      });
+    }
+  }, [location.search]);
 
   const loadUserMedia = async () => {
+    setLoadingMedia(true);
+    setError(null);
+    
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/media`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setUserMedia(response.data.media_items || []);
+      if (!token) {
+        setError('Authentication required. Please login.');
+        setLoadingMedia(false);
+        return;
+      }
+
+      // Try different potential API endpoints
+      let response;
+      try {
+        response = await axios.get(`${API}/media`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (firstError) {
+        console.log('First attempt failed, trying alternative endpoint...');
+        try {
+          response = await axios.get(`${API}/media/user-media`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        } catch (secondError) {
+          console.log('Second attempt failed, trying list endpoint...');
+          response = await axios.get(`${API}/media/list`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        }
+      }
+
+      // Handle different response formats
+      let mediaItems = [];
+      if (response.data?.media_items) {
+        mediaItems = response.data.media_items;
+      } else if (response.data?.media) {
+        mediaItems = response.data.media;
+      } else if (Array.isArray(response.data)) {
+        mediaItems = response.data;
+      } else if (response.data?.data) {
+        mediaItems = response.data.data;
+      }
+
+      console.log('Loaded user media for distribution:', mediaItems);
+      setUserMedia(mediaItems || []);
+      
+      // Auto-select media if passed via URL and exists in user media
+      const urlParams = new URLSearchParams(location.search);
+      const preSelectedMediaId = urlParams.get('media');
+      
+      if (preSelectedMediaId && mediaItems.length > 0) {
+        const preSelectedMedia = mediaItems.find(m => m.id === preSelectedMediaId);
+        if (preSelectedMedia) {
+          setSelectedMedia(preSelectedMedia);
+        }
+      }
+      
     } catch (error) {
-      console.error('Error loading media:', error);
+      console.error('Error loading user media:', error);
+      
+      if (error.response?.status === 401) {
+        setError('Authentication expired. Please login again.');
+      } else if (error.response?.status === 404) {
+        setError('Media service not available. This may be temporary.');
+      } else {
+        setError(`Failed to load media: ${error.response?.data?.detail || error.message}`);
+      }
     }
+    setLoadingMedia(false);
   };
 
   const loadDistributions = async () => {
@@ -2203,11 +2280,24 @@ const Distribute = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      alert('Distribution started successfully!');
+      alert(`Distribution started successfully! Your content "${selectedMedia.title}" is being distributed to ${selectedPlatforms.length} platforms.`);
       loadDistributions();
+      
+      // Reset selection
+      setSelectedPlatforms([]);
     } catch (error) {
       console.error('Distribution error:', error);
-      alert('Failed to start distribution: ' + (error.response?.data?.detail || error.message));
+      let errorMessage = 'Failed to start distribution';
+      
+      if (error.response?.data?.detail) {
+        errorMessage += `: ${error.response.data.detail}`;
+      } else if (error.response?.status === 401) {
+        errorMessage += ': Authentication required. Please login again.';
+      } else if (error.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      
+      alert(errorMessage);
     }
     setLoading(false);
   };
@@ -2221,12 +2311,44 @@ const Distribute = () => {
         <p className="text-gray-600">Distribute your content across {totalPlatforms}+ platforms with a single click</p>
       </div>
 
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="text-red-600 mr-3">⚠️</div>
+            <div>
+              <h3 className="text-red-800 font-medium">Error Loading Content</h3>
+              <p className="text-red-700 text-sm mt-1">{error}</p>
+              <button 
+                onClick={loadUserMedia}
+                className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Media Selection */}
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Select Content</h3>
-            {userMedia.length > 0 ? (
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Select Content</h3>
+              <button
+                onClick={loadUserMedia}
+                className="text-purple-600 hover:text-purple-800 text-sm"
+              >
+                Refresh
+              </button>
+            </div>
+            
+            {loadingMedia ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                <p className="mt-2 text-gray-500 text-sm">Loading your content...</p>
+              </div>
+            ) : userMedia.length > 0 ? (
               <div className="space-y-3">
                 {userMedia.map((media) => (
                   <div
@@ -2249,13 +2371,25 @@ const Distribute = () => {
                         <p className="font-medium truncate">{media.title}</p>
                         <p className="text-sm text-gray-500">{media.content_type}</p>
                       </div>
+                      {selectedMedia?.id === media.id && (
+                        <div className="text-purple-600">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
-                <p>No content available</p>
+                <div className="text-gray-400 mb-3">
+                  <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m4 0H3a1 1 0 00-1 1v13a1 1 0 001 1h18a1 1 0 001-1V5a1 1 0 00-1-1z" />
+                  </svg>
+                </div>
+                <p className="mb-2">No content available for distribution</p>
                 <Link to="/upload" className="text-purple-600 hover:text-purple-800">
                   Upload your first file
                 </Link>
@@ -2310,6 +2444,13 @@ const Distribute = () => {
                             {platform.active ? 'Active' : 'Coming Soon'}
                           </p>
                         </div>
+                        {selectedPlatforms.includes(platform.id) && (
+                          <div className="ml-auto text-purple-600">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -2320,7 +2461,7 @@ const Distribute = () => {
             <div className="mt-6 pt-6 border-t">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  {selectedPlatforms.length} of {totalPlatforms}+ platforms selected
+                  {selectedMedia ? `Selected: ${selectedMedia.title}` : 'No content selected'} • {selectedPlatforms.length} of {totalPlatforms}+ platforms selected
                 </div>
                 <button
                   onClick={startDistribution}
