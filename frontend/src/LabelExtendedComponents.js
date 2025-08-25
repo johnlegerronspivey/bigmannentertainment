@@ -658,6 +658,49 @@ const TransactionManagement = ({ transactions }) => (
   </div>
 );
 
+// Royalty Management Component
+const RoyaltyManagement = ({ royaltyStatements }) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h3 className="text-xl font-bold">Royalty Management</h3>
+      <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Generate Statement
+      </button>
+    </div>
+
+    {royaltyStatements && royaltyStatements.length > 0 ? (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {royaltyStatements.map((statement) => (
+          <div key={statement.id} className="bg-white p-4 rounded-lg border shadow-sm">
+            <h4 className="font-semibold">{statement.artist}</h4>
+            <p className="text-gray-600">{statement.period}</p>
+            <div className="mt-2">
+              <p className="text-sm">Amount: <span className="font-semibold">${statement.amount}</span></p>
+              <p className="text-sm">Status: 
+                <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                  statement.status === 'paid' ? 'bg-green-100 text-green-800' : 
+                  statement.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {statement.status}
+                </span>
+              </p>
+            </div>
+            <button className="mt-3 w-full bg-gray-100 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-200">
+              View Details
+            </button>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-8 text-gray-500">
+        <p>No royalty statements available.</p>
+        <p className="text-sm mt-2">Royalty statements will appear here once artists are signed and releases are distributed.</p>
+      </div>
+    )}
+  </div>
+);
+
 // Export all components
 export { 
   ProjectManagement,
@@ -665,5 +708,6 @@ export {
   FinancialManagement,
   ProjectCard,
   CampaignCard,
-  TransactionManagement
+  TransactionManagement,
+  RoyaltyManagement
 };
