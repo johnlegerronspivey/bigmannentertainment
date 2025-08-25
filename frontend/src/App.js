@@ -1796,6 +1796,7 @@ const Upload = () => {
 
     setUploading(true);
     const token = localStorage.getItem('token');
+    let successCount = 0;
 
     for (const file of files) {
       try {
@@ -1804,6 +1805,7 @@ const Upload = () => {
         formData.append('title', file.name);
         formData.append('description', `Uploaded file: ${file.name}`);
         formData.append('category', getFileCategory(file.type));
+        formData.append('price', '0');
 
         const response = await axios.post(`${API}/media/upload`, formData, {
           headers: {
@@ -1816,17 +1818,43 @@ const Upload = () => {
           }
         });
 
-        if (response.data) {
+        if (response.data && response.data.media) {
+          setUploadedFiles(prev => [...prev, response.data.media]);
+          successCount++;
+        } else if (response.data) {
+          // Handle different response formats
           setUploadedFiles(prev => [...prev, response.data]);
+          successCount++;
         }
       } catch (error) {
         console.error('Upload error:', error);
-        alert(`Failed to upload ${file.name}: ${error.response?.data?.detail || error.message}`);
+        
+        // More detailed error handling
+        let errorMessage = `Failed to upload ${file.name}`;
+        if (error.response?.data?.detail) {
+          errorMessage += `: ${error.response.data.detail}`;
+        } else if (error.response?.status === 413) {
+          errorMessage += ': File too large (max 100MB)';
+        } else if (error.response?.status === 401) {
+          errorMessage += ': Authentication required. Please login again.';
+        } else if (error.message) {
+          errorMessage += `: ${error.message}`;
+        }
+        
+        alert(errorMessage);
       }
     }
 
     setUploading(false);
     setFiles([]);
+    
+    // Show success message
+    if (successCount > 0) {
+      alert(`Successfully uploaded ${successCount} file(s)! You can view them in your Library.`);
+      
+      // Optional: Navigate to library after upload
+      // navigate('/library');
+    }
   };
 
   // Get file category based on MIME type
