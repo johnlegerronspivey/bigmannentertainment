@@ -2522,26 +2522,137 @@ const Distribute = () => {
       {/* Recent Distributions */}
       {distributions.length > 0 && (
         <div className="mt-8 bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Recent Distributions</h3>
-          <div className="space-y-3">
-            {distributions.slice(0, 5).map((dist, index) => (
-              <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
-                <div>
-                  <p className="font-medium">{dist.media_title || 'Content'}</p>
-                  <p className="text-sm text-gray-500">
-                    {dist.target_platforms?.length || 0} platforms • {dist.status}
-                  </p>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Distribution History & Delivery Status</h3>
+            <button
+              onClick={loadDistributions}
+              className="text-purple-600 hover:text-purple-800 text-sm"
+            >
+              Refresh Status
+            </button>
+          </div>
+          <div className="space-y-4">
+            {distributions.slice(0, 10).map((dist, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <p className="font-medium text-lg">{dist.media_title || 'Content'}</p>
+                    <p className="text-sm text-gray-500 mb-1">
+                      Distribution ID: {dist.id || `dist_${index + 1}`}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {dist.target_platforms?.length || 0} platforms • Created: {
+                        dist.created_at ? new Date(dist.created_at).toLocaleString() : 'Unknown'
+                      }
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    dist.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    dist.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                    dist.status === 'partial' ? 'bg-orange-100 text-orange-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {dist.status === 'completed' ? '✅ Delivered' :
+                     dist.status === 'processing' ? '⏳ Processing' :
+                     dist.status === 'partial' ? '⚠️ Partial' :
+                     '❌ Failed'}
+                  </span>
                 </div>
-                <span className={`px-2 py-1 rounded text-sm ${
-                  dist.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  dist.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {dist.status}
-                </span>
+
+                {/* Platform Results */}
+                {dist.results && Object.keys(dist.results).length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Platform Delivery Results:</p>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {Object.entries(dist.results).map(([platform, result]) => (
+                        <div
+                          key={platform}
+                          className={`p-2 rounded text-xs flex items-center justify-between ${
+                            result.status === 'success' 
+                              ? 'bg-green-50 text-green-800 border border-green-200' 
+                              : 'bg-red-50 text-red-800 border border-red-200'
+                          }`}
+                        >
+                          <span className="font-medium">
+                            {result.status === 'success' ? '✅' : '❌'} {platform}
+                          </span>
+                          {(result.post_id || result.track_id || result.video_id || result.listing_id) && (
+                            <span className="text-xs opacity-75">
+                              {(result.post_id || result.track_id || result.video_id || result.listing_id).substring(0, 8)}...
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected Platforms List */}
+                {dist.target_platforms && dist.target_platforms.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-gray-700 mb-1">Target Platforms:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {dist.target_platforms.map((platform, pidx) => (
+                        <span
+                          key={pidx}
+                          className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded"
+                        >
+                          {platform}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="mt-3 flex gap-2">
+                  {dist.status === 'processing' && (
+                    <button
+                      onClick={loadDistributions}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      Check Status
+                    </button>
+                  )}
+                  {dist.status === 'completed' && (
+                    <span className="text-green-600 text-sm">
+                      ✅ Successfully delivered to all platforms
+                    </span>
+                  )}
+                  {dist.status === 'partial' && (
+                    <span className="text-orange-600 text-sm">
+                      ⚠️ Delivered to some platforms, check results above
+                    </span>
+                  )}
+                  {dist.status === 'failed' && (
+                    <button
+                      onClick={() => {
+                        setSelectedMedia({ id: dist.media_id, title: dist.media_title || 'Content' });
+                        setSelectedPlatforms(dist.target_platforms || []);
+                      }}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Retry Distribution
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
+
+          {distributions.length > 10 && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => {
+                  // Would implement pagination or "Load More" functionality
+                  alert('Pagination feature coming soon! Currently showing last 10 distributions.');
+                }}
+                className="text-purple-600 hover:text-purple-800 text-sm"
+              >
+                View All Distributions ({distributions.length} total)
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
