@@ -158,9 +158,9 @@ frontend:
 
   - task: "Enhanced Distribution Delivery System Testing"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: true
     status_history:
