@@ -60,7 +60,6 @@ const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // You might want to validate the token here
       fetchUserProfile();
     } else {
       setLoading(false);
