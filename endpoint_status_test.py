@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
 # Configuration
-BASE_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
+BASE_URL = "https://content-hub-215.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"endpoint.test.{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "EndpointTest2025!"
 

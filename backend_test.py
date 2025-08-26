@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-hub-215.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "backend.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "TestPassword123!"
 TEST_USER_NAME = "Backend Tester"
@@ -552,7 +552,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
+BASE_URL = "https://content-hub-215.preview.emergentagent.com/api"
 # Use unique test credentials for each run
 TEST_USER_EMAIL = f"test.user.{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "BigMannTest2025!"
@@ -2612,7 +2612,7 @@ class BackendTester:
         """Test API base URL configuration with environment variables"""
         try:
             # Verify we're using the correct base URL from environment
-            expected_base_url = "https://bme-platform-fix.preview.emergentagent.com/api"
+            expected_base_url = "https://content-hub-215.preview.emergentagent.com/api"
             
             if self.base_url == expected_base_url:
                 # Test that the base URL is accessible
@@ -10191,7 +10191,7 @@ class BackendTester:
             # Test with package_id as query parameters
             params = {
                 "package_id": "basic",
-                "origin_url": "https://bme-platform-fix.preview.emergentagent.com"
+                "origin_url": "https://content-hub-215.preview.emergentagent.com"
             }
             
             response = self.make_request('POST', '/payments/checkout/session', params=params)

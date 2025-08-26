@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://bme-platform-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-hub-215.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "comprehensive.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "ComprehensiveTest2025!"
 TEST_USER_NAME = "Comprehensive Backend Tester"
