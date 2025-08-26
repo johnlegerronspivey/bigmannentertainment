@@ -2248,12 +2248,46 @@ const Distribute = () => {
   const loadDistributions = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/distribution`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setDistributions(response.data.distributions || []);
+      
+      // Try multiple endpoints to get distribution history
+      let response;
+      try {
+        response = await axios.get(`${API}/distribution/history`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (historyError) {
+        console.log('History endpoint failed, trying distribution list...');
+        try {
+          response = await axios.get(`${API}/distribution`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        } catch (listError) {
+          console.log('Distribution list failed, trying status endpoint...');
+          response = await axios.get(`${API}/distribution/status`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        }
+      }
+
+      // Handle different response formats
+      let distributionData = [];
+      if (response.data?.distributions) {
+        distributionData = response.data.distributions;
+      } else if (Array.isArray(response.data)) {
+        distributionData = response.data;
+      } else if (response.data?.data) {
+        distributionData = response.data.data;
+      }
+
+      console.log('Loaded distribution history:', distributionData);
+      setDistributions(distributionData || []);
     } catch (error) {
       console.error('Error loading distributions:', error);
+      
+      // Don't show error to user unless it's critical
+      if (error.response?.status === 401) {
+        console.log('Authentication required for distribution history');
+      }
     }
   };
 
