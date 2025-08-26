@@ -2274,31 +2274,72 @@ const Distribute = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      
+      // Show initial loading message
+      const loadingMessage = `Starting distribution of "${selectedMedia.title}" to ${selectedPlatforms.length} platforms...`;
+      console.log(loadingMessage);
+
       const response = await axios.post(`${API}/distribution/distribute`, {
         media_id: selectedMedia.id,
         platforms: selectedPlatforms,
-        custom_message: `Distributing ${selectedMedia.title} to ${selectedPlatforms.length} platforms`
+        custom_message: `Distributing ${selectedMedia.title} to ${selectedPlatforms.length} platforms`,
+        hashtags: []
       }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      alert(`Distribution started successfully! Your content "${selectedMedia.title}" is being distributed to ${selectedPlatforms.length} platforms.`);
-      loadDistributions();
-      
-      // Reset selection
-      setSelectedPlatforms([]);
+      if (response.data) {
+        const distributionResult = response.data;
+        
+        // Show detailed success message with results
+        let successMessage = `🎉 Distribution Successful!\n\n`;
+        successMessage += `Content: "${selectedMedia.title}"\n`;
+        successMessage += `Distribution ID: ${distributionResult.distribution_id}\n`;
+        successMessage += `Platforms: ${selectedPlatforms.length} selected\n`;
+        successMessage += `Status: ${distributionResult.status}\n\n`;
+        
+        // Show individual platform results if available
+        if (distributionResult.results) {
+          successMessage += `Platform Results:\n`;
+          Object.entries(distributionResult.results).forEach(([platform, result]) => {
+            const statusIcon = result.status === 'success' ? '✅' : '❌';
+            successMessage += `${statusIcon} ${platform}: ${result.status}\n`;
+            if (result.post_id || result.track_id || result.video_id) {
+              successMessage += `   ID: ${result.post_id || result.track_id || result.video_id}\n`;
+            }
+          });
+        }
+        
+        successMessage += `\nYou can track the delivery status in your Distribution History.`;
+        
+        alert(successMessage);
+        
+        // Reload distributions to show the new one
+        loadDistributions();
+        
+        // Reset selection
+        setSelectedPlatforms([]);
+        
+        // Optional: Show delivery tracking
+        console.log('Distribution Details:', distributionResult);
+      }
     } catch (error) {
       console.error('Distribution error:', error);
-      let errorMessage = 'Failed to start distribution';
+      let errorMessage = `❌ Distribution Failed for "${selectedMedia.title}"\n\n`;
       
       if (error.response?.data?.detail) {
-        errorMessage += `: ${error.response.data.detail}`;
+        errorMessage += `Error: ${error.response.data.detail}\n`;
       } else if (error.response?.status === 401) {
-        errorMessage += ': Authentication required. Please login again.';
+        errorMessage += 'Error: Authentication required. Please login again.\n';
+      } else if (error.response?.status === 403) {
+        errorMessage += 'Error: You do not have permission to distribute this content.\n';
+      } else if (error.response?.status === 404) {
+        errorMessage += 'Error: Content not found. Please refresh and try again.\n';
       } else if (error.message) {
-        errorMessage += `: ${error.message}`;
+        errorMessage += `Error: ${error.message}\n`;
       }
       
+      errorMessage += '\nPlease check your content and platform selections, then try again.';
       alert(errorMessage);
     }
     setLoading(false);
