@@ -2388,6 +2388,38 @@ const Distribute = () => {
         <p className="text-gray-600">Distribute your content across {totalPlatforms}+ platforms with a single click</p>
       </div>
 
+      {/* Distribution Status Overview */}
+      {distributions.length > 0 && (
+        <div className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-800">Distribution Overview</h3>
+              <p className="text-sm text-gray-600">
+                {distributions.length} distributions • {
+                  distributions.filter(d => d.status === 'completed').length
+                } completed • {
+                  distributions.filter(d => d.status === 'processing').length
+                } processing
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              {distributions.filter(d => d.status === 'processing').length > 0 && (
+                <div className="flex items-center text-yellow-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
+                  <span className="text-sm">Processing...</span>
+                </div>
+              )}
+              <button
+                onClick={loadDistributions}
+                className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+              >
+                Refresh Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex">
