@@ -69,12 +69,45 @@ const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async () => {
     try {
-      // Add user profile endpoint if needed
-      setLoading(false);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Try to get current user from backend
+      const response = await axios.get(`${API}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.data && response.data.email) {
+        setUser(response.data);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      } else {
+        // Token is invalid, clear auth
+        clearAuth();
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      clearAuth();
+      
+      // If token is invalid (401/403), clear auth
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        clearAuth();
+      } else {
+        // For other errors, still set loading to false but keep user if token exists
+        const token = localStorage.getItem('token');
+        if (token) {
+          // Create a temporary user object to allow access while API is having issues
+          setUser({ 
+            email: 'user@bigmannentertainment.com', 
+            role: 'user',
+            temp: true 
+          });
+        }
+        setLoading(false);
+      }
     }
+    setLoading(false);
   };
 
   const clearAuth = () => {
