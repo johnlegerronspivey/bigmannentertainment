@@ -3317,6 +3317,264 @@ async def search_media(
         "pages": (total_count + limit - 1) // limit
     }
 
+# AWS S3 Enhanced Media Endpoints
+@api_router.post("/media/s3/upload/{file_type}")
+async def upload_media_to_s3(
+    file_type: str,
+    file: UploadFile = File(...),
+    user_id: str = Form(...),
+    user_email: str = Form(...),
+    user_name: str = Form(...),
+    title: str = Form(...),
+    description: str = Form(""),
+    category: str = Form("media"),
+    send_notification: bool = Form(True),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload media file to S3 storage with email notification"""
+    try:
+        # Validate file type
+        if file_type not in ['audio', 'video', 'image']:
+            raise HTTPException(status_code=400, detail=f"Invalid file type: {file_type}")
+        
+        # Upload file to S3
+        upload_result = await s3_service.upload_file(file, user_id, file_type)
+        
+        # Store file metadata in MongoDB
+        media = MediaContent(
+            title=title,
+            description=description,
+            content_type=file_type,
+            file_path=upload_result['object_key'],  # Store S3 object key instead of local path
+            file_size=upload_result['size'],
+            mime_type=upload_result['content_type'],
+            tags=[],
+            category=category,
+            owner_id=current_user.id
+        )
+        
+        # Add S3-specific metadata
+        media_dict = media.dict()
+        media_dict.update({
+            's3_bucket': upload_result['bucket'],
+            's3_object_key': upload_result['object_key'],
+            's3_file_url': upload_result['file_url'],
+            'upload_method': 's3'
+        })
+        
+        # Insert into MongoDB
+        result = await db.media_content.insert_one(media_dict)
+        
+        # Send email notification if requested
+        if send_notification:
+            try:
+                await enhanced_email_service.send_file_upload_notification(
+                    user_email=user_email,
+                    user_name=user_name,
+                    filename=file.filename,
+                    file_type=file_type,
+                    file_size=f"{upload_result['size'] / (1024*1024):.2f} MB",
+                    file_url=upload_result['file_url']
+                )
+            except Exception as e:
+                logging.warning(f"Failed to send upload notification: {e}")
+        
+        return {
+            'success': True,
+            'media_id': media.id,
+            'object_key': upload_result['object_key'],
+            'file_url': upload_result['file_url'],
+            'size': upload_result['size'],
+            'content_type': upload_result['content_type'],
+            'notification_queued': send_notification,
+            'message': 'File uploaded successfully to S3'
+        }
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Upload failed: {str(e)}"
+        )
+
+@api_router.get("/media/s3/user/{user_id}")
+async def get_user_s3_files(
+    user_id: str,
+    file_type: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    current_user: User = Depends(get_current_user)
+):
+    """Get user's S3 files with pagination and filtering"""
+    try:
+        # Check authorization
+        if user_id != current_user.id and not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Get files from S3
+        s3_files = s3_service.list_user_files(user_id, file_type)
+        
+        # Apply pagination
+        paginated_files = s3_files[offset:offset + limit]
+        
+        return {
+            'files': paginated_files,
+            'total_count': len(s3_files),
+            'limit': limit,
+            'offset': offset,
+            'has_more': offset + len(paginated_files) < len(s3_files)
+        }
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve files: {str(e)}"
+        )
+
+@api_router.get("/media/s3/{user_id}/{object_key:path}/url")
+async def get_s3_file_access_url(
+    user_id: str,
+    object_key: str,
+    expiration: int = 3600,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate presigned URL for secure S3 file access"""
+    try:
+        # Check authorization
+        if user_id != current_user.id and not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Generate presigned URL
+        presigned_url = s3_service.generate_presigned_url(object_key, expiration)
+        
+        return {
+            "access_url": presigned_url,
+            "expires_in": expiration,
+            "object_key": object_key
+        }
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate access URL: {str(e)}"
+        )
+
+@api_router.delete("/media/s3/{user_id}/{object_key:path}")
+async def delete_s3_file(
+    user_id: str, 
+    object_key: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete user's file from S3 and database"""
+    try:
+        # Check authorization
+        if user_id != current_user.id and not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Delete from S3
+        success = s3_service.delete_file(object_key)
+        
+        if success:
+            # Remove from MongoDB
+            await db.media_content.update_one(
+                {'s3_object_key': object_key, 'owner_id': user_id},
+                {'$set': {'is_active': False, 'deleted_at': datetime.now()}}
+            )
+            
+            return {
+                'success': True,
+                'message': 'File deleted successfully',
+                'object_key': object_key
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to delete file from storage"
+            )
+            
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Deletion failed: {str(e)}"
+        )
+
+# AWS SES Email Endpoints
+@api_router.post("/email/ses/send")
+async def send_ses_email(
+    to_email: str = Form(...),
+    subject: str = Form(...),
+    html_content: str = Form(...),
+    text_content: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Send email using AWS SES (Admin only)"""
+    try:
+        result = ses_service.send_transactional_email(
+            to_addresses=[to_email],
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Email sending failed: {str(e)}"
+        )
+
+@api_router.post("/email/ses/welcome")
+async def send_ses_welcome_email(
+    user_email: str = Form(...),
+    user_name: str = Form(...),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Send welcome email using AWS SES (Admin only)"""
+    try:
+        result = await ses_service.send_welcome_email(user_email, user_name)
+        return result
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Welcome email failed: {str(e)}"
+        )
+
+@api_router.get("/aws/health")
+async def aws_services_health_check():
+    """Check health of AWS services"""
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "services": {}
+    }
+    
+    # Check S3 connectivity
+    try:
+        s3_service.s3_client.head_bucket(Bucket=s3_service.bucket_name)
+        health_status["services"]["s3"] = "healthy"
+    except Exception as e:
+        health_status["services"]["s3"] = f"unhealthy: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    # Check SES connectivity
+    try:
+        ses_service.ses_client.get_send_quota()
+        health_status["services"]["ses"] = "healthy"
+    except Exception as e:
+        health_status["services"]["ses"] = f"unhealthy: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    return health_status
+
 # Content Distribution Endpoints
 @api_router.get("/distribution/platforms")
 async def get_distribution_platforms():
