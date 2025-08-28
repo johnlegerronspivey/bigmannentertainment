@@ -15,10 +15,10 @@ from typing import Dict, Any, Optional
 
 # Configuration
 BACKEND_URL = "https://content-hub-215.preview.emergentagent.com/api"
-TEST_USER_EMAIL = "aws.tester@bigmannentertainment.com"
+TEST_USER_EMAIL = f"aws.tester.{int(time.time())}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "AWSTestPassword123!"
 TEST_USER_NAME = "AWS Integration Tester"
-TEST_ADMIN_EMAIL = "admin.aws@bigmannentertainment.com"
+TEST_ADMIN_EMAIL = f"admin.aws.{int(time.time())}@bigmannentertainment.com"
 TEST_ADMIN_PASSWORD = "AdminAWSTest123!"
 
 # AWS Credentials from review request
