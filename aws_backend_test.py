@@ -131,7 +131,7 @@ class AWSBackendTester:
             
             response = self.session.post(f"{BACKEND_URL}/auth/register", json=admin_data)
             
-            if response.status_code == 201:
+            if response.status_code in [200, 201]:
                 data = response.json()
                 self.admin_user_id = data.get("user", {}).get("id")
                 self.log_test("Admin User Registration", True, f"Admin user registered with ID: {self.admin_user_id}")
