@@ -22,6 +22,9 @@ import aiohttp
 import secrets
 import base64
 import smtplib
+import boto3
+from botocore.exceptions import ClientError, BotoCoreError
+from jinja2 import Template
 try:
     from email.mime.text import MimeText
     from email.mime.multipart import MimeMultipart
