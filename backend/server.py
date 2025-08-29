@@ -4274,7 +4274,7 @@ api_router.include_router(gs1_router)
 
 # Phase 2 API Endpoints
 
-@api_router.post("/media/process/{file_type}")
+@api_router.post("/aws/media/process/{file_type}")
 async def trigger_media_processing(
     file_type: str,
     s3_key: str = Form(...),
@@ -4302,7 +4302,7 @@ async def trigger_media_processing(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Processing trigger failed: {str(e)}")
 
-@api_router.get("/media/cdn-url")
+@api_router.get("/aws/media/cdn-url")
 async def get_cdn_url(s3_key: str):
     """Get CDN URL for media content"""
     try:
@@ -4317,7 +4317,7 @@ async def get_cdn_url(s3_key: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"CDN URL generation failed: {str(e)}")
 
-@api_router.post("/media/moderate")
+@api_router.post("/aws/media/moderate")
 async def moderate_content(
     s3_key: str = Form(...),
     current_user: User = Depends(get_current_admin_user)
@@ -4342,7 +4342,7 @@ async def moderate_content(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Content moderation failed: {str(e)}")
 
-@api_router.post("/cdn/invalidate")
+@api_router.post("/aws/cdn/invalidate")
 async def invalidate_cdn_cache(
     paths: List[str] = Form(...),
     current_user: User = Depends(get_current_admin_user)
@@ -4359,6 +4359,68 @@ async def invalidate_cdn_cache(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Cache invalidation failed: {str(e)}")
+
+# Alternative JSON-based endpoints for easier integration
+@api_router.post("/aws/media/process-json/{file_type}")
+async def trigger_media_processing_json(
+    file_type: str,
+    request_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Trigger media processing via Lambda (JSON version)"""
+    try:
+        s3_key = request_data.get("s3_key")
+        if not s3_key:
+            raise HTTPException(status_code=422, detail="s3_key is required")
+        
+        # Trigger processing
+        processing_started = lambda_service.trigger_media_processing(s3_key, file_type)
+        
+        # Also trigger content moderation if it's an image
+        moderation_started = False
+        if file_type.lower() in ['image', 'jpg', 'jpeg', 'png']:
+            moderation_started = lambda_service.trigger_content_moderation(s3_key)
+        
+        return {
+            "message": "Processing initiated",
+            "s3_key": s3_key,
+            "file_type": file_type,
+            "processing_started": processing_started,
+            "moderation_started": moderation_started,
+            "lambda_available": lambda_service.lambda_available
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Processing trigger failed: {str(e)}")
+
+@api_router.post("/aws/media/moderate-json")
+async def moderate_content_json(
+    request_data: dict,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Moderate content using Rekognition (JSON version, Admin only)"""
+    try:
+        s3_key = request_data.get("s3_key")
+        if not s3_key:
+            raise HTTPException(status_code=422, detail="s3_key is required")
+            
+        bucket_name = os.getenv('S3_BUCKET_NAME', 'bigmann-entertainment-media')
+        
+        # Perform content moderation
+        moderation_result = rekognition_service.detect_moderation_labels(bucket_name, s3_key)
+        
+        # Get general labels too
+        labels_result = rekognition_service.detect_labels(bucket_name, s3_key)
+        
+        return {
+            "s3_key": s3_key,
+            "moderation": moderation_result,
+            "labels": labels_result,
+            "rekognition_available": rekognition_service.rekognition_available
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Content moderation failed: {str(e)}")
 
 @api_router.get("/phase2/status")
 async def get_phase2_status():
