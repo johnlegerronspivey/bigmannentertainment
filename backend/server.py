@@ -3357,6 +3357,47 @@ async def search_media(
         "pages": (total_count + limit - 1) // limit
     }
 
+def validate_media_metadata(metadata: dict) -> dict:
+    """Validate media metadata and return errors"""
+    errors = {}
+    
+    # Title validation
+    title = metadata.get('title', '').strip()
+    if not title:
+        errors['title'] = 'Title is required'
+    elif len(title) > 200:
+        errors['title'] = 'Title must be under 200 characters'
+    
+    # ISRC validation
+    isrc = metadata.get('isrc', '').strip()
+    if isrc:
+        isrc_pattern = re.compile(r'^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$')
+        if not isrc_pattern.match(isrc.upper()):
+            errors['isrc'] = 'ISRC must be in format: CCXXXYYNNNNN (e.g., USRC17607839)'
+    
+    # UPC validation
+    upc = metadata.get('upc', '').strip()
+    if upc:
+        if not upc.isdigit() or len(upc) != 12:
+            errors['upc'] = 'UPC must be exactly 12 digits'
+    
+    # Rights holders validation
+    rights_holders = metadata.get('rightsHolders', '').strip()
+    if rights_holders and len(rights_holders) > 500:
+        errors['rightsHolders'] = 'Rights holders must be under 500 characters'
+    
+    # Tags validation
+    tags = metadata.get('tags', '').strip()
+    if tags and len(tags) > 200:
+        errors['tags'] = 'Tags must be under 200 characters'
+    
+    # Description validation
+    description = metadata.get('description', '').strip()
+    if description and len(description) > 1000:
+        errors['description'] = 'Description must be under 1000 characters'
+    
+    return errors
+
 # AWS S3 Enhanced Media Endpoints
 @api_router.post("/media/s3/upload/{file_type}")
 async def upload_media_to_s3(
