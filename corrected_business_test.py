@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://content-hub-215.preview.emergentagent.com/api"
+BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "corrected.business.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "TestPassword123!"
 

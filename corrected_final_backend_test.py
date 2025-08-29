@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 
 # Configuration
-BASE_URL = "https://content-hub-215.preview.emergentagent.com/api"
+BASE_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
 
 class CorrectedFinalBackendTester:
     def __init__(self):

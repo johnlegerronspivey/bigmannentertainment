@@ -7,7 +7,7 @@ import requests
 import io
 import time
 
-BACKEND_URL = "https://content-hub-215.preview.emergentagent.com/api"
+BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"validation.test.{int(time.time())}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "ValidationTest123!"
 

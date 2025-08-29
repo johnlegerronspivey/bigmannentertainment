@@ -7,7 +7,7 @@ import requests
 import json
 
 # Configuration
-BACKEND_URL = "https://content-hub-215.preview.emergentagent.com/api"
+BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "isrc.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "ISRCTest2025!"
 

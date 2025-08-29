@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://content-hub-215.preview.emergentagent.com/api"
+BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "aws.phase2.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "AWSPhase2Test2025!"
 TEST_USER_NAME = "AWS Phase 2 Tester"
