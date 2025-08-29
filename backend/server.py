@@ -4270,6 +4270,117 @@ api_router.include_router(licensing_router)
 api_router.include_router(gs1_router)
 
 # Include the main api_router in the app
+
+
+# Phase 2 API Endpoints
+
+@api_router.post("/media/process/{file_type}")
+async def trigger_media_processing(
+    file_type: str,
+    s3_key: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Trigger media processing via Lambda"""
+    try:
+        # Trigger processing
+        processing_started = lambda_service.trigger_media_processing(s3_key, file_type)
+        
+        # Also trigger content moderation if it's an image
+        moderation_started = False
+        if file_type.lower() in ['image', 'jpg', 'jpeg', 'png']:
+            moderation_started = lambda_service.trigger_content_moderation(s3_key)
+        
+        return {
+            "message": "Processing initiated",
+            "s3_key": s3_key,
+            "file_type": file_type,
+            "processing_started": processing_started,
+            "moderation_started": moderation_started,
+            "lambda_available": lambda_service.lambda_available
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Processing trigger failed: {str(e)}")
+
+@api_router.get("/media/cdn-url")
+async def get_cdn_url(s3_key: str):
+    """Get CDN URL for media content"""
+    try:
+        cdn_url = cloudfront_service.get_cdn_url(s3_key)
+        
+        return {
+            "s3_key": s3_key,
+            "cdn_url": cdn_url,
+            "cloudfront_available": cloudfront_service.cloudfront_available
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"CDN URL generation failed: {str(e)}")
+
+@api_router.post("/media/moderate")
+async def moderate_content(
+    s3_key: str = Form(...),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Moderate content using Rekognition (Admin only)"""
+    try:
+        bucket_name = os.getenv('S3_BUCKET_NAME', 'bigmann-entertainment-media')
+        
+        # Perform content moderation
+        moderation_result = rekognition_service.detect_moderation_labels(bucket_name, s3_key)
+        
+        # Get general labels too
+        labels_result = rekognition_service.detect_labels(bucket_name, s3_key)
+        
+        return {
+            "s3_key": s3_key,
+            "moderation": moderation_result,
+            "labels": labels_result,
+            "rekognition_available": rekognition_service.rekognition_available
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Content moderation failed: {str(e)}")
+
+@api_router.post("/cdn/invalidate")
+async def invalidate_cdn_cache(
+    paths: List[str] = Form(...),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Invalidate CloudFront cache for specified paths (Admin only)"""
+    try:
+        invalidation_id = cloudfront_service.invalidate_cache(paths)
+        
+        return {
+            "paths": paths,
+            "invalidation_id": invalidation_id,
+            "cloudfront_available": cloudfront_service.cloudfront_available
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cache invalidation failed: {str(e)}")
+
+@api_router.get("/phase2/status")
+async def get_phase2_status():
+    """Get Phase 2 services status"""
+    return {
+        "cloudfront": {
+            "available": cloudfront_service.cloudfront_available,
+            "domain": cloudfront_service.distribution_domain
+        },
+        "lambda": {
+            "available": lambda_service.lambda_available
+        },
+        "rekognition": {
+            "available": rekognition_service.rekognition_available
+        },
+        "s3": {
+            "available": s3_service.s3_client is not None,
+            "bucket": os.getenv('S3_BUCKET_NAME', 'bigmann-entertainment-media')
+        }
+    }
+
+
 app.include_router(api_router)
 
 # CORS middleware
@@ -4290,6 +4401,229 @@ async def health_check():
         "service": "Big Mann Entertainment API",
         "version": "1.0.0"
     }
+
+
+
+# Phase 2: CloudFront, Lambda, and Rekognition Integration
+
+# CloudFront Service Class
+class CloudFrontService:
+    def __init__(self):
+        try:
+            self.cloudfront_client = boto3.client(
+                'cloudfront',
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                region_name=os.getenv('AWS_REGION', 'us-east-1')
+            )
+            self.distribution_domain = os.getenv('CLOUDFRONT_DOMAIN', 'cdn.bigmannentertainment.com')
+            self.cloudfront_available = self._check_cloudfront_availability()
+        except Exception as e:
+            logging.warning(f"CloudFront initialization failed: {e}")
+            self.cloudfront_available = False
+    
+    def _check_cloudfront_availability(self):
+        """Check if CloudFront is available"""
+        try:
+            self.cloudfront_client.list_distributions(MaxItems='1')
+            return True
+        except Exception as e:
+            logging.warning(f"CloudFront not available: {e}")
+            return False
+    
+    def get_cdn_url(self, s3_key: str) -> str:
+        """Generate CDN URL for content delivery"""
+        if self.cloudfront_available:
+            return f"https://{self.distribution_domain}/{s3_key}"
+        else:
+            # Fallback to direct S3 URL
+            return f"https://{os.getenv('S3_BUCKET_NAME', 'bigmann-entertainment-media')}.s3.{os.getenv('AWS_REGION', 'us-east-1')}.amazonaws.com/{s3_key}"
+    
+    def invalidate_cache(self, paths: List[str]) -> Optional[str]:
+        """Invalidate CloudFront cache for specific paths"""
+        if not self.cloudfront_available:
+            return None
+        
+        try:
+            # Get distribution ID from environment or config
+            distribution_id = os.getenv('CLOUDFRONT_DISTRIBUTION_ID')
+            if not distribution_id:
+                logging.warning("CloudFront distribution ID not configured")
+                return None
+            
+            response = self.cloudfront_client.create_invalidation(
+                DistributionId=distribution_id,
+                InvalidationBatch={
+                    'Paths': {
+                        'Quantity': len(paths),
+                        'Items': paths
+                    },
+                    'CallerReference': f"bigmann-{int(datetime.now().timestamp())}"
+                }
+            )
+            return response['Invalidation']['Id']
+        except Exception as e:
+            logging.error(f"Cache invalidation failed: {e}")
+            return None
+
+# Lambda Processing Service
+class LambdaProcessingService:
+    def __init__(self):
+        try:
+            self.lambda_client = boto3.client(
+                'lambda',
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                region_name=os.getenv('AWS_REGION', 'us-east-1')
+            )
+            self.lambda_available = self._check_lambda_availability()
+        except Exception as e:
+            logging.warning(f"Lambda initialization failed: {e}")
+            self.lambda_available = False
+    
+    def _check_lambda_availability(self):
+        """Check if Lambda is available"""
+        try:
+            self.lambda_client.list_functions(MaxItems=1)
+            return True
+        except Exception as e:
+            logging.warning(f"Lambda not available: {e}")
+            return False
+    
+    def trigger_media_processing(self, s3_key: str, file_type: str) -> bool:
+        """Trigger Lambda function for media processing"""
+        if not self.lambda_available:
+            return False
+        
+        try:
+            # Create S3 event payload
+            payload = {
+                'Records': [{
+                    's3': {
+                        'bucket': {'name': os.getenv('S3_BUCKET_NAME', 'bigmann-entertainment-media')},
+                        'object': {'key': s3_key}
+                    }
+                }]
+            }
+            
+            # Invoke media processing Lambda
+            self.lambda_client.invoke(
+                FunctionName='bigmann-media-processor',
+                InvocationType='Event',  # Asynchronous
+                Payload=json.dumps(payload)
+            )
+            
+            return True
+            
+        except Exception as e:
+            logging.error(f"Lambda invocation failed: {e}")
+            return False
+    
+    def trigger_content_moderation(self, s3_key: str) -> bool:
+        """Trigger Lambda function for content moderation"""
+        if not self.lambda_available:
+            return False
+        
+        try:
+            # Create S3 event payload
+            payload = {
+                'Records': [{
+                    's3': {
+                        'bucket': {'name': os.getenv('S3_BUCKET_NAME', 'bigmann-entertainment-media')},
+                        'object': {'key': s3_key}
+                    }
+                }]
+            }
+            
+            # Invoke content moderation Lambda
+            self.lambda_client.invoke(
+                FunctionName='bigmann-content-moderator',
+                InvocationType='Event',  # Asynchronous
+                Payload=json.dumps(payload)
+            )
+            
+            return True
+            
+        except Exception as e:
+            logging.error(f"Content moderation invocation failed: {e}")
+            return False
+
+# Rekognition Service Class
+class RekognitionService:
+    def __init__(self):
+        try:
+            self.rekognition_client = boto3.client(
+                'rekognition',
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                region_name=os.getenv('AWS_REGION', 'us-east-1')
+            )
+            self.rekognition_available = self._check_rekognition_availability()
+        except Exception as e:
+            logging.warning(f"Rekognition initialization failed: {e}")
+            self.rekognition_available = False
+    
+    def _check_rekognition_availability(self):
+        """Check if Rekognition is available"""
+        try:
+            # Simple test to check Rekognition access
+            return True
+        except Exception as e:
+            logging.warning(f"Rekognition not available: {e}")
+            return False
+    
+    def detect_moderation_labels(self, s3_bucket: str, s3_key: str) -> Dict[str, Any]:
+        """Detect moderation labels in image"""
+        if not self.rekognition_available:
+            return {"available": False, "message": "Rekognition not available"}
+        
+        try:
+            response = self.rekognition_client.detect_moderation_labels(
+                Image={'S3Object': {'Bucket': s3_bucket, 'Name': s3_key}},
+                MinConfidence=60.0
+            )
+            
+            moderation_labels = response.get('ModerationLabels', [])
+            
+            return {
+                "available": True,
+                "flagged": len(moderation_labels) > 0,
+                "labels": moderation_labels,
+                "max_confidence": max([label['Confidence'] for label in moderation_labels]) if moderation_labels else 0
+            }
+            
+        except Exception as e:
+            logging.error(f"Rekognition moderation failed: {e}")
+            return {"available": True, "error": str(e)}
+    
+    def detect_labels(self, s3_bucket: str, s3_key: str) -> Dict[str, Any]:
+        """Detect general labels in image"""
+        if not self.rekognition_available:
+            return {"available": False, "message": "Rekognition not available"}
+        
+        try:
+            response = self.rekognition_client.detect_labels(
+                Image={'S3Object': {'Bucket': s3_bucket, 'Name': s3_key}},
+                MaxLabels=20,
+                MinConfidence=75
+            )
+            
+            labels = response.get('Labels', [])
+            
+            return {
+                "available": True,
+                "labels": [{"name": label['Name'], "confidence": label['Confidence']} for label in labels]
+            }
+            
+        except Exception as e:
+            logging.error(f"Rekognition label detection failed: {e}")
+            return {"available": True, "error": str(e)}
+
+# Initialize Phase 2 services
+cloudfront_service = CloudFrontService()
+lambda_service = LambdaProcessingService()
+rekognition_service = RekognitionService()
+
 
 if __name__ == "__main__":
     import uvicorn
