@@ -4344,11 +4344,15 @@ async def moderate_content(
 
 @api_router.post("/aws/cdn/invalidate")
 async def invalidate_cdn_cache(
-    paths: List[str] = Form(...),
+    request_data: dict,
     current_user: User = Depends(get_current_admin_user)
 ):
     """Invalidate CloudFront cache for specified paths (Admin only)"""
     try:
+        paths = request_data.get("paths", [])
+        if not paths or not isinstance(paths, list):
+            raise HTTPException(status_code=422, detail="paths must be a non-empty list")
+        
         invalidation_id = cloudfront_service.invalidate_cache(paths)
         
         return {
