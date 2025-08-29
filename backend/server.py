@@ -2044,15 +2044,33 @@ class S3Service:
 # AWS SES Service Class
 class SESService:
     def __init__(self):
-        self.ses_client = boto3.client(
-            'ses',
-            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            region_name=os.getenv('AWS_REGION', 'us-east-1')
-        )
-        self.verified_sender = os.getenv('SES_VERIFIED_SENDER', 'no-reply@bigmannentertainment.com')
-        self.platform_name = os.getenv('PLATFORM_NAME', 'Big Mann Entertainment')
-        self.logger = logging.getLogger(__name__)
+        try:
+            self.ses_client = boto3.client(
+                'ses',
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                region_name=os.getenv('AWS_REGION', 'us-east-1')
+            )
+            self.verified_sender = os.getenv('SES_VERIFIED_SENDER', 'no-reply@bigmannentertainment.com')
+            self.platform_name = os.getenv('PLATFORM_NAME', 'Big Mann Entertainment')
+            self.logger = logging.getLogger(__name__)
+            self.ses_available = self._check_ses_availability()
+        except Exception as e:
+            self.logger.warning(f"SES initialization failed: {e}")
+            self.ses_available = False
+    
+    def _check_ses_availability(self):
+        """Check if SES is available and properly configured"""
+        try:
+            # Test basic SES connectivity
+            self.ses_client.get_send_quota()
+            return True
+        except ClientError as e:
+            self.logger.warning(f"SES not available: {e.response['Error']['Code']}")
+            return False
+        except Exception as e:
+            self.logger.warning(f"SES check failed: {str(e)}")
+            return False
     
     def send_transactional_email(
         self,
@@ -2063,6 +2081,13 @@ class SESService:
         from_address: Optional[str] = None
     ) -> Dict[str, Any]:
         """Send transactional email using SES"""
+        if not self.ses_available:
+            return {
+                'success': False,
+                'error_message': 'SES not available - permissions may be pending',
+                'timestamp': datetime.now().isoformat()
+            }
+            
         try:
             sender = from_address or self.verified_sender
             
@@ -2118,6 +2143,13 @@ class SESService:
 
     async def send_welcome_email(self, user_email: str, user_name: str) -> Dict[str, Any]:
         """Send welcome email to new users"""
+        if not self.ses_available:
+            return {
+                'success': False,
+                'error_message': 'SES not available - using SMTP fallback',
+                'timestamp': datetime.now().isoformat()
+            }
+            
         subject = f'Welcome to {self.platform_name}!'
         
         html_content = f"""
@@ -2188,6 +2220,13 @@ class SESService:
         file_url: str
     ) -> Dict[str, Any]:
         """Notify user of successful file upload"""
+        if not self.ses_available:
+            return {
+                'success': False,
+                'error_message': 'SES not available - using SMTP fallback',
+                'timestamp': datetime.now().isoformat()
+            }
+            
         subject = f'File Upload Successful - {filename}'
         
         html_content = f"""
