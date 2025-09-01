@@ -82,7 +82,7 @@ async def get_duplicate_report(
                 detail="Admin access required for platform-wide duplicate report"
             )
         
-        user_id = current_user["id"] if scope == "user" else None
+        user_id = current_user.id if scope == "user" else None
         
         report = await reporting_service.generate_duplicate_report(
             user_id=user_id,
