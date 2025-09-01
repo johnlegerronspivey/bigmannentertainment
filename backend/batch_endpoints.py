@@ -298,7 +298,7 @@ async def admin_get_all_batches(
     """Admin endpoint to get all batch processing jobs"""
     
     try:
-        if not mongo_db:
+        if mongo_db is None:
             raise HTTPException(status_code=503, detail="Database unavailable")
         
         # Get total count
