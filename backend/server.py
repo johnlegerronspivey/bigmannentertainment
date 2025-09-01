@@ -4604,15 +4604,18 @@ try:
     import metadata_endpoints
     import batch_endpoints
     import reporting_endpoints
+    import rights_endpoints
     
     # Initialize metadata services with database
     services_dict = {}
     metadata_endpoints.init_metadata_services(db, services_dict)
     batch_endpoints.init_batch_service(db, services_dict)
     reporting_endpoints.init_reporting_service(db, services_dict)
+    rights_endpoints.init_rights_service(db, services_dict)
     print("✅ Metadata Parser & Validator services initialized successfully")
     print("✅ Batch Processing service initialized successfully")
     print("✅ Advanced Reporting service initialized successfully")
+    print("✅ Rights & Compliance service initialized successfully")
 except ImportError as e:
     print(f"⚠️ Metadata services initialization failed: {str(e)}")
 except Exception as e:
