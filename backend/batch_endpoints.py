@@ -204,7 +204,7 @@ async def get_batch_status(
         if mongo_db:
             batch_record = await mongo_db["batch_processing_results"].find_one({
                 "_id": batch_id,
-                "user_id": current_user["id"]
+                "user_id": current_user.id
             })
             
             if batch_record:
