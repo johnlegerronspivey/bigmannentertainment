@@ -2837,6 +2837,7 @@ function App() {
             {/* Protected routes */}
             <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+            <Route path="/rights-compliance" element={<ProtectedRoute><RightsComplianceComponent currentUser={user} /></ProtectedRoute>} />
             <Route path="/distribute" element={<ProtectedRoute><Distribute /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
