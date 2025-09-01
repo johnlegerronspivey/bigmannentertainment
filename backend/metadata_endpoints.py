@@ -408,6 +408,104 @@ async def get_supported_formats():
         }
     }
 
+@router.post("/upload", response_model=Dict[str, Any])
+async def upload_metadata_file(
+    file: UploadFile = File(...),
+    format: MetadataFormat = Form(...),
+    validate: bool = Form(True),
+    check_duplicates: bool = Form(True),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Upload and process metadata file (alias for parse endpoint)
+    This endpoint provides the same functionality as /parse but with upload semantics
+    """
+    try:
+        # Validate file size
+        file_content = await file.read()
+        file_size = len(file_content)
+        
+        if file_size > 50 * 1024 * 1024:  # 50MB limit
+            raise HTTPException(
+                status_code=413,
+                detail="File too large. Maximum size is 50MB."
+            )
+        
+        # Parse metadata
+        parsed_metadata, parsing_errors = parser_service.parse_metadata(
+            content=file_content,
+            file_format=format,
+            file_name=file.filename
+        )
+        
+        # Initialize validation result
+        validation_result = MetadataValidationResult(
+            user_id=current_user.id,
+            file_name=file.filename,
+            file_size=file_size,
+            file_format=format,
+            parsing_status=ValidationStatus.VALID if not parsing_errors else ValidationStatus.WARNING,
+            parsing_errors=parsing_errors,
+            parsed_metadata=parsed_metadata,
+            validation_status=ValidationStatus.PENDING
+        )
+        
+        # Perform validation if requested
+        if validate:
+            validation_config = MetadataValidationConfig(
+                check_duplicates=check_duplicates,
+                duplicate_scope="platform"
+            )
+            
+            validation_result = await validator_service.validate_metadata(
+                parsed_metadata=parsed_metadata,
+                file_format=format,
+                config=validation_config
+            )
+            
+            # Set user and file info
+            validation_result.user_id = current_user.id
+            validation_result.file_name = file.filename
+            validation_result.file_size = file_size
+            validation_result.parsing_errors = parsing_errors
+        
+        # Store validation result in database
+        try:
+            result_dict = validation_result.dict()
+            result_dict["_id"] = validation_result.id
+            result_dict["created_at"] = datetime.now()
+            
+            await mongo_db["metadata_validation_results"].insert_one(result_dict)
+            logger.info(f"Stored validation result {validation_result.id} for user {current_user.id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to store validation result: {str(e)}")
+            # Continue without storing - don't fail the request
+        
+        return {
+            "success": True,
+            "message": "Metadata file uploaded and processed successfully",
+            "validation_id": validation_result.id,
+            "parsing_status": validation_result.parsing_status,
+            "validation_status": validation_result.validation_status,
+            "parsed_metadata": validation_result.parsed_metadata.dict(),
+            "validation_errors": [error.dict() for error in validation_result.validation_errors],
+            "validation_warnings": [warning.dict() for warning in validation_result.validation_warnings],
+            "duplicates_found": validation_result.duplicate_count,
+            "duplicate_details": [dup.dict() for dup in validation_result.duplicates_found],
+            "processing_time": validation_result.processing_time,
+            "upload_status": "completed"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading metadata file: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload metadata file: {str(e)}"
+        )
+
 # Admin endpoints
 @router.get("/admin/all-results", response_model=Dict[str, Any])
 async def admin_get_all_validation_results(
