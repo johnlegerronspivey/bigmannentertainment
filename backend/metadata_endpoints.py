@@ -233,7 +233,7 @@ async def list_validation_results(
 ):
     """List validation results for current user"""
     try:
-        query = {"user_id": current_user["id"]}
+        query = {"user_id": current_user.id}
         
         if status_filter:
             query["validation_status"] = status_filter
