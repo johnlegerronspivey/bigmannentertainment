@@ -59,7 +59,7 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     }
   };
 
-  // Real-time validation functions
+  // Enhanced validation functions for Phase 2
   const validateISRC = (isrc) => {
     const isrcPattern = /^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$/;
     if (!isrc) return true; // Optional field
@@ -81,7 +81,75 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     return rightsHolders.length <= 500;
   };
 
-  // Real-time validation handler
+  // New Phase 2 validation functions
+  const validateDuration = (duration) => {
+    const durationPattern = /^([0-9]+:)?[0-5]?[0-9]:[0-5][0-9]$/;
+    if (!duration) return true;
+    return durationPattern.test(duration);
+  };
+
+  const validateEmail = (email) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return true;
+    return emailPattern.test(email);
+  };
+
+  const validateYear = (year) => {
+    const currentYear = new Date().getFullYear();
+    return year >= 1900 && year <= currentYear + 5;
+  };
+
+  // Detect metadata file format
+  const detectMetadataFormat = (file) => {
+    const extension = file.name.toLowerCase().split('.').pop();
+    const formatMap = {
+      'json': 'json',
+      'xml': file.name.toLowerCase().includes('ddex') ? 'ddex_ern' : 'mead',
+      'csv': 'csv',
+      'ddex': 'ddex_ern',
+      'mead': 'mead',
+      'id3': 'id3',
+      'musicbrainz': 'musicbrainz'
+    };
+    return formatMap[extension] || 'json';
+  };
+
+  // Check for duplicates in real-time
+  const checkDuplicates = async (identifier, type) => {
+    if (!identifier || identifier.length < 3) return;
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/metadata/duplicates/check?identifier_type=${type}&identifier_value=${identifier}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.duplicates_found > 0) {
+          setDuplicateAlerts(prev => ({
+            ...prev,
+            [type]: {
+              found: true,
+              count: data.duplicates_found,
+              details: data.duplicate_details
+            }
+          }));
+        } else {
+          setDuplicateAlerts(prev => {
+            const updated = { ...prev };
+            delete updated[type];
+            return updated;
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking duplicates:', error);
+    }
+  };
+
+  // Enhanced metadata validation with duplicate checking
   const handleMetadataChange = (field, value) => {
     setMetadata(prev => ({
       ...prev,
@@ -104,9 +172,48 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
           errors.isrc = 'ISRC must be in format: CCXXXYYNNNNN (e.g., USRC17607839)';
         } else {
           delete errors.isrc;
+          // Check for duplicates
+          if (value.length >= 12) {
+            checkDuplicates(value, 'isrc');
+          }
         }
         break;
       case 'upc':
+        if (!validateUPC(value)) {
+          errors.upc = 'UPC must be 12 digits';
+        } else {
+          delete errors.upc;
+          // Check for duplicates
+          if (value.length === 12) {
+            checkDuplicates(value, 'upc');
+          }
+        }
+        break;
+      case 'duration':
+        if (!validateDuration(value)) {
+          errors.duration = 'Duration must be in format MM:SS or HH:MM:SS';
+        } else {
+          delete errors.duration;
+        }
+        break;
+      case 'copyrightYear':
+        if (!validateYear(parseInt(value))) {
+          errors.copyrightYear = 'Year must be between 1900 and ' + (new Date().getFullYear() + 5);
+        } else {
+          delete errors.copyrightYear;
+        }
+        break;
+      case 'rightsHolders':
+        if (!validateRightsHolders(value)) {
+          errors.rightsHolders = 'Rights holders field is too long (max 500 characters)';
+        } else {
+          delete errors.rightsHolders;
+        }
+        break;
+    }
+    
+    setValidationErrors(errors);
+  };
         if (!validateUPC(value)) {
           errors.upc = 'UPC must be 12 digits (e.g., 123456789012)';
         } else {
