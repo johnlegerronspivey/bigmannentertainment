@@ -19,7 +19,11 @@ import RightsComplianceComponent from './RightsComplianceComponent';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Enhanced Payment Checkout Component
+// Rights & Compliance Component Wrapper
+const RightsComplianceWrapper = () => {
+  const { user } = useAuth();
+  return <RightsComplianceComponent currentUser={user} />;
+};
 const EnhancedPaymentCheckout = () => {
   const { packageId } = useParams();
   const navigate = useNavigate();
