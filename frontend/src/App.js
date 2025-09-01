@@ -14,6 +14,7 @@ import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
 import { LicensingDashboard, PlatformLicenseManager, LicensingStatus } from './LicensingComponents';
 import GS1Components, { GS1Dashboard } from './GS1Components';
 import EnhancedUploadComponent from './EnhancedUploadComponent';
+import RightsComplianceComponent from './RightsComplianceComponent';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
