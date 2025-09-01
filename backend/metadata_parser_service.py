@@ -18,6 +18,7 @@ from metadata_models import (
     ValidationSeverity, ValidationStatus, DDEX_VERSIONS,
     MEADStandardFields
 )
+from extended_metadata_formats import ExtendedMetadataParser
 
 logger = logging.getLogger(__name__)
 
