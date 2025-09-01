@@ -336,7 +336,7 @@ async def admin_get_batch_statistics(
     """Admin endpoint to get platform batch processing statistics"""
     
     try:
-        if not mongo_db:
+        if mongo_db is None:
             raise HTTPException(status_code=503, detail="Database unavailable")
         
         # Get statistics
