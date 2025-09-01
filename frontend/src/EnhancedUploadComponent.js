@@ -7,6 +7,11 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [validationErrors, setValidationErrors] = useState({});
+  const [batchMode, setBatchMode] = useState(false);
+  const [validationResults, setValidationResults] = useState({});
+  const [duplicateAlerts, setDuplicateAlerts] = useState({});
+  const [metadataPreview, setMetadataPreview] = useState({});
+  const [processingStatus, setProcessingStatus] = useState('idle'); // idle, processing, completed, error
   
   // Metadata state
   const [metadata, setMetadata] = useState({
