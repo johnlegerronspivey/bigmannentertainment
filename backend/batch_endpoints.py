@@ -265,7 +265,7 @@ async def get_batch_report(
     try:
         report = await batch_service.generate_batch_report(
             batch_id=batch_id,
-            user_id=current_user["id"]
+            user_id=current_user.id
         )
         
         if not report:
