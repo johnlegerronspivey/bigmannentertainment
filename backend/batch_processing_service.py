@@ -410,7 +410,7 @@ class BatchProcessingService:
     async def generate_batch_report(self, batch_id: str, user_id: str) -> Optional[Dict]:
         """Generate detailed report for a batch processing job"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return None
             
         try:
