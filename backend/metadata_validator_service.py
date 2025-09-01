@@ -461,7 +461,7 @@ class MetadataValidatorService:
         
         return errors
     
-    def _check_duplicates(self, metadata: ParsedMetadata) -> List[DuplicateRecord]:
+    async def _check_duplicates(self, metadata: ParsedMetadata) -> List[DuplicateRecord]:
         """Check for duplicate ISRCs and UPCs platform-wide"""
         duplicates = []
         
