@@ -98,7 +98,7 @@ class MetadataValidatorService:
         
         # 5. Duplicate Detection
         if self.validation_config.check_duplicates:
-            duplicates = self._check_duplicates(parsed_metadata)
+            duplicates = await self._check_duplicates(parsed_metadata)
             validation_result.duplicates_found = duplicates
             validation_result.duplicate_count = len(duplicates)
         
