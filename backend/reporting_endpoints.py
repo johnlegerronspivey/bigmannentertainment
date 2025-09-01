@@ -46,7 +46,7 @@ async def get_comprehensive_report(
             }
         
         report = await reporting_service.generate_comprehensive_report(
-            user_id=current_user["id"],
+            user_id=current_user.id,
             date_range=date_range
         )
         
