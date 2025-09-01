@@ -145,19 +145,19 @@ async def export_report_csv(
                 date_range = {'start_date': start_date, 'end_date': end_date}
             
             report_data = await reporting_service.generate_comprehensive_report(
-                user_id=current_user["id"],
+                user_id=current_user.id,
                 date_range=date_range
             )
             
         elif report_type == "duplicate_patterns":
             report_data = await reporting_service.generate_duplicate_report(
-                user_id=current_user["id"],
+                user_id=current_user.id,
                 scope="user"
             )
             
         elif report_type == "error_analysis":
             report_data = await reporting_service.generate_error_trend_report(
-                user_id=current_user["id"],
+                user_id=current_user.id,
                 days=30
             )
             
