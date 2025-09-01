@@ -61,7 +61,7 @@ class MetadataValidatorService:
             "required": ["title", "artist", "isrc", "rights_holders"]
         }
     
-    def validate_metadata(self, parsed_metadata: ParsedMetadata, file_format: MetadataFormat, 
+    async def validate_metadata(self, parsed_metadata: ParsedMetadata, file_format: MetadataFormat, 
                          config: Optional[MetadataValidationConfig] = None) -> MetadataValidationResult:
         """Comprehensive metadata validation"""
         
