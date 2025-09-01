@@ -93,7 +93,7 @@ async def parse_metadata_file(
             )
             
             # Set user and file info
-            validation_result.user_id = current_user["id"]
+            validation_result.user_id = current_user.id
             validation_result.file_name = file.filename
             validation_result.file_size = file_size
             validation_result.parsing_errors = parsing_errors
