@@ -214,24 +214,113 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     
     setValidationErrors(errors);
   };
-        if (!validateUPC(value)) {
-          errors.upc = 'UPC must be 12 digits (e.g., 123456789012)';
-        } else {
-          delete errors.upc;
-        }
-        break;
-      case 'rightsHolders':
-        if (!validateRightsHolders(value)) {
-          errors.rightsHolders = 'Rights holders must be under 500 characters';
-        } else {
-          delete errors.rightsHolders;
-        }
-        break;
-      default:
-        break;
+
+  // Parse metadata file and show preview
+  const parseMetadataFile = async (file) => {
+    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+      return;
     }
     
-    setValidationErrors(errors);
+    try {
+      const text = await file.text();
+      const metadata = JSON.parse(text);
+      
+      setMetadataPreview(prev => ({
+        ...prev,
+        [file.name]: {
+          parsed: true,
+          data: metadata,
+          format: detectMetadataFormat(file)
+        }
+      }));
+    } catch (error) {
+      setMetadataPreview(prev => ({
+        ...prev,
+        [file.name]: {
+          parsed: false,
+          error: 'Failed to parse JSON: ' + error.message,
+          format: detectMetadataFormat(file)
+        }
+      }));
+    }
+  };
+
+  // Batch processing handler
+  const processBatchUpload = async (files) => {
+    setProcessingStatus('processing');
+    const results = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setUploadProgress(prev => ({
+        ...prev,
+        batch: {
+          current: i + 1,
+          total: files.length,
+          fileName: file.name
+        }
+      }));
+      
+      try {
+        const result = await uploadSingleFile(file);
+        results.push({
+          file: file.name,
+          success: true,
+          result
+        });
+      } catch (error) {
+        results.push({
+          file: file.name,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+    
+    setProcessingStatus('completed');
+    return results;
+  };
+
+  // Enhanced single file upload with metadata validation
+  const uploadSingleFile = async (file) => {
+    const fileType = getFileType(file);
+    
+    if (fileType === 'metadata') {
+      return await uploadMetadataFile(file);
+    } else {
+      return await uploadMediaFile(file, fileType);
+    }
+  };
+
+  // Metadata file upload with parsing and validation
+  const uploadMetadataFile = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('format', detectMetadataFormat(file));
+    formData.append('validate', 'true');
+    formData.append('check_duplicates', 'true');
+    
+    const response = await fetch(`${BACKEND_URL}/api/metadata/parse`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    // Store validation results for display
+    setValidationResults(prev => ({
+      ...prev,
+      [file.name]: result
+    }));
+    
+    return result;
   };
 
   // Drag and drop handlers
