@@ -67,7 +67,7 @@ async def upload_archive_batch(
         batch_result = await batch_service.process_archive(
             archive_content=content,
             filename=file.filename,
-            user_id=current_user["id"],
+            user_id=current_user.id,
             validation_config=validation_config
         )
         
