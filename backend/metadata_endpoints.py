@@ -104,7 +104,7 @@ async def parse_metadata_file(
             result_dict["_id"] = validation_result.id
             result_dict["created_at"] = datetime.now()
             
-            mongo_db["metadata_validation_results"].insert_one(result_dict)
+            await mongo_db["metadata_validation_results"].insert_one(result_dict)
             logger.info(f"Stored validation result {validation_result.id} for user {current_user.id}")
             
         except Exception as e:
