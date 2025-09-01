@@ -513,4 +513,4 @@ async def admin_get_platform_statistics(
         )
 
 # Import DDEX_VERSIONS for the formats endpoint
-from .metadata_models import DDEX_VERSIONS
+from metadata_models import DDEX_VERSIONS
