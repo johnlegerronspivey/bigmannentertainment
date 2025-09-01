@@ -11,7 +11,8 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
   const [validationResults, setValidationResults] = useState({});
   const [duplicateAlerts, setDuplicateAlerts] = useState({});
   const [metadataPreview, setMetadataPreview] = useState({});
-  const [processingStatus, setProcessingStatus] = useState('idle'); // idle, processing, completed, error
+  const [processingStatus, setProcessingStatus] = useState('idle');
+  const [selectedTab, setSelectedTab] = useState('upload');
   
   // Metadata state
   const [metadata, setMetadata] = useState({
@@ -32,10 +33,9 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
   });
 
   const fileInputRef = useRef(null);
-  
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-  // File type configurations
+  // Enhanced file type configurations for Phase 2
   const fileTypeConfig = {
     media: {
       accept: ['.mp3', '.wav', '.flac', '.m4a', '.mp4', '.avi', '.mov', '.wmv'],
@@ -62,36 +62,24 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
   // Enhanced validation functions for Phase 2
   const validateISRC = (isrc) => {
     const isrcPattern = /^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$/;
-    if (!isrc) return true; // Optional field
+    if (!isrc) return true;
     return isrcPattern.test(isrc.toUpperCase());
   };
 
   const validateUPC = (upc) => {
     const upcPattern = /^[0-9]{12}$/;
-    if (!upc) return true; // Optional field
+    if (!upc) return true;
     return upcPattern.test(upc);
   };
 
   const validateTitle = (title) => {
-    return title.length >= 1 && title.length <= 200;
+    return title && title.length >= 1 && title.length <= 200;
   };
 
-  const validateRightsHolders = (rightsHolders) => {
-    if (!rightsHolders) return true; // Optional field
-    return rightsHolders.length <= 500;
-  };
-
-  // New Phase 2 validation functions
   const validateDuration = (duration) => {
     const durationPattern = /^([0-9]+:)?[0-5]?[0-9]:[0-5][0-9]$/;
     if (!duration) return true;
     return durationPattern.test(duration);
-  };
-
-  const validateEmail = (email) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) return true;
-    return emailPattern.test(email);
   };
 
   const validateYear = (year) => {
@@ -119,11 +107,14 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     if (!identifier || identifier.length < 3) return;
     
     try {
-      const response = await fetch(`${BACKEND_URL}/api/metadata/duplicates/check?identifier_type=${type}&identifier_value=${identifier}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await fetch(
+        `${BACKEND_URL}/api/metadata/duplicates/check?identifier_type=${type}&identifier_value=${identifier}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
         }
-      });
+      );
       
       if (response.ok) {
         const data = await response.json();
@@ -156,7 +147,6 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
       [field]: value
     }));
 
-    // Real-time validation
     const errors = { ...validationErrors };
     
     switch (field) {
@@ -168,47 +158,40 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
         }
         break;
       case 'isrc':
-        if (!validateISRC(value)) {
+        if (value && !validateISRC(value)) {
           errors.isrc = 'ISRC must be in format: CCXXXYYNNNNN (e.g., USRC17607839)';
         } else {
           delete errors.isrc;
-          // Check for duplicates
-          if (value.length >= 12) {
+          if (value && value.length >= 12) {
             checkDuplicates(value, 'isrc');
           }
         }
         break;
       case 'upc':
-        if (!validateUPC(value)) {
+        if (value && !validateUPC(value)) {
           errors.upc = 'UPC must be 12 digits';
         } else {
           delete errors.upc;
-          // Check for duplicates
-          if (value.length === 12) {
+          if (value && value.length === 12) {
             checkDuplicates(value, 'upc');
           }
         }
         break;
       case 'duration':
-        if (!validateDuration(value)) {
+        if (value && !validateDuration(value)) {
           errors.duration = 'Duration must be in format MM:SS or HH:MM:SS';
         } else {
           delete errors.duration;
         }
         break;
       case 'copyrightYear':
-        if (!validateYear(parseInt(value))) {
+        if (value && !validateYear(parseInt(value))) {
           errors.copyrightYear = 'Year must be between 1900 and ' + (new Date().getFullYear() + 5);
         } else {
           delete errors.copyrightYear;
         }
         break;
-      case 'rightsHolders':
-        if (!validateRightsHolders(value)) {
-          errors.rightsHolders = 'Rights holders field is too long (max 500 characters)';
-        } else {
-          delete errors.rightsHolders;
-        }
+      default:
         break;
     }
     
@@ -245,40 +228,20 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     }
   };
 
-  // Batch processing handler
-  const processBatchUpload = async (files) => {
-    setProcessingStatus('processing');
-    const results = [];
+  // Get file type based on extension
+  const getFileType = (file) => {
+    const extension = file.name.toLowerCase();
     
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      setUploadProgress(prev => ({
-        ...prev,
-        batch: {
-          current: i + 1,
-          total: files.length,
-          fileName: file.name
-        }
-      }));
-      
-      try {
-        const result = await uploadSingleFile(file);
-        results.push({
-          file: file.name,
-          success: true,
-          result
-        });
-      } catch (error) {
-        results.push({
-          file: file.name,
-          success: false,
-          error: error.message
-        });
-      }
+    if (fileTypeConfig.media.accept.some(ext => extension.endsWith(ext))) {
+      return 'media';
+    } else if (fileTypeConfig.artwork.accept.some(ext => extension.endsWith(ext))) {
+      return 'artwork';
+    } else if (fileTypeConfig.metadata.accept.some(ext => extension.endsWith(ext))) {
+      return 'metadata';
+    } else if (fileTypeConfig.batch.accept.some(ext => extension.endsWith(ext))) {
+      return 'batch';
     }
-    
-    setProcessingStatus('completed');
-    return results;
+    return 'unknown';
   };
 
   // Enhanced single file upload with metadata validation
@@ -287,6 +250,8 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     
     if (fileType === 'metadata') {
       return await uploadMetadataFile(file);
+    } else if (fileType === 'batch') {
+      return await processBatchFile(file);
     } else {
       return await uploadMediaFile(file, fileType);
     }
@@ -323,6 +288,113 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     return result;
   };
 
+  // Media file upload
+  const uploadMediaFile = async (file, fileType) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('user_id', currentUser?.id || 'unknown');
+    formData.append('user_email', currentUser?.email || '');
+    formData.append('user_name', currentUser?.full_name || '');
+    
+    // Add metadata
+    Object.keys(metadata).forEach(key => {
+      if (metadata[key]) {
+        formData.append(`metadata_${key}`, metadata[key]);
+      }
+    });
+    
+    const response = await fetch(`${BACKEND_URL}/api/media/s3/upload/${fileType}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`);
+    }
+    
+    return await response.json();
+  };
+
+  // Process batch file
+  const processBatchFile = async (file) => {
+    // For now, just return a placeholder - batch processing would require additional backend support
+    return {
+      message: 'Batch file received - processing not yet implemented',
+      filename: file.name,
+      size: file.size
+    };
+  };
+
+  // Batch processing handler
+  const processBatchUpload = async (filesToProcess) => {
+    setProcessingStatus('processing');
+    const results = [];
+    
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const file = filesToProcess[i];
+      setUploadProgress(prev => ({
+        ...prev,
+        batch: {
+          current: i + 1,
+          total: filesToProcess.length,
+          fileName: file.name
+        }
+      }));
+      
+      try {
+        const result = await uploadSingleFile(file);
+        results.push({
+          file: file.name,
+          success: true,
+          result
+        });
+      } catch (error) {
+        results.push({
+          file: file.name,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+    
+    setProcessingStatus('completed');
+    return results;
+  };
+
+  // File handling
+  const handleFiles = (fileList) => {
+    const newFiles = Array.from(fileList);
+    
+    // Validate files
+    const validatedFiles = newFiles.filter(file => {
+      const fileType = getFileType(file);
+      if (fileType === 'unknown') {
+        console.warn(`Unsupported file type: ${file.name}`);
+        return false;
+      }
+      
+      const config = fileTypeConfig[fileType];
+      if (file.size > config.maxSize) {
+        console.warn(`File too large: ${file.name}`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    setFiles(prev => [...prev, ...validatedFiles]);
+    
+    // Parse metadata files for preview
+    validatedFiles.forEach(file => {
+      if (getFileType(file) === 'metadata') {
+        parseMetadataFile(file);
+      }
+    });
+  };
+
   // Drag and drop handlers
   const handleDrag = useCallback((e) => {
     e.preventDefault();
@@ -350,484 +422,388 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
     }
   };
 
-  const handleFiles = (fileList) => {
-    const newFiles = Array.from(fileList).map(file => ({
-      file,
-      id: `${file.name}-${Date.now()}-${Math.random()}`,
-      type: determineFileType(file),
-      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
-      status: 'pending',
-      progress: 0
-    }));
-
-    setFiles(prev => [...prev, ...newFiles]);
-  };
-
-  const determineFileType = (file) => {
-    const extension = `.${file.name.split('.').pop().toLowerCase()}`;
+  // Upload handler
+  const handleUpload = async () => {
+    if (files.length === 0) return;
     
-    if (fileTypeConfig.media.accept.includes(extension)) {
-      return 'media';
-    } else if (fileTypeConfig.artwork.accept.includes(extension)) {
-      return 'artwork';
-    } else if (fileTypeConfig.metadata.accept.includes(extension)) {
-      return 'metadata';
-    } else {
-      return 'unknown';
-    }
-  };
-
-  const removeFile = (fileId) => {
-    setFiles(prev => prev.filter(f => f.id !== fileId));
-    setUploadProgress(prev => {
-      const newProgress = { ...prev };
-      delete newProgress[fileId];
-      return newProgress;
-    });
-  };
-
-  const uploadFiles = async () => {
-    if (files.length === 0) {
-      alert('Please select files to upload');
-      return;
-    }
-
-    // Validate metadata
-    const hasValidationErrors = Object.keys(validationErrors).length > 0;
-    if (hasValidationErrors) {
-      alert('Please fix validation errors before uploading');
-      return;
-    }
-
     setUploading(true);
-
-    for (const fileItem of files) {
-      if (fileItem.status === 'completed') continue;
-
-      try {
-        await uploadSingleFile(fileItem);
-      } catch (error) {
-        console.error(`Failed to upload ${fileItem.file.name}:`, error);
-        setFiles(prev => 
-          prev.map(f => 
-            f.id === fileItem.id 
-              ? { ...f, status: 'error', error: error.message }
-              : f
-          )
-        );
+    setProcessingStatus('processing');
+    
+    try {
+      let results;
+      if (batchMode || files.length > 1) {
+        results = await processBatchUpload(files);
+      } else {
+        const result = await uploadSingleFile(files[0]);
+        results = [{ file: files[0].name, success: true, result }];
       }
+      
+      setProcessingStatus('completed');
+      
+      if (onUploadComplete) {
+        onUploadComplete(results);
+      }
+      
+      // Clear files after successful upload
+      setFiles([]);
+      setMetadata({
+        title: '',
+        artist: '',
+        album: '',
+        isrc: '',
+        upc: '',
+        rightsHolders: '',
+        genre: '',
+        releaseDate: '',
+        description: '',
+        tags: '',
+        copyrightYear: new Date().getFullYear(),
+        publisherName: '',
+        composerName: '',
+        duration: ''
+      });
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      setProcessingStatus('error');
+    } finally {
+      setUploading(false);
     }
-
-    setUploading(false);
   };
 
-  const uploadSingleFile = async (fileItem) => {
-    const formData = new FormData();
-    formData.append('file', fileItem.file);
-    formData.append('user_id', currentUser.id);
-    formData.append('user_email', currentUser.email);
-    formData.append('user_name', currentUser.full_name);
-    formData.append('send_notification', 'true');
+  // Render validation results
+  const renderValidationResults = () => {
+    const results = Object.entries(validationResults);
+    if (results.length === 0) return null;
     
-    // Add metadata
-    Object.keys(metadata).forEach(key => {
-      if (metadata[key]) {
-        formData.append(`metadata_${key}`, metadata[key]);
-      }
-    });
-
-    // Determine upload endpoint based on file type
-    let uploadUrl;
-    switch (fileItem.type) {
-      case 'media':
-        uploadUrl = `${BACKEND_URL}/api/media/s3/upload/audio`;
-        if (fileItem.file.type.startsWith('video/')) {
-          uploadUrl = `${BACKEND_URL}/api/media/s3/upload/video`;
-        }
-        break;
-      case 'artwork':
-        uploadUrl = `${BACKEND_URL}/api/media/s3/upload/image`;
-        break;
-      default:
-        uploadUrl = `${BACKEND_URL}/api/media/s3/upload/image`; // fallback
-    }
-
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${currentUser.token}`
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    
-    setFiles(prev => 
-      prev.map(f => 
-        f.id === fileItem.id 
-          ? { ...f, status: 'completed', result }
-          : f
-      )
+    return (
+      <div className="validation-results">
+        <h3>Validation Results</h3>
+        {results.map(([fileName, result]) => (
+          <div key={fileName} className="validation-result-item">
+            <h4>{fileName}</h4>
+            <div className={`status ${result.validation_status}`}>
+              Status: {result.validation_status}
+            </div>
+            {result.validation_errors && result.validation_errors.length > 0 && (
+              <div className="errors">
+                <h5>Errors:</h5>
+                <ul>
+                  {result.validation_errors.map((error, idx) => (
+                    <li key={idx} className={`error ${error.severity}`}>
+                      <strong>{error.field}:</strong> {error.message}
+                      {error.suggested_fix && (
+                        <div className="suggestion">Suggestion: {error.suggested_fix}</div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {result.duplicates_found > 0 && (
+              <div className="duplicates-alert">
+                <h5>⚠️ Duplicates Found: {result.duplicates_found}</h5>
+                <ul>
+                  {result.duplicate_details.map((dup, idx) => (
+                    <li key={idx}>
+                      {dup.identifier_type.toUpperCase()}: {dup.identifier_value} 
+                      (First seen: {new Date(dup.first_seen_date).toLocaleDateString()})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     );
-
-    if (onUploadComplete) {
-      onUploadComplete(result);
-    }
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  // Render duplicate alerts
+  const renderDuplicateAlerts = () => {
+    const alerts = Object.entries(duplicateAlerts);
+    if (alerts.length === 0) return null;
+    
+    return (
+      <div className="duplicate-alerts">
+        {alerts.map(([type, alert]) => (
+          <div key={type} className="duplicate-alert">
+            ⚠️ {alert.count} duplicate {type.toUpperCase()}(s) found in platform
+          </div>
+        ))}
+      </div>
+    );
   };
 
-  const getFileIcon = (fileType) => {
-    switch (fileType) {
-      case 'media': return '🎵';
-      case 'artwork': return '🖼️';
-      case 'metadata': return '📄';
-      default: return '📁';
-    }
+  // Render metadata preview
+  const renderMetadataPreview = () => {
+    const previews = Object.entries(metadataPreview);
+    if (previews.length === 0) return null;
+    
+    return (
+      <div className="metadata-preview">
+        <h3>Metadata Preview</h3>
+        {previews.map(([fileName, preview]) => (
+          <div key={fileName} className="preview-item">
+            <h4>{fileName} ({preview.format})</h4>
+            {preview.parsed ? (
+              <pre className="metadata-data">
+                {JSON.stringify(preview.data, null, 2)}
+              </pre>
+            ) : (
+              <div className="error">Error: {preview.error}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
     <div className="enhanced-upload-container">
-      <h2>Upload Media & Metadata</h2>
-      
-      {/* Metadata Form */}
-      <div className="metadata-form">
-        <h3>Media Metadata</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label>
-              Title <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              value={metadata.title}
-              onChange={(e) => handleMetadataChange('title', e.target.value)}
-              placeholder="Enter track or album title"
-              className={validationErrors.title ? 'error' : ''}
-              maxLength={200}
-            />
-            {validationErrors.title && (
-              <div className="validation-error">{validationErrors.title}</div>
-            )}
-            <div className="char-count">{metadata.title.length}/200</div>
-          </div>
-
-          <div className="form-group">
-            <label>Artist</label>
-            <input
-              type="text"
-              value={metadata.artist}
-              onChange={(e) => handleMetadataChange('artist', e.target.value)}
-              placeholder="Artist name"
-              maxLength={100}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Album</label>
-            <input
-              type="text"
-              value={metadata.album}
-              onChange={(e) => handleMetadataChange('album', e.target.value)}
-              placeholder="Album name"
-              maxLength={100}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Genre</label>
-            <select
-              value={metadata.genre}
-              onChange={(e) => handleMetadataChange('genre', e.target.value)}
-            >
-              <option value="">Select Genre</option>
-              <option value="pop">Pop</option>
-              <option value="rock">Rock</option>
-              <option value="hip-hop">Hip Hop</option>
-              <option value="r&b">R&B</option>
-              <option value="electronic">Electronic</option>
-              <option value="jazz">Jazz</option>
-              <option value="classical">Classical</option>
-              <option value="country">Country</option>
-              <option value="folk">Folk</option>
-              <option value="alternative">Alternative</option>
-              <option value="indie">Indie</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>
-              ISRC
-              <span className="tooltip">ℹ️
-                <span className="tooltip-text">International Standard Recording Code (12 characters: CCXXXYYNNNNN)</span>
-              </span>
-            </label>
-            <input
-              type="text"
-              value={metadata.isrc}
-              onChange={(e) => handleMetadataChange('isrc', e.target.value.toUpperCase())}
-              placeholder="e.g., USRC17607839"
-              className={validationErrors.isrc ? 'error' : ''}
-              maxLength={12}
-            />
-            {validationErrors.isrc && (
-              <div className="validation-error">{validationErrors.isrc}</div>
-            )}
-            {metadata.isrc && validateISRC(metadata.isrc) && (
-              <div className="validation-success">✓ Valid ISRC format</div>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label>
-              UPC
-              <span className="tooltip">ℹ️
-                <span className="tooltip-text">Universal Product Code (12 digits)</span>
-              </span>
-            </label>
-            <input
-              type="text"
-              value={metadata.upc}
-              onChange={(e) => handleMetadataChange('upc', e.target.value.replace(/\D/g, ''))}
-              placeholder="e.g., 123456789012"
-              className={validationErrors.upc ? 'error' : ''}
-              maxLength={12}
-            />
-            {validationErrors.upc && (
-              <div className="validation-error">{validationErrors.upc}</div>
-            )}
-            {metadata.upc && validateUPC(metadata.upc) && (
-              <div className="validation-success">✓ Valid UPC format</div>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label>Rights Holders</label>
-            <textarea
-              value={metadata.rightsHolders}
-              onChange={(e) => handleMetadataChange('rightsHolders', e.target.value)}
-              placeholder="List rights holders, publishers, etc."
-              className={validationErrors.rightsHolders ? 'error' : ''}
-              maxLength={500}
-              rows={3}
-            />
-            {validationErrors.rightsHolders && (
-              <div className="validation-error">{validationErrors.rightsHolders}</div>
-            )}
-            <div className="char-count">{metadata.rightsHolders.length}/500</div>
-          </div>
-
-          <div className="form-group">
-            <label>Publisher Name</label>
-            <input
-              type="text"
-              value={metadata.publisherName}
-              onChange={(e) => handleMetadataChange('publisherName', e.target.value)}
-              placeholder="Publisher name"
-              maxLength={100}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Composer</label>
-            <input
-              type="text"
-              value={metadata.composerName}
-              onChange={(e) => handleMetadataChange('composerName', e.target.value)}
-              placeholder="Composer name"
-              maxLength={100}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Release Date</label>
-            <input
-              type="date"
-              value={metadata.releaseDate}
-              onChange={(e) => handleMetadataChange('releaseDate', e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Copyright Year</label>
-            <input
-              type="number"
-              value={metadata.copyrightYear}
-              onChange={(e) => handleMetadataChange('copyrightYear', e.target.value)}
-              min="1900"
-              max={new Date().getFullYear() + 10}
-            />
-          </div>
-
-          <div className="form-group full-width">
-            <label>Description</label>
-            <textarea
-              value={metadata.description}
-              onChange={(e) => handleMetadataChange('description', e.target.value)}
-              placeholder="Brief description of the content"
-              maxLength={1000}
-              rows={3}
-            />
-            <div className="char-count">{metadata.description.length}/1000</div>
-          </div>
-
-          <div className="form-group full-width">
-            <label>Tags</label>
-            <input
-              type="text"
-              value={metadata.tags}
-              onChange={(e) => handleMetadataChange('tags', e.target.value)}
-              placeholder="Comma-separated tags (e.g., upbeat, dance, summer)"
-              maxLength={200}
-            />
-            <div className="char-count">{metadata.tags.length}/200</div>
-          </div>
-        </div>
-      </div>
-
-      {/* File Upload Area */}
-      <div className="upload-section">
-        <h3>Upload Files</h3>
-        
-        <div
-          className={`drop-zone ${dragActive ? 'drag-active' : ''}`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
+      <div className="upload-tabs">
+        <button 
+          className={`tab ${selectedTab === 'upload' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('upload')}
         >
-          <div className="drop-zone-content">
-            <div className="upload-icon">📁</div>
-            <div className="upload-text">
-              <p>Drag and drop your files here</p>
-              <p className="upload-subtext">or <span className="browse-link">browse files</span></p>
-            </div>
-            <div className="supported-formats">
-              <div className="format-group">
-                <strong>Media:</strong> MP3, WAV, FLAC, M4A, MP4, AVI, MOV (max 500MB)
-              </div>
-              <div className="format-group">
-                <strong>Artwork:</strong> JPG, PNG, GIF, BMP, WebP (max 10MB)
-              </div>
-              <div className="format-group">
-                <strong>Metadata:</strong> TXT, JSON, XML, CSV, PDF (max 5MB)
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".mp3,.wav,.flac,.m4a,.mp4,.avi,.mov,.wmv,.jpg,.jpeg,.png,.gif,.bmp,.webp,.txt,.json,.xml,.csv,.pdf"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
+          Upload
+        </button>
+        <button 
+          className={`tab ${selectedTab === 'results' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('results')}
+        >
+          Results
+        </button>
+        <button 
+          className={`tab ${selectedTab === 'preview' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('preview')}
+        >
+          Preview
+        </button>
       </div>
 
-      {/* File List */}
-      {files.length > 0 && (
-        <div className="file-list">
-          <h4>Selected Files ({files.length})</h4>
-          <div className="files">
-            {files.map((fileItem) => (
-              <div key={fileItem.id} className={`file-item ${fileItem.status}`}>
-                <div className="file-info">
-                  <div className="file-icon">{getFileIcon(fileItem.type)}</div>
-                  <div className="file-details">
-                    <div className="file-name">{fileItem.file.name}</div>
-                    <div className="file-meta">
-                      <span className="file-size">{formatFileSize(fileItem.file.size)}</span>
-                      <span className="file-type">{fileItem.type}</span>
-                      {fileItem.status === 'error' && (
-                        <span className="error-message">{fileItem.error}</span>
-                      )}
-                    </div>
-                  </div>
-                  {fileItem.preview && (
-                    <div className="file-preview">
-                      <img src={fileItem.preview} alt="Preview" />
-                    </div>
-                  )}
+      {selectedTab === 'upload' && (
+        <div className="upload-section">
+          <div className="upload-modes">
+            <label className="mode-toggle">
+              <input
+                type="checkbox"
+                checked={batchMode}
+                onChange={(e) => setBatchMode(e.target.checked)}
+              />
+              Batch Processing Mode
+            </label>
+          </div>
+
+          <div 
+            className={`drop-zone ${dragActive ? 'active' : ''}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <div className="drop-content">
+              <div className="upload-icon">📁</div>
+              <h3>Drag & Drop Files Here</h3>
+              <p>Or click to select files</p>
+              <div className="supported-formats">
+                <p><strong>Supported:</strong></p>
+                <p>📊 Metadata: JSON, XML, CSV, DDEX, MEAD, ID3</p>
+                <p>🎵 Media: MP3, WAV, FLAC, MP4, AVI, MOV</p>
+                <p>🖼️ Artwork: JPG, PNG, GIF, BMP, WEBP</p>
+                <p>📦 Batch: ZIP, TAR, GZ</p>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="file-input"
+                accept=".mp3,.wav,.flac,.mp4,.avi,.mov,.jpg,.png,.gif,.json,.xml,.csv,.zip,.tar,.gz"
+              />
+            </div>
+          </div>
+
+          {files.length > 0 && (
+            <div className="files-list">
+              <h3>Selected Files ({files.length})</h3>
+              {files.map((file, index) => (
+                <div key={index} className="file-item">
+                  <span className="file-name">{file.name}</span>
+                  <span className="file-type">{getFileType(file)}</span>
+                  <span className="file-size">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </span>
+                  <button
+                    onClick={() => setFiles(prev => prev.filter((_, i) => i !== index))}
+                    className="remove-file"
+                  >
+                    ✕
+                  </button>
                 </div>
-                <div className="file-actions">
-                  {fileItem.status === 'pending' && (
-                    <button
-                      type="button"
-                      onClick={() => removeFile(fileItem.id)}
-                      className="remove-btn"
-                    >
-                      ×
-                    </button>
-                  )}
-                  {fileItem.status === 'completed' && (
-                    <div className="success-indicator">✓</div>
-                  )}
-                  {fileItem.status === 'error' && (
-                    <div className="error-indicator">✗</div>
-                  )}
-                </div>
-                {uploadProgress[fileItem.id] > 0 && (
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill"
-                      style={{ width: `${uploadProgress[fileItem.id]}%` }}
-                    ></div>
-                  </div>
+              ))}
+            </div>
+          )}
+
+          {/* Metadata input form */}
+          <div className="metadata-form">
+            <h3>Metadata Information</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Title *</label>
+                <input
+                  type="text"
+                  value={metadata.title}
+                  onChange={(e) => handleMetadataChange('title', e.target.value)}
+                  className={validationErrors.title ? 'error' : ''}
+                />
+                {validationErrors.title && (
+                  <span className="error-text">{validationErrors.title}</span>
                 )}
               </div>
-            ))}
+
+              <div className="form-group">
+                <label>Artist</label>
+                <input
+                  type="text"
+                  value={metadata.artist}
+                  onChange={(e) => handleMetadataChange('artist', e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Album</label>
+                <input
+                  type="text"
+                  value={metadata.album}
+                  onChange={(e) => handleMetadataChange('album', e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>ISRC</label>
+                <input
+                  type="text"
+                  value={metadata.isrc}
+                  onChange={(e) => handleMetadataChange('isrc', e.target.value)}
+                  placeholder="USRC17607839"
+                  className={validationErrors.isrc ? 'error' : ''}
+                />
+                {validationErrors.isrc && (
+                  <span className="error-text">{validationErrors.isrc}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>UPC</label>
+                <input
+                  type="text"
+                  value={metadata.upc}
+                  onChange={(e) => handleMetadataChange('upc', e.target.value)}
+                  placeholder="123456789012"
+                  className={validationErrors.upc ? 'error' : ''}
+                />
+                {validationErrors.upc && (
+                  <span className="error-text">{validationErrors.upc}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Rights Holders</label>
+                <input
+                  type="text"
+                  value={metadata.rightsHolders}
+                  onChange={(e) => handleMetadataChange('rightsHolders', e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Genre</label>
+                <input
+                  type="text"
+                  value={metadata.genre}
+                  onChange={(e) => handleMetadataChange('genre', e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Duration</label>
+                <input
+                  type="text"
+                  value={metadata.duration}
+                  onChange={(e) => handleMetadataChange('duration', e.target.value)}
+                  placeholder="3:45"
+                  className={validationErrors.duration ? 'error' : ''}
+                />
+                {validationErrors.duration && (
+                  <span className="error-text">{validationErrors.duration}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Copyright Year</label>
+                <input
+                  type="number"
+                  value={metadata.copyrightYear}
+                  onChange={(e) => handleMetadataChange('copyrightYear', e.target.value)}
+                  className={validationErrors.copyrightYear ? 'error' : ''}
+                />
+                {validationErrors.copyrightYear && (
+                  <span className="error-text">{validationErrors.copyrightYear}</span>
+                )}
+              </div>
+
+              <div className="form-group full-width">
+                <label>Description</label>
+                <textarea
+                  value={metadata.description}
+                  onChange={(e) => handleMetadataChange('description', e.target.value)}
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group full-width">
+                <label>Tags (comma-separated)</label>
+                <input
+                  type="text"
+                  value={metadata.tags}
+                  onChange={(e) => handleMetadataChange('tags', e.target.value)}
+                  placeholder="hip-hop, rap, urban"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Upload Button */}
-      <div className="upload-actions">
-        <button
-          type="button"
-          onClick={uploadFiles}
-          disabled={uploading || files.length === 0 || Object.keys(validationErrors).length > 0}
-          className="upload-btn"
-        >
-          {uploading ? 'Uploading...' : `Upload ${files.length} File${files.length !== 1 ? 's' : ''}`}
-        </button>
-        
-        {files.length > 0 && (
+          {renderDuplicateAlerts()}
+
+          {processingStatus !== 'idle' && (
+            <div className="processing-status">
+              <div className={`status ${processingStatus}`}>
+                {processingStatus === 'processing' && '⏳ Processing...'}
+                {processingStatus === 'completed' && '✅ Completed'}
+                {processingStatus === 'error' && '❌ Error'}
+              </div>
+              {uploadProgress.batch && (
+                <div className="batch-progress">
+                  Processing {uploadProgress.batch.current} of {uploadProgress.batch.total}: 
+                  {uploadProgress.batch.fileName}
+                </div>
+              )}
+            </div>
+          )}
+
           <button
-            type="button"
-            onClick={() => setFiles([])}
-            className="clear-btn"
-            disabled={uploading}
+            onClick={handleUpload}
+            disabled={files.length === 0 || uploading}
+            className="upload-button"
           >
-            Clear All
+            {uploading ? '⏳ Uploading...' : `📤 Upload ${files.length} File(s)`}
           </button>
-        )}
-      </div>
-
-      {/* Validation Summary */}
-      {Object.keys(validationErrors).length > 0 && (
-        <div className="validation-summary">
-          <h4>Please fix the following errors:</h4>
-          <ul>
-            {Object.entries(validationErrors).map(([field, error]) => (
-              <li key={field}>{error}</li>
-            ))}
-          </ul>
         </div>
       )}
+
+      {selectedTab === 'results' && renderValidationResults()}
+      {selectedTab === 'preview' && renderMetadataPreview()}
     </div>
   );
 };
