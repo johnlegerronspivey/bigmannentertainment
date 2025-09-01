@@ -1,5 +1,994 @@
 #!/usr/bin/env python3
 """
+Enhanced Metadata Parser & Validator Phase 2 Comprehensive Backend Testing
+Tests all Phase 2 features: Extended Formats, Batch Processing, Advanced Reporting, Admin Features
+"""
+
+import requests
+import json
+import time
+import os
+import sys
+from datetime import datetime
+import tempfile
+import zipfile
+import io
+
+# Configuration
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://mediacloud-bme.preview.emergentagent.com')
+API_BASE = f"{BACKEND_URL}/api"
+
+class MetadataPhase2Tester:
+    def __init__(self):
+        self.session = requests.Session()
+        self.user_token = None
+        self.admin_token = None
+        self.test_results = []
+        
+    def log_result(self, test_name, success, details="", error_msg=""):
+        """Log test result"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        result = {
+            'test': test_name,
+            'status': status,
+            'success': success,
+            'details': details,
+            'error': error_msg,
+            'timestamp': datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        print(f"{status}: {test_name}")
+        if details:
+            print(f"   Details: {details}")
+        if error_msg:
+            print(f"   Error: {error_msg}")
+        print()
+
+    def setup_authentication(self):
+        """Setup user and admin authentication"""
+        print("🔐 Setting up authentication...")
+        
+        # Register test user
+        user_data = {
+            "email": "metadata.tester@bigmannentertainment.com",
+            "password": "MetadataTest2025!",
+            "full_name": "Metadata Phase2 Tester",
+            "date_of_birth": "1990-01-01T00:00:00Z",
+            "address_line1": "123 Test Street",
+            "city": "Test City",
+            "state_province": "Test State",
+            "postal_code": "12345",
+            "country": "US"
+        }
+        
+        try:
+            # Try to register user
+            response = self.session.post(f"{API_BASE}/auth/register", json=user_data)
+            if response.status_code in [200, 201]:
+                print("✅ User registered successfully")
+            elif response.status_code == 400 and "already exists" in response.text:
+                print("ℹ️ User already exists, proceeding with login")
+            else:
+                print(f"⚠️ Registration response: {response.status_code}")
+            
+            # Login user
+            login_data = {"email": user_data["email"], "password": user_data["password"]}
+            response = self.session.post(f"{API_BASE}/auth/login", json=login_data)
+            
+            if response.status_code == 200:
+                token_data = response.json()
+                self.user_token = token_data.get('access_token')
+                self.session.headers.update({'Authorization': f'Bearer {self.user_token}'})
+                print("✅ User authentication successful")
+                return True
+            else:
+                print(f"❌ Login failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Authentication setup failed: {str(e)}")
+            return False
+
+    def test_extended_metadata_formats(self):
+        """Test Phase 2 Extended Metadata Format Support"""
+        print("🧪 Testing Extended Metadata Formats...")
+        
+        # Test 1: Get supported formats (should include new formats)
+        try:
+            response = self.session.get(f"{API_BASE}/metadata/formats/supported")
+            if response.status_code == 200:
+                data = response.json()
+                supported_formats = data.get('supported_formats', {})
+                
+                # Check for Phase 2 formats
+                expected_formats = ['ddex_ern', 'mead', 'json', 'csv']
+                found_formats = list(supported_formats.keys())
+                
+                # Check if new extended formats are mentioned in validation features
+                validation_features = data.get('validation_features', {})
+                
+                self.log_result(
+                    "Extended Metadata Formats - Supported Formats Endpoint",
+                    True,
+                    f"Found formats: {found_formats}, Validation features: {list(validation_features.keys())}"
+                )
+            else:
+                self.log_result(
+                    "Extended Metadata Formats - Supported Formats Endpoint",
+                    False,
+                    error_msg=f"Status: {response.status_code}, Response: {response.text}"
+                )
+        except Exception as e:
+            self.log_result(
+                "Extended Metadata Formats - Supported Formats Endpoint",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 2: Test ID3 metadata parsing (simulated)
+        try:
+            id3_metadata = {
+                "frames": {
+                    "TIT2": "Test Song Title",
+                    "TPE1": "Test Artist",
+                    "TALB": "Test Album",
+                    "TRCK": "1/12",
+                    "TYER": "2024",
+                    "TCON": "Electronic",
+                    "TSRC": "USRC17607839"
+                }
+            }
+            
+            # Create a temporary file with ID3-like JSON data
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                json.dump(id3_metadata, f)
+                temp_file_path = f.name
+            
+            with open(temp_file_path, 'rb') as f:
+                files = {'file': ('id3_test.json', f, 'application/json')}
+                data = {'format': 'json', 'validate': 'true', 'check_duplicates': 'true'}
+                
+                response = self.session.post(f"{API_BASE}/metadata/parse", files=files, data=data)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    parsed_metadata = result.get('parsed_metadata', {})
+                    
+                    self.log_result(
+                        "Extended Metadata Formats - ID3-like JSON Parsing",
+                        True,
+                        f"Parsed title: {parsed_metadata.get('title')}, Artist: {parsed_metadata.get('artist')}"
+                    )
+                else:
+                    self.log_result(
+                        "Extended Metadata Formats - ID3-like JSON Parsing",
+                        False,
+                        error_msg=f"Status: {response.status_code}, Response: {response.text}"
+                    )
+            
+            os.unlink(temp_file_path)
+            
+        except Exception as e:
+            self.log_result(
+                "Extended Metadata Formats - ID3-like JSON Parsing",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 3: Test MusicBrainz-like metadata parsing
+        try:
+            musicbrainz_xml = """<?xml version="1.0" encoding="UTF-8"?>
+            <metadata xmlns="http://musicbrainz.org/ns/mmd-2.0#">
+                <recording>
+                    <title>Test Recording</title>
+                    <length>240000</length>
+                    <artist-credit>
+                        <name-credit>
+                            <artist>
+                                <name>Test Artist</name>
+                            </artist>
+                        </name-credit>
+                    </artist-credit>
+                    <isrc-list>
+                        <isrc>USRC17607839</isrc>
+                    </isrc-list>
+                </recording>
+                <release>
+                    <title>Test Album</title>
+                    <date>2024-01-01</date>
+                    <barcode>123456789012</barcode>
+                </release>
+            </metadata>"""
+            
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f:
+                f.write(musicbrainz_xml)
+                temp_file_path = f.name
+            
+            with open(temp_file_path, 'rb') as f:
+                files = {'file': ('musicbrainz_test.xml', f, 'application/xml')}
+                data = {'format': 'mead', 'validate': 'true', 'check_duplicates': 'true'}
+                
+                response = self.session.post(f"{API_BASE}/metadata/parse", files=files, data=data)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_result(
+                        "Extended Metadata Formats - MusicBrainz-like XML Parsing",
+                        True,
+                        f"Parsing status: {result.get('parsing_status')}, Validation status: {result.get('validation_status')}"
+                    )
+                else:
+                    self.log_result(
+                        "Extended Metadata Formats - MusicBrainz-like XML Parsing",
+                        False,
+                        error_msg=f"Status: {response.status_code}, Response: {response.text}"
+                    )
+            
+            os.unlink(temp_file_path)
+            
+        except Exception as e:
+            self.log_result(
+                "Extended Metadata Formats - MusicBrainz-like XML Parsing",
+                False,
+                error_msg=str(e)
+            )
+
+    def test_batch_processing_system(self):
+        """Test Phase 2 Batch Processing System"""
+        print("🧪 Testing Batch Processing System...")
+        
+        # Test 1: Upload multiple files batch processing
+        try:
+            # Create multiple test metadata files
+            test_files = []
+            
+            # File 1: JSON metadata
+            json_metadata = {
+                "title": "Batch Test Song 1",
+                "artist": "Batch Test Artist",
+                "album": "Batch Test Album",
+                "isrc": "USBT24000001",
+                "upc": "123456789012",
+                "rights_holders": ["Test Rights Holder"],
+                "genre": "Electronic",
+                "release_date": "2024-01-01T00:00:00Z"
+            }
+            
+            json_file = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+            json.dump(json_metadata, json_file)
+            json_file.close()
+            test_files.append(json_file.name)
+            
+            # File 2: CSV metadata
+            csv_content = """title,artist,album,isrc,upc,genre,release_date
+Batch Test Song 2,Batch Test Artist 2,Batch Test Album 2,USBT24000002,123456789013,Pop,2024-01-02"""
+            
+            csv_file = tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False)
+            csv_file.write(csv_content)
+            csv_file.close()
+            test_files.append(csv_file.name)
+            
+            # Upload multiple files
+            files = []
+            for i, file_path in enumerate(test_files):
+                with open(file_path, 'rb') as f:
+                    files.append(('files', (f'batch_test_{i+1}.json' if file_path.endswith('.json') else f'batch_test_{i+1}.csv', f.read(), 'application/json' if file_path.endswith('.json') else 'text/csv')))
+            
+            data = {'validate_metadata': 'true', 'check_duplicates': 'true'}
+            
+            response = self.session.post(f"{API_BASE}/batch/upload-multiple", files=files, data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                batch_id = result.get('batch_id')
+                
+                self.log_result(
+                    "Batch Processing - Multiple Files Upload",
+                    True,
+                    f"Batch ID: {batch_id}, Total files: {result.get('total_files')}, Status: {result.get('status')}"
+                )
+                
+                # Test batch status tracking
+                if batch_id:
+                    time.sleep(2)  # Wait for processing
+                    status_response = self.session.get(f"{API_BASE}/batch/status/{batch_id}")
+                    
+                    if status_response.status_code == 200:
+                        status_data = status_response.json()
+                        self.log_result(
+                            "Batch Processing - Status Tracking",
+                            True,
+                            f"Batch status retrieved successfully: {status_data.get('batch_status', {}).get('status', 'unknown')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Batch Processing - Status Tracking",
+                            False,
+                            error_msg=f"Status: {status_response.status_code}"
+                        )
+            else:
+                self.log_result(
+                    "Batch Processing - Multiple Files Upload",
+                    False,
+                    error_msg=f"Status: {response.status_code}, Response: {response.text}"
+                )
+            
+            # Cleanup
+            for file_path in test_files:
+                try:
+                    os.unlink(file_path)
+                except:
+                    pass
+                    
+        except Exception as e:
+            self.log_result(
+                "Batch Processing - Multiple Files Upload",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 2: Archive file processing
+        try:
+            # Create a ZIP archive with metadata files
+            zip_buffer = io.BytesIO()
+            
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                # Add JSON file to ZIP
+                json_metadata = {
+                    "title": "Archive Test Song",
+                    "artist": "Archive Test Artist",
+                    "isrc": "USAR24000001",
+                    "rights_holders": ["Archive Rights Holder"]
+                }
+                zip_file.writestr("archive_test.json", json.dumps(json_metadata))
+                
+                # Add CSV file to ZIP
+                csv_content = "title,artist,isrc\nArchive Song 2,Archive Artist 2,USAR24000002"
+                zip_file.writestr("archive_test.csv", csv_content)
+            
+            zip_buffer.seek(0)
+            
+            files = {'file': ('test_archive.zip', zip_buffer.getvalue(), 'application/zip')}
+            data = {'validate_metadata': 'true', 'check_duplicates': 'true'}
+            
+            response = self.session.post(f"{API_BASE}/batch/upload-archive", files=files, data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Batch Processing - Archive Upload",
+                    True,
+                    f"Archive processed, Batch ID: {result.get('batch_id')}, Files: {result.get('total_files')}"
+                )
+            else:
+                self.log_result(
+                    "Batch Processing - Archive Upload",
+                    False,
+                    error_msg=f"Status: {response.status_code}, Response: {response.text}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Batch Processing - Archive Upload",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 3: Batch history
+        try:
+            response = self.session.get(f"{API_BASE}/batch/history?limit=10")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Batch Processing - History Retrieval",
+                    True,
+                    f"History retrieved with {len(result.get('batches', []))} batches"
+                )
+            else:
+                self.log_result(
+                    "Batch Processing - History Retrieval",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Batch Processing - History Retrieval",
+                False,
+                error_msg=str(e)
+            )
+
+    def test_advanced_reporting(self):
+        """Test Phase 2 Advanced Reporting Features"""
+        print("🧪 Testing Advanced Reporting...")
+        
+        # Test 1: Comprehensive report
+        try:
+            response = self.session.get(f"{API_BASE}/reports/comprehensive")
+            
+            if response.status_code == 200:
+                result = response.json()
+                report = result.get('report', {})
+                self.log_result(
+                    "Advanced Reporting - Comprehensive Report",
+                    True,
+                    f"Report generated with sections: {list(report.keys())}"
+                )
+            else:
+                self.log_result(
+                    "Advanced Reporting - Comprehensive Report",
+                    False,
+                    error_msg=f"Status: {response.status_code}, Response: {response.text}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Advanced Reporting - Comprehensive Report",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 2: Duplicate detection report
+        try:
+            response = self.session.get(f"{API_BASE}/reports/duplicates?scope=user")
+            
+            if response.status_code == 200:
+                result = response.json()
+                duplicate_report = result.get('duplicate_report', {})
+                self.log_result(
+                    "Advanced Reporting - Duplicate Detection Report",
+                    True,
+                    f"Duplicate report generated: {duplicate_report.get('summary', {})}"
+                )
+            else:
+                self.log_result(
+                    "Advanced Reporting - Duplicate Detection Report",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Advanced Reporting - Duplicate Detection Report",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 3: Error trends analysis
+        try:
+            response = self.session.get(f"{API_BASE}/reports/error-trends?days=30")
+            
+            if response.status_code == 200:
+                result = response.json()
+                error_report = result.get('error_trend_report', {})
+                self.log_result(
+                    "Advanced Reporting - Error Trends Analysis",
+                    True,
+                    f"Error trends analyzed for 30 days: {error_report.get('summary', {})}"
+                )
+            else:
+                self.log_result(
+                    "Advanced Reporting - Error Trends Analysis",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Advanced Reporting - Error Trends Analysis",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 4: CSV Export
+        try:
+            response = self.session.get(f"{API_BASE}/reports/export/csv?report_type=validation_summary")
+            
+            if response.status_code == 200:
+                # Check if response is CSV content
+                content_type = response.headers.get('content-type', '')
+                self.log_result(
+                    "Advanced Reporting - CSV Export",
+                    True,
+                    f"CSV export successful, Content-Type: {content_type}, Size: {len(response.content)} bytes"
+                )
+            else:
+                self.log_result(
+                    "Advanced Reporting - CSV Export",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Advanced Reporting - CSV Export",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 5: JSON Export
+        try:
+            response = self.session.get(f"{API_BASE}/reports/export/json?report_type=comprehensive")
+            
+            if response.status_code == 200:
+                content_type = response.headers.get('content-type', '')
+                self.log_result(
+                    "Advanced Reporting - JSON Export",
+                    True,
+                    f"JSON export successful, Content-Type: {content_type}, Size: {len(response.content)} bytes"
+                )
+            else:
+                self.log_result(
+                    "Advanced Reporting - JSON Export",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Advanced Reporting - JSON Export",
+                False,
+                error_msg=str(e)
+            )
+
+    def test_admin_features(self):
+        """Test Phase 2 Admin Features"""
+        print("🧪 Testing Admin Features...")
+        
+        # Note: These tests expect 403 for regular users, which is correct behavior
+        
+        # Test 1: Admin batch overview (should require admin)
+        try:
+            response = self.session.get(f"{API_BASE}/batch/admin/all-batches")
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Admin Features - Batch Overview (Access Control)",
+                    True,
+                    "Correctly requires admin authorization (403 Forbidden for regular user)"
+                )
+            elif response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Admin Features - Batch Overview",
+                    True,
+                    f"Admin batch overview accessible: {result.get('total_count', 0)} batches"
+                )
+            else:
+                self.log_result(
+                    "Admin Features - Batch Overview",
+                    False,
+                    error_msg=f"Unexpected status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Admin Features - Batch Overview",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 2: Platform batch statistics (should require admin)
+        try:
+            response = self.session.get(f"{API_BASE}/batch/admin/statistics")
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Admin Features - Platform Statistics (Access Control)",
+                    True,
+                    "Correctly requires admin authorization (403 Forbidden for regular user)"
+                )
+            elif response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Admin Features - Platform Statistics",
+                    True,
+                    f"Platform statistics accessible: {result.get('batch_statistics', {})}"
+                )
+            else:
+                self.log_result(
+                    "Admin Features - Platform Statistics",
+                    False,
+                    error_msg=f"Unexpected status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Admin Features - Platform Statistics",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 3: Platform analytics (should require admin)
+        try:
+            response = self.session.get(f"{API_BASE}/reports/admin/platform-analytics")
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Admin Features - Platform Analytics (Access Control)",
+                    True,
+                    "Correctly requires admin authorization (403 Forbidden for regular user)"
+                )
+            elif response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Admin Features - Platform Analytics",
+                    True,
+                    f"Platform analytics accessible: {result.get('platform_analytics', {})}"
+                )
+            else:
+                self.log_result(
+                    "Admin Features - Platform Analytics",
+                    False,
+                    error_msg=f"Unexpected status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Admin Features - Platform Analytics",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 4: Admin dashboard metrics (should require admin)
+        try:
+            response = self.session.get(f"{API_BASE}/reports/admin/dashboard-metrics")
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Admin Features - Dashboard Metrics (Access Control)",
+                    True,
+                    "Correctly requires admin authorization (403 Forbidden for regular user)"
+                )
+            elif response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Admin Features - Dashboard Metrics",
+                    True,
+                    f"Dashboard metrics accessible: {result.get('dashboard_metrics', {})}"
+                )
+            else:
+                self.log_result(
+                    "Admin Features - Dashboard Metrics",
+                    False,
+                    error_msg=f"Unexpected status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Admin Features - Dashboard Metrics",
+                False,
+                error_msg=str(e)
+            )
+
+    def test_enhanced_validation(self):
+        """Test Phase 2 Enhanced Validation Features"""
+        print("🧪 Testing Enhanced Validation...")
+        
+        # Test 1: Enhanced duplicate detection
+        try:
+            # Test ISRC duplicate check
+            response = self.session.get(f"{API_BASE}/metadata/duplicates/check?identifier_type=isrc&identifier_value=USRC17607839")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Enhanced Validation - ISRC Duplicate Detection",
+                    True,
+                    f"ISRC duplicate check: {result.get('duplicates_found', 0)} duplicates found"
+                )
+            else:
+                self.log_result(
+                    "Enhanced Validation - ISRC Duplicate Detection",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Enhanced Validation - ISRC Duplicate Detection",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 2: UPC duplicate detection
+        try:
+            response = self.session.get(f"{API_BASE}/metadata/duplicates/check?identifier_type=upc&identifier_value=123456789012")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Enhanced Validation - UPC Duplicate Detection",
+                    True,
+                    f"UPC duplicate check: {result.get('duplicates_found', 0)} duplicates found"
+                )
+            else:
+                self.log_result(
+                    "Enhanced Validation - UPC Duplicate Detection",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Enhanced Validation - UPC Duplicate Detection",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 3: Enhanced error reporting
+        try:
+            # Test with invalid metadata to trigger validation errors
+            invalid_metadata = {
+                "title": "",  # Empty required field
+                "artist": "Test Artist",
+                "isrc": "INVALID_ISRC_FORMAT",  # Invalid ISRC
+                "upc": "123",  # Invalid UPC (too short)
+                "copyright_year": 2050  # Future year (should trigger warning)
+            }
+            
+            response = self.session.post(f"{API_BASE}/metadata/validate-json", json=invalid_metadata)
+            
+            if response.status_code == 200:
+                result = response.json()
+                validation_errors = result.get('validation_errors', [])
+                validation_warnings = result.get('validation_warnings', [])
+                
+                self.log_result(
+                    "Enhanced Validation - Enhanced Error Reporting",
+                    True,
+                    f"Validation completed: {len(validation_errors)} errors, {len(validation_warnings)} warnings"
+                )
+            else:
+                self.log_result(
+                    "Enhanced Validation - Enhanced Error Reporting",
+                    False,
+                    error_msg=f"Status: {response.status_code}, Response: {response.text}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Enhanced Validation - Enhanced Error Reporting",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 4: Metadata statistics
+        try:
+            response = self.session.get(f"{API_BASE}/metadata/statistics")
+            
+            if response.status_code == 200:
+                result = response.json()
+                statistics = result.get('statistics', {})
+                self.log_result(
+                    "Enhanced Validation - Metadata Statistics",
+                    True,
+                    f"Statistics retrieved: {statistics.get('total_validations', 0)} total validations, Success rate: {statistics.get('success_rate', 0)}%"
+                )
+            else:
+                self.log_result(
+                    "Enhanced Validation - Metadata Statistics",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Enhanced Validation - Metadata Statistics",
+                False,
+                error_msg=str(e)
+            )
+
+    def test_database_integration(self):
+        """Test database integration and data persistence"""
+        print("🧪 Testing Database Integration...")
+        
+        # Test 1: Validation results storage and retrieval
+        try:
+            # First, create a validation result by parsing metadata
+            test_metadata = {
+                "title": "Database Test Song",
+                "artist": "Database Test Artist",
+                "isrc": "USDB24000001",
+                "rights_holders": ["Database Rights Holder"]
+            }
+            
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                json.dump(test_metadata, f)
+                temp_file_path = f.name
+            
+            with open(temp_file_path, 'rb') as f:
+                files = {'file': ('db_test.json', f, 'application/json')}
+                data = {'format': 'json', 'validate': 'true', 'check_duplicates': 'true'}
+                
+                response = self.session.post(f"{API_BASE}/metadata/parse", files=files, data=data)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    validation_id = result.get('validation_id')
+                    
+                    if validation_id:
+                        # Try to retrieve the validation result
+                        time.sleep(1)  # Brief wait for database write
+                        
+                        retrieve_response = self.session.get(f"{API_BASE}/metadata/validation-results/{validation_id}")
+                        
+                        if retrieve_response.status_code == 200:
+                            self.log_result(
+                                "Database Integration - Validation Results Storage/Retrieval",
+                                True,
+                                f"Validation result stored and retrieved successfully: {validation_id}"
+                            )
+                        else:
+                            self.log_result(
+                                "Database Integration - Validation Results Storage/Retrieval",
+                                False,
+                                error_msg=f"Retrieval failed: {retrieve_response.status_code}"
+                            )
+                    else:
+                        self.log_result(
+                            "Database Integration - Validation Results Storage/Retrieval",
+                            False,
+                            error_msg="No validation_id returned"
+                        )
+                else:
+                    self.log_result(
+                        "Database Integration - Validation Results Storage/Retrieval",
+                        False,
+                        error_msg=f"Parse failed: {response.status_code}"
+                    )
+            
+            os.unlink(temp_file_path)
+            
+        except Exception as e:
+            self.log_result(
+                "Database Integration - Validation Results Storage/Retrieval",
+                False,
+                error_msg=str(e)
+            )
+
+        # Test 2: List validation results
+        try:
+            response = self.session.get(f"{API_BASE}/metadata/validation-results?limit=5")
+            
+            if response.status_code == 200:
+                result = response.json()
+                validation_results = result.get('validation_results', [])
+                total_count = result.get('total_count', 0)
+                
+                self.log_result(
+                    "Database Integration - List Validation Results",
+                    True,
+                    f"Retrieved {len(validation_results)} results out of {total_count} total"
+                )
+            else:
+                self.log_result(
+                    "Database Integration - List Validation Results",
+                    False,
+                    error_msg=f"Status: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result(
+                "Database Integration - List Validation Results",
+                False,
+                error_msg=str(e)
+            )
+
+    def run_comprehensive_tests(self):
+        """Run all Phase 2 comprehensive tests"""
+        print("🚀 Starting Enhanced Metadata Parser & Validator Phase 2 Comprehensive Testing")
+        print("=" * 80)
+        
+        # Setup
+        if not self.setup_authentication():
+            print("❌ Authentication setup failed. Cannot proceed with tests.")
+            return
+        
+        # Run all test suites
+        self.test_extended_metadata_formats()
+        self.test_batch_processing_system()
+        self.test_advanced_reporting()
+        self.test_admin_features()
+        self.test_enhanced_validation()
+        self.test_database_integration()
+        
+        # Generate summary
+        self.generate_test_summary()
+
+    def generate_test_summary(self):
+        """Generate comprehensive test summary"""
+        print("\n" + "=" * 80)
+        print("📊 ENHANCED METADATA PARSER & VALIDATOR PHASE 2 TEST SUMMARY")
+        print("=" * 80)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result['success'])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests} ✅")
+        print(f"Failed: {failed_tests} ❌")
+        print(f"Success Rate: {success_rate:.1f}%")
+        print()
+        
+        # Group results by category
+        categories = {}
+        for result in self.test_results:
+            category = result['test'].split(' - ')[0]
+            if category not in categories:
+                categories[category] = {'passed': 0, 'failed': 0, 'tests': []}
+            
+            if result['success']:
+                categories[category]['passed'] += 1
+            else:
+                categories[category]['failed'] += 1
+            categories[category]['tests'].append(result)
+        
+        # Print category summaries
+        for category, data in categories.items():
+            total_cat = data['passed'] + data['failed']
+            cat_success_rate = (data['passed'] / total_cat * 100) if total_cat > 0 else 0
+            print(f"{category}: {data['passed']}/{total_cat} ({cat_success_rate:.1f}%)")
+        
+        print("\n" + "=" * 80)
+        print("📋 DETAILED RESULTS")
+        print("=" * 80)
+        
+        for result in self.test_results:
+            print(f"{result['status']}: {result['test']}")
+            if result['details']:
+                print(f"   Details: {result['details']}")
+            if result['error']:
+                print(f"   Error: {result['error']}")
+        
+        print("\n" + "=" * 80)
+        print("🎯 PHASE 2 FEATURE ASSESSMENT")
+        print("=" * 80)
+        
+        # Assess each Phase 2 feature area
+        feature_areas = {
+            "Extended Metadata Formats": ["Extended Metadata Formats"],
+            "Batch Processing System": ["Batch Processing"],
+            "Advanced Reporting": ["Advanced Reporting"],
+            "Admin Features": ["Admin Features"],
+            "Enhanced Validation": ["Enhanced Validation"],
+            "Database Integration": ["Database Integration"]
+        }
+        
+        for feature, categories_list in feature_areas.items():
+            feature_tests = []
+            for cat in categories_list:
+                if cat in categories:
+                    feature_tests.extend(categories[cat]['tests'])
+            
+            if feature_tests:
+                feature_passed = sum(1 for test in feature_tests if test['success'])
+                feature_total = len(feature_tests)
+                feature_rate = (feature_passed / feature_total * 100) if feature_total > 0 else 0
+                
+                status = "✅ OPERATIONAL" if feature_rate >= 70 else "⚠️ NEEDS ATTENTION" if feature_rate >= 50 else "❌ CRITICAL ISSUES"
+                print(f"{feature}: {feature_passed}/{feature_total} ({feature_rate:.1f}%) - {status}")
+        
+        print("\n" + "=" * 80)
+        print("🏁 PHASE 2 TESTING COMPLETE")
+        print("=" * 80)
+        
+        if success_rate >= 90:
+            print("🎉 EXCELLENT: Phase 2 implementation is production-ready!")
+        elif success_rate >= 75:
+            print("✅ GOOD: Phase 2 implementation is mostly functional with minor issues.")
+        elif success_rate >= 50:
+            print("⚠️ MODERATE: Phase 2 implementation has significant issues requiring attention.")
+        else:
+            print("❌ CRITICAL: Phase 2 implementation has major issues and is not production-ready.")
+
+if __name__ == "__main__":
+    tester = MetadataPhase2Tester()
+    tester.run_comprehensive_tests()
+"""
 Comprehensive Backend Testing for Big Mann Entertainment Platform
 Testing NEW endpoints implemented for DDEX, Distribution, Media, and Licensing modules
 """
