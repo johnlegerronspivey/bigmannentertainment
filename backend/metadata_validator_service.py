@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 import requests
 from xml.parsers.expat import ExpatError
 
-from .metadata_models import (
+from metadata_models import (
     ParsedMetadata, MetadataValidationError, ValidationSeverity, 
     ValidationStatus, MetadataValidationResult, DuplicateRecord,
     MetadataValidationConfig, MetadataFormat, DDEX_VERSIONS
