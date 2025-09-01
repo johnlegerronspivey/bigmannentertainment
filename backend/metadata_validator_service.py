@@ -489,7 +489,7 @@ class MetadataValidatorService:
         
         return duplicates
     
-    def _find_identifier_duplicates(self, identifier_type: str, identifier_value: str) -> List[DuplicateRecord]:
+    async def _find_identifier_duplicates(self, identifier_type: str, identifier_value: str) -> List[DuplicateRecord]:
         """Find duplicates for specific identifier"""
         duplicates = []
         
