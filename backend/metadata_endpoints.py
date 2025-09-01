@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 import json
 
-from .auth_middleware import get_current_user, require_admin
+from server import get_current_user, get_current_admin_user as require_admin
 from .metadata_models import (
     MetadataFormat, MetadataValidationResult, MetadataValidationConfig,
     ParsedMetadata, DuplicateRecord, ValidationStatus
