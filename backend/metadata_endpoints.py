@@ -278,7 +278,7 @@ async def check_identifier_duplicates(
                 detail="Invalid identifier type. Must be 'isrc', 'upc', or 'ean'"
             )
         
-        duplicates = validator_service._find_identifier_duplicates(
+        duplicates = await validator_service._find_identifier_duplicates(
             identifier_type.lower(), 
             identifier_value
         )
