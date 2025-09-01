@@ -156,7 +156,7 @@ async def upload_multiple_files(
         # Start batch processing
         batch_result = await batch_service.process_multiple_files(
             files_data=files_data,
-            user_id=current_user["id"],
+            user_id=current_user.id,
             validation_config=validation_config
         )
         
