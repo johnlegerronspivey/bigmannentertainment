@@ -19,7 +19,7 @@ from metadata_validator_service import MetadataValidatorService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/metadata", tags=["Metadata Parser & Validator"])
+router = APIRouter(prefix="/metadata", tags=["Metadata Parser & Validator"])
 
 # Global services (will be initialized in server.py)
 parser_service = None
