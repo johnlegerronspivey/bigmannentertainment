@@ -48,9 +48,14 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
       label: 'Artwork'
     },
     metadata: {
-      accept: ['.txt', '.json', '.xml', '.csv', '.pdf'],
-      maxSize: 5 * 1024 * 1024, // 5MB
+      accept: ['.json', '.xml', '.csv', '.ddex', '.mead', '.txt', '.id3', '.musicbrainz'],
+      maxSize: 50 * 1024 * 1024, // 50MB for metadata files
       label: 'Metadata Files'
+    },
+    batch: {
+      accept: ['.zip', '.tar', '.gz'],
+      maxSize: 500 * 1024 * 1024, // 500MB for batch uploads
+      label: 'Batch Upload Archives'
     }
   };
 
