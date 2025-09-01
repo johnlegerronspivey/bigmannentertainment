@@ -49,6 +49,14 @@ class MetadataParserService:
                 return self._parse_json(content, file_name)
             elif file_format == MetadataFormat.CSV:
                 return self._parse_csv(content, file_name)
+            elif hasattr(MetadataFormat, 'ID3') and file_format == MetadataFormat.ID3:
+                return self.extended_parser.parse_id3_metadata(content, file_name)
+            elif hasattr(MetadataFormat, 'MUSICBRAINZ') and file_format == MetadataFormat.MUSICBRAINZ:
+                return self.extended_parser.parse_musicbrainz_metadata(content, file_name)
+            elif hasattr(MetadataFormat, 'ITUNES') and file_format == MetadataFormat.ITUNES:
+                return self.extended_parser.parse_itunes_metadata(content, file_name)
+            elif hasattr(MetadataFormat, 'ISNI') and file_format == MetadataFormat.ISNI:
+                return self.extended_parser.parse_isni_metadata(content, file_name)
             else:
                 raise ValueError(f"Unsupported metadata format: {file_format}")
                 
