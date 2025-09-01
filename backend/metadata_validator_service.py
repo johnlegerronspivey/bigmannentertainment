@@ -465,7 +465,7 @@ class MetadataValidatorService:
         """Check for duplicate ISRCs and UPCs platform-wide"""
         duplicates = []
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return duplicates
         
         try:
