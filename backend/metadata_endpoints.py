@@ -86,7 +86,7 @@ async def parse_metadata_file(
                 duplicate_scope="platform"
             )
             
-            validation_result = validator_service.validate_metadata(
+            validation_result = await validator_service.validate_metadata(
                 parsed_metadata=parsed_metadata,
                 file_format=format,
                 config=validation_config
