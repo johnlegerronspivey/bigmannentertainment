@@ -4583,6 +4583,7 @@ from gs1_endpoints import gs1_router
 from metadata_endpoints import router as metadata_router
 from batch_endpoints import router as batch_router
 from reporting_endpoints import router as reporting_router
+from rights_endpoints import router as rights_router
 
 # Initialize Payment Service
 try:
