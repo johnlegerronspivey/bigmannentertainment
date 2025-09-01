@@ -4369,6 +4369,19 @@ except ImportError as e:
 except Exception as e:
     print(f"⚠️ Payment service initialization error: {str(e)}")
 
+# Initialize Metadata Parser & Validator Services
+try:
+    import metadata_endpoints
+    
+    # Initialize metadata services with database
+    services_dict = {}
+    metadata_endpoints.init_metadata_services(db, services_dict)
+    print("✅ Metadata Parser & Validator services initialized successfully")
+except ImportError as e:
+    print(f"⚠️ Metadata services initialization failed: {str(e)}")
+except Exception as e:
+    print(f"⚠️ Metadata services initialization error: {str(e)}")
+
 # Include all routers in the api_router to get /api prefix
 api_router.include_router(ddex_router)
 api_router.include_router(sponsorship_router)
