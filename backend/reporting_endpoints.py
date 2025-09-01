@@ -394,7 +394,7 @@ async def admin_get_format_usage_trends(
     """Admin endpoint for metadata format usage trends"""
     
     try:
-        if not mongo_db:
+        if mongo_db is None:
             raise HTTPException(status_code=503, detail="Database unavailable")
         
         # Get date range
