@@ -159,7 +159,7 @@ async def validate_json_metadata(
             duplicate_scope="platform"
         )
         
-        validation_result = validator_service.validate_metadata(
+        validation_result = await validator_service.validate_metadata(
             parsed_metadata=parsed_metadata,
             file_format=MetadataFormat.JSON,
             config=validation_config
