@@ -379,7 +379,7 @@ class BatchProcessingService:
     async def get_batch_history(self, user_id: str, limit: int = 20, offset: int = 0) -> Dict:
         """Get batch processing history for user"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return {'batches': [], 'total_count': 0}
             
         try:
