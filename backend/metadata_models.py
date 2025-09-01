@@ -117,12 +117,12 @@ class MetadataValidationResult(BaseModel):
     upload_date: datetime = Field(default_factory=datetime.now)
     
     # Parsing results
-    parsing_status: ValidationStatus
+    parsing_status: ValidationStatus = ValidationStatus.PENDING
     parsing_errors: List[MetadataValidationError] = []
     parsed_metadata: Optional[ParsedMetadata] = None
     
     # Validation results
-    validation_status: ValidationStatus
+    validation_status: ValidationStatus = ValidationStatus.PENDING
     validation_errors: List[MetadataValidationError] = []
     validation_warnings: List[MetadataValidationError] = []
     
