@@ -39,6 +39,10 @@ class BatchProcessingResult:
         self.errors = []
 
     def to_dict(self):
+        processing_time = None
+        if self.end_time and self.start_time:
+            processing_time = (self.end_time - self.start_time).total_seconds()
+            
         return {
             'batch_id': self.batch_id,
             'start_time': self.start_time.isoformat(),
@@ -51,7 +55,7 @@ class BatchProcessingResult:
             'success_rate': (self.successful_files / self.total_files * 100) if self.total_files > 0 else 0,
             'file_results': self.file_results,
             'errors': self.errors,
-            'processing_time': (self.end_time - self.start_time).total_seconds() if self.end_time else None
+            'processing_time': processing_time
         }
 
 class BatchProcessingService:
