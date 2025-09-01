@@ -3398,6 +3398,71 @@ def validate_media_metadata(metadata: dict) -> dict:
     
     return errors
 
+async def handle_metadata_file_upload(file: UploadFile, current_user: User, metadata: dict):
+    """Handle metadata file upload with parsing and validation"""
+    try:
+        # Read and parse metadata file content
+        content = await file.read()
+        
+        # Determine file format and parse accordingly
+        if file.filename.endswith('.json'):
+            metadata_content = json.loads(content.decode('utf-8'))
+        elif file.filename.endswith('.xml'):
+            # Basic XML parsing - you might want to use xml.etree.ElementTree for more complex parsing
+            metadata_content = {"raw_xml": content.decode('utf-8')}
+        elif file.filename.endswith('.csv'):
+            # Basic CSV parsing - you might want to use csv module for more complex parsing
+            lines = content.decode('utf-8').split('\n')
+            metadata_content = {"csv_data": lines}
+        else:
+            # Treat as plain text
+            metadata_content = {"raw_text": content.decode('utf-8')}
+        
+        # Create metadata record in database
+        metadata_record = {
+            "id": str(uuid.uuid4()),
+            "user_id": current_user.id,
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "file_size": len(content),
+            "metadata_content": metadata_content,
+            "title": metadata.get('title', file.filename),
+            "description": metadata.get('description', ''),
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        # Store in database
+        await db.metadata_files.insert_one(metadata_record)
+        
+        # Send notification if requested
+        if metadata.get('send_notification', False):
+            try:
+                await email_service.send_file_upload_notification(
+                    current_user.email,
+                    current_user.full_name,
+                    file.filename,
+                    "metadata"
+                )
+            except Exception as e:
+                print(f"Failed to send notification: {str(e)}")
+        
+        return {
+            "message": "Metadata file uploaded successfully",
+            "metadata_id": metadata_record["id"],
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "file_size": len(content),
+            "parsed_content": metadata_content
+        }
+        
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+    except UnicodeDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid file encoding: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process metadata file: {str(e)}")
+
 # AWS S3 Enhanced Media Endpoints
 @api_router.post("/media/s3/upload/{file_type}")
 async def upload_media_to_s3_enhanced(
