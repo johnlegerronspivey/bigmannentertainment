@@ -25,7 +25,7 @@ class AdvancedReportingService:
     async def generate_comprehensive_report(self, user_id: str, date_range: Dict = None) -> Dict:
         """Generate comprehensive metadata validation report"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return {}
         
         try:
