@@ -3464,6 +3464,160 @@ async def handle_metadata_file_upload(file: UploadFile, current_user: User, meta
         raise HTTPException(status_code=500, detail=f"Failed to process metadata file: {str(e)}")
 
 # AWS S3 Enhanced Media Endpoints
+@api_router.post("/metadata/upload")
+async def upload_metadata_file(
+    file: UploadFile = File(...),
+    title: str = Form(""),
+    description: str = Form(""),
+    validate_metadata: bool = Form(True),
+    check_duplicates: bool = Form(True),
+    send_notification: bool = Form(True),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload and parse metadata file with validation"""
+    try:
+        # Import metadata services
+        from metadata_parser_service import MetadataParserService
+        from metadata_validator_service import MetadataValidatorService
+        from metadata_models import MetadataFormat, MetadataValidationConfig
+        
+        # Initialize services
+        parser_service = MetadataParserService()
+        validator_service = MetadataValidatorService(mongo_db=db)
+        
+        # Read file content
+        content = await file.read()
+        file_size = len(content)
+        
+        if file_size > 50 * 1024 * 1024:  # 50MB limit
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 50MB.")
+        
+        # Determine metadata format from file extension
+        filename = file.filename.lower()
+        if filename.endswith('.xml'):
+            if 'ddex' in filename or 'ern' in filename:
+                metadata_format = MetadataFormat.DDEX_ERN
+            else:
+                metadata_format = MetadataFormat.MEAD  # Assume MEAD XML
+        elif filename.endswith('.json'):
+            metadata_format = MetadataFormat.JSON
+        elif filename.endswith('.csv'):
+            metadata_format = MetadataFormat.CSV
+        else:
+            # Try to detect format from content
+            content_str = content.decode('utf-8', errors='ignore').strip()
+            if content_str.startswith('<') and 'ddex' in content_str.lower():
+                metadata_format = MetadataFormat.DDEX_ERN
+            elif content_str.startswith('<'):
+                metadata_format = MetadataFormat.MEAD
+            elif content_str.startswith('{') or content_str.startswith('['):
+                metadata_format = MetadataFormat.JSON
+            else:
+                metadata_format = MetadataFormat.CSV
+        
+        # Parse metadata
+        parsed_metadata, parsing_errors = parser_service.parse_metadata(
+            content=content,
+            file_format=metadata_format,
+            file_name=file.filename
+        )
+        
+        # Validate if requested
+        validation_result = None
+        if validate_metadata:
+            validation_config = MetadataValidationConfig(
+                check_duplicates=check_duplicates,
+                duplicate_scope="platform"
+            )
+            
+            validation_result = validator_service.validate_metadata(
+                parsed_metadata=parsed_metadata,
+                file_format=metadata_format,
+                config=validation_config
+            )
+            
+            # Set user and file info
+            validation_result.user_id = current_user.id
+            validation_result.file_name = file.filename
+            validation_result.file_size = file_size
+            validation_result.parsing_errors = parsing_errors
+            
+            # Store validation result
+            try:
+                result_dict = validation_result.dict()
+                result_dict["_id"] = validation_result.id
+                result_dict["created_at"] = datetime.utcnow()
+                await db.metadata_validation_results.insert_one(result_dict)
+            except Exception as e:
+                print(f"Failed to store validation result: {str(e)}")
+        
+        # Also store as media content if it's valid metadata
+        if validation_result is None or validation_result.validation_status != "error":
+            # Create media content record
+            media_content = {
+                "id": str(uuid.uuid4()),
+                "user_id": current_user.id,
+                "title": title or parsed_metadata.title or file.filename,
+                "description": description or parsed_metadata.description or "",
+                "file_name": file.filename,
+                "file_type": "metadata",
+                "file_size": file_size,
+                "content_type": file.content_type,
+                "metadata_format": metadata_format.value,
+                "parsed_metadata": parsed_metadata.dict(),
+                "validation_id": validation_result.id if validation_result else None,
+                "validation_status": validation_result.validation_status if validation_result else "not_validated",
+                "created_at": datetime.utcnow(),
+                "is_approved": True,  # Auto-approve metadata files
+                "approval_status": "approved"
+            }
+            
+            await db.media_content.insert_one(media_content)
+            
+            # Send notification if requested
+            if send_notification:
+                try:
+                    await email_service.send_file_upload_notification(
+                        current_user.email,
+                        current_user.full_name,
+                        file.filename,
+                        "metadata"
+                    )
+                except Exception as e:
+                    print(f"Failed to send notification: {str(e)}")
+        
+        return {
+            "success": True,
+            "message": "Metadata file uploaded and processed successfully",
+            "media_id": media_content["id"] if 'media_content' in locals() else None,
+            "validation_id": validation_result.id if validation_result else None,
+            "file_info": {
+                "filename": file.filename,
+                "file_size": file_size,
+                "content_type": file.content_type,
+                "metadata_format": metadata_format.value
+            },
+            "parsed_metadata": parsed_metadata.dict(),
+            "validation_summary": {
+                "status": validation_result.validation_status if validation_result else "not_validated",
+                "error_count": len(validation_result.validation_errors) if validation_result else 0,
+                "warning_count": len(validation_result.validation_warnings) if validation_result else 0,
+                "duplicates_found": validation_result.duplicate_count if validation_result else 0
+            } if validation_result else {"status": "not_validated"},
+            "validation_errors": [error.dict() for error in validation_result.validation_errors] if validation_result else [],
+            "validation_warnings": [warning.dict() for warning in validation_result.validation_warnings] if validation_result else [],
+            "duplicate_details": [dup.dict() for dup in validation_result.duplicates_found] if validation_result else []
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error uploading metadata file: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload metadata file: {str(e)}"
+        )
+
 @api_router.post("/media/s3/upload/{file_type}")
 async def upload_media_to_s3_enhanced(
     file_type: str,
