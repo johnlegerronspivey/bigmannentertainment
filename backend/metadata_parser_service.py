@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 import logging
 from xml.dom import minidom
 
-from .metadata_models import (
+from metadata_models import (
     MetadataFormat, ParsedMetadata, MetadataValidationError, 
     ValidationSeverity, ValidationStatus, DDEX_VERSIONS,
     MEADStandardFields
