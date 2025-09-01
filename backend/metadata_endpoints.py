@@ -456,12 +456,12 @@ async def admin_get_platform_statistics(
     """Admin endpoint to get platform-wide metadata statistics"""
     try:
         # Overall statistics
-        total_validations = mongo_db["metadata_validation_results"].count_documents({})
+        total_validations = await mongo_db["metadata_validation_results"].count_documents({})
         
         # Count by validation status
         status_stats = {}
         for status in ValidationStatus:
-            count = mongo_db["metadata_validation_results"].count_documents({
+            count = await mongo_db["metadata_validation_results"].count_documents({
                 "validation_status": status
             })
             status_stats[status] = count
@@ -469,16 +469,18 @@ async def admin_get_platform_statistics(
         # Count by format
         format_stats = {}
         for format_type in MetadataFormat:
-            count = mongo_db["metadata_validation_results"].count_documents({
+            count = await mongo_db["metadata_validation_results"].count_documents({
                 "file_format": format_type
             })
             format_stats[format_type] = count
         
         # User statistics
-        unique_users = len(mongo_db["metadata_validation_results"].distinct("user_id"))
+        unique_users_cursor = mongo_db["metadata_validation_results"].distinct("user_id")
+        unique_users_list = await unique_users_cursor.to_list(length=None)
+        unique_users = len(unique_users_list)
         
         # Duplicate statistics
-        total_duplicates = mongo_db["metadata_validation_results"].count_documents({
+        total_duplicates = await mongo_db["metadata_validation_results"].count_documents({
             "duplicate_count": {"$gt": 0}
         })
         
