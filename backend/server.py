@@ -4630,6 +4630,7 @@ api_router.include_router(gs1_router)
 api_router.include_router(metadata_router)
 api_router.include_router(batch_router)
 api_router.include_router(reporting_router)
+api_router.include_router(rights_router)
 
 # Include the main api_router in the app
 
