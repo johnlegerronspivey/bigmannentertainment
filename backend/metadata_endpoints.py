@@ -309,19 +309,19 @@ async def get_metadata_statistics(
         user_query = {"user_id": current_user.id}
         
         # Count by validation status
-        total_validations = mongo_db["metadata_validation_results"].count_documents(user_query)
+        total_validations = await mongo_db["metadata_validation_results"].count_documents(user_query)
         
-        valid_count = mongo_db["metadata_validation_results"].count_documents({
+        valid_count = await mongo_db["metadata_validation_results"].count_documents({
             **user_query,
             "validation_status": ValidationStatus.VALID
         })
         
-        warning_count = mongo_db["metadata_validation_results"].count_documents({
+        warning_count = await mongo_db["metadata_validation_results"].count_documents({
             **user_query, 
             "validation_status": ValidationStatus.WARNING
         })
         
-        error_count = mongo_db["metadata_validation_results"].count_documents({
+        error_count = await mongo_db["metadata_validation_results"].count_documents({
             **user_query,
             "validation_status": ValidationStatus.ERROR
         })
@@ -329,14 +329,14 @@ async def get_metadata_statistics(
         # Count by format
         format_stats = {}
         for format_type in MetadataFormat:
-            count = mongo_db["metadata_validation_results"].count_documents({
+            count = await mongo_db["metadata_validation_results"].count_documents({
                 **user_query,
                 "file_format": format_type
             })
             format_stats[format_type] = count
         
         # Duplicate statistics
-        duplicate_count = mongo_db["metadata_validation_results"].count_documents({
+        duplicate_count = await mongo_db["metadata_validation_results"].count_documents({
             **user_query,
             "duplicate_count": {"$gt": 0}
         })
