@@ -3495,8 +3495,16 @@ async def upload_media_to_s3_enhanced(
     """Enhanced upload media file to S3 storage with comprehensive metadata"""
     try:
         # Validate file type
-        if file_type not in ['audio', 'video', 'image']:
+        if file_type not in ['audio', 'video', 'image', 'metadata']:
             raise HTTPException(status_code=400, detail=f"Invalid file type: {file_type}")
+        
+        # Handle metadata file upload with parsing and validation
+        if file_type == 'metadata':
+            return await handle_metadata_file_upload(file, current_user, {
+                'title': metadata_title or title,
+                'description': metadata_description or description,
+                'send_notification': send_notification
+            })
         
         # Validate metadata
         validation_errors = validate_media_metadata({
