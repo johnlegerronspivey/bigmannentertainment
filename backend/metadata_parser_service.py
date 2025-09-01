@@ -32,6 +32,9 @@ class MetadataParserService:
                 'ern': info.namespace,
                 'xs': 'http://www.w3.org/2001/XMLSchema'
             }
+        
+        # Initialize extended format parser
+        self.extended_parser = ExtendedMetadataParser()
     
     def parse_metadata(self, content: bytes, file_format: MetadataFormat, file_name: str) -> Tuple[ParsedMetadata, List[MetadataValidationError]]:
         """Parse metadata based on format"""
