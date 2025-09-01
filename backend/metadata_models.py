@@ -15,6 +15,10 @@ class MetadataFormat(str, Enum):
     MEAD = "mead"
     JSON = "json"
     CSV = "csv"
+    ID3 = "id3"
+    MUSICBRAINZ = "musicbrainz"
+    ITUNES = "itunes"
+    ISNI = "isni"
 
 class ValidationStatus(str, Enum):
     """Validation status types"""
