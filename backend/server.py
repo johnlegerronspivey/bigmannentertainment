@@ -4843,6 +4843,15 @@ try:
 except Exception as e:
     print(f"⚠️ Metadata router initialization failed: {str(e)}")
 
+try:
+    # Initialize and include rights router
+    import rights_endpoints
+    rights_endpoints.init_rights_service(db, {})
+    app.include_router(rights_router)
+    print("✅ Rights router included successfully")
+except Exception as e:
+    print(f"⚠️ Rights router initialization failed: {str(e)}")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
