@@ -112,7 +112,7 @@ async def get_error_trend_report(
     
     try:
         report = await reporting_service.generate_error_trend_report(
-            user_id=current_user["id"],
+            user_id=current_user.id,
             days=days
         )
         
