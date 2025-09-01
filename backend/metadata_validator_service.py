@@ -471,17 +471,17 @@ class MetadataValidatorService:
         try:
             # Check ISRC duplicates
             if metadata.isrc:
-                isrc_duplicates = self._find_identifier_duplicates("isrc", metadata.isrc)
+                isrc_duplicates = await self._find_identifier_duplicates("isrc", metadata.isrc)
                 duplicates.extend(isrc_duplicates)
             
             # Check UPC duplicates
             if metadata.upc:
-                upc_duplicates = self._find_identifier_duplicates("upc", metadata.upc)
+                upc_duplicates = await self._find_identifier_duplicates("upc", metadata.upc)
                 duplicates.extend(upc_duplicates)
             
             # Check EAN duplicates
             if metadata.ean:
-                ean_duplicates = self._find_identifier_duplicates("ean", metadata.ean)
+                ean_duplicates = await self._find_identifier_duplicates("ean", metadata.ean)
                 duplicates.extend(ean_duplicates)
                 
         except Exception as e:
