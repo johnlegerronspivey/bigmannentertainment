@@ -311,7 +311,7 @@ async def get_metadata_statistics(
 ):
     """Get metadata validation statistics for current user"""
     try:
-        user_query = {"user_id": current_user["id"]}
+        user_query = {"user_id": current_user.id}
         
         # Count by validation status
         total_validations = mongo_db["metadata_validation_results"].count_documents(user_query)
