@@ -10,12 +10,12 @@ from datetime import datetime
 import json
 
 from server import get_current_user, get_current_admin_user as require_admin
-from .metadata_models import (
+from metadata_models import (
     MetadataFormat, MetadataValidationResult, MetadataValidationConfig,
     ParsedMetadata, DuplicateRecord, ValidationStatus
 )
-from .metadata_parser_service import MetadataParserService
-from .metadata_validator_service import MetadataValidatorService
+from metadata_parser_service import MetadataParserService
+from metadata_validator_service import MetadataValidatorService
 
 logger = logging.getLogger(__name__)
 
