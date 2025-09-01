@@ -306,7 +306,7 @@ async def admin_get_dashboard_metrics(
     """Admin endpoint for dashboard metrics"""
     
     try:
-        if not mongo_db:
+        if mongo_db is None:
             raise HTTPException(status_code=503, detail="Database unavailable")
         
         # Get current date ranges
