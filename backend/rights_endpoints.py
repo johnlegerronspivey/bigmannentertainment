@@ -4,11 +4,12 @@ Handles territory rights, usage rights validation, and embargo management
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query, Form
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, Dict, Any, List
 import logging
 from datetime import datetime, date
+import jwt
 
-from server import get_current_user, get_current_admin_user as require_admin
 from rights_models import (
     TerritoryCode, UsageRightType, RightsOwnership, ComplianceCheckResult,
     RightsValidationConfig, TerritoryRights, UsageRights, EmbargoRestriction,
@@ -23,6 +24,36 @@ router = APIRouter(prefix="/api/rights", tags=["Rights & Compliance"])
 # Global service (will be initialized in server.py)
 rights_service = None
 mongo_db = None
+
+# Authentication setup (copied from server.py to avoid circular import)
+SECRET_KEY = "big-mann-entertainment-secret-key-2025"
+ALGORITHM = "HS256"
+security = HTTPBearer()
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current user from JWT token"""
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    
+    if mongo_db is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    
+    user = await mongo_db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+async def get_current_admin_user(current_user: dict = Depends(get_current_user)):
+    """Get current admin user"""
+    if not current_user.get('is_admin') and current_user.get('role') not in ["admin", "moderator", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return current_user
 
 def init_rights_service(db, services_dict):
     """Initialize rights & compliance service"""
@@ -74,7 +105,7 @@ async def check_rights_compliance(
             territories=territory_codes,
             usage_types=usage_type_codes,
             config=config,
-            checked_by=current_user.id
+            checked_by=current_user.get('id')
         )
         
         return {
@@ -108,7 +139,7 @@ async def create_rights_ownership(
     
     try:
         # Set creator information
-        rights_data.created_by = current_user.id
+        rights_data.created_by = current_user.get('id')
         rights_data.created_date = datetime.now()
         
         # Create rights ownership
@@ -165,7 +196,7 @@ async def get_supported_territories():
         territories_info = {}
         
         for territory in TerritoryCode:
-            territory_mapping = rights_service.get_territory_info(territory)
+            territory_mapping = rights_service.get_territory_info(territory) if rights_service else None
             
             if territory_mapping:
                 territories_info[territory.value] = {
@@ -251,18 +282,19 @@ async def get_usage_rights_templates():
     try:
         templates = {}
         
-        for template_name, template in rights_service.usage_templates.items():
-            templates[template_name] = {
-                "name": template.template_name,
-                "description": template.description,
-                "usage_types": [ut.value for ut in template.usage_types],
-                "default_territories": [tc.value for tc in template.default_territories],
-                "standard_royalty_rates": template.standard_royalty_rates,
-                "exclusivity_default": template.exclusivity_default,
-                "typical_term_months": template.typical_term_months,
-                "industry_standard": template.industry_standard,
-                "common_restrictions": template.common_restrictions
-            }
+        if rights_service and rights_service.usage_templates:
+            for template_name, template in rights_service.usage_templates.items():
+                templates[template_name] = {
+                    "name": template.template_name,
+                    "description": template.description,
+                    "usage_types": [ut.value for ut in template.usage_types],
+                    "default_territories": [tc.value for tc in template.default_territories],
+                    "standard_royalty_rates": template.standard_royalty_rates,
+                    "exclusivity_default": template.exclusivity_default,
+                    "typical_term_months": template.typical_term_months,
+                    "industry_standard": template.industry_standard,
+                    "common_restrictions": template.common_restrictions
+                }
         
         return {
             "success": True,
@@ -341,7 +373,7 @@ async def quick_compliance_check(
             isrc=isrc,
             territories=[territory_code],
             usage_types=[usage_type_code],
-            checked_by=current_user.id
+            checked_by=current_user.get('id')
         )
         
         # Simplified response for quick check
@@ -383,16 +415,16 @@ async def get_rights_dashboard_summary(
             raise HTTPException(status_code=503, detail="Database unavailable")
         
         # User's rights ownership count
-        user_query = {"created_by": current_user.id}
+        user_query = {"created_by": current_user.get('id')}
         total_rights_records = await mongo_db["rights_ownership"].count_documents(user_query)
         
         # Recent compliance checks
-        recent_checks_query = {"checked_by": current_user.id}
+        recent_checks_query = {"checked_by": current_user.get('id')}
         recent_checks = await mongo_db["compliance_check_results"].count_documents(recent_checks_query)
         
         # Compliance status breakdown
         status_pipeline = [
-            {"$match": {"checked_by": current_user.id}},
+            {"$match": {"checked_by": current_user.get('id')}},
             {"$group": {"_id": "$overall_status", "count": {"$sum": 1}}}
         ]
         
@@ -425,7 +457,7 @@ async def get_rights_dashboard_summary(
 async def admin_get_all_rights(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(get_current_admin_user)
 ):
     """Admin endpoint to get all rights ownership records"""
     
@@ -461,7 +493,7 @@ async def admin_get_all_rights(
 
 @router.get("/admin/compliance-analytics")
 async def admin_get_compliance_analytics(
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(get_current_admin_user)
 ):
     """Admin endpoint for compliance analytics"""
     
