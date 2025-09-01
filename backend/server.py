@@ -4353,6 +4353,7 @@ from label_endpoints import label_router
 from payment_endpoints import payment_router
 from licensing_endpoints import licensing_router
 from gs1_endpoints import gs1_router
+from metadata_endpoints import router as metadata_router
 
 # Initialize Payment Service
 try:
