@@ -238,7 +238,7 @@ async def get_batch_history(
     
     try:
         history = await batch_service.get_batch_history(
-            user_id=current_user["id"],
+            user_id=current_user.id,
             limit=limit,
             offset=offset
         )
