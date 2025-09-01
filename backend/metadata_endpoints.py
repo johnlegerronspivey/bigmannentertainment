@@ -166,7 +166,7 @@ async def validate_json_metadata(
         )
         
         # Set user info
-        validation_result.user_id = current_user["id"]
+        validation_result.user_id = current_user.id
         validation_result.file_name = "direct_json_validation"
         validation_result.file_size = len(json.dumps(metadata_json).encode('utf-8'))
         
