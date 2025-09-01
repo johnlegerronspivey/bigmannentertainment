@@ -291,6 +291,7 @@ const Navigation = () => {
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/library" className="hover:text-purple-200">Library</Link>
             <Link to="/upload" className="hover:text-purple-200">Upload</Link>
+            <Link to="/rights-compliance" className="hover:text-purple-200">Rights & Compliance</Link>
             <Link to="/distribute" className="hover:text-purple-200">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-200">Platforms</Link>
             
