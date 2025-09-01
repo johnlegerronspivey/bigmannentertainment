@@ -424,16 +424,11 @@ async def admin_get_all_validation_results(
             query["validation_status"] = status_filter
         
         # Get total count
-        total_count = mongo_db["metadata_validation_results"].count_documents(query)
+        total_count = await mongo_db["metadata_validation_results"].count_documents(query)
         
         # Get paginated results
-        results = list(
-            mongo_db["metadata_validation_results"]
-            .find(query)
-            .sort("upload_date", -1)
-            .skip(offset)
-            .limit(limit)
-        )
+        cursor = mongo_db["metadata_validation_results"].find(query).sort("upload_date", -1).skip(offset).limit(limit)
+        results = await cursor.to_list(length=limit)
         
         # Remove MongoDB _id for response
         for result in results:
