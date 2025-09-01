@@ -502,7 +502,8 @@ class MetadataValidatorService:
                 "validation_status": {"$ne": "error"}  # Exclude failed validations
             }
             
-            existing_records = list(collection.find(query))
+            cursor = collection.find(query)
+            existing_records = await cursor.to_list(length=100)  # Limit to prevent memory issues
             
             for record in existing_records:
                 duplicate = DuplicateRecord(
