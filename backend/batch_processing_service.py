@@ -344,7 +344,7 @@ class BatchProcessingService:
     async def _store_batch_result(self, batch_result: BatchProcessingResult, user_id: str):
         """Store batch processing result in database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
             
         try:
