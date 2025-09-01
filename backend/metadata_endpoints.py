@@ -69,13 +69,14 @@ async def parse_metadata_file(
         
         # Initialize validation result
         validation_result = MetadataValidationResult(
-            user_id=current_user["id"],
+            user_id=current_user.id,
             file_name=file.filename,
             file_size=file_size,
             file_format=format,
             parsing_status=ValidationStatus.VALID if not parsing_errors else ValidationStatus.WARNING,
             parsing_errors=parsing_errors,
-            parsed_metadata=parsed_metadata
+            parsed_metadata=parsed_metadata,
+            validation_status=ValidationStatus.PENDING  # Will be updated if validation is performed
         )
         
         # Perform validation if requested
