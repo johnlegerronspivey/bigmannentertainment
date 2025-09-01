@@ -198,7 +198,7 @@ async def get_validation_result(
     try:
         result = mongo_db["metadata_validation_results"].find_one({
             "_id": validation_id,
-            "user_id": current_user["id"]  # Users can only access their own results
+            "user_id": current_user.id  # Users can only access their own results
         })
         
         if not result:
