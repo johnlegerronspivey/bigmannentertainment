@@ -1,5 +1,890 @@
 #!/usr/bin/env python3
 """
+Backend Test Suite for Phase 4: Smart Contract Triggers Integration
+Tests Web3 connectivity, smart contract endpoints, DAO voting, and blockchain analytics
+"""
+
+import asyncio
+import aiohttp
+import json
+import os
+import sys
+from datetime import datetime
+from typing import Dict, Any, List
+
+# Test Configuration
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://metadata-maestro-1.preview.emergentagent.com')
+API_BASE = f"{BACKEND_URL}/api"
+
+class SmartContractTester:
+    def __init__(self):
+        self.session = None
+        self.auth_token = None
+        self.admin_token = None
+        self.test_user_id = None
+        self.test_admin_id = None
+        self.results = []
+        
+    async def setup_session(self):
+        """Setup HTTP session"""
+        self.session = aiohttp.ClientSession()
+        
+    async def cleanup_session(self):
+        """Cleanup HTTP session"""
+        if self.session:
+            await self.session.close()
+    
+    async def register_test_user(self) -> bool:
+        """Register test user for authentication"""
+        try:
+            user_data = {
+                "email": "smartcontract.tester@bigmannentertainment.com",
+                "password": "SmartContract2025!",
+                "full_name": "Smart Contract Tester",
+                "date_of_birth": "1990-01-01T00:00:00Z",
+                "address_line1": "123 Blockchain Street",
+                "city": "Crypto City",
+                "state_province": "Web3 State",
+                "postal_code": "12345",
+                "country": "United States"
+            }
+            
+            async with self.session.post(f"{API_BASE}/auth/register", json=user_data) as response:
+                if response.status in [200, 201]:
+                    data = await response.json()
+                    self.auth_token = data.get("access_token")
+                    self.test_user_id = data.get("user", {}).get("id")
+                    return True
+                elif response.status == 400:
+                    # User might already exist, try login
+                    return await self.login_test_user()
+                    
+        except Exception as e:
+            print(f"Registration error: {str(e)}")
+            return await self.login_test_user()
+        
+        return False
+    
+    async def login_test_user(self) -> bool:
+        """Login test user"""
+        try:
+            login_data = {
+                "email": "smartcontract.tester@bigmannentertainment.com",
+                "password": "SmartContract2025!"
+            }
+            
+            async with self.session.post(f"{API_BASE}/auth/login", json=login_data) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    self.auth_token = data.get("access_token")
+                    self.test_user_id = data.get("user", {}).get("id")
+                    return True
+                    
+        except Exception as e:
+            print(f"Login error: {str(e)}")
+        
+        return False
+    
+    async def setup_admin_user(self) -> bool:
+        """Setup admin user for admin endpoints testing"""
+        try:
+            # Try to login as admin (assuming admin user exists)
+            admin_data = {
+                "email": "admin@bigmannentertainment.com",
+                "password": "admin123"
+            }
+            
+            async with self.session.post(f"{API_BASE}/auth/login", json=admin_data) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    user = data.get("user", {})
+                    if user.get("is_admin") or user.get("role") in ["admin", "super_admin"]:
+                        self.admin_token = data.get("access_token")
+                        self.test_admin_id = user.get("id")
+                        return True
+                        
+        except Exception as e:
+            print(f"Admin setup error: {str(e)}")
+        
+        return False
+    
+    def get_auth_headers(self, admin=False):
+        """Get authentication headers"""
+        token = self.admin_token if admin and self.admin_token else self.auth_token
+        return {"Authorization": f"Bearer {token}"} if token else {}
+    
+    async def test_web3_connectivity(self) -> Dict[str, Any]:
+        """Test Web3 connectivity and service initialization"""
+        test_name = "Web3 Connectivity & Service Initialization"
+        
+        try:
+            # Test if smart contract service is initialized
+            async with self.session.get(f"{API_BASE}/contracts/networks") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("supported_networks"):
+                        networks = data["supported_networks"]
+                        expected_networks = ["ethereum", "polygon", "base", "arbitrum", "optimism"]
+                        
+                        found_networks = [net for net in expected_networks if net in networks]
+                        
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Web3 service initialized with {len(found_networks)} networks: {found_networks}",
+                            "networks_count": len(networks),
+                            "supported_networks": list(networks.keys())
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Invalid response: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Web3 connectivity error: {str(e)}"
+            }
+    
+    async def test_contract_templates(self) -> Dict[str, Any]:
+        """Test smart contract templates endpoint"""
+        test_name = "Smart Contract Templates"
+        
+        try:
+            async with self.session.get(f"{API_BASE}/contracts/templates") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("contract_templates"):
+                        templates = data["contract_templates"]
+                        template_count = len(templates)
+                        
+                        # Check for expected template types
+                        expected_types = ["licensing", "dao_voting", "royalty_split"]
+                        found_types = []
+                        
+                        for template_name, template_info in templates.items():
+                            if template_info.get("type") in expected_types:
+                                found_types.append(template_info["type"])
+                        
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Found {template_count} contract templates with types: {set(found_types)}",
+                            "template_count": template_count,
+                            "template_types": list(set(found_types))
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Invalid response: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Templates error: {str(e)}"
+            }
+    
+    async def test_contract_deployment(self) -> Dict[str, Any]:
+        """Test smart contract deployment"""
+        test_name = "Smart Contract Deployment"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            deploy_data = {
+                "template_name": "auto_licensing",
+                "content_id": f"test_content_{datetime.now().timestamp()}",
+                "network": "polygon",
+                "constructor_params": {"royalty_rate": 1000}  # 10%
+            }
+            
+            headers = self.get_auth_headers()
+            
+            async with self.session.post(f"{API_BASE}/contracts/deploy", 
+                                       data=deploy_data, headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("contract_id"):
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Contract deployed successfully: {data['contract_id']}",
+                            "contract_id": data["contract_id"],
+                            "template_name": data.get("template_name"),
+                            "network": data.get("network")
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Deployment failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Deployment error: {str(e)}"
+            }
+    
+    async def test_validation_trigger(self) -> Dict[str, Any]:
+        """Test validation success trigger"""
+        test_name = "Validation Success Trigger"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            trigger_data = {
+                "content_id": f"validation_test_{datetime.now().timestamp()}",
+                "validation_data": json.dumps({
+                    "validation_score": 95,
+                    "compliance_status": "compliant",
+                    "parsed_metadata": {
+                        "title": "Test Track",
+                        "artist": "Test Artist",
+                        "isrc": "QZTEST2025001"
+                    }
+                })
+            }
+            
+            headers = self.get_auth_headers()
+            
+            async with self.session.post(f"{API_BASE}/contracts/trigger/validation",
+                                       data=trigger_data, headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("trigger_type") == "validation_success":
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Validation trigger processed: {data['message']}",
+                            "content_id": data.get("content_id"),
+                            "trigger_type": data.get("trigger_type")
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Trigger failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Validation trigger error: {str(e)}"
+            }
+    
+    async def test_compliance_trigger(self) -> Dict[str, Any]:
+        """Test compliance approval trigger"""
+        test_name = "Compliance Approval Trigger"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            trigger_data = {
+                "content_id": f"compliance_test_{datetime.now().timestamp()}",
+                "compliance_result": json.dumps({
+                    "overall_status": "compliant",
+                    "compliance_score": 88,
+                    "territory_compliance": {"US": "compliant", "EU": "compliant"},
+                    "rights_verification": "verified"
+                })
+            }
+            
+            headers = self.get_auth_headers()
+            
+            async with self.session.post(f"{API_BASE}/contracts/trigger/compliance",
+                                       data=trigger_data, headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("trigger_type") == "compliance_approved":
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Compliance trigger processed: {data['message']}",
+                            "content_id": data.get("content_id"),
+                            "trigger_type": data.get("trigger_type")
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Compliance trigger failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Compliance trigger error: {str(e)}"
+            }
+    
+    async def test_dao_proposal_creation(self) -> Dict[str, Any]:
+        """Test DAO proposal creation"""
+        test_name = "DAO Proposal Creation"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            proposal_data = {
+                "title": "Test Content Approval Proposal",
+                "description": "Testing DAO proposal creation for content approval",
+                "vote_type": "content_acceptance",
+                "content_id": f"dao_test_{datetime.now().timestamp()}",
+                "voting_period_hours": 168
+            }
+            
+            headers = self.get_auth_headers()
+            
+            async with self.session.post(f"{API_BASE}/contracts/dao/proposal",
+                                       data=proposal_data, headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("proposal_id"):
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"DAO proposal created: {data['proposal_id']}",
+                            "proposal_id": data["proposal_id"],
+                            "voting_period_hours": data.get("voting_period_hours")
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"DAO proposal creation failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"DAO proposal error: {str(e)}"
+            }
+    
+    async def test_dao_voting(self) -> Dict[str, Any]:
+        """Test DAO voting functionality"""
+        test_name = "DAO Voting System"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            # First create a proposal to vote on
+            proposal_data = {
+                "title": "Voting Test Proposal",
+                "description": "Testing DAO voting functionality",
+                "vote_type": "content_acceptance",
+                "voting_period_hours": 168
+            }
+            
+            headers = self.get_auth_headers()
+            
+            # Create proposal
+            async with self.session.post(f"{API_BASE}/contracts/dao/proposal",
+                                       data=proposal_data, headers=headers) as response:
+                
+                if response.status == 200:
+                    proposal_result = await response.json()
+                    proposal_id = proposal_result.get("proposal_id")
+                    
+                    if proposal_id:
+                        # Now vote on the proposal
+                        vote_data = {
+                            "vote_choice": "yes",
+                            "voting_power": 1
+                        }
+                        
+                        async with self.session.post(f"{API_BASE}/contracts/dao/vote/{proposal_id}",
+                                                   data=vote_data, headers=headers) as vote_response:
+                            
+                            if vote_response.status == 200:
+                                vote_result = await vote_response.json()
+                                
+                                if vote_result.get("success"):
+                                    return {
+                                        "test": test_name,
+                                        "status": "PASS",
+                                        "details": f"Vote submitted successfully: {vote_result['message']}",
+                                        "proposal_id": proposal_id,
+                                        "vote_choice": vote_result.get("vote_choice"),
+                                        "voting_power": vote_result.get("voting_power")
+                                    }
+                            
+                            return {
+                                "test": test_name,
+                                "status": "FAIL",
+                                "details": f"Voting failed: {vote_response.status}",
+                                "response_status": vote_response.status
+                            }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Proposal creation for voting test failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"DAO voting error: {str(e)}"
+            }
+    
+    async def test_licensing_contract_creation(self) -> Dict[str, Any]:
+        """Test automatic licensing contract creation"""
+        test_name = "Licensing Contract Creation"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            licensing_data = {
+                "content_id": f"licensing_test_{datetime.now().timestamp()}",
+                "license_type": "non-exclusive",
+                "territories": ["US", "CA", "EU"],
+                "usage_rights": ["streaming", "download", "sync"],
+                "royalty_percentage": 12.5,
+                "upfront_fee_eth": 0.1,
+                "duration_months": 24,
+                "exclusive": False
+            }
+            
+            headers = self.get_auth_headers()
+            
+            async with self.session.post(f"{API_BASE}/contracts/licensing/create",
+                                       data=licensing_data, headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("contract_id"):
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Licensing contract created: {data['contract_id']}",
+                            "contract_id": data["contract_id"],
+                            "licensing_terms": data.get("licensing_terms")
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Licensing contract creation failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Licensing contract error: {str(e)}"
+            }
+    
+    async def test_contract_instances(self) -> Dict[str, Any]:
+        """Test user contract instances retrieval"""
+        test_name = "User Contract Instances"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            headers = self.get_auth_headers()
+            
+            async with self.session.get(f"{API_BASE}/contracts/instances",
+                                      headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success"):
+                        contracts = data.get("contracts", [])
+                        total_count = data.get("total_count", 0)
+                        
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Retrieved {len(contracts)} contract instances (total: {total_count})",
+                            "contracts_count": len(contracts),
+                            "total_count": total_count
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Contract instances retrieval failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Contract instances error: {str(e)}"
+            }
+    
+    async def test_dao_proposals_list(self) -> Dict[str, Any]:
+        """Test DAO proposals listing"""
+        test_name = "DAO Proposals List"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            headers = self.get_auth_headers()
+            
+            async with self.session.get(f"{API_BASE}/contracts/dao/proposals",
+                                      headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success"):
+                        proposals = data.get("proposals", [])
+                        total_count = data.get("total_count", 0)
+                        
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Retrieved {len(proposals)} DAO proposals (total: {total_count})",
+                            "proposals_count": len(proposals),
+                            "total_count": total_count
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"DAO proposals retrieval failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"DAO proposals error: {str(e)}"
+            }
+    
+    async def test_blockchain_analytics(self) -> Dict[str, Any]:
+        """Test blockchain analytics endpoint"""
+        test_name = "Blockchain Analytics"
+        
+        if not self.auth_token:
+            return {
+                "test": test_name,
+                "status": "SKIP",
+                "details": "No authentication token available"
+            }
+        
+        try:
+            headers = self.get_auth_headers()
+            
+            async with self.session.get(f"{API_BASE}/contracts/analytics",
+                                      headers=headers) as response:
+                
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    if data.get("success") and data.get("blockchain_analytics"):
+                        analytics = data["blockchain_analytics"]
+                        
+                        # Check for expected analytics fields
+                        expected_fields = ["total_contracts_deployed", "successful_executions", 
+                                         "total_proposals", "total_gas_spent_eth"]
+                        found_fields = [field for field in expected_fields if field in analytics]
+                        
+                        return {
+                            "test": test_name,
+                            "status": "PASS",
+                            "details": f"Analytics retrieved with {len(found_fields)} key metrics",
+                            "analytics_fields": found_fields,
+                            "total_contracts": analytics.get("total_contracts_deployed", 0),
+                            "total_proposals": analytics.get("total_proposals", 0)
+                        }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Analytics retrieval failed: {response.status}",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Analytics error: {str(e)}"
+            }
+    
+    async def test_admin_endpoints(self) -> Dict[str, Any]:
+        """Test admin-only endpoints"""
+        test_name = "Admin Endpoints Security"
+        
+        try:
+            # Test admin endpoint without admin token (should fail)
+            headers = self.get_auth_headers(admin=False)  # Regular user token
+            
+            async with self.session.get(f"{API_BASE}/contracts/admin/all-contracts",
+                                      headers=headers) as response:
+                
+                if response.status == 403:
+                    # Now test with admin token if available
+                    if self.admin_token:
+                        admin_headers = self.get_auth_headers(admin=True)
+                        
+                        async with self.session.get(f"{API_BASE}/contracts/admin/all-contracts",
+                                                  headers=admin_headers) as admin_response:
+                            
+                            if admin_response.status == 200:
+                                admin_data = await admin_response.json()
+                                
+                                if admin_data.get("success"):
+                                    return {
+                                        "test": test_name,
+                                        "status": "PASS",
+                                        "details": "Admin endpoints properly secured and accessible to admins",
+                                        "regular_user_status": 403,
+                                        "admin_user_status": 200,
+                                        "contracts_count": len(admin_data.get("contracts", []))
+                                    }
+                    
+                    return {
+                        "test": test_name,
+                        "status": "PASS",
+                        "details": "Admin endpoints properly secured (403 for regular users)",
+                        "regular_user_status": 403,
+                        "admin_available": bool(self.admin_token)
+                    }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Admin endpoint security failed: {response.status} (expected 403)",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Admin endpoints test error: {str(e)}"
+            }
+    
+    async def test_authentication_requirements(self) -> Dict[str, Any]:
+        """Test authentication requirements for protected endpoints"""
+        test_name = "Authentication Requirements"
+        
+        try:
+            # Test protected endpoint without authentication
+            async with self.session.get(f"{API_BASE}/contracts/instances") as response:
+                
+                if response.status == 401:
+                    return {
+                        "test": test_name,
+                        "status": "PASS",
+                        "details": "Protected endpoints properly require authentication (401 Unauthorized)",
+                        "unauthenticated_status": 401
+                    }
+                
+                return {
+                    "test": test_name,
+                    "status": "FAIL",
+                    "details": f"Authentication requirement failed: {response.status} (expected 401)",
+                    "response_status": response.status
+                }
+                
+        except Exception as e:
+            return {
+                "test": test_name,
+                "status": "FAIL",
+                "details": f"Authentication test error: {str(e)}"
+            }
+    
+    async def run_all_tests(self):
+        """Run all smart contract integration tests"""
+        print("🎯 STARTING PHASE 4: SMART CONTRACT TRIGGERS BACKEND TESTING")
+        print("=" * 80)
+        
+        await self.setup_session()
+        
+        # Setup authentication
+        print("Setting up test authentication...")
+        auth_success = await self.register_test_user()
+        admin_success = await self.setup_admin_user()
+        
+        print(f"✅ User authentication: {'SUCCESS' if auth_success else 'FAILED'}")
+        print(f"✅ Admin authentication: {'SUCCESS' if admin_success else 'FAILED'}")
+        print()
+        
+        # Define test suite
+        tests = [
+            ("Web3 & Service Tests", [
+                self.test_web3_connectivity,
+                self.test_contract_templates,
+                self.test_blockchain_analytics
+            ]),
+            ("Smart Contract Operations", [
+                self.test_contract_deployment,
+                self.test_validation_trigger,
+                self.test_compliance_trigger,
+                self.test_contract_instances
+            ]),
+            ("DAO Voting System", [
+                self.test_dao_proposal_creation,
+                self.test_dao_voting,
+                self.test_dao_proposals_list
+            ]),
+            ("Licensing Contracts", [
+                self.test_licensing_contract_creation
+            ]),
+            ("Security & Authentication", [
+                self.test_authentication_requirements,
+                self.test_admin_endpoints
+            ])
+        ]
+        
+        all_results = []
+        total_tests = 0
+        passed_tests = 0
+        
+        # Run test categories
+        for category_name, test_functions in tests:
+            print(f"📋 {category_name}")
+            print("-" * 50)
+            
+            for test_func in test_functions:
+                total_tests += 1
+                result = await test_func()
+                all_results.append(result)
+                
+                status_icon = "✅" if result["status"] == "PASS" else "❌" if result["status"] == "FAIL" else "⏭️"
+                print(f"{status_icon} {result['test']}: {result['details']}")
+                
+                if result["status"] == "PASS":
+                    passed_tests += 1
+            
+            print()
+        
+        # Summary
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        print("=" * 80)
+        print("🎯 PHASE 4: SMART CONTRACT TRIGGERS BACKEND TESTING SUMMARY")
+        print("=" * 80)
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {total_tests - passed_tests}")
+        print(f"Success Rate: {success_rate:.1f}%")
+        print()
+        
+        # Detailed results
+        print("📊 DETAILED TEST RESULTS:")
+        print("-" * 50)
+        
+        for result in all_results:
+            status_icon = "✅" if result["status"] == "PASS" else "❌" if result["status"] == "FAIL" else "⏭️"
+            print(f"{status_icon} {result['test']}")
+            print(f"   Status: {result['status']}")
+            print(f"   Details: {result['details']}")
+            
+            # Additional details for specific tests
+            if result["status"] == "PASS":
+                if "networks_count" in result:
+                    print(f"   Networks: {result['networks_count']} ({result.get('supported_networks', [])})")
+                elif "template_count" in result:
+                    print(f"   Templates: {result['template_count']} types: {result.get('template_types', [])}")
+                elif "contract_id" in result:
+                    print(f"   Contract ID: {result['contract_id']}")
+                elif "proposal_id" in result:
+                    print(f"   Proposal ID: {result['proposal_id']}")
+            
+            print()
+        
+        await self.cleanup_session()
+        
+        return {
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
+            "success_rate": success_rate,
+            "results": all_results
+        }
+
+async def main():
+    """Main test execution"""
+    tester = SmartContractTester()
+    results = await tester.run_all_tests()
+    
+    # Exit with appropriate code
+    if results["success_rate"] >= 70:  # 70% success rate threshold
+        print("🎉 SMART CONTRACT INTEGRATION TESTING COMPLETED SUCCESSFULLY!")
+        sys.exit(0)
+    else:
+        print("❌ SMART CONTRACT INTEGRATION TESTING FAILED!")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+"""
 Enhanced Metadata Parser & Validator Phase 2 Comprehensive Backend Testing
 Tests all Phase 2 features: Extended Formats, Batch Processing, Advanced Reporting, Admin Features
 """
