@@ -61,6 +61,15 @@ def init_contract_service(db, services_dict):
     mongo_db = db
     contract_service = SmartContractService(mongo_db=db)
     services_dict['smart_contracts'] = contract_service
+    
+    # Initialize Web3 connections in background
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(contract_service.initialize_web3_connections())
+    except RuntimeError:
+        # If no event loop is running, start one for initialization
+        asyncio.run(contract_service.initialize_web3_connections())
 
 @router.post("/trigger/validation")
 async def trigger_validation_contracts(
