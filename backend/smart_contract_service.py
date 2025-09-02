@@ -814,7 +814,7 @@ class SmartContractService:
         
         analytics = BlockchainAnalytics()
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return analytics
         
         try:
