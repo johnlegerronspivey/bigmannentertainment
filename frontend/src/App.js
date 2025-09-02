@@ -422,6 +422,13 @@ const Navigation = () => {
                 Rights & Compliance
               </Link>
               <Link 
+                to="/smart-contracts" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Smart Contracts
+              </Link>
+              <Link 
                 to="/distribute" 
                 className="hover:text-purple-200 py-2 px-2"
                 onClick={() => setIsMenuOpen(false)}
