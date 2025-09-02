@@ -4584,6 +4584,7 @@ from metadata_endpoints import router as metadata_router
 from batch_endpoints import router as batch_router
 from reporting_endpoints import router as reporting_router
 from rights_endpoints import router as rights_router
+from smart_contract_endpoints import router as contracts_router
 
 # Initialize Payment Service
 try:
