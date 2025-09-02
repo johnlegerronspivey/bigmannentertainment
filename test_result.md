@@ -1890,7 +1890,11 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Phase 4: Smart Contract Triggers Implementation"
+    - "Smart Contract Service Web3 Integration Testing"
+    - "DAO Proposal and Voting System Testing"
+    - "Automatic Licensing Contract Deployment Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
