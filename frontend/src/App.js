@@ -15,6 +15,7 @@ import { LicensingDashboard, PlatformLicenseManager, LicensingStatus } from './L
 import GS1Components, { GS1Dashboard } from './GS1Components';
 import EnhancedUploadComponent from './EnhancedUploadComponent';
 import RightsComplianceComponent from './RightsComplianceComponent';
+import SmartContractComponent from './SmartContractComponent';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
