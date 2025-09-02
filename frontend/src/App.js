@@ -293,6 +293,7 @@ const Navigation = () => {
             <Link to="/library" className="hover:text-purple-200">Library</Link>
             <Link to="/upload" className="hover:text-purple-200">Upload</Link>
             <Link to="/rights-compliance" className="hover:text-purple-200">Rights & Compliance</Link>
+            <Link to="/smart-contracts" className="hover:text-purple-200">Smart Contracts</Link>
             <Link to="/distribute" className="hover:text-purple-200">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-200">Platforms</Link>
             
