@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 
 # Configuration
-BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
+BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "final.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "FinalTest2025!"
 TEST_USER_NAME = "Final Backend Tester"

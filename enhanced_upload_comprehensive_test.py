@@ -20,7 +20,7 @@ from typing import Dict, Any, Optional
 import tempfile
 
 # Configuration
-BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
+BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "enhanced.component.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "EnhancedComponent2025!"
 TEST_USER_NAME = "Enhanced Component Tester"

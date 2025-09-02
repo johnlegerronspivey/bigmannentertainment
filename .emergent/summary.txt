@@ -1,23 +1,40 @@
 <analysis>
-The trajectory details the work of an AI engineer who took over the Big Mann Entertainment platform. The initial focus was a major AWS integration, spanning S3, SES, CloudFront, Lambda, and Rekognition. This involved setting up new service classes and endpoints in , managing AWS credentials, and iteratively resolving permissions and configuration issues through dedicated setup scripts. Notably, S3 was successfully provisioned, and SES was implemented with an SMTP fallback. Following this, the engineer addressed critical backend API issues, including route conflicts (e.g.,  vs. ), method errors (404, 422, 405), and parameter validation, relocating conflicting routes and enhancing error handling. The final task in this trajectory involved implementing an  in the frontend for drag-and-drop media, artwork, and metadata uploads, with corresponding backend updates to handle the metadata. The process involved extensive testing, debugging, and collaboration with the user for permissions.
+The AI engineer successfully guided the Big Mann Entertainment platform through several complex development phases. Initially, the focus was on stabilizing the MVP, which included AWS integration (S3, SES, CloudFront, Lambda, Rekognition) for scalable media operations, backend API fixes (routing, validation, error handling), and implementing an  in the frontend for media and metadata uploads. Subsequent development progressed in phases:
+Phase 1: A comprehensive Metadata Parser & Validator was implemented, supporting DDEX, MEAD, JSON, and CSV formats with robust schema, field, and duplicate validation. This involved creating new backend services and endpoints, and resolving critical async/sync database issues.
+Phase 2: Enhanced features were added, including batch processing, advanced reporting, and support for additional metadata formats (ID3, MusicBrainz, iTunes, ISNI). The frontend upload component was also refactored to  for improved UI.
+Phase 3: A Rights & Compliance Checker was integrated for territory, usage rights, expiry dates, and embargo logic, with both backend services and a new frontend component.
+Phase 4: The engineer is currently implementing Smart Contract Triggers for Web3 integration, initiating licensing and DAO votes. Throughout, extensive testing and iterative bug fixing (especially async/sync issues) were crucial.
 </analysis>
 
 <product_requirements>
-Big Mann Entertainment (BME) is a comprehensive media distribution platform designed to distribute content across 91+ platforms with admin controls and industry compliance (DDEX, IPI, ISNI, AARC, MDX, MLC, GS1). It manages UPC, GLN, and ISRC identifiers, and features an advanced licensing system. The initial phase focused on stabilizing the MVP: removing WebAuthn, fixing password reset, implementing email notifications, and resolving numerous backend (404s, API endpoints, UPC/ISRC validation) and frontend (JS errors, file upload, distribution display, pricing buttons, 404 page, mobile navigation) issues. The goal was 100% functional stability and a complete upload-to-library-to-distribution workflow with real-time status. Subsequent work, as documented in this trajectory, extended to integrating AWS services (S3, SES, CloudFront, Lambda, Rekognition) for scalable media storage, delivery, and processing, resolving backend routing and validation issues stemming from this integration, and finally implementing an enhanced drag-and-drop upload feature with comprehensive metadata entry and real-time validation.
+Big Mann Entertainment (BME) is a media distribution platform aiming to distribute content across 91+ platforms, incorporating admin controls and industry compliance (DDEX, IPI, ISNI, AARC, MDX, MLC, GS1). It manages UPC, GLN, and ISRC identifiers, with an advanced licensing system.
+
+**Initial MVP Focus:**
+*   Stabilize application: Remove WebAuthn, fix password reset, implement email notifications, resolve numerous backend (404s, API endpoints, UPC/ISRC validation) and frontend (JS errors, file upload, distribution display, pricing buttons, 404 page, mobile navigation) issues.
+*   Goal: Achieve 100% functional stability and a complete upload-to-library-to-distribution workflow with real-time status.
+
+**Subsequent Enhancements (Implemented Phases):**
+*   **AWS Integration:** Integrate AWS S3, SES, CloudFront, Lambda, and Rekognition for scalable media storage, delivery, processing, and moderation.
+*   **Enhanced Upload:** Implement a drag-and-drop upload feature for media, artwork, and metadata, with comprehensive metadata entry (title, ISRC, UPC, rights holders) and real-time validation.
+*   **Phase 1: Metadata Parser & Validator:** Add support for DDEX ERN (XML), MEAD, JSON, CSV formats with schema validation, required field checks (ISRC, release date, rights), and platform-wide duplicate detection (ISRC/UPC).
+*   **Phase 2: Advanced Metadata Features:** Implement batch processing, advanced reporting and analytics, and support for additional metadata formats (ID3, MusicBrainz, iTunes, ISNI).
+*   **Phase 3: Rights & Compliance Checker:** Add checks for territory rights (e.g., US, EU, Global), usage rights (streaming, sync, broadcast), and expiry dates with embargo logic.
+*   **Phase 4: Smart Contract Trigger:** Auto-trigger licensing or DAO votes on valid content submission using Web3/blockchain integration.
 </product_requirements>
 
 <key_technical_concepts>
-- **React**: Frontend UI framework for dynamic components.
+- **React**: Frontend UI framework.
 - **FastAPI**: Python backend API, handling routing and business logic.
-- **MongoDB**: NoSQL database for application data.
+- **MongoDB**: NoSQL database (with ).
 - **AWS S3**: Cloud storage for media files.
-- **AWS SES**: Email service for notifications.
-- **AWS CloudFront**: CDN for global content delivery.
-- **AWS Lambda**: Serverless computing for media processing.
-- **AWS Rekognition**: AI service for content moderation/metadata.
+- **AWS SES**: Email service.
+- **AWS CloudFront**: CDN.
+- **AWS Lambda**: Serverless processing.
+- **AWS Rekognition**: AI content moderation.
 - **Boto3**: AWS SDK for Python.
-- **Kubernetes Ingress**: Manages  routing to backend.
-- **Environment Variables**: Secure configuration for API keys and URLs.
+- **Kubernetes Ingress**: Manages API routing.
+- **Environment Variables**: Secure configuration.
+- **Web3/Blockchain**: Smart contract integration.
 </key_technical_concepts>
 
 <code_architecture>
@@ -28,48 +45,102 @@ Big Mann Entertainment (BME) is a comprehensive media distribution platform desi
 **File Analysis & Changes:**
 
 -   
-    -   **Importance**: Central FastAPI application.
-    -   **Changes Made**: Integrated  for AWS services. Added , , , , and  classes. Implemented graceful SES fallback to SMTP. Added new AWS-specific API endpoints: , , , , , , , . Modified registration endpoint to use SES. Fixed route conflicts and parameter validation by introducing specific paths and supporting both Form and JSON data for processing/moderation endpoints. Enhanced error handling.
+    -   **Importance**: Central FastAPI application, orchestrating all backend services.
+    -   **Changes Made**: Integrated  AWS services (S3, SES, CloudFront, Lambda, Rekognition). Added AWS-specific API endpoints. Integrated , , , , and is currently integrating . Fixed route conflicts, parameter validation, and critical async/sync MongoDB operation mismatches across various services.
 -   
-    -   **Importance**: Stores backend environment variables.
-    -   **Changes Made**: Added , , , , ,  and related variables.
+    -   **Importance**: Stores environment variables for AWS credentials and configurations.
+    -   **Changes Made**: Added , , , , , .
 -   
-    -   **Importance**: Lists Python dependencies.
-    -   **Changes Made**: Added .
+    -   **Importance**: Manages Python dependencies.
+    -   **Changes Made**: Added . Implicitly, other parsing libraries would be needed for metadata formats, though not explicitly shown as added in trajectory.
 -   
-    -   **Importance**: Main React component, routes, and UI.
-    -   **Changes Made**: The original  component was replaced with the new .
+    -   **Importance**: Main React component managing application routes and UI layout.
+    -   **Changes Made**: Replaced original  component with , then with . Integrated . Added new routes (, ) and navigation links for these components. Addressed linting errors related to user context access.
+-   
+    -   **Importance**: Provides initial drag-and-drop media upload functionality with metadata input.
+    -   **Changes Made**: Initially created, then effectively replaced by  for Phase 2.
+-   
+    -   **Importance**: Styles for the upload components.
+    -   **Changes Made**: Created initially. Enhanced for Phase 2 features.
 -    (NEW)
-    -   **Importance**: Provides drag-and-drop media upload functionality with metadata input forms.
-    -   **Changes Made**: Newly created component, includes UI for file selection, drag-and-drop zones, progress indicators, and fields for metadata (title, ISRC, UPC, rights holders) with real-time validation.
+    -   **Importance**: Refactored and enhanced drag-and-drop upload for Phase 2, supporting comprehensive metadata, validation, and batch processing UI.
+    -   **Changes Made**: Created to replace the previous version due to code corruption during updates.
 -    (NEW)
-    -   **Importance**: Styles for the .
-    -   **Changes Made**: Newly created CSS file to style the enhanced upload UI.
+    -   **Importance**: Defines Pydantic models for various metadata structures, including DDEX, MEAD, JSON, CSV, and later extended formats.
+    -   **Changes Made**: Newly created. Updated to support new formats in Phase 2.
+-    (NEW)
+    -   **Importance**: Service responsible for parsing different metadata file formats.
+    -   **Changes Made**: Newly created. Updated to use async database operations and integrated extended formats.
+-    (NEW)
+    -   **Importance**: Service for schema validation, required field checks, and duplicate detection for metadata.
+    -   **Changes Made**: Newly created. Updated to use async database operations and integrate with extended validation logic.
+-    (NEW)
+    -   **Importance**: Defines FastAPI endpoints for metadata parsing, validation, and retrieval of results and statistics.
+    -   **Changes Made**: Newly created. Integrated with new parser and validator services. Fixed async/sync database issues. Added new endpoints for batch processing and reporting.
+-    (NEW)
+    -   **Importance**: Handles the logic for processing metadata files in batches.
+    -   **Changes Made**: Newly created for Phase 2.
+-    (NEW)
+    -   **Importance**: Provides functionality for generating reports and analytics from metadata.
+    -   **Changes Made**: Newly created for Phase 2.
+-    (NEW)
+    -   **Importance**: Contains specific parsers and logic for additional metadata formats like ID3, MusicBrainz, iTunes, and ISNI.
+    -   **Changes Made**: Newly created for Phase 2.
+-    (NEW)
+    -   **Importance**: Defines API endpoints related to batch metadata processing.
+    -   **Changes Made**: Newly created for Phase 2.
+-    (NEW)
+    -   **Importance**: Defines API endpoints for advanced metadata reporting.
+    -   **Changes Made**: Newly created for Phase 2.
+-    (NEW)
+    -   **Importance**: Defines Pydantic models for rights and compliance data structures.
+    -   **Changes Made**: Newly created for Phase 3.
+-    (NEW)
+    -   **Importance**: Implements the business logic for territory, usage, expiry, and embargo checks.
+    -   **Changes Made**: Newly created for Phase 3.
+-    (NEW)
+    -   **Importance**: Defines FastAPI endpoints for managing rights and compliance information.
+    -   **Changes Made**: Newly created for Phase 3.
+-    (NEW)
+    -   **Importance**: Frontend UI component for users to interact with rights and compliance features.
+    -   **Changes Made**: Newly created for Phase 3.
+-    (NEW)
+    -   **Importance**: Stylesheet for the .
+    -   **Changes Made**: Newly created for Phase 3.
+-    (NEW)
+    -   **Importance**: Defines Pydantic models for smart contract-related data.
+    -   **Changes Made**: Newly created for Phase 4.
+-    (NEW)
+    -   **Importance**: Implements Web3 integration logic for interacting with smart contracts.
+    -   **Changes Made**: Newly created for Phase 4.
+-    (NEW, partially created)
+    -   **Importance**: Will define FastAPI endpoints for triggering smart contract actions.
+    -   **Changes Made**: Creation is currently in progress for Phase 4.
 -   
-    -   **Importance**: Documentation of tasks, tests, and communication.
-    -   **Changes Made**: Regularly updated to document AWS integration phases, backend fixes, test plans, and results (success rates, identified issues).
+    -   **Importance**: Documentation of tasks, test plans, results, and communication with testing agents.
+    -   **Changes Made**: Regularly updated to track the status of Enhanced Upload, Metadata Parser, Batch Processing, Reporting, and Rights & Compliance features, including issues found and fixes applied.
 -    (NEW),  (NEW),  (NEW),  (NEW),  (NEW),  (NEW)
     -   **Importance**: Scripts and configurations for setting up and testing AWS infrastructure.
-    -   **Changes Made**: These files were created dynamically to provision and troubleshoot AWS resources (S3 buckets, SES email verification, IAM permissions, CloudFront, Lambda, Rekognition) based on user interaction and identified permission/configuration issues.
+    -   **Changes Made**: These files were created dynamically during initial AWS integration to provision and troubleshoot AWS resources.
 </code_architecture>
 
 <pending_tasks>
-- **Music Reports Integration**: While confirmed as ready in the backend, the detailed frontend display, further configuration, and specific API documentation/credentials for this feature might still be pending user instructions.
+-   Music Reports Integration: While backend-ready, detailed frontend display, configuration, and API documentation/credentials for this feature are still pending.
+-   Frontend testing for Enhanced Upload Component (Phase 1), Advanced Metadata Features (Phase 2), and Rights & Compliance Checker (Phase 3) needs explicit user confirmation.
+-   Finalize and test Phase 4: Smart Contract Triggers.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was tasked with implementing a comprehensive drag-and-drop upload feature for media, artwork, and metadata files, including form fields for manual metadata entry (title, ISRC, UPC, rights holders) and real-time validation feedback.
+Immediately prior to this summary, the AI engineer was tasked with implementing **Phase 4: Smart Contract Triggers**. This involves integrating Web3/blockchain functionality to automatically trigger licensing agreements and DAO votes upon valid content submission, transforming Big Mann Entertainment into a Web3-native platform.
 
-The engineer initiated this task by:
-1.  **Creating **: A new React component located at  was created. This component is designed to handle the core drag-and-drop functionality, file selection, progress tracking, and display of metadata input forms. It encapsulates the UI and logic for this enhanced upload experience.
-2.  **Creating **: A corresponding CSS file at  was created to style the newly developed , ensuring proper visual presentation and user experience.
-3.  **Updating Backend for Metadata**: The backend was enhanced to properly receive and store the metadata associated with uploaded files. This involved modifying existing S3 upload endpoints (likely in , specifically ) to accept additional metadata fields alongside the file data.
-4.  **Integrating into **: The newly created  was integrated into the main frontend application by replacing the existing, older  component in . This ensures that the application now uses the modern, feature-rich upload interface.
+The work for Phase 4 has just begun with the creation of the foundational backend components:
+1.  ****: Located at , this file has been created to define the necessary Pydantic models for blockchain-related data structures that will be used in the smart contract integration.
+2.  ****: Located at , this service has been created to encapsulate the core logic for interacting with Web3, managing smart contracts, and triggering actions like licensing or DAO votes.
+3.  ****: The AI engineer is currently in the process of creating this file at . This file will define the FastAPI API routes that will expose the smart contract functionalities to the frontend and other services.
 
-At the point of this summary, the component replacement in  has just been confirmed successful, and the next immediate step is to restart the frontend service to apply these changes and load the new component.
+At the point of this summary,  and  have been successfully created, and the creation of  is the very next step being worked on.
 </current_work>
 
 <optional_next_step>
-Restart the frontend service to load the new EnhancedUploadComponent.
+Complete the creation of .
 </optional_next_step>
-

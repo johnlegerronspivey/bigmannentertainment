@@ -7,7 +7,7 @@ import requests
 import json
 
 # Configuration
-BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
+BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "upc.isrc.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "TestPassword123!"
 

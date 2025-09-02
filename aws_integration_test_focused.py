@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
+BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"focused.aws.test.{int(time.time())}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "FocusedAWSTest123!"
 TEST_USER_NAME = "Focused AWS Tester"

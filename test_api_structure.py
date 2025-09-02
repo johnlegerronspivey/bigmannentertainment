@@ -6,7 +6,7 @@ Test API structure to understand routing
 import requests
 import json
 
-BASE_URL = "https://mediacloud-bme.preview.emergentagent.com"
+BASE_URL = "https://metadata-maestro-1.preview.emergentagent.com"
 
 def test_api_endpoints():
     """Test various API endpoints to understand the structure"""

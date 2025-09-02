@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://mediacloud-bme.preview.emergentagent.com/api"
+BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "aws.route.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "AWSRouteTest2025!"
 TEST_USER_NAME = "AWS Route Tester"
