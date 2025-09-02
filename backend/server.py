@@ -4857,6 +4857,15 @@ try:
 except Exception as e:
     print(f"⚠️ Rights router initialization failed: {str(e)}")
 
+try:
+    # Initialize and include smart contracts router
+    import smart_contract_endpoints
+    smart_contract_endpoints.init_contract_service(db, {})
+    app.include_router(contracts_router)
+    print("✅ Smart Contracts router included successfully")
+except Exception as e:
+    print(f"⚠️ Smart Contracts router initialization failed: {str(e)}")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
