@@ -643,7 +643,7 @@ class SmartContractService:
                                            gas_used: int = 0):
         """Record blockchain transaction"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
         
         try:
@@ -677,7 +677,7 @@ class SmartContractService:
     async def _store_contract_instance(self, contract_instance: SmartContractInstance):
         """Store contract instance in database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
         
         try:
@@ -692,7 +692,7 @@ class SmartContractService:
     async def _load_contract_instance(self, contract_id: str) -> Optional[SmartContractInstance]:
         """Load contract instance from database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return None
         
         try:
@@ -709,7 +709,7 @@ class SmartContractService:
     async def _update_contract_instance(self, contract_instance: SmartContractInstance):
         """Update contract instance in database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
         
         try:
@@ -728,7 +728,7 @@ class SmartContractService:
     async def _store_dao_proposal(self, proposal: DAOProposal):
         """Store DAO proposal in database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
         
         try:
@@ -743,7 +743,7 @@ class SmartContractService:
     async def _load_dao_proposal(self, proposal_id: str) -> Optional[DAOProposal]:
         """Load DAO proposal from database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return None
         
         try:
@@ -760,7 +760,7 @@ class SmartContractService:
     async def _update_dao_proposal(self, proposal: DAOProposal):
         """Update DAO proposal in database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
         
         try:
@@ -779,7 +779,7 @@ class SmartContractService:
     async def _store_licensing_contract(self, licensing_contract: LicensingContract):
         """Store licensing contract in database"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
         
         try:
@@ -794,7 +794,7 @@ class SmartContractService:
     async def _update_rule_trigger_stats(self, rule_id: str):
         """Update trigger rule statistics"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return
         
         try:
