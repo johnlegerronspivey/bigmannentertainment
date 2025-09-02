@@ -164,6 +164,16 @@ class SmartContractService:
     async def initialize_web3_connections(self):
         """Initialize Web3 connections for supported networks"""
         
+        # Update RPC endpoints with actual Infura URLs
+        infura_key = os.getenv("INFURA_PROJECT_ID", "8bd7ce2d4d9840f08df4490b053513df")
+        self.config.rpc_endpoints = {
+            "ethereum": f"https://mainnet.infura.io/v3/{infura_key}",
+            "polygon": f"https://polygon-mainnet.infura.io/v3/{infura_key}",
+            "base": "https://mainnet.base.org",
+            "sepolia": f"https://sepolia.infura.io/v3/{infura_key}",
+            "mumbai": f"https://polygon-mumbai.infura.io/v3/{infura_key}"
+        }
+        
         for network in self.config.supported_networks:
             rpc_url = self.config.rpc_endpoints.get(network.value)
             if rpc_url:
