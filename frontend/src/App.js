@@ -804,7 +804,7 @@ const Login = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Password"
+                placeholder="Enter your password"
               />
             </div>
 
