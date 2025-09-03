@@ -431,6 +431,13 @@ const Navigation = () => {
                 Smart Contracts
               </Link>
               <Link 
+                to="/audit-trail" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Audit Trail
+              </Link>
+              <Link 
                 to="/distribute" 
                 className="hover:text-purple-200 py-2 px-2"
                 onClick={() => setIsMenuOpen(false)}
