@@ -454,7 +454,7 @@ const SmartContractComponent = () => {
                                     type="text"
                                     value={deployForm.content_id}
                                     onChange={(e) => setDeployForm({...deployForm, content_id: e.target.value})}
-                                    placeholder="Enter content ID to associate with contract"
+                                    placeholder="Enter content identifier to associate with contract"
                                     required
                                 />
                             </div>
