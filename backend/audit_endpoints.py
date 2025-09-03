@@ -25,7 +25,7 @@ from audit_service import AuditService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/audit", tags=["Audit Trail & Logging"])
+router = APIRouter(prefix="/audit", tags=["Audit Trail & Logging"])
 
 # Global services
 audit_service = None
