@@ -412,7 +412,7 @@ const AuditTrailComponent = () => {
                                         type="text"
                                         value={filters.content_id}
                                         onChange={(e) => handleFilterChange('content_id', e.target.value)}
-                                        placeholder="Filter by content ID..."
+                                        placeholder="Filter by content identifier..."
                                     />
                                 </div>
                             </div>
