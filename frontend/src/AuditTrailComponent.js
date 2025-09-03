@@ -498,7 +498,7 @@ const AuditTrailComponent = () => {
                                 type="text"
                                 value={selectedContentId}
                                 onChange={(e) => setSelectedContentId(e.target.value)}
-                                placeholder="Enter Content ID to view timeline..."
+                                placeholder="Enter content ID to view timeline..."
                             />
                             <button 
                                 onClick={() => selectedContentId && fetchContentTimeline(selectedContentId)}
