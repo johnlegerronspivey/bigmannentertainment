@@ -59,14 +59,14 @@ class ComprehensiveSystemTester:
                 if response.status == 200:
                     try:
                         data = await response.json()
-                        if "message" in data:
-                            await self.log_test_result("Backend Health Check", "PASS", f"Backend responding: {data.get('message', 'OK')}")
+                        if "message" in data and "status" in data:
+                            await self.log_test_result("Backend Health Check", "PASS", f"API responding: {data.get('message', 'OK')} - Status: {data.get('status')}")
                             return True
                     except:
                         # If JSON parsing fails, try text
                         text = await response.text()
                         if "BigMann" in text or "API" in text or len(text) > 0:
-                            await self.log_test_result("Backend Health Check", "PASS", "Backend responding with HTML content")
+                            await self.log_test_result("Backend Health Check", "PASS", "API responding with HTML content")
                             return True
                         else:
                             await self.log_test_result("Backend Health Check", "FAIL", "Empty response")
