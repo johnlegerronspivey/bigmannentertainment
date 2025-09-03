@@ -55,13 +55,13 @@ class ComprehensiveSystemTester:
     async def test_backend_health(self):
         """Test 1: Backend Health Check"""
         try:
-            # Test the health endpoint instead of root
-            async with self.session.get(f"{BACKEND_URL}/health") as response:
+            # Test the API health endpoint
+            async with self.session.get(f"{API_BASE}/health") as response:
                 if response.status == 200:
                     try:
                         data = await response.json()
-                        if "status" in data:
-                            await self.log_test_result("Backend Health Check", "PASS", f"Health endpoint responding: {data.get('status')} - DB: {data.get('database', 'unknown')}")
+                        if "status" in data and "api_status" in data:
+                            await self.log_test_result("Backend Health Check", "PASS", f"API Health: {data.get('status')} - API Status: {data.get('api_status')} - DB: {data.get('database', 'unknown')}")
                             return True
                     except:
                         pass
@@ -72,13 +72,23 @@ class ComprehensiveSystemTester:
                     try:
                         data = await response.json()
                         if "message" in data and "status" in data:
-                            await self.log_test_result("Backend Health Check", "PASS", f"API responding: {data.get('message', 'OK')} - Status: {data.get('status')}")
+                            await self.log_test_result("Backend Health Check", "PASS", f"API Root: {data.get('message', 'OK')} - Status: {data.get('status')}")
                             return True
                     except:
                         pass
                         
-            # If both fail, consider 404 as service existing but endpoint not implemented
-            await self.log_test_result("Backend Health Check", "FAIL", f"Health endpoints not accessible")
+            # Final fallback: test main health endpoint  
+            async with self.session.get(f"{BACKEND_URL}/health") as response:
+                if response.status == 200:
+                    try:
+                        data = await response.json()
+                        if "status" in data:
+                            await self.log_test_result("Backend Health Check", "PASS", f"Main Health: {data.get('status')} - DB: {data.get('database', 'unknown')}")
+                            return True
+                    except:
+                        pass
+                        
+            await self.log_test_result("Backend Health Check", "FAIL", "No health endpoints accessible")
             return False
                         
         except Exception as e:
