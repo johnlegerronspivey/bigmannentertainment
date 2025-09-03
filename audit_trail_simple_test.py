@@ -42,26 +42,19 @@ async def test_audit_endpoints():
             except Exception as e:
                 print(f"   ❌ {endpoint} - Error: {str(e)}")
         
-        # Test 2: Try to register a user to get auth token
-        print("\n2. Testing User Registration...")
+        # Test 2: Try to login to get auth token
+        print("\n2. Testing User Login...")
         
-        user_data = {
+        login_data = {
             "email": "simple.test@bigmannentertainment.com",
-            "password": "SimpleTest123!",
-            "full_name": "Simple Test User",
-            "date_of_birth": "1990-01-01T00:00:00",
-            "address_line1": "123 Test Street",
-            "city": "Test City",
-            "state_province": "Test State", 
-            "postal_code": "12345",
-            "country": "US"
+            "password": "SimpleTest123!"
         }
         
         try:
-            async with session.post(f"{API_BASE}/auth/register", json=user_data) as response:
-                print(f"   Registration Status: {response.status}")
+            async with session.post(f"{API_BASE}/auth/login", json=login_data) as response:
+                print(f"   Login Status: {response.status}")
                 
-                if response.status in [200, 201]:
+                if response.status == 200:
                     result = await response.json()
                     auth_token = result.get('access_token')
                     user_id = result.get('user', {}).get('id')
