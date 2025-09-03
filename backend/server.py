@@ -4977,6 +4977,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint for health check"""
+    return {
+        "message": "Big Mann Entertainment API - Backend Server Running",
+        "version": "1.0.0",
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat()
+    }
+
+# API root endpoint
+@api_router.get("/")
+async def api_root():
+    """API root endpoint"""
+    return {
+        "message": "Big Mann Entertainment API",
+        "version": "1.0.0", 
+        "status": "operational",
+        "available_endpoints": [
+            "/api/auth/register",
+            "/api/auth/login", 
+            "/api/auth/profile",
+            "/api/business/identifiers",
+            "/api/ddex",
+            "/api/sponsorship",
+            "/api/industry",
+            "/api/label",
+            "/api/payment",
+            "/api/licensing",
+            "/api/gs1",
+            "/api/metadata",
+            "/api/batch",
+            "/api/reporting", 
+            "/api/rights",
+            "/api/contracts",
+            "/api/audit"
+        ]
+    }
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
