@@ -2540,6 +2540,30 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current user information"""
     return current_user
 
+@api_router.get("/auth/profile")
+async def get_profile(current_user: User = Depends(get_current_user)):
+    """Get current user profile"""
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "business_name": current_user.business_name,
+        "date_of_birth": current_user.date_of_birth,
+        "address_line1": current_user.address_line1,
+        "address_line2": current_user.address_line2,
+        "city": current_user.city,
+        "state_province": current_user.state_province,
+        "postal_code": current_user.postal_code,
+        "country": current_user.country,
+        "is_active": current_user.is_active,
+        "is_admin": current_user.is_admin,
+        "is_verified": current_user.is_verified,
+        "role": current_user.role,
+        "account_status": current_user.account_status,
+        "created_at": current_user.created_at,
+        "updated_at": current_user.updated_at
+    }
+
 @api_router.post("/auth/refresh", response_model=Token)
 async def refresh_token(refresh_data: TokenRefresh, request: Request):
     # Find session by refresh token
