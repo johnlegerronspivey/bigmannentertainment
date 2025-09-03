@@ -133,15 +133,15 @@ async def test_audit_endpoints():
                             error_text = await report_response.text()
                             print(f"   ❌ Report generation error: {error_text}")
                     
-                elif response.status == 400:
+                elif response.status == 401:
                     error_result = await response.json()
-                    print(f"   ❌ Registration failed: {error_result.get('detail', 'Unknown error')}")
+                    print(f"   ❌ Login failed: {error_result.get('detail', 'Invalid credentials')}")
                 else:
                     error_text = await response.text()
-                    print(f"   ❌ Registration failed: Status {response.status} - {error_text}")
+                    print(f"   ❌ Login failed: Status {response.status} - {error_text}")
                     
         except Exception as e:
-            print(f"   ❌ Registration error: {str(e)}")
+            print(f"   ❌ Login error: {str(e)}")
         
         # Test 4: Test admin endpoints (should be denied)
         print("\n4. Testing Admin Endpoint Access Control...")
