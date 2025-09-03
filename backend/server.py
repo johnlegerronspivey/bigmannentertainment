@@ -5020,6 +5020,7 @@ async def api_root():
         "message": "Big Mann Entertainment API",
         "version": "1.0.0", 
         "status": "operational",
+        "timestamp": datetime.now().isoformat(),
         "available_endpoints": [
             "/api/auth/register",
             "/api/auth/login", 
