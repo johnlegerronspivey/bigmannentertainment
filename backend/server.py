@@ -4745,7 +4745,7 @@ from sponsorship_endpoints import sponsorship_router
 from tax_endpoints import tax_router
 from industry_endpoints import industry_router
 from label_endpoints import label_router
-from payment_endpoints import payment_router
+# from payment_endpoints import payment_router
 from licensing_endpoints import licensing_router
 from gs1_endpoints import gs1_router
 from metadata_endpoints import router as metadata_router
