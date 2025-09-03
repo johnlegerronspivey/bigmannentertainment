@@ -3646,10 +3646,31 @@ async def upload_media_to_s3_enhanced(
     metadata_duration: str = Form(""),
     current_user: User = Depends(get_current_user)
 ):
-    """Enhanced upload media file to S3 storage with comprehensive metadata"""
+    """Enhanced upload media file to S3 storage with comprehensive metadata and audit logging"""
+    upload_start_time = datetime.now()
+    content_id = f"content_{datetime.now().timestamp()}_{user_id}"
+    
     try:
         # Validate file type
         if file_type not in ['audio', 'video', 'image', 'metadata']:
+            # Log validation failure
+            if 'audit' in services_dict:
+                await services_dict['audit'].log_upload_event({
+                    "success": False,
+                    "content_id": content_id,
+                    "user_id": user_id,
+                    "user_context": {
+                        "user_id": user_id,
+                        "user_email": user_email,
+                        "user_name": user_name
+                    },
+                    "original_filename": file.filename,
+                    "file_type": file_type,
+                    "upload_status": "failed",
+                    "error_message": f"Invalid file type: {file_type}",
+                    "upload_started": upload_start_time
+                })
+            
             raise HTTPException(status_code=400, detail=f"Invalid file type: {file_type}")
         
         # Handle metadata file upload with parsing and validation
@@ -3674,6 +3695,32 @@ async def upload_media_to_s3_enhanced(
         })
         
         if validation_errors:
+            # Log validation failure with audit trail
+            if 'audit' in services_dict:
+                await services_dict['audit'].log_validation_event({
+                    "success": False,
+                    "content_id": content_id,
+                    "user_id": user_id,
+                    "user_context": {
+                        "user_id": user_id,
+                        "user_email": user_email,
+                        "user_name": user_name
+                    },
+                    "validation_status": "failed",
+                    "validation_errors": validation_errors,
+                    "input_metadata": {
+                        'title': metadata_title or title,
+                        'isrc': metadata_isrc,
+                        'upc': metadata_upc,
+                        'rightsHolders': metadata_rightsHolders,
+                        'artist': metadata_artist,
+                        'album': metadata_album,
+                        'genre': metadata_genre
+                    },
+                    "validation_started": upload_start_time,
+                    "validation_completed": datetime.now()
+                })
+            
             raise HTTPException(status_code=422, detail={
                 "message": "Validation errors",
                 "errors": validation_errors
@@ -3708,6 +3755,7 @@ async def upload_media_to_s3_enhanced(
         media_record = {
             'user_id': user_id,
             'owner_id': current_user.id,
+            'content_id': content_id,
             'file_type': file_type,
             'object_key': upload_result['object_key'],
             'file_url': upload_result['file_url'],
@@ -3736,6 +3784,62 @@ async def upload_media_to_s3_enhanced(
         except Exception as db_error:
             logging.warning(f"MongoDB storage failed, continuing: {db_error}")
         
+        upload_end_time = datetime.now()
+        upload_duration = (upload_end_time - upload_start_time).total_seconds() * 1000
+        
+        # Log successful upload with comprehensive audit trail
+        if 'audit' in services_dict:
+            await services_dict['audit'].log_upload_event({
+                "success": True,
+                "content_id": content_id,
+                "user_id": user_id,
+                "user_context": {
+                    "user_id": user_id,
+                    "user_email": user_email,
+                    "user_name": user_name,
+                    "ip_address": "127.0.0.1"  # Would get from request in production
+                },
+                "resource_context": {
+                    "content_id": content_id,
+                    "resource_type": "media_content",
+                    "filename": file.filename,
+                    "file_size": upload_result['size'],
+                    "file_type": file_type,
+                    "isrc": metadata_isrc,
+                    "upc": metadata_upc
+                },
+                "event_data": {
+                    "s3_bucket": upload_result['bucket'],
+                    "s3_key": upload_result['object_key'],
+                    "metadata_fields": list(comprehensive_metadata.keys()),
+                    "validation_passed": True,
+                    "notification_sent": send_notification
+                },
+                "original_filename": file.filename,
+                "final_filename": upload_result['object_key'],
+                "file_size": upload_result['size'],
+                "file_type": file_type,
+                "upload_method": "enhanced_s3",
+                "upload_duration_ms": upload_duration,
+                "initial_metadata": comprehensive_metadata,
+                "storage_provider": "s3",
+                "storage_bucket": upload_result['bucket'],
+                "storage_key": upload_result['object_key'],
+                "storage_url": upload_result['file_url'],
+                "upload_status": "completed",
+                "upload_started": upload_start_time,
+                "upload_completed": upload_end_time
+            })
+            
+            # Create initial metadata snapshot
+            await services_dict['audit'].create_metadata_snapshot(
+                content_id=content_id,
+                user_id=user_id,
+                metadata_state=comprehensive_metadata,
+                trigger_event="upload",
+                trigger_reason="Initial file upload with metadata"
+            )
+        
         # Send email notification if requested
         if send_notification:
             try:
@@ -3752,6 +3856,7 @@ async def upload_media_to_s3_enhanced(
         
         return {
             'success': True,
+            'content_id': content_id,
             'media_id': media_record.get('media_id'),
             'object_key': upload_result['object_key'],
             'file_url': upload_result['file_url'],
@@ -3761,12 +3866,50 @@ async def upload_media_to_s3_enhanced(
             'metadata': comprehensive_metadata,
             'notification_queued': send_notification,
             'validation_passed': True,
-            'message': 'File uploaded successfully with metadata'
+            'upload_duration_ms': upload_duration,
+            'message': 'File uploaded successfully with metadata and audit trail'
         }
         
     except HTTPException as e:
+        # Log HTTP exception failures
+        if 'audit' in services_dict:
+            await services_dict['audit'].log_upload_event({
+                "success": False,
+                "content_id": content_id,
+                "user_id": user_id,
+                "user_context": {
+                    "user_id": user_id,
+                    "user_email": user_email,
+                    "user_name": user_name
+                },
+                "original_filename": file.filename,
+                "file_type": file_type,
+                "upload_status": "failed",
+                "error_message": str(e.detail),
+                "upload_started": upload_start_time,
+                "upload_completed": datetime.now()
+            })
         raise e
     except Exception as e:
+        # Log unexpected failures
+        if 'audit' in services_dict:
+            await services_dict['audit'].log_upload_event({
+                "success": False,
+                "content_id": content_id,
+                "user_id": user_id,
+                "user_context": {
+                    "user_id": user_id,
+                    "user_email": user_email,
+                    "user_name": user_name
+                },
+                "original_filename": file.filename,
+                "file_type": file_type,
+                "upload_status": "failed",
+                "error_message": str(e),
+                "upload_started": upload_start_time,
+                "upload_completed": datetime.now()
+            })
+        
         logging.error(f"Upload with metadata failed: {str(e)}")
         raise HTTPException(
             status_code=500,
