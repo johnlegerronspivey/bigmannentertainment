@@ -545,7 +545,7 @@ const SmartContractComponent = () => {
                                         type="text"
                                         value={proposalForm.content_id}
                                         onChange={(e) => setProposalForm({...proposalForm, content_id: e.target.value})}
-                                        placeholder="Associated content ID"
+                                        placeholder="Associated content identifier"
                                     />
                                 </div>
 
