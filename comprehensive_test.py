@@ -91,12 +91,12 @@ class ComprehensiveSystemTester:
             user_data = {
                 "email": f"test.user.{int(time.time())}@bigmannentertainment.com",
                 "password": "TestPassword123!",
-                "full_name": "Comprehensive Test User",
+                "full_name": "System Test User",
                 "date_of_birth": "1990-01-01T00:00:00",
-                "address_line1": "123 Test Street",
-                "city": "Test City",
-                "state_province": "Test State",
-                "postal_code": "12345",
+                "address_line1": "123 Music Street",
+                "city": "Nashville",
+                "state_province": "Tennessee",
+                "postal_code": "37201",
                 "country": "US"
             }
             
