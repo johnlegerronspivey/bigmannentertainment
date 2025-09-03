@@ -55,6 +55,18 @@ class ComprehensiveSystemTester:
     async def test_backend_health(self):
         """Test 1: Backend Health Check"""
         try:
+            # Test the health endpoint instead of root
+            async with self.session.get(f"{BACKEND_URL}/health") as response:
+                if response.status == 200:
+                    try:
+                        data = await response.json()
+                        if "status" in data:
+                            await self.log_test_result("Backend Health Check", "PASS", f"Health endpoint responding: {data.get('status')} - DB: {data.get('database', 'unknown')}")
+                            return True
+                    except:
+                        pass
+                        
+            # Fallback: test API root endpoint
             async with self.session.get(f"{API_BASE}/") as response:
                 if response.status == 200:
                     try:
@@ -63,17 +75,12 @@ class ComprehensiveSystemTester:
                             await self.log_test_result("Backend Health Check", "PASS", f"API responding: {data.get('message', 'OK')} - Status: {data.get('status')}")
                             return True
                     except:
-                        # If JSON parsing fails, try text
-                        text = await response.text()
-                        if "BigMann" in text or "API" in text or len(text) > 0:
-                            await self.log_test_result("Backend Health Check", "PASS", "API responding with HTML content")
-                            return True
-                        else:
-                            await self.log_test_result("Backend Health Check", "FAIL", "Empty response")
-                            return False
-                else:
-                    await self.log_test_result("Backend Health Check", "FAIL", f"HTTP {response.status}")
-                    return False
+                        pass
+                        
+            # If both fail, consider 404 as service existing but endpoint not implemented
+            await self.log_test_result("Backend Health Check", "FAIL", f"Health endpoints not accessible")
+            return False
+                        
         except Exception as e:
             await self.log_test_result("Backend Health Check", "FAIL", f"Exception: {str(e)}")
             return False
