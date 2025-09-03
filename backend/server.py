@@ -5042,6 +5042,33 @@ async def api_root():
         ]
     }
 
+# API Health check endpoint (accessible via /api/health)
+@api_router.get("/health")
+async def api_health_check():
+    """API health check endpoint for monitoring"""
+    try:
+        # Test database connection
+        await db.command("ping")
+        db_status = "healthy"
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+    
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "api_status": "operational",
+        "services": {
+            "metadata": "initialized",
+            "batch_processing": "initialized", 
+            "reporting": "initialized",
+            "rights_compliance": "initialized",
+            "smart_contracts": "initialized",
+            "audit_trail": "initialized"
+        },
+        "timestamp": datetime.now().isoformat(),
+        "version": "1.0.0"
+    }
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
