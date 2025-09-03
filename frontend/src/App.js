@@ -2861,6 +2861,7 @@ function App() {
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/rights-compliance" element={<ProtectedRoute><RightsComplianceWrapper /></ProtectedRoute>} />
             <Route path="/smart-contracts" element={<ProtectedRoute><SmartContractComponent /></ProtectedRoute>} />
+            <Route path="/audit-trail" element={<ProtectedRoute><AuditTrailComponent /></ProtectedRoute>} />
             <Route path="/distribute" element={<ProtectedRoute><Distribute /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
