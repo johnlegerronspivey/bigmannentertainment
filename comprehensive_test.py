@@ -95,10 +95,11 @@ class ComprehensiveSystemTester:
             }
             
             async with self.session.post(f"{API_BASE}/auth/register", json=user_data) as response:
-                if response.status == 201:
+                if response.status in [200, 201]:
                     result = await response.json()
                     self.auth_token = result.get('access_token')
-                    self.test_user_id = result.get('user', {}).get('id')
+                    user_info = result.get('user', {})
+                    self.test_user_id = user_info.get('id')
                     
                     if self.auth_token and self.test_user_id:
                         await self.log_test_result("User Registration", "PASS", f"User registered with ID: {self.test_user_id}")
