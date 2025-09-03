@@ -614,7 +614,7 @@ const SmartContractComponent = () => {
                                     type="text"
                                     value={licensingForm.content_id}
                                     onChange={(e) => setLicensingForm({...licensingForm, content_id: e.target.value})}
-                                    placeholder="Enter content ID for licensing"
+                                    placeholder="Enter content identifier for licensing"
                                     required
                                 />
                             </div>
