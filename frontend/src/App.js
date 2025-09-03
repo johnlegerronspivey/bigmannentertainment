@@ -986,7 +986,7 @@ const Register = () => {
                   value={formData.business_name}
                   onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Business Name (Optional)"
+                  placeholder="Enter business name (optional)"
                 />
               </div>
 
