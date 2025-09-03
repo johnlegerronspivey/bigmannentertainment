@@ -282,7 +282,7 @@ const Navigation = () => {
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-4">
             <img 
-              src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+              src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
               alt="Big Mann Entertainment Logo" 
               className="w-8 h-8 object-contain"
             />
@@ -524,7 +524,7 @@ const Home = () => {
           <div className="text-center">
             <div className="mb-8">
               <img 
-                src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+                src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
                 alt="Big Mann Entertainment Logo" 
                 className="w-24 h-24 object-contain mx-auto mb-6"
               />
@@ -768,7 +768,7 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <img 
-            src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+            src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
             alt="Big Mann Entertainment Logo" 
             className="w-16 h-16 object-contain mx-auto mb-4"
           />
@@ -922,7 +922,7 @@ const Register = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <img 
-            src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+            src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
             alt="Big Mann Entertainment Logo" 
             className="w-16 h-16 object-contain mx-auto mb-4"
           />
@@ -1021,7 +1021,7 @@ const Register = () => {
                   value={formData.address_line1}
                   onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Address Line 1"
+                  placeholder="Enter street address"
                 />
               </div>
 
@@ -1031,7 +1031,7 @@ const Register = () => {
                   value={formData.address_line2}
                   onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Address Line 2 (Optional)"
+                  placeholder="Apartment, suite, etc. (optional)"
                 />
               </div>
 
@@ -1042,7 +1042,7 @@ const Register = () => {
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="City"
+                  placeholder="Enter city"
                 />
                 <input
                   type="text"
@@ -1050,7 +1050,7 @@ const Register = () => {
                   value={formData.state_province}
                   onChange={(e) => setFormData({ ...formData, state_province: e.target.value })}
                   className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="State/Province"
+                  placeholder="Enter state or province"
                 />
               </div>
 
@@ -1061,7 +1061,7 @@ const Register = () => {
                   value={formData.postal_code}
                   onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
                   className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Postal Code"
+                  placeholder="Enter postal code"
                 />
                 <select
                   value={formData.country}
@@ -1158,7 +1158,7 @@ const ForgotPassword = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <img 
-            src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+            src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
             alt="Big Mann Entertainment Logo" 
             className="w-16 h-16 object-contain mx-auto mb-4"
           />
@@ -1312,7 +1312,7 @@ const ResetPassword = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <img 
-            src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+            src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
             alt="Big Mann Entertainment Logo" 
             className="w-16 h-16 object-contain mx-auto mb-4"
           />
@@ -1343,7 +1343,7 @@ const ResetPassword = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="New Password"
+                placeholder="Enter new password"
                 minLength="6"
               />
             </div>
@@ -1591,7 +1591,7 @@ const NotFound = () => {
       <div className="max-w-md w-full text-center">
         <div className="mb-8">
           <img 
-            src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+            src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
             alt="Big Mann Entertainment Logo" 
             className="w-24 h-24 object-contain mx-auto mb-6"
           />
@@ -2824,15 +2824,15 @@ const Profile = () => (
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-          <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Your full name" />
+          <input type="Production ready" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="your@email.com" />
+          <input type="Production ready" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
-          <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Your business name" />
+          <input type="Production ready" />
         </div>
         <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
           Save Changes
