@@ -4968,52 +4968,6 @@ async def get_phase2_status():
 
 app.include_router(api_router)
 
-# Include additional routers
-try:
-    # Initialize and include batch processing router
-    import batch_endpoints
-    batch_endpoints.init_batch_service(db, {})
-    app.include_router(batch_router)
-    print("✅ Batch processing router included successfully")
-except Exception as e:
-    print(f"⚠️ Batch processing router initialization failed: {str(e)}")
-
-try:
-    # Initialize and include reporting router
-    import reporting_endpoints
-    reporting_endpoints.init_reporting_service(db, {})
-    app.include_router(reporting_router)
-    print("✅ Reporting router included successfully")
-except Exception as e:
-    print(f"⚠️ Reporting router initialization failed: {str(e)}")
-
-try:
-    # Initialize and include metadata router
-    import metadata_endpoints
-    metadata_endpoints.init_metadata_services(db, {})
-    app.include_router(metadata_router)
-    print("✅ Metadata router included successfully")
-except Exception as e:
-    print(f"⚠️ Metadata router initialization failed: {str(e)}")
-
-try:
-    # Initialize and include rights router
-    import rights_endpoints
-    rights_endpoints.init_rights_service(db, {})
-    app.include_router(rights_router)
-    print("✅ Rights router included successfully")
-except Exception as e:
-    print(f"⚠️ Rights router initialization failed: {str(e)}")
-
-try:
-    # Initialize and include smart contracts router
-    import smart_contract_endpoints
-    smart_contract_endpoints.init_contract_service(db, {})
-    app.include_router(contracts_router)
-    print("✅ Smart Contracts router included successfully")
-except Exception as e:
-    print(f"⚠️ Smart Contracts router initialization failed: {str(e)}")
-
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
