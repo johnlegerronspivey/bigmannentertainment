@@ -135,7 +135,7 @@ async def create_ern_message(
             audio_resource.bitrate = 320  # Default values
             audio_resource.sample_rate = 44100
             audio_resource.channels = 2
-            audio_resource.duration = "PT3M30S"  # Production implementation
+            audio_resource.duration = "PT3M30S"  # Standard duration
         
         resources = [audio_resource]
         
