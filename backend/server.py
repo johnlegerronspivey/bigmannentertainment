@@ -5355,6 +5355,8 @@ cloudfront_service = CloudFrontService()
 lambda_service = LambdaProcessingService()
 rekognition_service = RekognitionService()
 
+# Include the main api_router in the app
+app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
