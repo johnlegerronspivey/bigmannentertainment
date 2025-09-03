@@ -58,7 +58,7 @@ async def test_audit_endpoints():
                     result = await response.json()
                     auth_token = result.get('access_token')
                     user_id = result.get('user', {}).get('id')
-                    print(f"   ✅ User registered successfully: {user_id}")
+                    print(f"   ✅ User logged in successfully: {user_id}")
                     
                     # Test 3: Test authenticated audit endpoints
                     print("\n3. Testing Authenticated Audit Endpoints...")
