@@ -1774,7 +1774,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <img src="https://assets.bigmannentertainment.com/logo/big-mann-logo.png" alt="Big Mann Entertainment Logo">
                     <h1>Big Mann Entertainment</h1>
                 </div>
                 
