@@ -61,7 +61,7 @@ async def test_audit_endpoints():
             async with session.post(f"{API_BASE}/auth/register", json=user_data) as response:
                 print(f"   Registration Status: {response.status}")
                 
-                if response.status == 201:
+                if response.status in [200, 201]:
                     result = await response.json()
                     auth_token = result.get('access_token')
                     user_id = result.get('user', {}).get('id')
