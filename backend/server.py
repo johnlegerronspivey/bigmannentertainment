@@ -5042,8 +5042,8 @@ async def api_root():
         ]
     }
 
-# API Health check endpoint (accessible via /api/health)
-@api_router.get("/health")
+# API Health check endpoint (accessible via /api/system/health)
+@api_router.get("/system/health")
 async def api_health_check():
     """API health check endpoint for monitoring"""
     try:
@@ -5067,6 +5067,17 @@ async def api_health_check():
         },
         "timestamp": datetime.now().isoformat(),
         "version": "1.0.0"
+    }
+
+# API Status endpoint (accessible via /api/status)
+@api_router.get("/status")
+async def api_status():
+    """API status endpoint"""
+    return {
+        "status": "operational",
+        "message": "Big Mann Entertainment API is running",
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat()
     }
 
 # Health check endpoint
