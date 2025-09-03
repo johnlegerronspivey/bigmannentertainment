@@ -16,7 +16,8 @@ import aiofiles
 import json
 import jwt
 from passlib.context import CryptContext
-from stripe.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+from stripe.checkout import Session
+from stripe import checkout
 import asyncio
 import aiohttp
 import secrets
