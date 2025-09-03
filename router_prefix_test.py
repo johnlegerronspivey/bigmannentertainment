@@ -11,7 +11,7 @@ from typing import Dict, Any, List, Tuple
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BASE_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = f"router.test.{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "RouterTest2025!"
 

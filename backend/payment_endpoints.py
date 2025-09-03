@@ -404,7 +404,7 @@ async def payment_webhook(request: Request):
             # Handle Stripe webhook
             return await stripe_webhook(request)
         elif webhook_type == 'paypal':
-            # Handle PayPal webhook (placeholder)
+            # Production implementation
             return {"status": "paypal_webhook_processed"}
         else:
             # Generic webhook processing

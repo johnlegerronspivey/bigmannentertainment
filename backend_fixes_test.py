@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = "fixes.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "FixesTest2025!"
 TEST_USER_NAME = "Backend Fixes Tester"

@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BASE_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = "email.test@bigmannentertainment.com"
 TEST_USER_PASSWORD = "EmailTest2025!"
 TEST_USER_NAME = "Email Test User"
@@ -588,7 +588,7 @@ class EmailTester:
                     if ('reset-password' in reset_url and 
                         'token=' in reset_url and 
                         reset_token in reset_url and
-                        'bme-media-hub.preview.emergentagent.com' in reset_url):
+                        'bme-media-hub.preview.bigmannentertainment.com' in reset_url):
                         
                         self.log_result("email_template_validation", "Reset URL Structure", True, 
                                       f"Reset URL properly formatted with token: {reset_url}")

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BASE_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = "auth.test@bigmannentertainment.com"
 TEST_USER_PASSWORD = "AuthTest2025!"
 TEST_USER_NAME = "Authentication Test User"

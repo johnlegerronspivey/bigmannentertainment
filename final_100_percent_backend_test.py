@@ -30,7 +30,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 
 # Configuration
-BASE_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BASE_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = f"final.test.{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "FinalTest2025!"
 TEST_USER_NAME = "Final Test User"

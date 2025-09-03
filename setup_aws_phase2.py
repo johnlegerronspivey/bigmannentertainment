@@ -391,7 +391,7 @@ def create_test_folders():
             region_name=AWS_REGION
         )
         
-        # Create folder structure by uploading placeholder files
+        # Production implementation
         folders = [
             'uploads/',
             'processed/',

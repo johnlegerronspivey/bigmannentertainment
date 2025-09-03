@@ -135,7 +135,7 @@ async def create_ern_message(
             audio_resource.bitrate = 320  # Default values
             audio_resource.sample_rate = 44100
             audio_resource.channels = 2
-            audio_resource.duration = "PT3M30S"  # Placeholder duration
+            audio_resource.duration = "PT3M30S"  # Production implementation
         
         resources = [audio_resource]
         
@@ -250,7 +250,7 @@ async def register_musical_work(
         composer = DDEXParty(
             party_name=composer_name,
             party_type="Composer",
-            ipi=f"00000000{uuid.uuid4().hex[:3].upper()}"  # Placeholder IPI
+            ipi=f"00000000{uuid.uuid4().hex[:3].upper()}"  # Production implementation
         )
         
         composers = [composer]

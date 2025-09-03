@@ -7,7 +7,7 @@ import requests
 import io
 import time
 
-BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = f"validation.test.{int(time.time())}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "ValidationTest123!"
 

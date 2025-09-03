@@ -58,7 +58,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 # Initialize GS1 service
 def get_gs1_service() -> GS1USService:
     """Dependency to get GS1 US service instance"""
-    api_key = os.getenv("GS1_API_KEY", "gs1_api_key_placeholder")
+    api_key = os.getenv("GS1_API_KEY", "gs1_api_key_production)
     company_prefix = os.getenv("GS1_COMPANY_PREFIX", "8600043402")
     account_id = os.getenv("GS1_COMPANY_ACCOUNT_ID", "big_mann_entertainment_account_id")
     

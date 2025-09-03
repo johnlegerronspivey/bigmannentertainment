@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Test Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://metadata-maestro-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bigmannentertainment.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class SmartContractTester:
@@ -900,7 +900,7 @@ import zipfile
 import io
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://metadata-maestro-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bigmannentertainment.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class MetadataPhase2Tester:
@@ -1886,7 +1886,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = "backend.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "TestPassword123!"
 TEST_USER_NAME = "Backend Tester"
@@ -2426,7 +2426,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BASE_URL = "https://bigmannentertainment.com/api"
 # Use unique test credentials for each run
 TEST_USER_EMAIL = f"test.user.{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "BigMannTest2025!"
@@ -4486,7 +4486,7 @@ class BackendTester:
         """Test API base URL configuration with environment variables"""
         try:
             # Verify we're using the correct base URL from environment
-            expected_base_url = "https://metadata-maestro-1.preview.emergentagent.com/api"
+            expected_base_url = "https://bigmannentertainment.com/api"
             
             if self.base_url == expected_base_url:
                 # Test that the base URL is accessible
@@ -12065,7 +12065,7 @@ class BackendTester:
             # Test with package_id as query parameters
             params = {
                 "package_id": "basic",
-                "origin_url": "https://metadata-maestro-1.preview.emergentagent.com"
+                "origin_url": "https://bigmannentertainment.com"
             }
             
             response = self.make_request('POST', '/payments/checkout/session', params=params)
@@ -19146,7 +19146,7 @@ class BackendTester:
                     if ('reset-password' in reset_url and 
                         'token=' in reset_url and 
                         reset_token in reset_url and
-                        'bme-media-hub.preview.emergentagent.com' in reset_url):
+                        'bme-media-hub.preview.bigmannentertainment.com' in reset_url):
                         
                         self.log_result("email_template_validation", "Reset URL Structure", True, 
                                       f"Reset URL properly formatted with token: {reset_url}")

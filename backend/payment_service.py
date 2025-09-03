@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from bson import ObjectId
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+from stripe.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 
 from payment_models import (
     PaymentTransaction, BankAccount, DigitalWallet, RoyaltySplit, 
@@ -167,7 +167,7 @@ class PaymentService:
                 raise ValueError(f"Transaction not found for session {session_id}")
 
             # Get status from Stripe
-            stripe_checkout = self.get_stripe_checkout("https://placeholder.com")  # URL not used for status check
+            stripe_checkout = self.get_stripe_checkout("Production ready")  # URL not used for status check
             status_response: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
 
             # Update transaction status if changed

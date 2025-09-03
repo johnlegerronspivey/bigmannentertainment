@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = "upc.isrc.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "TestPassword123!"
 TEST_USER_NAME = "UPC ISRC Tester"

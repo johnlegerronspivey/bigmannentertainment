@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = f"aws.tester.{int(time.time())}@bigmannentertainment.com"
 TEST_USER_PASSWORD = "AWSTestPassword123!"
 TEST_USER_NAME = "AWS Integration Tester"

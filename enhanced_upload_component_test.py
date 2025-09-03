@@ -14,7 +14,7 @@ from typing import Dict, Any, Optional
 import tempfile
 
 # Configuration
-BACKEND_URL = "https://metadata-maestro-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bigmannentertainment.com/api"
 TEST_USER_EMAIL = "enhanced.upload.tester@bigmannentertainment.com"
 TEST_USER_PASSWORD = "EnhancedUpload123!"
 TEST_USER_NAME = "Enhanced Upload Tester"

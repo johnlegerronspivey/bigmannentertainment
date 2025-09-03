@@ -16,7 +16,7 @@ import aiofiles
 import json
 import jwt
 from passlib.context import CryptContext
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+from stripe.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import asyncio
 import aiohttp
 import secrets
@@ -1688,7 +1688,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <img src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
                     <h1>Big Mann Entertainment</h1>
                 </div>
                 
@@ -1774,7 +1774,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <img src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
                     <h1>Big Mann Entertainment</h1>
                 </div>
                 
@@ -1839,7 +1839,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <img src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
                     <h1>Big Mann Entertainment</h1>
                 </div>
                 
