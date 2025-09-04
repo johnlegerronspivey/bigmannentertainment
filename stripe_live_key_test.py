@@ -270,6 +270,7 @@ class StripeLiveKeyTester:
             # Create a test session first
             checkout_data = {
                 "package_id": "basic_upload",
+                "origin_url": BACKEND_URL,
                 "success_url": f"{BACKEND_URL}/payment/success",
                 "cancel_url": f"{BACKEND_URL}/payment/cancel"
             }
