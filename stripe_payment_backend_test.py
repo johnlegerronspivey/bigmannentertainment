@@ -106,7 +106,7 @@ class StripePaymentTester:
     
     async def cleanup_session(self):
         """Cleanup HTTP session"""
-        if self.session:
+        if self.session and not self.session.closed:
             await self.session.close()
     
     def get_auth_headers(self, admin=False):
