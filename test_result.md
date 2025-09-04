@@ -124,7 +124,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "integrate my Amazon Web services - AWS S3 for storing and managing uploaded media files (music, videos, artwork), AWS CloudFront for fast global content delivery, AWS Lambda for serverless media processing, AWS SES for email notifications and marketing campaigns, AWS RDS for managed database services, AWS Rekognition for automated content moderation and metadata extraction"
+user_problem_statement: "Connect my Stripe account so I can receive payments for comprehensive payment features including one-time payments for media uploads/distribution, subscription-based pricing plans, and revenue sharing with content creators"
 
 backend:
   - task: "Phase 2 Metadata Parser & Validator Comprehensive Verification"
