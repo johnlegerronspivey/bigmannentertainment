@@ -126,7 +126,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Connect my Stripe account so I can receive payments for comprehensive payment features including one-time payments for media uploads/distribution, subscription-based pricing plans, and revenue sharing with content creators"
+user_problem_statement: "Test the password reset functionality for Big Mann Entertainment platform including forgot password flow, reset password flow, security aspects, database operations, and error handling"
 
 backend:
   - task: "Stripe Payment Integration - Complete System"
