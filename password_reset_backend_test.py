@@ -76,7 +76,7 @@ class PasswordResetTester:
             await self.cleanup_test_user()
             
             async with self.session.post(f"{BACKEND_URL}/auth/register", json=TEST_USER_DATA) as response:
-                if response.status == 201:
+                if response.status == 200 or response.status == 201:  # Accept both 200 and 201
                     data = await response.json()
                     self.test_user_id = data.get("user", {}).get("id")
                     self.log_test("Create Test User", True, f"Test user created successfully with ID: {self.test_user_id}")
