@@ -2962,6 +2962,26 @@ function App() {
             {/* 404 Route - Must be last */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          
+          {/* Footer */}
+          <footer className="bg-gray-800 text-white py-8 mt-16">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center">
+                <img 
+                  src="/big-mann-logo.png" 
+                  alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+                  className="w-16 h-16 object-contain mx-auto mb-4"
+                />
+                <h3 className="text-xl font-bold mb-2">Big Mann Entertainment</h3>
+                <p className="text-gray-400 mb-4">Complete Media Distribution Empire</p>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-sm text-gray-500">
+                    © 2025 Big Mann Entertainment. All rights reserved. Logo owned by John LeGerron Spivey.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </footer>
         </div>
       </AuthProvider>
     </BrowserRouter>
