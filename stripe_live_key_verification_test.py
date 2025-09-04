@@ -477,9 +477,9 @@ class StripeLiveKeyVerificationTester:
             
             return success_rate >= 67
             
-        finally:
-            # Cleanup
-            await self.cleanup_session()
+        except Exception as e:
+            print(f"❌ Test suite execution error: {str(e)}")
+            return False
 
 async def main():
     """Main test execution"""
