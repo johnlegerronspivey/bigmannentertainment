@@ -2874,7 +2874,8 @@ function App() {
             <Route path="/audit-trail" element={<ProtectedRoute><AuditTrailComponent /></ProtectedRoute>} />
             <Route path="/distribute" element={<ProtectedRoute><Distribute /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/earnings" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
+            <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
+            <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
 
             {/* Business routes */}
             <Route path="/business" element={<ProtectedRoute><BusinessIdentifiers /></ProtectedRoute>} />
