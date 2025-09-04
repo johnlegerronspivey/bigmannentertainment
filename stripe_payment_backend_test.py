@@ -619,56 +619,58 @@ class StripePaymentTester:
         # Setup
         if not await self.setup_session():
             print("❌ Failed to setup test session")
-            return
+            return False
         
-        # Test suite
-        tests = [
-            ("Payment Packages Endpoint", self.test_payment_packages_endpoint),
-            ("Checkout Session Creation", self.test_checkout_session_creation),
-            ("Payment Status Checking", self.test_payment_status_checking),
-            ("Stripe Webhook", self.test_stripe_webhook),
-            ("User Credits System", self.test_user_credits_system),
-            ("Earnings System", self.test_earnings_system),
-            ("Payout Requests", self.test_payout_requests),
-            ("Admin Revenue", self.test_admin_revenue),
-            ("Transaction History", self.test_transaction_history),
-            ("Subscription Creation", self.test_subscription_creation)
-        ]
-        
-        passed_tests = 0
-        total_tests = len(tests)
-        
-        for test_name, test_func in tests:
-            try:
-                result = await test_func()
-                if result:
-                    passed_tests += 1
-            except Exception as e:
-                print(f"❌ Test '{test_name}' crashed: {str(e)}")
-                self.test_results.append(f"❌ {test_name} crashed: {str(e)}")
-        
-        # Cleanup
-        await self.cleanup_session()
-        
-        # Results summary
-        print("\n" + "=" * 70)
-        print("🎯 STRIPE PAYMENT INTEGRATION TEST RESULTS SUMMARY")
-        print("=" * 70)
-        
-        for result in self.test_results:
-            print(result)
-        
-        success_rate = (passed_tests / total_tests) * 100
-        print(f"\n📊 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
-        
-        if success_rate >= 70:
-            print("🎉 STRIPE PAYMENT INTEGRATION: FUNCTIONAL")
-        else:
-            print("⚠️  STRIPE PAYMENT INTEGRATION: NEEDS ATTENTION")
-        
-        print("=" * 70)
-        
-        return success_rate >= 70
+        try:
+            # Test suite
+            tests = [
+                ("Payment Packages Endpoint", self.test_payment_packages_endpoint),
+                ("Checkout Session Creation", self.test_checkout_session_creation),
+                ("Payment Status Checking", self.test_payment_status_checking),
+                ("Stripe Webhook", self.test_stripe_webhook),
+                ("User Credits System", self.test_user_credits_system),
+                ("Earnings System", self.test_earnings_system),
+                ("Payout Requests", self.test_payout_requests),
+                ("Admin Revenue", self.test_admin_revenue),
+                ("Transaction History", self.test_transaction_history),
+                ("Subscription Creation", self.test_subscription_creation)
+            ]
+            
+            passed_tests = 0
+            total_tests = len(tests)
+            
+            for test_name, test_func in tests:
+                try:
+                    result = await test_func()
+                    if result:
+                        passed_tests += 1
+                except Exception as e:
+                    print(f"❌ Test '{test_name}' crashed: {str(e)}")
+                    self.test_results.append(f"❌ {test_name} crashed: {str(e)}")
+            
+            # Results summary
+            print("\n" + "=" * 70)
+            print("🎯 STRIPE PAYMENT INTEGRATION TEST RESULTS SUMMARY")
+            print("=" * 70)
+            
+            for result in self.test_results:
+                print(result)
+            
+            success_rate = (passed_tests / total_tests) * 100
+            print(f"\n📊 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
+            
+            if success_rate >= 70:
+                print("🎉 STRIPE PAYMENT INTEGRATION: FUNCTIONAL")
+            else:
+                print("⚠️  STRIPE PAYMENT INTEGRATION: NEEDS ATTENTION")
+            
+            print("=" * 70)
+            
+            return success_rate >= 70
+            
+        finally:
+            # Cleanup
+            await self.cleanup_session()
 
 async def main():
     """Main test execution"""
