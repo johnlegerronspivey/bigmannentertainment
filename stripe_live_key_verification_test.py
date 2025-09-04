@@ -56,13 +56,15 @@ class StripeLiveKeyVerificationTester:
         
         try:
             async with self.session.post(f"{API_BASE_URL}/auth/register", json=user_data) as resp:
-                if resp.status == 201:
+                if resp.status in [200, 201]:  # Accept both 200 and 201
                     user_result = await resp.json()
                     self.auth_token = user_result.get("access_token")
                     self.test_user_id = user_result.get("user", {}).get("id")
                     print(f"✅ Test user registered for live key testing: {test_user_email}")
                 else:
                     print(f"❌ Failed to register test user: {resp.status}")
+                    response_text = await resp.text()
+                    print(f"    Error: {response_text[:200]}...")
                     return False
         except Exception as e:
             print(f"❌ Error registering test user: {str(e)}")
