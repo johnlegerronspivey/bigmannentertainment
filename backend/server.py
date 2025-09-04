@@ -5101,6 +5101,35 @@ async def health_check():
         "version": "1.0.0"
     }
 
+# Stripe webhook endpoint (must be on root app, not under /api prefix)
+@app.post("/api/webhook/stripe")
+async def stripe_webhook_handler(request: Request):
+    """Handle Stripe webhook events"""
+    try:
+        # Import here to avoid circular imports
+        from stripe_payment_service import StripePaymentService
+        
+        # Get raw body and signature
+        body = await request.body()
+        stripe_signature = request.headers.get("Stripe-Signature")
+        
+        if not stripe_signature:
+            raise HTTPException(status_code=400, detail="Missing Stripe signature")
+        
+        # Initialize Stripe service
+        stripe_service = StripePaymentService(db)
+        host_url = str(request.base_url).rstrip('/')
+        stripe_service.initialize_stripe_checkout(host_url)
+        
+        # Process webhook
+        webhook_response = await stripe_service.handle_webhook(body, stripe_signature)
+        
+        return {"received": True, "event_type": webhook_response.event_type}
+        
+    except Exception as e:
+        logging.error(f"Webhook error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Webhook processing failed: {str(e)}")
+
 # Basic endpoints for immediate 200 responses
 @api_router.get("/media/s3/status")
 async def s3_status(current_user: User = Depends(get_current_user)):
