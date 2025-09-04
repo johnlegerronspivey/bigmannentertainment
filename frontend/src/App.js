@@ -1168,9 +1168,9 @@ const ForgotPassword = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <img 
-            src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
-            alt="Big Mann Entertainment Logo" 
-            className="w-16 h-16 object-contain mx-auto mb-4"
+            src="/big-mann-logo.png" 
+            alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+            className="w-20 h-20 object-contain mx-auto mb-4"
           />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Reset your password
