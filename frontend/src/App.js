@@ -2924,11 +2924,12 @@ function App() {
             <Route path="/label/royalties" element={<ProtectedRoute><RoyaltySplitManager /></ProtectedRoute>} />
 
             {/* Payment routes */}
+            <Route path="/payments" element={<ProtectedRoute><PaymentComponent /></ProtectedRoute>} />
             <Route path="/payment/packages" element={<ProtectedRoute><PaymentPackages /></ProtectedRoute>} />
             <Route path="/payment/checkout/:packageId" element={<ProtectedRoute><EnhancedPaymentCheckout /></ProtectedRoute>} />
             <Route path="/payment/status" element={<ProtectedRoute><PaymentStatus /></ProtectedRoute>} />
-            <Route path="/payment/success" element={<ProtectedRoute><div className="p-8"><h1 className="text-2xl font-bold text-green-600">Payment Successful!</h1></div></ProtectedRoute>} />
-            <Route path="/payment/cancel" element={<ProtectedRoute><div className="p-8"><h1 className="text-2xl font-bold text-red-600">Payment Cancelled</h1></div></ProtectedRoute>} />
+            <Route path="/payment/success" element={<ProtectedRoute><div className="p-8"><h1 className="text-2xl font-bold text-green-600">Payment Successful!</h1><p>Your payment has been processed successfully.</p></div></ProtectedRoute>} />
+            <Route path="/payment/cancel" element={<ProtectedRoute><div className="p-8"><h1 className="text-2xl font-bold text-red-600">Payment Cancelled</h1><p>Your payment was cancelled. You can try again.</p></div></ProtectedRoute>} />
             <Route path="/payment/bank" element={<ProtectedRoute><BankAccountManager /></ProtectedRoute>} />
             <Route path="/payment/wallet" element={<ProtectedRoute><DigitalWalletManager /></ProtectedRoute>} />
 
