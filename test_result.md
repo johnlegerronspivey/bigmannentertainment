@@ -126,7 +126,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the password reset functionality for Big Mann Entertainment platform including forgot password flow, reset password flow, security aspects, database operations, and error handling"
+user_problem_statement: "Test the complete password reset frontend flow for Big Mann Entertainment platform. Please conduct comprehensive UI testing of: 1) Forgot Password Page (https://bigmannentertainment.com/forgot-password), 2) Reset Password Page (https://bigmannentertainment.com/reset-password?token=test_token), 3) Integration Flow Testing, 4) UI/UX Elements, 5) Accessibility & Usability"
 
 backend:
   - task: "Password Reset Functionality - Complete System"
