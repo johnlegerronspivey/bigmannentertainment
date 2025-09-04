@@ -394,7 +394,7 @@ class StripeLiveKeyTester:
                 if response.status == 200:
                     data = await response.json()
                     
-                    if data.get("success"):
+                    if data.get("packages"):
                         return {
                             "test": test_name,
                             "status": "PASS",
