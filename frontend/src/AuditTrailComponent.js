@@ -300,6 +300,11 @@ const AuditTrailComponent = () => {
     return (
         <div className="audit-trail-container">
             <div className="audit-trail-header">
+                <img 
+                    src="/big-mann-logo.png" 
+                    alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+                    className="audit-trail-logo"
+                />
                 <h1>🔍 Audit Trail & Logging</h1>
                 <p>Immutable logs of uploads, validations, and rights checks with timestamped metadata snapshots</p>
                 <div className="user-access-info">
