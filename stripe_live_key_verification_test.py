@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Test configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://bigmannentertainment.com')
+BACKEND_URL = "http://localhost:8001"
 API_BASE_URL = f"{BACKEND_URL}/api"
 
 class StripeLiveKeyVerificationTester:
