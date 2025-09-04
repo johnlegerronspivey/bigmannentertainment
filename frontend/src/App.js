@@ -534,9 +534,9 @@ const Home = () => {
           <div className="text-center">
             <div className="mb-8">
               <img 
-                src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
-                alt="Big Mann Entertainment Logo" 
-                className="w-24 h-24 object-contain mx-auto mb-6"
+                src="/big-mann-logo.png" 
+                alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+                className="w-32 h-32 object-contain mx-auto mb-6 shadow-2xl rounded-lg"
               />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
