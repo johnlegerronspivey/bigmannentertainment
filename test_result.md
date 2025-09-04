@@ -565,7 +565,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Reset Functionality - Complete System"
+    - "Complete Password Reset Frontend Flow Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
