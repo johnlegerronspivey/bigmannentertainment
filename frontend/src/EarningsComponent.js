@@ -116,6 +116,11 @@ const EarningsComponent = () => {
     return (
         <div className="earnings-container">
             <div className="earnings-header">
+                <img 
+                    src="/big-mann-logo.png" 
+                    alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+                    className="earnings-logo"
+                />
                 <h2>💰 Creator Earnings</h2>
                 <p>Track your revenue and manage payouts</p>
             </div>
