@@ -73,6 +73,7 @@ class StripeLiveKeyVerificationTester:
         """Cleanup HTTP session"""
         if self.session and not self.session.closed:
             await self.session.close()
+            self.session = None
     
     def get_auth_headers(self):
         """Get authentication headers"""
