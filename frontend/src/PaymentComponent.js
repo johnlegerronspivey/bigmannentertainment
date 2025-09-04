@@ -224,6 +224,11 @@ const PaymentComponent = () => {
     return (
         <div className="payment-container">
             <div className="payment-header">
+                <img 
+                    src="/big-mann-logo.png" 
+                    alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+                    className="payment-logo"
+                />
                 <h2>🎵 Payment & Credits</h2>
                 <p>Purchase credits and manage your Big Mann Entertainment account</p>
             </div>
