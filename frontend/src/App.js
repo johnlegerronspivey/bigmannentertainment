@@ -476,6 +476,13 @@ const Navigation = () => {
                 Earnings
               </Link>
               <Link 
+                to="/payments" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Payments
+              </Link>
+              <Link 
                 to="/pricing" 
                 className="hover:text-purple-200 py-2 px-2"
                 onClick={() => setIsMenuOpen(false)}
