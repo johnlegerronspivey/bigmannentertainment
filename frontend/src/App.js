@@ -340,6 +340,7 @@ const Navigation = () => {
             </div>
 
             <Link to="/earnings" className="hover:text-purple-200">Earnings</Link>
+            <Link to="/payments" className="hover:text-purple-200">Payments</Link>
             <Link to="/pricing" className="hover:text-purple-200">Pricing</Link>
 
             {/* Label Dropdown */}
