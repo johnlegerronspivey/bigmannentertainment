@@ -11,6 +11,8 @@ import { LabelDashboard } from "./LabelComponents";
 import { ProjectManagement, MarketingManagement, FinancialManagement } from "./LabelExtendedComponents";
 import { PaymentPackages, PaymentCheckout, PaymentStatus, BankAccountManager, DigitalWalletManager } from "./PaymentComponents";
 import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
+import PaymentComponent from './PaymentComponent';
+import EarningsComponent from './EarningsComponent';
 import { LicensingDashboard, PlatformLicenseManager, LicensingStatus } from './LicensingComponents';
 import GS1Components, { GS1Dashboard } from './GS1Components';
 import EnhancedUploadComponent from './EnhancedUploadComponent';
