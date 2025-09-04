@@ -2175,6 +2175,7 @@ class SESService:
         <body>
             <div class="container">
                 <div class="header">
+                    <img src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" style="width: 80px; height: 80px; margin-bottom: 20px;">
                     <h1>{self.platform_name}</h1>
                 </div>
                 <div class="content">
