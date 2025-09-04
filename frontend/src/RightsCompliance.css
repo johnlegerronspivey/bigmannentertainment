@@ -15,6 +15,16 @@
   border-radius: 12px;
 }
 
+.compliance-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 20px auto;
+  display: block;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
 .compliance-header h2 {
   margin: 0 0 8px 0;
   font-size: 28px;
