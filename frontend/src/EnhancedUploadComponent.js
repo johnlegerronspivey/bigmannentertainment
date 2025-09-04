@@ -561,6 +561,14 @@ const EnhancedUploadComponent = ({ onUploadComplete, currentUser }) => {
 
   return (
     <div className="enhanced-upload-container">
+      <div className="upload-header">
+        <img 
+          src="/big-mann-logo.png" 
+          alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+          className="upload-logo"
+        />
+        <h2>Enhanced Media Upload</h2>
+      </div>
       <div className="upload-tabs">
         <button 
           className={`tab ${selectedTab === 'upload' ? 'active' : ''}`}
