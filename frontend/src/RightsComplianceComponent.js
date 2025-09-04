@@ -376,6 +376,11 @@ const RightsComplianceComponent = ({ currentUser }) => {
   return (
     <div className="rights-compliance-container">
       <div className="compliance-header">
+        <img 
+          src="/big-mann-logo.png" 
+          alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+          className="compliance-logo"
+        />
         <h2>🔒 Rights & Compliance Checker</h2>
         <p>Verify territory rights, usage permissions, and embargo restrictions</p>
       </div>
