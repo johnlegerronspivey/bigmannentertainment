@@ -217,14 +217,16 @@ class StripeLiveKeyTester:
                 if response.status == 200:
                     data = await response.json()
                     
-                    if data.get("success") and data.get("session_id"):
+                    if data.get("session_id") and data.get("url"):
                         return {
                             "test": test_name,
                             "status": "PASS",
                             "details": f"Live checkout session created successfully: {data['session_id']}",
                             "session_id": data["session_id"],
-                            "checkout_url": data.get("checkout_url"),
-                            "package_id": checkout_data["package_id"]
+                            "checkout_url": data.get("url"),
+                            "package_id": checkout_data["package_id"],
+                            "amount": data.get("amount"),
+                            "currency": data.get("currency")
                         }
                 
                 # Check if it's an API key error
