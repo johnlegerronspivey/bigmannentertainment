@@ -13,7 +13,8 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Test Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bigmannentertainment.com')
+# Use local backend for testing since we're in the container environment
+BACKEND_URL = "http://localhost:8001"
 API_BASE = f"{BACKEND_URL}/api"
 
 class StripeLiveKeyTester:
