@@ -482,15 +482,18 @@ class StripeLiveKeyVerificationTester:
 
 async def main():
     """Main test execution"""
-    tester = StripeLiveKeyVerificationTester()
-    success = await tester.run_live_key_verification_tests()
-    
-    if success:
-        print("\n✅ Stripe live API key verification completed successfully")
-        sys.exit(0)
-    else:
-        print("\n❌ Stripe live API key verification found critical issues")
-        sys.exit(1)
+    async with aiohttp.ClientSession() as session:
+        tester = StripeLiveKeyVerificationTester()
+        tester.session = session
+        success = await tester.run_live_key_verification_tests()
+        
+        if success:
+            print("\n✅ Stripe live API key verification completed successfully")
+            return 0
+        else:
+            print("\n❌ Stripe live API key verification found critical issues")
+            return 1
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    exit_code = asyncio.run(main())
+    sys.exit(exit_code)
