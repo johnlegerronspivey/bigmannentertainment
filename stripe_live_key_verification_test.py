@@ -35,7 +35,8 @@ class StripeLiveKeyVerificationTester:
         
     async def setup_session(self):
         """Setup HTTP session and authentication"""
-        self.session = aiohttp.ClientSession()
+        if not self.session:
+            self.session = aiohttp.ClientSession()
         
         # Test user credentials for live key testing
         test_user_email = f"live_stripe_test_{uuid.uuid4().hex[:8]}@bigmannentertainment.com"
