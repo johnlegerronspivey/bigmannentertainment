@@ -345,6 +345,11 @@ const SmartContractComponent = () => {
     return (
         <div className="smart-contract-container">
             <div className="smart-contract-header">
+                <img 
+                    src="/big-mann-logo.png" 
+                    alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+                    className="smart-contract-logo"
+                />
                 <h1>🔗 Smart Contracts & DAO</h1>
                 <p>Web3 Integration for Automatic Licensing and Community Governance</p>
             </div>
