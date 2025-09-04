@@ -284,9 +284,9 @@ const Navigation = () => {
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-4">
             <img 
-              src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
-              alt="Big Mann Entertainment Logo" 
-              className="w-8 h-8 object-contain"
+              src="/big-mann-logo.png" 
+              alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+              className="w-10 h-10 object-contain"
             />
             <Link to="/" className="text-xl font-bold">Big Mann Entertainment</Link>
           </div>
