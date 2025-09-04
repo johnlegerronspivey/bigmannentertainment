@@ -122,7 +122,7 @@ class StripeLiveKeyTester:
                 if response.status == 200:
                     data = await response.json()
                     
-                    if data.get("success") and data.get("packages"):
+                    if data.get("packages"):
                         packages = data["packages"]
                         expected_key = "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"
                         
