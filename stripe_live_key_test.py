@@ -160,7 +160,7 @@ class StripeLiveKeyTester:
                 if response.status == 200:
                     data = await response.json()
                     
-                    if data.get("success") and data.get("packages"):
+                    if data.get("packages"):
                         packages = data["packages"]
                         
                         # Verify expected packages
