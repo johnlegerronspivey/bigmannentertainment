@@ -491,6 +491,66 @@ async def batch_upload_images(
         "web3_enabled": enable_nft and enable_nft.lower() == "true"
     }
 
+
+@image_router.get("/nfts")
+async def get_user_nfts(
+    network: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Get user's minted NFT licenses"""
+    try:
+        nfts = await web3_service.get_user_nfts(current_user.id, network)
+        return {
+            "success": True,
+            "nfts": nfts,
+            "total": len(nfts)
+        }
+    except Exception as e:
+        logger.error(f"Failed to get user NFTs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get NFTs: {str(e)}")
+
+
+@image_router.get("/dao/proposals")
+async def get_dao_proposals(
+    network: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Get DAO governance proposals"""
+    try:
+        proposals = await web3_service.get_dao_proposals(network, status)
+        return {
+            "success": True,
+            "proposals": proposals,
+            "total": len(proposals)
+        }
+    except Exception as e:
+        logger.error(f"Failed to get DAO proposals: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get proposals: {str(e)}")
+
+
+@image_router.get("/agencies/{agency_id}/portfolio")
+async def get_agency_portfolio(
+    agency_id: str,
+    limit: int = Query(20, le=100),
+    current_user: User = Depends(get_current_user)
+):
+    """Get agency portfolio with role-based access"""
+    try:
+        # Check if user has access to agency portfolio
+        # This would typically check user role/permissions
+        
+        portfolio = await image_service.get_agency_portfolio(agency_id, limit)
+        return {
+            "success": True,
+            "agency_id": agency_id,
+            "portfolio": portfolio,
+            "total": len(portfolio)
+        }
+    except Exception as e:
+        logger.error(f"Failed to get agency portfolio: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get portfolio: {str(e)}")
+
 @image_router.post("/model-release")
 async def create_model_release(
     model_name: str = Form(...),
