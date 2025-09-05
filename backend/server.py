@@ -206,6 +206,8 @@ class BusinessIdentifiers(BaseModel):
     business_naics_code: str
     upc_company_prefix: str
     global_location_number: str
+    isrc_prefix: str
+    publisher_number: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
