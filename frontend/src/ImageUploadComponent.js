@@ -246,8 +246,10 @@ const ImageUploadComponent = () => {
     };
 
     const uploadImage = async () => {
-        if (!selectedFile) {
-            setError('Please select an image file');
+        const filesToUpload = isBatchMode ? selectedFiles : (selectedFile ? [{ file: selectedFile, preview }] : []);
+        
+        if (filesToUpload.length === 0) {
+            setError('Please select image file(s) to upload');
             return;
         }
 
@@ -255,6 +257,22 @@ const ImageUploadComponent = () => {
         if (formData.usageRights !== 'editorial_only' && (!formData.modelName || !formData.photographerName || !formData.shootDate)) {
             setError('Model name, photographer name, and shoot date are required for commercial usage');
             return;
+        }
+
+        // Validate Web3 configuration if enabled
+        if (web3Config.enableNFT) {
+            const totalPercentage = royaltyRecipients.reduce((sum, recipient) => sum + Number(recipient.percentage), 0);
+            if (totalPercentage !== 100) {
+                setError('Royalty percentages must total exactly 100%');
+                return;
+            }
+
+            for (const recipient of royaltyRecipients) {
+                if (!recipient.address || !recipient.address.match(/^0x[a-fA-F0-9]{40}$/)) {
+                    setError('All royalty recipients must have valid Ethereum addresses');
+                    return;
+                }
+            }
         }
 
         setUploading(true);
