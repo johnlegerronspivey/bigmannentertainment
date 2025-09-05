@@ -956,38 +956,91 @@ const ImageUploadComponent = () => {
             {/* Upload Result */}
             {uploadResult && (
                 <div className="upload-result">
-                    <h4>✅ Upload Successful</h4>
-                    <div className="result-grid">
-                        <div className="result-item">
-                            <strong>File:</strong> {uploadResult.file_info.filename}
-                        </div>
-                        <div className="result-item">
-                            <strong>Dimensions:</strong> {uploadResult.file_info.dimensions}
-                        </div>
-                        <div className="result-item">
-                            <strong>IPTC Fields:</strong> {uploadResult.metadata_summary.iptc_fields}
-                        </div>
-                        <div className="result-item">
-                            <strong>DDEX Compliant:</strong> {uploadResult.metadata_summary.ddex_compliant ? '✅' : '❌'}
-                        </div>
-                        <div className="result-item">
-                            <strong>Model Release:</strong> {uploadResult.metadata_summary.has_model_release ? '✅' : '❌'}
-                        </div>
-                        <div className="result-item">
-                            <strong>Commercial Approved:</strong> {uploadResult.metadata_summary.commercial_approved === true ? '✅' : 
-                                                                   uploadResult.metadata_summary.commercial_approved === false ? '❌' : 'N/A'}
-                        </div>
-                    </div>
+                    <h4>✅ Upload {uploadResult.batch_mode ? 'Batch' : ''} Successful</h4>
                     
-                    {uploadResult.validation && (
+                    {uploadResult.batch_mode && (
+                        <div className="batch-summary">
+                            <p><strong>Total Files:</strong> {uploadResult.total_files}</p>
+                            <p><strong>Successful:</strong> {uploadResult.successful_uploads}</p>
+                            <p><strong>Failed:</strong> {uploadResult.failed_uploads}</p>
+                        </div>
+                    )}
+
+                    {uploadResult.web3_enabled && (
+                        <div className="web3-results">
+                            <h5>🔗 NFT Minting Results</h5>
+                            <div className="result-grid">
+                                <div className="result-item">
+                                    <strong>Blockchain:</strong> {web3Config.blockchain}
+                                </div>
+                                <div className="result-item">
+                                    <strong>Token Standard:</strong> {web3Config.tokenStandard}
+                                </div>
+                                <div className="result-item">
+                                    <strong>Royalty Recipients:</strong> {royaltyRecipients.length}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {uploadResult.dao_enabled && (
+                        <div className="dao-results">
+                            <h5>🏛️ DAO Governance</h5>
+                            <p><strong>Proposal Type:</strong> {daoGovernance.proposalType}</p>
+                            <p><strong>Voting Period:</strong> {daoGovernance.votingPeriod} days</p>
+                            <p>DAO proposal created for community voting on licensing terms.</p>
+                        </div>
+                    )}
+
+                    {!uploadResult.batch_mode && uploadResult.results && uploadResult.results[0] && (
+                        <div className="result-grid">
+                            <div className="result-item">
+                                <strong>File:</strong> {uploadResult.results[0].file.name}
+                            </div>
+                            <div className="result-item">
+                                <strong>Dimensions:</strong> {uploadResult.results[0].result.file_info?.dimensions || 'N/A'}
+                            </div>
+                            <div className="result-item">
+                                <strong>IPTC Fields:</strong> {uploadResult.results[0].result.metadata_summary?.iptc_fields || 0}
+                            </div>
+                            <div className="result-item">
+                                <strong>DDEX Compliant:</strong> {uploadResult.results[0].result.metadata_summary?.ddex_compliant ? '✅' : '❌'}
+                            </div>
+                            <div className="result-item">
+                                <strong>Model Release:</strong> {uploadResult.results[0].result.metadata_summary?.has_model_release ? '✅' : '❌'}
+                            </div>
+                            <div className="result-item">
+                                <strong>Commercial Approved:</strong> {uploadResult.results[0].result.metadata_summary?.commercial_approved === true ? '✅' : 
+                                                                       uploadResult.results[0].result.metadata_summary?.commercial_approved === false ? '❌' : 'N/A'}
+                            </div>
+                        </div>
+                    )}
+
+                    {uploadResult.batch_mode && uploadResult.results && (
+                        <div className="batch-results">
+                            <h5>📊 Individual File Results</h5>
+                            {uploadResult.results.map((fileResult, index) => (
+                                <div key={index} className={`file-result ${fileResult.success ? 'success-state' : 'error-state'}`}>
+                                    <h6>{fileResult.file.name}</h6>
+                                    {fileResult.success ? (
+                                        <p>✅ Successfully uploaded and processed</p>
+                                    ) : (
+                                        <p>❌ {fileResult.result.detail || 'Upload failed'}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    
+                    {uploadResult.results && uploadResult.results[0] && uploadResult.results[0].result.validation && (
                         <div className="validation-results">
                             <h5>Validation Results</h5>
-                            <p><strong>Risk Level:</strong> {uploadResult.validation.risk_level}</p>
-                            {uploadResult.validation.issues.length > 0 && (
+                            <p><strong>Risk Level:</strong> {uploadResult.results[0].result.validation.risk_level}</p>
+                            {uploadResult.results[0].result.validation.issues && uploadResult.results[0].result.validation.issues.length > 0 && (
                                 <div className="validation-issues">
                                     <strong>Issues:</strong>
                                     <ul>
-                                        {uploadResult.validation.issues.map((issue, index) => (
+                                        {uploadResult.results[0].result.validation.issues.map((issue, index) => (
                                             <li key={index}>{issue}</li>
                                         ))}
                                     </ul>
