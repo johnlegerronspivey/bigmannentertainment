@@ -36,3 +36,10 @@ web3>=6.15.0
 eth-account>=0.11.0
 eth-utils>=3.0.0
 reportlab>=4.0.0
+# Image metadata and processing libraries
+pillow>=10.0.0
+iptcinfo3>=2.1.4
+pyexiv2>=2.8.0
+python-xmp-toolkit>=2.0.1
+# DDEX and metadata standards
+mutagen>=1.47.0
