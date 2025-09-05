@@ -140,6 +140,45 @@ const ImageUploadComponent = () => {
         }
     };
 
+    const handleBatchFileSelect = (event) => {
+        const files = Array.from(event.target.files);
+        const validFiles = [];
+        const maxSize = 500 * 1024 * 1024; // 500MB
+
+        files.forEach(file => {
+            if (file.type.startsWith('image/') && file.size <= maxSize) {
+                validFiles.push(file);
+            }
+        });
+
+        if (validFiles.length !== files.length) {
+            setError(`${files.length - validFiles.length} files were skipped (invalid type or too large)`);
+        } else {
+            setError('');
+        }
+
+        // Create previews for valid files
+        const filePromises = validFiles.map(file => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve({
+                    file,
+                    preview: e.target.result,
+                    id: Date.now() + Math.random()
+                });
+                reader.readAsDataURL(file);
+            });
+        });
+
+        Promise.all(filePromises).then(fileData => {
+            setSelectedFiles(prev => [...prev, ...fileData]);
+        });
+    };
+
+    const removeBatchFile = (fileId) => {
+        setSelectedFiles(prev => prev.filter(f => f.id !== fileId));
+    };
+
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
