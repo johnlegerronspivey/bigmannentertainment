@@ -701,6 +701,248 @@ const RoyaltyManagement = ({ royaltyStatements }) => (
   </div>
 );
 
+// Social Media Management Component
+const SocialMediaManagement = () => {
+  const [socialPosts, setSocialPosts] = useState([]);
+  const [platforms, setPlatforms] = useState([
+    { name: 'Instagram', followers: 15432, engagement: '3.2%', posts: 143 },
+    { name: 'TikTok', followers: 8921, engagement: '5.1%', posts: 89 },
+    { name: 'Twitter/X', followers: 5643, engagement: '2.1%', posts: 267 },
+    { name: 'YouTube', followers: 12850, engagement: '4.3%', posts: 45 },
+    { name: 'Facebook', followers: 9876, engagement: '1.8%', posts: 156 }
+  ]);
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-bold">📱 Social Media Management</h3>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          Create Post
+        </button>
+      </div>
+
+      {/* Platform Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {platforms.map((platform) => (
+          <div key={platform.name} className="bg-white border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium">{platform.name}</h4>
+              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                Active
+              </span>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Followers:</span>
+                <span className="font-medium">{platform.followers.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Engagement:</span>
+                <span className="font-medium text-green-600">{platform.engagement}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Posts:</span>
+                <span className="font-medium">{platform.posts}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Content Calendar */}
+      <div className="bg-white border rounded-lg p-6">
+        <h4 className="font-medium mb-4">📅 Content Calendar</h4>
+        <div className="text-center py-8 text-gray-500">
+          <p>Content calendar integration coming soon</p>
+          <p className="text-sm">Schedule and manage posts across all platforms</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Press Management Component  
+const PressManagement = ({ pressReleases }) => {
+  const [mediaContacts, setMediaContacts] = useState([
+    { id: 1, name: 'Music Weekly', contact: 'editor@musicweekly.com', type: 'Magazine' },
+    { id: 2, name: 'Billboard', contact: 'news@billboard.com', type: 'Industry Publication' },
+    { id: 3, name: 'Rolling Stone', contact: 'submissions@rollingstone.com', type: 'Magazine' },
+    { id: 4, name: 'Pitchfork', contact: 'tips@pitchfork.com', type: 'Online Publication' }
+  ]);
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-bold">📰 Press & Media Relations</h3>
+        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          Create Press Release
+        </button>
+      </div>
+
+      {/* Press Releases Section */}
+      <div className="bg-white border rounded-lg p-6 mb-6">
+        <h4 className="font-medium mb-4">Recent Press Releases</h4>
+        {pressReleases && pressReleases.length > 0 ? (
+          <div className="space-y-4">
+            {pressReleases.map((release) => (
+              <div key={release.id} className="border-l-4 border-green-500 pl-4">
+                <h5 className="font-medium">{release.title}</h5>
+                <p className="text-sm text-gray-600 mt-1">{release.summary}</p>
+                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                  <span>Published: {new Date(release.published_date).toLocaleDateString()}</span>
+                  <span>Status: {release.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>No press releases yet</p>
+            <p className="text-sm">Create your first press release to announce new releases</p>
+          </div>
+        )}
+      </div>
+
+      {/* Media Contacts */}
+      <div className="bg-white border rounded-lg p-6">
+        <h4 className="font-medium mb-4">Media Contacts</h4>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2">Publication</th>
+                <th className="text-left py-2">Contact</th>
+                <th className="text-left py-2">Type</th>
+                <th className="text-left py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mediaContacts.map((contact) => (
+                <tr key={contact.id} className="border-b">
+                  <td className="py-2 font-medium">{contact.name}</td>
+                  <td className="py-2 text-blue-600">{contact.contact}</td>
+                  <td className="py-2">
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
+                      {contact.type}
+                    </span>
+                  </td>
+                  <td className="py-2">
+                    <button className="text-blue-600 hover:text-blue-800 text-sm">
+                      Contact
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Marketing Analytics Component
+const MarketingAnalytics = () => {
+  const [analyticsData, setAnalyticsData] = useState({
+    totalReach: 125430,
+    engagement: 3420,
+    conversions: 245,
+    roi: 312
+  });
+
+  const [campaignPerformance, setCampaignPerformance] = useState([
+    { name: 'Summer Release Campaign', impressions: 45230, clicks: 1205, ctr: '2.7%', cost: 1200 },
+    { name: 'Social Media Push', impressions: 32100, clicks: 892, ctr: '2.8%', cost: 800 },
+    { name: 'Press Release Distribution', impressions: 15600, clicks: 423, ctr: '2.7%', cost: 300 }
+  ]);
+
+  return (
+    <div>
+      <h3 className="text-lg font-bold mb-6">📊 Marketing Analytics</h3>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white border rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Total Reach</p>
+              <p className="text-2xl font-bold text-blue-600">{analyticsData.totalReach.toLocaleString()}</p>
+            </div>
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              👁️
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Engagement</p>
+              <p className="text-2xl font-bold text-green-600">{analyticsData.engagement.toLocaleString()}</p>
+            </div>
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              💬
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Conversions</p>
+              <p className="text-2xl font-bold text-purple-600">{analyticsData.conversions.toLocaleString()}</p>
+            </div>
+            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              🎯
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">ROI %</p>
+              <p className="text-2xl font-bold text-orange-600">{analyticsData.roi}%</p>
+            </div>
+            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+              📈
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Campaign Performance */}
+      <div className="bg-white border rounded-lg p-6">
+        <h4 className="font-medium mb-4">Campaign Performance</h4>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2">Campaign</th>
+                <th className="text-left py-2">Impressions</th>
+                <th className="text-left py-2">Clicks</th>
+                <th className="text-left py-2">CTR</th>
+                <th className="text-left py-2">Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {campaignPerformance.map((campaign, index) => (
+                <tr key={index} className="border-b">
+                  <td className="py-2 font-medium">{campaign.name}</td>
+                  <td className="py-2">{campaign.impressions.toLocaleString()}</td>
+                  <td className="py-2">{campaign.clicks.toLocaleString()}</td>
+                  <td className="py-2">{campaign.ctr}</td>
+                  <td className="py-2">${campaign.cost.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Export all components
 export { 
   ProjectManagement,
