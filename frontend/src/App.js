@@ -614,7 +614,7 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">90+ Platforms</h3>
+              <h3 className="text-xl font-semibold mb-2">106+ Platforms</h3>
               <p className="text-gray-600">Distribute to social media, streaming services, radio stations, TV networks, and emerging Web3 platforms.</p>
             </div>
 
