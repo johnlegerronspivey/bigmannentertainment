@@ -710,7 +710,7 @@ const Home = () => {
               to="/platforms" 
               className="text-purple-600 hover:text-purple-700 font-semibold"
             >
-              View all 90+ platforms →
+              View all 106+ platforms →
             </Link>
           </div>
         </div>
