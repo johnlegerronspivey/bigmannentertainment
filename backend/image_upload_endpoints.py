@@ -28,8 +28,9 @@ logger = logging.getLogger(__name__)
 # Create router
 image_router = APIRouter(prefix="/images", tags=["image_upload"])
 
-# Initialize image metadata service
+# Initialize services
 image_service = ImageMetadataService(db)
+web3_service = Web3NFTService(db)
 
 @image_router.post("/upload")
 async def upload_image_with_metadata(
