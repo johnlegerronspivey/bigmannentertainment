@@ -943,6 +943,144 @@ const MarketingAnalytics = () => {
   );
 };
 
+// Add Campaign Modal Component
+const AddCampaignModal = ({ onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    campaign_type: 'social_media',
+    total_budget: '',
+    start_date: '',
+    end_date: '',
+    description: '',
+    target_audience: '',
+    platforms: []
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+    onClose();
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold">Create New Campaign</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Campaign Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Campaign Type</label>
+            <select
+              name="campaign_type"
+              value={formData.campaign_type}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="social_media">Social Media</option>
+              <option value="press_release">Press Release</option>
+              <option value="radio_promotion">Radio Promotion</option>
+              <option value="digital_advertising">Digital Advertising</option>
+              <option value="influencer_marketing">Influencer Marketing</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Budget ($)</label>
+            <input
+              type="number"
+              name="total_budget"
+              value={formData.total_budget}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Start Date</label>
+              <input
+                type="date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">End Date</label>
+              <input
+                type="date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2"
+              rows="3"
+              required
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Create Campaign
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Export all components
 export { 
   ProjectManagement,
