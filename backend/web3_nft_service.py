@@ -619,7 +619,7 @@ class Web3NFTService:
     async def get_user_nfts(self, user_id: str, network: str = None) -> List[Dict[str, Any]]:
         """Get user's minted NFTs"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return []
 
         try:
