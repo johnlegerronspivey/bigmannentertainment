@@ -1092,5 +1092,6 @@ export {
   RoyaltyManagement,
   SocialMediaManagement,
   PressManagement,
-  MarketingAnalytics
+  MarketingAnalytics,
+  AddCampaignModal
 };
