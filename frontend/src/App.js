@@ -2794,6 +2794,11 @@ const Platforms = () => {
             <h3 className="font-semibold text-gray-800">Rights Management</h3>
             <p className="text-sm text-gray-600">Music rights organizations and royalty collection</p>
           </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">📸</div>
+            <h3 className="font-semibold text-gray-800">Model Agencies</h3>
+            <p className="text-sm text-gray-600">Premier modeling agencies and photography platforms</p>
+          </div>
         </div>
       </div>
 
