@@ -14,7 +14,14 @@ from image_metadata_service import (
     IPTCMetadata,
     DDEXImageDescriptor
 )
+from web3_nft_service import (
+    Web3NFTService, 
+    NFTMintRequest, 
+    DAOProposalRequest,
+    RoyaltyRecipient
+)
 from server import get_current_user, User, db
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
