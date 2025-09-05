@@ -281,59 +281,101 @@ const ImageUploadComponent = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const uploadFormData = new FormData();
-            
-            uploadFormData.append('file', selectedFile);
-            uploadFormData.append('model_name', formData.modelName);
-            uploadFormData.append('agency_name', formData.agencyName);
-            uploadFormData.append('photographer_name', formData.photographerName);
-            uploadFormData.append('shoot_date', formData.shootDate);
-            uploadFormData.append('usage_rights', formData.usageRights);
-            uploadFormData.append('territory_rights', formData.territoryRights);
-            uploadFormData.append('duration_rights', formData.durationRights);
-            uploadFormData.append('exclusive', formData.exclusive);
-            uploadFormData.append('headline', formData.headline);
-            uploadFormData.append('caption', formData.caption);
-            uploadFormData.append('keywords', formData.keywords);
-            uploadFormData.append('copyright_notice', formData.copyrightNotice);
-            uploadFormData.append('license_terms', formData.licenseTerms);
-            uploadFormData.append('content_rating', formData.contentRating);
-            uploadFormData.append('target_agencies', JSON.stringify(formData.targetAgencies));
+            const results = [];
 
-            const response = await fetch(`${backendUrl}/api/images/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: uploadFormData
-            });
+            // Process uploads (single or batch)
+            for (const fileData of filesToUpload) {
+                const uploadFormData = new FormData();
+                
+                uploadFormData.append('file', fileData.file);
+                uploadFormData.append('model_name', formData.modelName);
+                uploadFormData.append('agency_name', formData.agencyName);
+                uploadFormData.append('photographer_name', formData.photographerName);
+                uploadFormData.append('shoot_date', formData.shootDate);
+                uploadFormData.append('usage_rights', formData.usageRights);
+                uploadFormData.append('territory_rights', formData.territoryRights);
+                uploadFormData.append('duration_rights', formData.durationRights);
+                uploadFormData.append('exclusive', formData.exclusive);
+                uploadFormData.append('headline', formData.headline);
+                uploadFormData.append('caption', formData.caption);
+                uploadFormData.append('keywords', formData.keywords);
+                uploadFormData.append('copyright_notice', formData.copyrightNotice);
+                uploadFormData.append('license_terms', formData.licenseTerms);
+                uploadFormData.append('content_rating', formData.contentRating);
+                uploadFormData.append('target_agencies', JSON.stringify(formData.targetAgencies));
+                uploadFormData.append('base_pricing', formData.basePricing);
+                uploadFormData.append('max_resolution', formData.maxResolution);
+                
+                // Add Web3 configuration
+                if (web3Config.enableNFT) {
+                    uploadFormData.append('enable_nft', 'true');
+                    uploadFormData.append('blockchain', web3Config.blockchain);
+                    uploadFormData.append('token_standard', web3Config.tokenStandard);
+                    uploadFormData.append('royalty_recipients', JSON.stringify(royaltyRecipients));
+                }
 
-            const result = await response.json();
+                // Add DAO governance configuration
+                if (daoGovernance.enableDAO) {
+                    uploadFormData.append('enable_dao', 'true');
+                    uploadFormData.append('proposal_type', daoGovernance.proposalType);
+                    uploadFormData.append('voting_period', daoGovernance.votingPeriod);
+                }
 
-            if (response.ok) {
-                setUploadResult(result);
-                setSelectedFile(null);
-                setPreview(null);
-                setFormData({
+                const endpoint = isBatchMode ? '/api/images/batch-upload' : '/api/images/upload';
+                const response = await fetch(`${backendUrl}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: uploadFormData
+                });
+
+                const result = await response.json();
+                results.push({ file: fileData.file, result, success: response.ok });
+            }
+
+            // Process results
+            const successCount = results.filter(r => r.success).length;
+            const failureCount = results.length - successCount;
+
+            if (successCount > 0) {
+                setUploadResult({
+                    success: true,
+                    batch_mode: isBatchMode,
+                    total_files: results.length,
+                    successful_uploads: successCount,
+                    failed_uploads: failureCount,
+                    results: results,
+                    web3_enabled: web3Config.enableNFT,
+                    dao_enabled: daoGovernance.enableDAO
+                });
+
+                // Reset form
+                if (!isBatchMode) {
+                    setSelectedFile(null);
+                    setPreview(null);
+                } else {
+                    setSelectedFiles([]);
+                }
+                
+                setFormData(prev => ({
+                    ...prev,
                     modelName: '',
                     agencyName: '',
                     photographerName: '',
                     shootDate: '',
-                    usageRights: 'editorial_only',
-                    territoryRights: 'worldwide',
-                    durationRights: 'perpetual',
-                    exclusive: false,
                     headline: '',
                     caption: '',
                     keywords: '',
                     copyrightNotice: '',
                     licenseTerms: '',
-                    contentRating: 'general',
                     targetAgencies: []
-                });
+                }));
+
                 fetchUserImages(); // Refresh images list
             } else {
-                setError(result.detail || 'Upload failed');
+                const firstError = results.find(r => !r.success);
+                setError(firstError?.result?.detail || 'All uploads failed');
             }
         } catch (error) {
             setError('Network error during upload');
