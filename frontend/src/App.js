@@ -2694,6 +2694,12 @@ const Platforms = () => {
       "Twitch", "Kick", "Rumble", "Dailymotion", "Vimeo", "Odysee", 
       "BitChute", "Brighteon", "GETTR", "Gab", "Parler", "Truth Social", 
       "Clubhouse", "Twitter Spaces", "Greenroom (Spotify Live)"
+    ],
+    "Model Agencies & Photography": [
+      "IMG Models", "Elite Model Management", "Ford Models", "Wilhelmina Models", 
+      "Next Management", "Women Management", "The Society Management", "Storm Models", 
+      "Premier Model Management", "Select Model Management", "Models.com", 
+      "LA Models", "New York Models", "DNA Models", "Modelwerk"
     ]
   };
 
