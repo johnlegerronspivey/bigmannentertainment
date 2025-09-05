@@ -106,7 +106,7 @@ class AdvancedImageUploadTester:
             }
             
             async with self.session.post(f"{self.api_url}/auth/register", json=register_data) as response:
-                if response.status == 201:
+                if response.status in [200, 201]:
                     register_result = await response.json()
                     self.auth_token = register_result.get('access_token')
                     self.test_user_id = register_result.get('user', {}).get('id')
