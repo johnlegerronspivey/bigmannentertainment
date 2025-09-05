@@ -1232,6 +1232,143 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 100 * 1024 * 1024,
         "credentials_required": ["client_id", "client_secret"],
         "description": "Spotify's live audio platform"
+    },
+
+    # Model Agencies & Photography Platforms (15 platforms)
+    "img_models": {
+        "type": "model_agency",
+        "name": "IMG Models",
+        "api_endpoint": "https://api.imgmodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,  # 500MB for high-res photos
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Premier international modeling agency"
+    },
+    "elite_model_management": {
+        "type": "model_agency",
+        "name": "Elite Model Management",
+        "api_endpoint": "https://api.elitemodel.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Global luxury modeling agency"
+    },
+    "ford_models": {
+        "type": "model_agency",
+        "name": "Ford Models",
+        "api_endpoint": "https://api.fordmodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Historic American modeling agency"
+    },
+    "wilhelmina_models": {
+        "type": "model_agency",
+        "name": "Wilhelmina Models",
+        "api_endpoint": "https://api.wilhelmina.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "International modeling and talent agency"
+    },
+    "next_management": {
+        "type": "model_agency",
+        "name": "Next Management",
+        "api_endpoint": "https://api.nextmanagement.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Global fashion model management"
+    },
+    "women_management": {
+        "type": "model_agency",
+        "name": "Women Management",
+        "api_endpoint": "https://api.womenmanagement.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Premier women's modeling agency"
+    },
+    "society_management": {
+        "type": "model_agency",
+        "name": "The Society Management",
+        "api_endpoint": "https://api.thesocietynyc.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "High-fashion modeling agency"
+    },
+    "storm_models": {
+        "type": "model_agency",
+        "name": "Storm Models",
+        "api_endpoint": "https://api.stormmodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "British modeling agency"
+    },
+    "premier_model_management": {
+        "type": "model_agency",
+        "name": "Premier Model Management",
+        "api_endpoint": "https://api.premiermodelmanagement.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Leading UK modeling agency"
+    },
+    "select_model_management": {
+        "type": "model_agency",
+        "name": "Select Model Management",
+        "api_endpoint": "https://api.selectmodel.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "International fashion model agency"
+    },
+    "models_com": {
+        "type": "model_platform",
+        "name": "Models.com",
+        "api_endpoint": "https://api.models.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["api_key", "photographer_profile"],
+        "description": "Global fashion industry platform"
+    },
+    "la_models": {
+        "type": "model_agency",
+        "name": "LA Models",
+        "api_endpoint": "https://api.lamodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Los Angeles modeling agency"
+    },
+    "new_york_models": {
+        "type": "model_agency",
+        "name": "New York Models",
+        "api_endpoint": "https://api.newyorkmodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "New York based modeling agency"
+    },
+    "dna_models": {
+        "type": "model_agency",
+        "name": "DNA Models",
+        "api_endpoint": "https://api.dnamodels.com/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "Fashion and commercial modeling agency"
+    },
+    "modelwerk": {
+        "type": "model_agency",
+        "name": "Modelwerk",
+        "api_endpoint": "https://api.modelwerk.de/v1",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["agency_id", "api_key", "photographer_license"],
+        "description": "German fashion modeling agency"
     }
 }
 
