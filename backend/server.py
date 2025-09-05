@@ -397,14 +397,15 @@ class SystemConfig(BaseModel):
 
 # Distribution Platform Configurations
 DISTRIBUTION_PLATFORMS = {
-    # Social Media Platforms
+    # Major Social Media Platforms (12 platforms)
     "instagram": {
         "type": "social_media",
         "name": "Instagram",
         "api_endpoint": "https://graph.facebook.com/v18.0",
         "supported_formats": ["image", "video"],
         "max_file_size": 100 * 1024 * 1024,  # 100MB
-        "credentials_required": ["access_token"]
+        "credentials_required": ["access_token"],
+        "description": "Photo and video sharing social media platform"
     },
     "twitter": {
         "type": "social_media", 
@@ -412,7 +413,8 @@ DISTRIBUTION_PLATFORMS = {
         "api_endpoint": "https://api.twitter.com/2",
         "supported_formats": ["image", "video", "audio"],
         "max_file_size": 50 * 1024 * 1024,  # 50MB
-        "credentials_required": ["api_key", "api_secret", "access_token", "access_token_secret"]
+        "credentials_required": ["api_key", "api_secret", "access_token", "access_token_secret"],
+        "description": "Microblogging and social networking platform"
     },
     "facebook": {
         "type": "social_media",
@@ -420,7 +422,8 @@ DISTRIBUTION_PLATFORMS = {
         "api_endpoint": "https://graph.facebook.com/v18.0",
         "supported_formats": ["image", "video", "audio"],
         "max_file_size": 200 * 1024 * 1024,  # 200MB
-        "credentials_required": ["access_token"]
+        "credentials_required": ["access_token"],
+        "description": "Social networking platform"
     },
     "tiktok": {
         "type": "social_media",
@@ -428,623 +431,246 @@ DISTRIBUTION_PLATFORMS = {
         "api_endpoint": "https://open-api.tiktok.com",
         "supported_formats": ["video"],
         "max_file_size": 300 * 1024 * 1024,  # 300MB
-        "credentials_required": ["client_id", "client_secret", "access_token"]
+        "credentials_required": ["client_id", "client_secret", "access_token"],
+        "description": "Short-form video sharing platform"
     },
     "youtube": {
         "type": "social_media",
         "name": "YouTube",
         "api_endpoint": "https://www.googleapis.com/youtube/v3",
-        "supported_formats": ["video"],
+        "supported_formats": ["video", "audio"],
         "max_file_size": 2 * 1024 * 1024 * 1024,  # 2GB
-        "credentials_required": ["api_key", "client_id", "client_secret"]
+        "credentials_required": ["api_key", "client_id", "client_secret"],
+        "description": "Video sharing and streaming platform"
     },
-    "theshaderoom": {
+    "snapchat": {
         "type": "social_media",
-        "name": "The Shade Room",
-        "api_endpoint": "https://api.theshaderoom.com/v1",
+        "name": "Snapchat",
+        "api_endpoint": "https://adsapi.snapchat.com/v1",
+        "supported_formats": ["video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret", "access_token"],
+        "description": "Multimedia messaging and content sharing"
+    },
+    "linkedin": {
+        "type": "social_media",
+        "name": "LinkedIn",
+        "api_endpoint": "https://api.linkedin.com/v2",
+        "supported_formats": ["video", "image", "audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret", "access_token"],
+        "description": "Professional networking platform"
+    },
+    "pinterest": {
+        "type": "social_media",
+        "name": "Pinterest",
+        "api_endpoint": "https://api.pinterest.com/v5",
         "supported_formats": ["image", "video"],
-        "max_file_size": 100 * 1024 * 1024,  # 100MB
-        "credentials_required": ["api_key", "content_partner_id"],
-        "target_demographics": "Urban culture enthusiasts, ages 18-45, entertainment news",
-        "content_guidelines": "Celebrity news, entertainment content, viral moments, hip-hop culture",
-        "submission_process": "The Shade Room editorial review and approval",
-        "revenue_sharing": "Content licensing and partnership opportunities"
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["access_token"],
+        "description": "Visual discovery and idea platform"
     },
-    "hollywoodunlocked": {
+    "reddit": {
         "type": "social_media",
-        "name": "Hollywood Unlocked",
-        "api_endpoint": "https://api.hollywoodunlocked.com/v1",
+        "name": "Reddit",
+        "api_endpoint": "https://oauth.reddit.com/api",
         "supported_formats": ["image", "video", "audio"],
-        "max_file_size": 150 * 1024 * 1024,  # 150MB
-        "credentials_required": ["api_key", "creator_id"],
-        "target_demographics": "Entertainment news audience, ages 21-50, celebrity culture",
-        "content_guidelines": "Celebrity interviews, entertainment news, exclusive content",
-        "submission_process": "Hollywood Unlocked content team review",
-        "revenue_sharing": "Exclusive content partnership revenue"
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret", "access_token"],
+        "description": "Social news aggregation and discussion"
     },
-    "tumblr": {
+    "discord": {
         "type": "social_media",
-        "name": "Tumblr",
-        "api_endpoint": "https://api.tumblr.com/v2",
-        "supported_formats": ["image", "video", "audio"],
-        "max_file_size": 100 * 1024 * 1024,  # 100MB
-        "credentials_required": ["api_key", "api_secret", "oauth_token", "oauth_token_secret"],
-        "target_demographics": "Creative community, ages 16-35, alternative culture",
-        "content_guidelines": "Creative content, multimedia posts, artistic expression, music promotion",
-        "submission_process": "Direct posting with community engagement",
-        "revenue_sharing": "Creator monetization through tips and merchandise"
+        "name": "Discord",
+        "api_endpoint": "https://discord.com/api/v10",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["bot_token"],
+        "description": "Communication platform for communities"
     },
-    "models": {
+    "telegram": {
         "type": "social_media",
-        "name": "Models.com",
-        "api_endpoint": "https://api.models.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 200 * 1024 * 1024,  # 200MB
-        "credentials_required": ["api_key", "model_profile_id"],
-        "target_demographics": "Fashion industry, ages 16-45, modeling professionals",
-        "content_guidelines": "Fashion photography, portfolio content, modeling work, brand campaigns",
-        "submission_process": "Models.com profile verification and content approval",
-        "revenue_sharing": "Model booking commission and portfolio premium features",
-        "platform_features": ["portfolio_hosting", "casting_calls", "industry_networking", "brand_partnerships"]
+        "name": "Telegram",
+        "api_endpoint": "https://api.telegram.org/bot",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["bot_token"],
+        "description": "Cloud-based instant messaging"
     },
-    "modelmanagement": {
+    "whatsapp_business": {
         "type": "social_media",
-        "name": "Model Management",
-        "api_endpoint": "https://api.modelmanagement.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 150 * 1024 * 1024,  # 150MB
-        "credentials_required": ["api_key", "agency_id"],
-        "target_demographics": "Modeling agencies, ages 18-50, fashion industry professionals",
-        "content_guidelines": "Professional portfolios, agency representation, casting materials",
-        "submission_process": "Agency verification and professional content review",
-        "revenue_sharing": "Agency booking fees and platform commissions",
-        "platform_features": ["agency_management", "model_booking", "casting_platform", "industry_tools"]
+        "name": "WhatsApp Business",
+        "api_endpoint": "https://graph.facebook.com/v18.0",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["access_token", "phone_number_id"],
+        "description": "Business messaging platform"
     },
-    "imgmodels": {
-        "type": "social_media",
-        "name": "IMG Models",
-        "api_endpoint": "https://api.imgmodels.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 200 * 1024 * 1024,  # 200MB
-        "credentials_required": ["api_key", "model_id", "agent_token"],
-        "target_demographics": "High fashion industry, ages 16-35, luxury brands and designers",
-        "content_guidelines": "High-end fashion photography, runway content, editorial work, brand campaigns",
-        "submission_process": "IMG Models talent scouting and representation approval",
-        "revenue_sharing": "Premium modeling contracts and brand partnership deals",
-        "platform_features": ["elite_representation", "luxury_brand_partnerships", "runway_casting", "editorial_placements"]
-    },
-    "elitemodelmanagement": {
-        "type": "social_media",
-        "name": "Elite Model Management",
-        "api_endpoint": "https://api.elitemodel.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 180 * 1024 * 1024,  # 180MB
-        "credentials_required": ["api_key", "elite_model_id", "agency_access_token"],
-        "target_demographics": "International fashion industry, ages 14-40, elite modeling market",
-        "content_guidelines": "Elite fashion content, international campaigns, haute couture, commercial work",
-        "submission_process": "Elite Model Management scouting and professional evaluation",
-        "revenue_sharing": "Elite modeling fees and international campaign revenues",
-        "platform_features": ["global_representation", "international_campaigns", "fashion_week_casting", "brand_ambassadorships"]
-    },
-    "lamodels": {
-        "type": "social_media",
-        "name": "LA Models",
-        "api_endpoint": "https://api.lamodels.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 150 * 1024 * 1024,  # 150MB
-        "credentials_required": ["api_key", "la_model_id", "west_coast_token"],
-        "target_demographics": "Commercial and fashion industry, ages 16-45, West Coast market",
-        "content_guidelines": "Commercial photography, fashion work, lifestyle brands, entertainment industry",
-        "submission_process": "LA Models talent representation and commercial evaluation",
-        "revenue_sharing": "Commercial modeling rates and entertainment industry partnerships",
-        "platform_features": ["commercial_representation", "entertainment_casting", "lifestyle_brands", "west_coast_market"]
-    },
-    "stormmanagement": {
-        "type": "social_media",
-        "name": "Storm Management LA",
-        "api_endpoint": "https://api.stormmanagement-la.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 175 * 1024 * 1024,  # 175MB
-        "credentials_required": ["api_key", "storm_model_id", "la_office_token"],
-        "target_demographics": "Fashion and commercial industry, ages 18-35, Los Angeles market",
-        "content_guidelines": "Fashion editorials, commercial campaigns, celebrity photography, brand partnerships",
-        "submission_process": "Storm Management LA talent scouting and representation approval",
-        "revenue_sharing": "Fashion industry rates and celebrity endorsement deals",
-        "platform_features": ["celebrity_representation", "fashion_editorials", "commercial_campaigns", "brand_collaborations"]
-    },
-    "onlyfans": {
-        "type": "social_media",
-        "name": "OnlyFans",
-        "api_endpoint": "https://api.onlyfans.com/v1",
-        "supported_formats": ["image", "video", "audio"],
-        "max_file_size": 1 * 1024 * 1024 * 1024,  # 1GB
-        "credentials_required": ["api_key", "creator_token"],
-        "target_demographics": "Content creators, ages 18+, subscription-based audience",
-        "content_guidelines": "Creator content, subscription-based material, exclusive content",
-        "submission_process": "Creator verification and content compliance review",
-        "revenue_sharing": "Creator subscription revenue sharing (80/20 split)",
-        "platform_features": ["subscription_model", "creator_monetization", "exclusive_content", "fan_interaction"]
-    },
-    "lemon8": {
-        "type": "social_media",
-        "name": "Lemon8",
-        "api_endpoint": "https://api.lemon8-app.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 100 * 1024 * 1024,  # 100MB
-        "credentials_required": ["api_key", "user_token"],
-        "target_demographics": "Lifestyle enthusiasts, ages 16-35, Gen Z and Millennials",
-        "content_guidelines": "Lifestyle content, fashion, beauty, travel, food, wellness",
-        "submission_process": "Lemon8 community guidelines review",
-        "revenue_sharing": "Creator fund and brand partnership opportunities",
-        "platform_features": ["lifestyle_content", "discovery_feed", "trend_sharing", "community_engagement"]
-    },
-    "thesource": {
-        "type": "social_media",
-        "name": "The Source",
-        "api_endpoint": "https://api.thesource.com/v1",
-        "supported_formats": ["image", "video", "audio"],
-        "max_file_size": 200 * 1024 * 1024,  # 200MB
-        "credentials_required": ["api_key", "editorial_token", "content_partner_id"],
-        "target_demographics": "Hip-hop culture enthusiasts, ages 16-45, urban music fans",
-        "content_guidelines": "Hip-hop music, urban culture, artist interviews, music news, album reviews",
-        "submission_process": "The Source editorial team review and music industry validation",
-        "revenue_sharing": "Music promotion partnerships and advertising revenue sharing",
-        "platform_features": ["music_journalism", "artist_interviews", "album_premieres", "hip_hop_culture"]
-    },
-    "billboard": {
-        "type": "social_media",
-        "name": "Billboard",
-        "api_endpoint": "https://api.billboard.com/v1",
-        "supported_formats": ["image", "video", "audio"],
-        "max_file_size": 250 * 1024 * 1024,  # 250MB
-        "credentials_required": ["api_key", "billboard_partner_id", "charts_access_token"],
-        "target_demographics": "Music industry professionals, ages 18-65, mainstream music audience",
-        "content_guidelines": "Music industry news, chart performance, artist features, music business content",
-        "submission_process": "Billboard editorial review and music industry standards validation",
-        "revenue_sharing": "Music industry partnerships and premium content licensing",
-        "platform_features": ["chart_tracking", "industry_news", "artist_features", "music_business_insights"]
-    },
-    "tmz": {
-        "type": "social_media",
-        "name": "TMZ",
-        "api_endpoint": "https://api.tmz.com/v1",
-        "supported_formats": ["image", "video", "audio"],
-        "max_file_size": 300 * 1024 * 1024,  # 300MB
-        "credentials_required": ["api_key", "tmz_contributor_id", "entertainment_token"],
-        "target_demographics": "Entertainment news audience, ages 18-55, celebrity culture followers",
-        "content_guidelines": "Celebrity news, entertainment exclusives, music artist coverage, breaking entertainment news",
-        "submission_process": "TMZ editorial team review and entertainment news validation",
-        "revenue_sharing": "Exclusive content licensing and contributor revenue sharing",
-        "platform_features": ["breaking_news", "celebrity_coverage", "exclusive_content", "entertainment_reporting"]
-    },
-    
-    # Music Streaming Platforms
+
+    # Major Music Streaming Platforms (15 platforms)
     "spotify": {
-        "type": "streaming",
+        "type": "music_streaming",
         "name": "Spotify",
         "api_endpoint": "https://api.spotify.com/v1",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,  # 50MB
-        "credentials_required": ["client_id", "client_secret"]
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "Music streaming and playlist curation"
     },
     "apple_music": {
-        "type": "streaming",
+        "type": "music_streaming",
         "name": "Apple Music",
         "api_endpoint": "https://api.music.apple.com/v1",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["developer_token", "team_id"]
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["developer_token", "music_user_token"],
+        "description": "Apple's music streaming service"
     },
     "amazon_music": {
-        "type": "streaming",
+        "type": "music_streaming",
         "name": "Amazon Music",
-        "api_endpoint": "https://api.amazonalexa.com",
+        "api_endpoint": "https://api.amazonalexa.com/v1",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret"]
-    },
-    "soundcloud": {
-        "type": "streaming",
-        "name": "SoundCloud",
-        "api_endpoint": "https://api.soundcloud.com",
-        "supported_formats": ["audio"],
-        "max_file_size": 200 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret", "access_token"]
-    },
-    "pandora": {
-        "type": "streaming",
-        "name": "Pandora",
-        "api_endpoint": "https://www.pandora.com/api/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["api_key", "partner_id"]
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "Amazon's music streaming platform"
     },
     "tidal": {
-        "type": "streaming",
+        "type": "music_streaming",
         "name": "Tidal",
         "api_endpoint": "https://api.tidal.com/v1",
         "supported_formats": ["audio"],
         "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret"]
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "High-fidelity music streaming"
     },
-    "livemixtapes": {
-        "type": "streaming",
-        "name": "LiveMixtapes.com",
-        "api_endpoint": "https://api.livemixtapes.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 150 * 1024 * 1024,  # 150MB
-        "credentials_required": ["api_key", "user_token"],
-        "target_demographics": "Hip-hop fans, ages 16-35, urban culture",
-        "content_guidelines": "Hip-hop mixtapes, rap music, urban content, artist features",
-        "submission_process": "LiveMixtapes content review and approval",
-        "revenue_sharing": "Free hosting with promotional benefits",
-        "platform_features": ["mixtape_hosting", "artist_profiles", "download_tracking", "social_sharing"]
-    },
-    "mymixtapez": {
-        "type": "streaming", 
-        "name": "MyMixtapez.com",
-        "api_endpoint": "https://api.mymixtapez.com/v2",
-        "supported_formats": ["audio"],
-        "max_file_size": 200 * 1024 * 1024,  # 200MB
-        "credentials_required": ["api_key", "artist_id"],
-        "target_demographics": "Hip-hop enthusiasts, ages 18-40, mixtape culture",
-        "content_guidelines": "Mixtapes, rap albums, hip-hop singles, collaborative projects",
-        "submission_process": "MyMixtapez artist verification and content approval",
-        "revenue_sharing": "Free distribution with premium promotion options",
-        "platform_features": ["mixtape_distribution", "playlist_features", "artist_discovery", "mobile_app_integration"]
-    },
-    "worldstarhiphop": {
-        "type": "streaming",
-        "name": "WorldStar Hip Hop",
-        "api_endpoint": "https://api.worldstarhiphop.com/v1",
-        "supported_formats": ["video", "audio"],
-        "max_file_size": 500 * 1024 * 1024,  # 500MB
-        "credentials_required": ["api_key", "content_creator_id"],
-        "target_demographics": "Hip-hop culture, ages 16-40, urban entertainment",
-        "content_guidelines": "Music videos, hip-hop content, viral videos, artist features",
-        "submission_process": "WorldStar editorial review and viral content curation",
-        "revenue_sharing": "Content licensing and advertising revenue sharing",
-        "platform_features": ["viral_content", "music_videos", "artist_promotion", "social_engagement"]
-    },
-    "raphousetv": {
-        "type": "streaming",
-        "name": "RapHouseTV",
-        "api_endpoint": "https://api.raphousetv.com/v1",
-        "supported_formats": ["video", "audio"],
-        "max_file_size": 300 * 1024 * 1024,  # 300MB
-        "credentials_required": ["api_key", "artist_id"],
-        "target_demographics": "Hip-hop fans, ages 16-35, rap culture enthusiasts",
-        "content_guidelines": "Rap music videos, hip-hop content, artist interviews, freestyle sessions",
-        "submission_process": "RapHouseTV content review and curation",
-        "revenue_sharing": "Artist revenue sharing and promotional opportunities",
-        "platform_features": ["rap_videos", "artist_features", "hip_hop_promotion", "community_engagement"]
-    },
-    
-    # Radio Stations
-    "iheartradio": {
-        "type": "radio",
-        "name": "iHeartRadio",
-        "api_endpoint": "https://api.iheart.com/api/v3",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["api_key", "partner_id"]
-    },
-    "siriusxm": {
-        "type": "radio",
-        "name": "SiriusXM",
-        "api_endpoint": "https://player.siriusxm.com/rest/v2",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["api_key", "channel_id"]
-    },
-    "radio_com": {
-        "type": "radio",
-        "name": "Radio.com",
-        "api_endpoint": "https://api.radio.com/v2",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["api_key", "station_id"]
-    },
-    "tunein": {
-        "type": "radio",
-        "name": "TuneIn",
-        "api_endpoint": "https://api.tunein.com",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["partner_id", "partner_key"]
-    },
-    
-    # Traditional FM Broadcast Stations
-    "clear_channel_pop": {
-        "type": "fm_broadcast",
-        "name": "Clear Channel Pop/Top 40",
-        "api_endpoint": "https://api.clearchannel.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["station_group_id", "api_key"],
-        "genre": "pop",
-        "description": "Major market Top 40/Pop FM stations nationwide"
-    },
-    "cumulus_country": {
-        "type": "fm_broadcast",
-        "name": "Cumulus Country Network",
-        "api_endpoint": "https://api.cumulus.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["network_id", "api_key"],
-        "genre": "country",
-        "description": "Country music FM broadcast network"
-    },
-    "entercom_rock": {
-        "type": "fm_broadcast",
-        "name": "Audacy Rock Stations",
-        "api_endpoint": "https://api.audacy.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["station_cluster_id", "api_key"],
-        "genre": "rock",
-        "description": "Rock and Alternative FM broadcast stations"
-    },
-    "urban_one_hiphop": {
-        "type": "fm_broadcast",
-        "name": "Urban One Hip-Hop/R&B",
-        "api_endpoint": "https://api.urban1.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["market_id", "api_key"],
-        "genre": "hip-hop",
-        "description": "Urban contemporary and Hip-Hop FM stations"
-    },
-    "townsquare_adult_contemporary": {
-        "type": "fm_broadcast",
-        "name": "Townsquare Adult Contemporary",
-        "api_endpoint": "https://api.townsquaremedia.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["market_group_id", "api_key"],
-        "genre": "adult_contemporary",
-        "description": "Adult Contemporary and Soft Rock FM stations"
-    },
-    "saga_classic_rock": {
-        "type": "fm_broadcast",
-        "name": "Saga Classic Rock Network",
-        "api_endpoint": "https://api.sagacom.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["network_id", "api_key"],
-        "genre": "classic_rock",
-        "description": "Classic Rock FM broadcast network"
-    },
-    "hubbard_alternative": {
-        "type": "fm_broadcast",
-        "name": "Hubbard Alternative/Indie",
-        "api_endpoint": "https://api.hubbardradio.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["station_id", "api_key"],
-        "genre": "alternative",
-        "description": "Alternative and Indie rock FM stations"
-    },
-    "univision_latin": {
-        "type": "fm_broadcast",
-        "name": "Univision Latin/Spanish",
-        "api_endpoint": "https://api.univision.com/radio/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["market_id", "api_key"],
-        "genre": "latin",
-        "description": "Spanish language and Latin music FM stations"
-    },
-    "salem_christian": {
-        "type": "fm_broadcast",
-        "name": "Salem Christian/Gospel Network",
-        "api_endpoint": "https://api.salemmedia.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["network_id", "api_key"],
-        "genre": "christian",
-        "description": "Christian and Gospel music FM stations"
-    },
-    "beasley_jazz": {
-        "type": "fm_broadcast",
-        "name": "Beasley Jazz/Smooth Jazz",
-        "api_endpoint": "https://api.bbgi.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["station_group_id", "api_key"],
-        "genre": "jazz",
-        "description": "Jazz and Smooth Jazz FM broadcast stations"
-    },
-    "classical_public_radio": {
-        "type": "fm_broadcast",
-        "name": "NPR Classical Network",
-        "api_endpoint": "https://api.npr.org/v1",
+    "deezer": {
+        "type": "music_streaming",
+        "name": "Deezer",
+        "api_endpoint": "https://api.deezer.com",
         "supported_formats": ["audio"],
         "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["member_station_id", "api_key"],
-        "genre": "classical",
-        "description": "Classical music public radio FM stations"
+        "credentials_required": ["app_id", "secret_key"],
+        "description": "Music streaming and discovery"
     },
-    "emmis_urban": {
-        "type": "fm_broadcast",
-        "name": "Emmis Urban Contemporary",
-        "api_endpoint": "https://api.emmis.com/v1",
+    "pandora": {
+        "type": "music_streaming",
+        "name": "Pandora",
+        "api_endpoint": "https://api.pandora.com/v1",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["market_id", "api_key"],
-        "genre": "urban",
-        "description": "Urban Contemporary and R&B FM stations"
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["partner_id", "partner_key"],
+        "description": "Personalized radio streaming"
     },
-    "midwest_family_oldies": {
-        "type": "fm_broadcast",
-        "name": "Midwest Family Oldies Network",
-        "api_endpoint": "https://api.mwfradio.com/v1",
+    "soundcloud": {
+        "type": "music_streaming",
+        "name": "SoundCloud",
+        "api_endpoint": "https://api.soundcloud.com",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["station_id", "api_key"],
-        "genre": "oldies",
-        "description": "Oldies and Classic Hits FM stations"
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "Audio sharing platform"
     },
-    "alpha_electronic": {
-        "type": "fm_broadcast",
-        "name": "Alpha Electronic/Dance Network",
-        "api_endpoint": "https://api.alphamedia.com/v1",
+    "bandcamp": {
+        "type": "music_streaming",
+        "name": "Bandcamp",
+        "api_endpoint": "https://bandcamp.com/api",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["network_id", "api_key"],
-        "genre": "electronic",
-        "description": "Electronic, Dance, and EDM FM stations"
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Artist-to-fan music platform"
     },
-    "regional_indie": {
-        "type": "fm_broadcast",
-        "name": "Regional Independent Stations",
-        "api_endpoint": "https://api.independentradio.com/v1",
+    "youtube_music": {
+        "type": "music_streaming",
+        "name": "YouTube Music",
+        "api_endpoint": "https://www.googleapis.com/youtube/v3",
+        "supported_formats": ["audio", "video"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["api_key", "client_id"],
+        "description": "YouTube's music streaming service"
+    },
+    "audiomack": {
+        "type": "music_streaming",
+        "name": "Audiomack",
+        "api_endpoint": "https://api.audiomack.com/v1",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["station_id", "api_key"],
-        "genre": "indie",
-        "description": "Independent and regional FM broadcast stations"
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Hip-hop and R&B streaming platform"
     },
-    
-    # TV and Broadcasting
-    "cnn": {
-        "type": "tv",
-        "name": "CNN",
-        "api_endpoint": "https://api.cnn.com/content/v1",
-        "supported_formats": ["video", "image"],
-        "max_file_size": 500 * 1024 * 1024,
-        "credentials_required": ["api_key", "content_partner_id"]
+    "mixcloud": {
+        "type": "music_streaming",
+        "name": "Mixcloud",
+        "api_endpoint": "https://api.mixcloud.com",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "DJ mixes and radio shows platform"
     },
-    "fox_news": {
-        "type": "tv",
-        "name": "Fox News",
-        "api_endpoint": "https://api.foxnews.com/v1",
-        "supported_formats": ["video", "image"],
-        "max_file_size": 500 * 1024 * 1024,
-        "credentials_required": ["api_key", "affiliate_id"]
+    "reverbnation": {
+        "type": "music_streaming",
+        "name": "ReverbNation",
+        "api_endpoint": "https://api.reverbnation.com/v2",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Music promotion and distribution"
     },
-    "msnbc": {
-        "type": "tv",
-        "name": "MSNBC",
-        "api_endpoint": "https://api.msnbc.com/v1",
-        "supported_formats": ["video", "image"],
-        "max_file_size": 500 * 1024 * 1024,
-        "credentials_required": ["api_key", "network_id"]
+    "datpiff": {
+        "type": "music_streaming",
+        "name": "DatPiff",
+        "api_endpoint": "https://www.datpiff.com/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Mixtape hosting platform"
     },
-    "espn": {
-        "type": "tv",
-        "name": "ESPN",
-        "api_endpoint": "https://api.espn.com/v1",
-        "supported_formats": ["video", "image"],
-        "max_file_size": 1024 * 1024 * 1024,
-        "credentials_required": ["api_key", "affiliate_code"]
+    "spinrilla": {
+        "type": "music_streaming",
+        "name": "Spinrilla",
+        "api_endpoint": "https://spinrilla.com/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Hip-hop mixtape platform"
     },
-    "netflix": {
-        "type": "streaming_tv",
-        "name": "Netflix",
-        "api_endpoint": "https://api.netflix.com/catalog/v2",
-        "supported_formats": ["video"],
-        "max_file_size": 5 * 1024 * 1024 * 1024,  # 5GB
-        "credentials_required": ["partner_id", "api_key"]
+    "napster": {
+        "type": "music_streaming",
+        "name": "Napster",
+        "api_endpoint": "https://api.napster.com/v2.2",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key", "api_secret"],
+        "description": "Music streaming service"
     },
-    "hulu": {
-        "type": "streaming_tv",
-        "name": "Hulu",
-        "api_endpoint": "https://api.hulu.com/v1",
-        "supported_formats": ["video"],
-        "max_file_size": 2 * 1024 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret"]
+
+    # Podcast Platforms (8 platforms)
+    "apple_podcasts": {
+        "type": "podcast",
+        "name": "Apple Podcasts",
+        "api_endpoint": "https://itunespartner.apple.com/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["apple_id", "password"],
+        "description": "Apple's podcast platform"
     },
-    "hbo_max": {
-        "type": "streaming_tv",
-        "name": "HBO Max",
-        "api_endpoint": "https://api.hbomax.com/v1",
-        "supported_formats": ["video"],
-        "max_file_size": 3 * 1024 * 1024 * 1024,
-        "credentials_required": ["api_key", "content_partner_id"]
-    },
-    "tubi": {
-        "type": "streaming_tv",
-        "name": "Tubi",
-        "api_endpoint": "https://api.tubi.tv/v1",
-        "supported_formats": ["video"],
-        "max_file_size": 2 * 1024 * 1024 * 1024,  # 2GB
-        "credentials_required": ["api_key", "content_partner_id"],
-        "target_demographics": "Diverse audience, ages 18-65, free streaming viewers",
-        "content_guidelines": "Movies, TV shows, documentaries, original content",
-        "submission_process": "Tubi content acquisition team review",
-        "revenue_sharing": "Ad-supported revenue sharing model",
-        "platform_features": ["free_streaming", "ad_supported", "mobile_apps", "smart_tv_integration"]
-    },
-    "bet": {
-        "type": "tv",
-        "name": "BET (Black Entertainment Television)",
-        "api_endpoint": "https://api.bet.com/content/v1",
-        "supported_formats": ["video", "audio", "image"],
-        "max_file_size": 2 * 1024 * 1024 * 1024,  # 2GB
-        "credentials_required": ["api_key", "content_partner_id"],
-        "target_demographics": "African American audience, ages 18-54",
-        "content_guidelines": "Urban entertainment, music videos, reality TV, comedy, drama",
-        "submission_process": "BET content review and approval required",
-        "revenue_sharing": "70/30 split (creator/platform)"
-    },
-    "revolt_tv": {
-        "type": "streaming_tv", 
-        "name": "Revolt TV",
-        "api_endpoint": "https://api.revolt.tv/v1",
-        "supported_formats": ["video", "audio"],
-        "max_file_size": 1 * 1024 * 1024 * 1024,  # 1GB
-        "credentials_required": ["api_key", "channel_id"],
-        "target_demographics": "Music lovers, ages 18-34, urban culture",
-        "content_guidelines": "Hip-hop, R&B, music documentaries, artist interviews",
-        "submission_process": "Revolt content curation team review",
-        "revenue_sharing": "65/35 split (creator/platform)"
-    },
-    "mtv": {
-        "type": "tv",
-        "name": "MTV (Music Television)",
-        "api_endpoint": "https://api.mtv.com/content/v2",
-        "supported_formats": ["video", "audio", "image"],
-        "max_file_size": 3 * 1024 * 1024 * 1024,  # 3GB
-        "credentials_required": ["api_key", "viacom_partner_id"],
-        "target_demographics": "Gen Z and Millennials, ages 12-34",
-        "content_guidelines": "Music videos, reality TV, pop culture, lifestyle content",
-        "submission_process": "MTV programming team review and scheduling",
-        "revenue_sharing": "60/40 split (creator/platform)"
-    },
-    
-    # Podcast Platforms
     "spotify_podcasts": {
         "type": "podcast",
         "name": "Spotify Podcasts",
         "api_endpoint": "https://api.spotify.com/v1",
         "supported_formats": ["audio"],
         "max_file_size": 200 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret"]
-    },
-    "apple_podcasts": {
-        "type": "podcast",
-        "name": "Apple Podcasts",
-        "api_endpoint": "https://itunesconnect.apple.com/api/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 500 * 1024 * 1024,
-        "credentials_required": ["api_key_id", "issuer_id", "private_key"]
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "Spotify's podcast platform"
     },
     "google_podcasts": {
         "type": "podcast",
         "name": "Google Podcasts",
-        "api_endpoint": "https://podcasts.google.com/api/v1",
+        "api_endpoint": "https://podcasts.google.com/api",
         "supported_formats": ["audio"],
         "max_file_size": 200 * 1024 * 1024,
-        "credentials_required": ["service_account_key"]
-    },
-    "podcast_one": {
-        "type": "podcast",
-        "name": "PodcastOne",
-        "api_endpoint": "https://api.podcastone.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 200 * 1024 * 1024,
-        "credentials_required": ["api_key", "network_id"]
+        "credentials_required": ["api_key"],
+        "description": "Google's podcast platform"
     },
     "stitcher": {
         "type": "podcast",
@@ -1052,100 +678,260 @@ DISTRIBUTION_PLATFORMS = {
         "api_endpoint": "https://api.stitcher.com/v1",
         "supported_formats": ["audio"],
         "max_file_size": 200 * 1024 * 1024,
-        "credentials_required": ["api_key", "show_id"]
+        "credentials_required": ["api_key"],
+        "description": "Podcast streaming platform"
     },
-    
-    # Additional Streaming Platforms
-    "deezer": {
-        "type": "streaming",
-        "name": "Deezer",
-        "api_endpoint": "https://api.deezer.com",
+    "overcast": {
+        "type": "podcast",
+        "name": "Overcast",
+        "api_endpoint": "https://overcast.fm/api",
         "supported_formats": ["audio"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["app_id", "secret_key"]
-    },
-    "bandcamp": {
-        "type": "streaming",
-        "name": "Bandcamp",
-        "api_endpoint": "https://bandcamp.com/api",
-        "supported_formats": ["audio"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["api_key"]
-    },
-    "audiomack": {
-        "type": "streaming",
-        "name": "Audiomack",
-        "api_endpoint": "https://api.audiomack.com/v1",
-        "supported_formats": ["audio"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret"]
-    },
-    
-    # Additional Social Media Platforms
-    "linkedin": {
-        "type": "social_media",
-        "name": "LinkedIn",
-        "api_endpoint": "https://api.linkedin.com/v2",
-        "supported_formats": ["image", "video"],
         "max_file_size": 200 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret", "access_token"]
+        "credentials_required": ["api_key"],
+        "description": "iOS podcast app"
     },
-    "snapchat": {
-        "type": "social_media",
-        "name": "Snapchat",
-        "api_endpoint": "https://adsapi.snapchat.com/v1",
-        "supported_formats": ["image", "video"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["client_id", "client_secret"]
+    "pocketcasts": {
+        "type": "podcast",
+        "name": "Pocket Casts",
+        "api_endpoint": "https://api.pocketcasts.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Cross-platform podcast app"
     },
-    "pinterest": {
-        "type": "social_media",
-        "name": "Pinterest",
-        "api_endpoint": "https://api.pinterest.com/v5",
-        "supported_formats": ["image"],
-        "max_file_size": 32 * 1024 * 1024,
-        "credentials_required": ["access_token"]
+    "castbox": {
+        "type": "podcast",
+        "name": "Castbox",
+        "api_endpoint": "https://castbox.fm/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Global podcast platform"
     },
-    
-    # Digital Performance Rights Organizations
-    "soundexchange": {
-        "type": "performance_rights",
-        "name": "SoundExchange",
-        "api_endpoint": "https://api.soundexchange.com/v1",
+    "anchor": {
+        "type": "podcast",
+        "name": "Anchor",
+        "api_endpoint": "https://anchor.fm/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Podcast creation and hosting"
+    },
+
+    # Radio & Broadcasting (10 platforms)
+    "iheartradio": {
+        "type": "radio",
+        "name": "iHeartRadio",
+        "api_endpoint": "https://api.iheart.com/v3",
         "supported_formats": ["audio"],
         "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["api_key", "account_id", "client_secret"],
-        "description": "Digital performance royalty collection for satellite radio, internet radio, and cable TV music channels"
+        "credentials_required": ["api_key"],
+        "description": "Digital radio platform"
     },
+    "siriusxm": {
+        "type": "radio",
+        "name": "SiriusXM",
+        "api_endpoint": "https://api.siriusxm.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Satellite radio service"
+    },
+    "tunein": {
+        "type": "radio",
+        "name": "TuneIn",
+        "api_endpoint": "https://api.tunein.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Internet radio platform"
+    },
+    "radio_com": {
+        "type": "radio",
+        "name": "Radio.com",
+        "api_endpoint": "https://api.radio.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Live radio streaming"
+    },
+    "live365": {
+        "type": "radio",
+        "name": "Live365",
+        "api_endpoint": "https://api.live365.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Internet radio broadcasting"
+    },
+    "radioio": {
+        "type": "radio",
+        "name": "RadioIO",
+        "api_endpoint": "https://radioio.com/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Online radio network"
+    },
+    "streema": {
+        "type": "radio",
+        "name": "Streema",
+        "api_endpoint": "https://streema.com/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Radio station discovery"
+    },
+    "radionet": {
+        "type": "radio",
+        "name": "radio.net",
+        "api_endpoint": "https://api.radio.net/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Global radio platform"
+    },
+    "zeno_fm": {
+        "type": "radio",
+        "name": "Zeno.FM",
+        "api_endpoint": "https://zeno.fm/api",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Free internet radio hosting"
+    },
+    "shoutcast": {
+        "type": "radio",
+        "name": "SHOUTcast",
+        "api_endpoint": "https://api.shoutcast.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Internet radio streaming"
+    },
+
+    # Television & Video Streaming (8 platforms)
+    "netflix": {
+        "type": "video_streaming",
+        "name": "Netflix",
+        "api_endpoint": "https://api.netflix.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,  # 5GB
+        "credentials_required": ["partner_key", "content_id"],
+        "description": "Global video streaming platform"
+    },
+    "hulu": {
+        "type": "video_streaming",
+        "name": "Hulu",
+        "api_endpoint": "https://api.hulu.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "US video streaming service"
+    },
+    "amazon_prime_video": {
+        "type": "video_streaming",
+        "name": "Amazon Prime Video",
+        "api_endpoint": "https://api.amazonvideo.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,
+        "credentials_required": ["access_key", "secret_key"],
+        "description": "Amazon's video streaming service"
+    },
+    "hbo_max": {
+        "type": "video_streaming",
+        "name": "HBO Max",
+        "api_endpoint": "https://api.hbomax.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Warner Bros. streaming platform"
+    },
+    "disney_plus": {
+        "type": "video_streaming",
+        "name": "Disney+",
+        "api_endpoint": "https://api.disneyplus.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,
+        "credentials_required": ["content_partner_key"],
+        "description": "Disney's streaming service"
+    },
+    "paramount_plus": {
+        "type": "video_streaming",
+        "name": "Paramount+",
+        "api_endpoint": "https://api.paramountplus.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "CBS/Paramount streaming platform"
+    },
+    "peacock": {
+        "type": "video_streaming",
+        "name": "Peacock",
+        "api_endpoint": "https://api.peacocktv.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,
+        "credentials_required": ["content_key"],
+        "description": "NBCUniversal streaming service"
+    },
+    "roku_channel": {
+        "type": "video_streaming",
+        "name": "The Roku Channel",
+        "api_endpoint": "https://api.roku.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["developer_id", "api_key"],
+        "description": "Roku's free streaming platform"
+    },
+
+    # Music Industry Rights Organizations (5 platforms)
     "ascap": {
-        "type": "performance_rights",
+        "type": "rights_organization",
         "name": "ASCAP",
         "api_endpoint": "https://api.ascap.com/v1",
         "supported_formats": ["audio"],
         "max_file_size": 50 * 1024 * 1024,
         "credentials_required": ["member_id", "api_key"],
-        "description": "Performance rights organization for songwriters and publishers"
+        "description": "American Society of Composers, Authors and Publishers"
     },
     "bmi": {
-        "type": "performance_rights",
+        "type": "rights_organization",
         "name": "BMI",
         "api_endpoint": "https://api.bmi.com/v1",
         "supported_formats": ["audio"],
         "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["affiliate_id", "api_key"],
-        "description": "Broadcast Music Inc. - Performance rights for songwriters and publishers"
+        "credentials_required": ["writer_id", "publisher_id", "api_key"],
+        "description": "Broadcast Music, Inc. - Performance rights organization"
     },
     "sesac": {
-        "type": "performance_rights",
+        "type": "rights_organization",
         "name": "SESAC",
         "api_endpoint": "https://api.sesac.com/v1",
         "supported_formats": ["audio"],
         "max_file_size": 50 * 1024 * 1024,
         "credentials_required": ["writer_id", "publisher_id", "api_key"],
-        "description": "Society of European Stage Authors and Composers - Performance rights organization"
+        "description": "Society of European Stage Authors and Composers"
     },
-    
-    # Blockchain & Web3 Platforms
+    "soundexchange": {
+        "type": "rights_organization",
+        "name": "SoundExchange",
+        "api_endpoint": "https://api.soundexchange.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["account_id", "api_key"],
+        "description": "Digital performance rights organization"
+    },
+    "harry_fox_agency": {
+        "type": "rights_organization",
+        "name": "Harry Fox Agency",
+        "api_endpoint": "https://api.harryfox.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["publisher_id", "api_key"],
+        "description": "Mechanical licensing agency"
+    },
+
+    # Web3 and Blockchain Platforms (10 platforms)
     "ethereum_mainnet": {
         "type": "blockchain",
         "name": "Ethereum Mainnet",
@@ -1153,9 +939,7 @@ DISTRIBUTION_PLATFORMS = {
         "supported_formats": ["audio", "video", "image"],
         "max_file_size": 100 * 1024 * 1024,
         "credentials_required": ["infura_project_id", "private_key"],
-        "description": "Ethereum blockchain for NFT minting and smart contracts",
-        "contract_address": ETHEREUM_CONTRACT_ADDRESS,
-        "wallet_address": ETHEREUM_WALLET_ADDRESS
+        "description": "Ethereum blockchain for NFT minting"
     },
     "polygon_matic": {
         "type": "blockchain",
@@ -1164,7 +948,7 @@ DISTRIBUTION_PLATFORMS = {
         "supported_formats": ["audio", "video", "image"],
         "max_file_size": 100 * 1024 * 1024,
         "credentials_required": ["infura_project_id", "private_key"],
-        "description": "Low-cost Polygon network for affordable NFT transactions"
+        "description": "Low-cost Polygon network for NFTs"
     },
     "solana_mainnet": {
         "type": "blockchain",
@@ -1172,8 +956,17 @@ DISTRIBUTION_PLATFORMS = {
         "api_endpoint": "https://api.mainnet-beta.solana.com",
         "supported_formats": ["audio", "video", "image"],
         "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["solana_private_key", "rpc_url"],
-        "description": "Fast and low-cost Solana blockchain for NFTs"
+        "credentials_required": ["private_key"],
+        "description": "High-speed blockchain for NFTs"
+    },
+    "avalanche": {
+        "type": "blockchain",
+        "name": "Avalanche",
+        "api_endpoint": "https://api.avax.network",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["private_key"],
+        "description": "Avalanche blockchain network"
     },
     "binance_smart_chain": {
         "type": "blockchain",
@@ -1181,94 +974,9 @@ DISTRIBUTION_PLATFORMS = {
         "api_endpoint": "https://bsc-dataseed1.binance.org",
         "supported_formats": ["audio", "video", "image"],
         "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["bsc_private_key"],
-        "description": "Binance Smart Chain for cost-effective NFT operations"
+        "credentials_required": ["private_key"],
+        "description": "Binance's blockchain network"
     },
-    "avalanche_c_chain": {
-        "type": "blockchain", 
-        "name": "Avalanche C-Chain",
-        "api_endpoint": "https://api.avax.network/ext/bc/C/rpc",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["avalanche_private_key"],
-        "description": "Avalanche blockchain for fast NFT transactions"
-    },
-    "optimism_layer2": {
-        "type": "blockchain",
-        "name": "Optimism Layer 2",
-        "api_endpoint": "https://mainnet.optimism.io",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["optimism_private_key"],
-        "description": "Ethereum Layer 2 solution for cheaper transactions"
-    },
-    "arbitrum_one": {
-        "type": "blockchain",
-        "name": "Arbitrum One",
-        "api_endpoint": "https://arb1.arbitrum.io/rpc",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["arbitrum_private_key"],
-        "description": "Ethereum Layer 2 scaling solution"
-    },
-    
-    # NFT Marketplaces
-    "opensea": {
-        "type": "nft_marketplace",
-        "name": "OpenSea",
-        "api_endpoint": "https://api.opensea.io/v1",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["opensea_api_key", "wallet_private_key"],
-        "description": "World's largest NFT marketplace"
-    },
-    "rarible": {
-        "type": "nft_marketplace",
-        "name": "Rarible",
-        "api_endpoint": "https://api.rarible.org/v0.1",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["rarible_api_key", "wallet_private_key"],
-        "description": "Community-owned NFT marketplace"
-    },
-    "foundation": {
-        "type": "nft_marketplace",
-        "name": "Foundation",
-        "api_endpoint": "https://api.foundation.app/v1",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["foundation_api_key", "wallet_private_key"],
-        "description": "Curated NFT marketplace for digital art"
-    },
-    "superrare": {
-        "type": "nft_marketplace",
-        "name": "SuperRare",
-        "api_endpoint": "https://api.superrare.co/v1",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 50 * 1024 * 1024,
-        "credentials_required": ["superrare_api_key", "wallet_private_key"],
-        "description": "Digital art NFT marketplace"
-    },
-    "magic_eden": {
-        "type": "nft_marketplace",
-        "name": "Magic Eden",
-        "api_endpoint": "https://api-mainnet.magiceden.dev/v2",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["magic_eden_api_key", "solana_private_key"],
-        "description": "Leading Solana NFT marketplace"
-    },
-    "async_art": {
-        "type": "nft_marketplace",
-        "name": "Async Art",
-        "api_endpoint": "https://api.async.art/v1",
-        "supported_formats": ["audio", "video", "image"],
-        "max_file_size": 100 * 1024 * 1024,
-        "credentials_required": ["async_api_key", "wallet_private_key"],
-        "description": "Programmable NFT art platform"
-    },
-    
-    # Web3 Music Platforms
     "audius": {
         "type": "web3_music",
         "name": "Audius",
@@ -1285,7 +993,7 @@ DISTRIBUTION_PLATFORMS = {
         "supported_formats": ["audio"],
         "max_file_size": 100 * 1024 * 1024,
         "credentials_required": ["catalog_api_key", "wallet_private_key"],
-        "description": "NFT music marketplace for collectors"
+        "description": "NFT music marketplace"
     },
     "sound_xyz": {
         "type": "web3_music",
@@ -1304,6 +1012,226 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 100 * 1024 * 1024,
         "credentials_required": ["royal_api_key", "artist_id"],
         "description": "Music NFT ownership and royalty sharing"
+    },
+    "opensea": {
+        "type": "nft_marketplace",
+        "name": "OpenSea",
+        "api_endpoint": "https://api.opensea.io/api/v1",
+        "supported_formats": ["audio", "video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Leading NFT marketplace"
+    },
+
+    # International Music Platforms (8 platforms)
+    "joox": {
+        "type": "music_streaming",
+        "name": "JOOX",
+        "api_endpoint": "https://api.joox.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Asian music streaming platform"
+    },
+    "anghami": {
+        "type": "music_streaming",
+        "name": "Anghami",
+        "api_endpoint": "https://api.anghami.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Middle Eastern music platform"
+    },
+    "gaana": {
+        "type": "music_streaming",
+        "name": "Gaana",
+        "api_endpoint": "https://api.gaana.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Indian music streaming service"
+    },
+    "jiosaavn": {
+        "type": "music_streaming",
+        "name": "JioSaavn",
+        "api_endpoint": "https://api.jiosaavn.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Indian music streaming platform"
+    },
+    "yandex_music": {
+        "type": "music_streaming",
+        "name": "Yandex Music",
+        "api_endpoint": "https://api.music.yandex.net/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Russian music streaming service"
+    },
+    "qq_music": {
+        "type": "music_streaming",
+        "name": "QQ Music",
+        "api_endpoint": "https://api.y.qq.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Chinese music streaming platform"
+    },
+    "netease_cloud_music": {
+        "type": "music_streaming",
+        "name": "NetEase Cloud Music",
+        "api_endpoint": "https://api.music.163.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Chinese music streaming service"
+    },
+    "boomplay": {
+        "type": "music_streaming",
+        "name": "Boomplay",
+        "api_endpoint": "https://api.boomplay.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "African music streaming platform"
+    },
+
+    # Additional Digital Platforms (15 platforms)
+    "twitch": {
+        "type": "live_streaming",
+        "name": "Twitch",
+        "api_endpoint": "https://api.twitch.tv/helix",
+        "supported_formats": ["video", "audio"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "Live streaming platform for gamers"
+    },
+    "kick": {
+        "type": "live_streaming",
+        "name": "Kick",
+        "api_endpoint": "https://kick.com/api/v1",
+        "supported_formats": ["video", "audio"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Creator-focused live streaming"
+    },
+    "rumble": {
+        "type": "video_platform",
+        "name": "Rumble",
+        "api_endpoint": "https://rumble.com/api/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Alternative video platform"
+    },
+    "dailymotion": {
+        "type": "video_platform",
+        "name": "Dailymotion",
+        "api_endpoint": "https://www.dailymotion.com/api",
+        "supported_formats": ["video"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "European video sharing platform"
+    },
+    "vimeo": {
+        "type": "video_platform",
+        "name": "Vimeo",
+        "api_endpoint": "https://api.vimeo.com",
+        "supported_formats": ["video"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,
+        "credentials_required": ["access_token"],
+        "description": "Professional video platform"
+    },
+    "odysee": {
+        "type": "video_platform",
+        "name": "Odysee",
+        "api_endpoint": "https://api.odysee.com/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Decentralized video platform"
+    },
+    "bitchute": {
+        "type": "video_platform",
+        "name": "BitChute",
+        "api_endpoint": "https://www.bitchute.com/api/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Alternative video platform"
+    },
+    "brighteon": {
+        "type": "video_platform",
+        "name": "Brighteon",
+        "api_endpoint": "https://www.brighteon.com/api/v1",
+        "supported_formats": ["video"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Free speech video platform"
+    },
+    "gettr": {
+        "type": "social_media",
+        "name": "GETTR",
+        "api_endpoint": "https://api.gettr.com/v1",
+        "supported_formats": ["video", "image", "audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Social networking platform"
+    },
+    "gab": {
+        "type": "social_media",
+        "name": "Gab",
+        "api_endpoint": "https://gab.com/api/v1",
+        "supported_formats": ["video", "image", "audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Free speech social network"
+    },
+    "parler": {
+        "type": "social_media",
+        "name": "Parler",
+        "api_endpoint": "https://api.parler.com/v1",
+        "supported_formats": ["video", "image", "audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Alternative social media platform"
+    },
+    "truth_social": {
+        "type": "social_media",
+        "name": "Truth Social",
+        "api_endpoint": "https://truthsocial.com/api/v1",
+        "supported_formats": ["video", "image", "audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Social media platform"
+    },
+    "clubhouse": {
+        "type": "audio_social",
+        "name": "Clubhouse",
+        "api_endpoint": "https://www.clubhouseapi.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Audio-based social networking"
+    },
+    "spaces": {
+        "type": "audio_social",
+        "name": "Twitter Spaces",
+        "api_endpoint": "https://api.twitter.com/2",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["bearer_token"],
+        "description": "Twitter's audio spaces feature"
+    },
+    "greenroom": {
+        "type": "audio_social",
+        "name": "Greenroom (Spotify Live)",
+        "api_endpoint": "https://api.spotify.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "Spotify's live audio platform"
     }
 }
 
