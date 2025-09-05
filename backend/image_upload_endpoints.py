@@ -159,9 +159,7 @@ async def upload_image_with_metadata(
         # Store metadata in database
         metadata_id = await image_service.store_image_metadata(metadata)
         
-        # Here you would typically upload the actual file to S3 or storage
-        # For now, we'll just simulate the storage
-        
+        # Initialize response data
         response_data = {
             "success": True,
             "metadata_id": metadata_id,
@@ -181,6 +179,90 @@ async def upload_image_with_metadata(
             },
             "validation": validation_result
         }
+
+        # Process Web3 NFT minting if enabled
+        if enable_nft and enable_nft.lower() == "true":
+            try:
+                # Parse royalty recipients
+                recipients = []
+                if royalty_recipients:
+                    recipients_data = json.loads(royalty_recipients)
+                    for recipient_data in recipients_data:
+                        recipients.append(RoyaltyRecipient(
+                            address=recipient_data["address"],
+                            percentage=int(recipient_data["percentage"]),
+                            role=recipient_data["role"]
+                        ))
+                
+                # Create mint request
+                mint_request = NFTMintRequest(
+                    to_address=current_user.wallet_address or "0x" + "0" * 40,  # Default address if not set
+                    token_uri=f"ipfs://metadata_placeholder_{metadata_id}",  # Would be actual IPFS URI
+                    license_type=usage_rights,
+                    duration=int(duration_rights.replace("_years", "").replace("perpetual", "0")),
+                    restrictions=license_terms or "",
+                    commercial_use=usage_rights in ["commercial", "unrestricted"],
+                    max_resolution=int(max_resolution) if max_resolution != "unlimited" else 999999,
+                    base_pricing=Decimal(base_pricing) if base_pricing else Decimal("0"),
+                    royalty_recipients=recipients if recipients else [
+                        RoyaltyRecipient(
+                            address=current_user.wallet_address or "0x" + "0" * 40,
+                            percentage=100,
+                            role="creator"
+                        )
+                    ]
+                )
+                
+                # Mint NFT
+                nft_result = await web3_service.mint_nft_license(
+                    network=blockchain,
+                    token_standard=token_standard,
+                    mint_request=mint_request,
+                    user_id=current_user.id
+                )
+                
+                response_data["nft_minting"] = nft_result
+                
+            except Exception as e:
+                logger.error(f"NFT minting failed: {str(e)}")
+                response_data["nft_minting"] = {
+                    "success": False,
+                    "error": str(e)
+                }
+        
+        # Process DAO proposal if enabled
+        if enable_dao and enable_dao.lower() == "true":
+            try:
+                proposal_request = DAOProposalRequest(
+                    proposal_type=proposal_type,
+                    title=f"License Terms Approval: {file.filename}",
+                    description=f"Approve licensing terms for {file.filename} with {usage_rights} usage rights",
+                    voting_period=voting_period,
+                    proposal_data={
+                        "metadata_id": metadata_id,
+                        "filename": file.filename,
+                        "usage_rights": usage_rights,
+                        "base_pricing": base_pricing,
+                        "max_resolution": max_resolution,
+                        "photographer": photographer_name,
+                        "agency": agency_name
+                    }
+                )
+                
+                dao_result = await web3_service.create_dao_proposal(
+                    network=blockchain,
+                    proposal_request=proposal_request,
+                    proposer_user_id=current_user.id
+                )
+                
+                response_data["dao_proposal"] = dao_result
+                
+            except Exception as e:
+                logger.error(f"DAO proposal creation failed: {str(e)}")
+                response_data["dao_proposal"] = {
+                    "success": False,
+                    "error": str(e)
+                }
         
         return JSONResponse(content=response_data)
         
