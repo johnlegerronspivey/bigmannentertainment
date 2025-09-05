@@ -677,6 +677,250 @@ const ImageUploadComponent = () => {
                     </div>
                 </div>
 
+                {/* Batch Upload Toggle */}
+                <div className="form-section">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={isBatchMode}
+                            onChange={(e) => setIsBatchMode(e.target.checked)}
+                        />
+                        Enable Batch Upload Mode
+                    </label>
+                </div>
+
+                {/* Batch Upload Section */}
+                {isBatchMode && (
+                    <div className="batch-upload">
+                        <h3>📁 Batch Image Upload</h3>
+                        <input
+                            type="file"
+                            ref={batchFileInputRef}
+                            onChange={handleBatchFileSelect}
+                            accept="image/*"
+                            multiple
+                            style={{ display: 'none' }}
+                        />
+                        <button
+                            onClick={() => batchFileInputRef.current?.click()}
+                            className="file-select-button"
+                            disabled={uploading}
+                        >
+                            📎 Select Multiple Images
+                        </button>
+                        
+                        {selectedFiles.length > 0 && (
+                            <div className="batch-files-grid">
+                                {selectedFiles.map((fileData) => (
+                                    <div key={fileData.id} className="batch-file-item">
+                                        <img src={fileData.preview} alt="Batch preview" />
+                                        <div className="batch-file-info">
+                                            <div>{fileData.file.name}</div>
+                                            <div>{formatFileSize(fileData.file.size)}</div>
+                                        </div>
+                                        <button
+                                            onClick={() => removeBatchFile(fileData.id)}
+                                            className="remove-batch-file"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Web3 NFT Integration */}
+                <div className="web3-integration">
+                    <h3>🔗 Web3 NFT Licensing</h3>
+                    
+                    <div className="form-group">
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="enableNFT"
+                                checked={web3Config.enableNFT}
+                                onChange={handleWeb3ConfigChange}
+                            />
+                            Enable NFT Minting for Image Licensing
+                        </label>
+                    </div>
+
+                    {web3Config.enableNFT && (
+                        <>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label htmlFor="blockchain">Blockchain Network</label>
+                                    <select
+                                        id="blockchain"
+                                        name="blockchain"
+                                        value={web3Config.blockchain}
+                                        onChange={handleWeb3ConfigChange}
+                                    >
+                                        <option value="polygon">Polygon (Recommended - Low Gas)</option>
+                                        <option value="ethereum">Ethereum (Higher Gas)</option>
+                                        <option value="base">Base (Fast & Cheap)</option>
+                                    </select>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="tokenStandard">Token Standard</label>
+                                    <select
+                                        id="tokenStandard"
+                                        name="tokenStandard"
+                                        value={web3Config.tokenStandard}
+                                        onChange={handleWeb3ConfigChange}
+                                    >
+                                        <option value="ERC721">ERC-721 (Unique NFT)</option>
+                                        <option value="ERC1155">ERC-1155 (Batch Mintable)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="royalty-splits">
+                                <h4>💰 Royalty Distribution</h4>
+                                {royaltyRecipients.map((recipient, index) => (
+                                    <div key={index} className="royalty-recipient">
+                                        <input
+                                            type="text"
+                                            placeholder="Ethereum address (0x...)"
+                                            value={recipient.address}
+                                            onChange={(e) => handleRoyaltyRecipientChange(index, 'address', e.target.value)}
+                                        />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            placeholder="Percentage"
+                                            value={recipient.percentage}
+                                            onChange={(e) => handleRoyaltyRecipientChange(index, 'percentage', e.target.value)}
+                                        />
+                                        <select
+                                            value={recipient.role}
+                                            onChange={(e) => handleRoyaltyRecipientChange(index, 'role', e.target.value)}
+                                        >
+                                            <option value="creator">Creator</option>
+                                            <option value="photographer">Photographer</option>
+                                            <option value="agency">Agency</option>
+                                            <option value="platform">Platform</option>
+                                            <option value="contributor">Contributor</option>
+                                        </select>
+                                        {royaltyRecipients.length > 1 && (
+                                            <button
+                                                onClick={() => removeRoyaltyRecipient(index)}
+                                                className="remove-recipient-btn"
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                                <button onClick={addRoyaltyRecipient} className="add-recipient-btn">
+                                    + Add Royalty Recipient
+                                </button>
+                                <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '10px' }}>
+                                    Total: {royaltyRecipients.reduce((sum, r) => sum + Number(r.percentage || 0), 0)}%
+                                    (Must equal 100%)
+                                </p>
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {/* DAO Governance */}
+                <div className="dao-governance">
+                    <h3>🏛️ DAO Governance</h3>
+                    
+                    <div className="form-group">
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="enableDAO"
+                                checked={daoGovernance.enableDAO}
+                                onChange={handleDaoConfigChange}
+                            />
+                            Enable DAO governance approval for licensing terms
+                        </label>
+                    </div>
+
+                    {daoGovernance.enableDAO && (
+                        <div className="governance-options">
+                            <div className="governance-option">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="proposalType"
+                                        value="licensing_terms"
+                                        checked={daoGovernance.proposalType === 'licensing_terms'}
+                                        onChange={handleDaoConfigChange}
+                                    />
+                                    Licensing Terms Proposal
+                                </label>
+                            </div>
+                            <div className="governance-option">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="proposalType"
+                                        value="agency_onboarding"
+                                        checked={daoGovernance.proposalType === 'agency_onboarding'}
+                                        onChange={handleDaoConfigChange}
+                                    />
+                                    Agency Onboarding
+                                </label>
+                            </div>
+                            <div className="governance-option">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="proposalType"
+                                        value="royalty_adjustment"
+                                        checked={daoGovernance.proposalType === 'royalty_adjustment'}
+                                        onChange={handleDaoConfigChange}
+                                    />
+                                    Royalty Adjustment
+                                </label>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Pricing Information */}
+                <div className="form-section">
+                    <h5>💲 Licensing Pricing</h5>
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label htmlFor="basePricing">Base License Price (ETH)</label>
+                            <input
+                                type="number"
+                                id="basePricing"
+                                name="basePricing"
+                                step="0.001"
+                                min="0"
+                                value={formData.basePricing}
+                                onChange={handleInputChange}
+                                placeholder="0.1"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="maxResolution">Max Resolution (px)</label>
+                            <select
+                                id="maxResolution"
+                                name="maxResolution"
+                                value={formData.maxResolution}
+                                onChange={handleInputChange}
+                            >
+                                <option value="1920">HD (1920px)</option>
+                                <option value="2560">QHD (2560px)</option>
+                                <option value="4000">4K (4000px)</option>
+                                <option value="8000">8K (8000px)</option>
+                                <option value="unlimited">Unlimited</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Commercial Usage Warning */}
                 {formData.usageRights !== 'editorial_only' && (
                     <div className="commercial-warning">
@@ -686,6 +930,8 @@ const ImageUploadComponent = () => {
                             <li>Model name, photographer name, and shoot date are required</li>
                             <li>Copyright notice must be included</li>
                             <li>Territory and duration rights will be enforced</li>
+                            {web3Config.enableNFT && <li>NFT will be minted with embedded licensing terms</li>}
+                            {daoGovernance.enableDAO && <li>Proposal will be created for DAO approval</li>}
                         </ul>
                     </div>
                 )}
