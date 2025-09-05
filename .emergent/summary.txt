@@ -1,35 +1,28 @@
 <analysis>
-The AI engineer successfully guided the Big Mann Entertainment platform through several complex development phases, moving from an MVP to a Web3-native application with robust compliance and audit features. Initially, the focus was on stabilizing the MVP, which included AWS integration (S3, SES, CloudFront, Lambda, Rekognition) for scalable media operations and implementing an . Subsequent phases involved a comprehensive Metadata Parser & Validator, advanced metadata features with batch processing and reporting, and a Rights & Compliance Checker. The engineer then completed the integration of **Phase 4: Smart Contract Triggers**, implementing Web3 functionality for licensing and DAO votes. Following this, a comprehensive **Logging & Audit Trail** system was added with granular access controls. A significant effort was then dedicated to **achieving 100% functionality**, which involved fixing  issues, resolving router conflicts, debugging API routing, and, critically, including the main  in . Finally, a large-scale **cleanup operation** was performed to remove all placeholder and 'emergent' references, which uncovered and resolved further backend syntax and import errors, primarily related to payment and GS1 services. The system is now 100% functional and production-ready.
+The previous AI engineer successfully brought the Big Mann Entertainment platform from an MVP to a robust, feature-rich application. Key milestones included stabilizing the core platform, integrating AWS for media handling, implementing comprehensive metadata parsing, advanced rights and compliance checks, and crucial Web3 smart contract functionality. A significant effort was dedicated to achieving 100% functionality through extensive bug fixes and a large-scale codebase cleanup, ensuring production readiness.
+
+Following this, the engineer integrated a complete Stripe payment system, including backend services, frontend components, and live API key configuration. Subsequent tasks involved a pervasive logo integration across the UI and email templates, fixing a critical password reset flow, and accurately integrating specific business identifiers (ISRC Prefix, Publisher Number). Most recently, the platform expanded its content distribution capabilities by integrating a comprehensive list of 106+ platforms, including new model agencies, and is currently in the process of implementing advanced image upload and metadata standards using IPTC/XMP.
 </analysis>
 
 <product_requirements>
-Big Mann Entertainment (BME) aims to be a media distribution platform distributing content across 91+ platforms, with admin controls and industry compliance (DDEX, IPI, ISNI, AARC, MDX, MLC, GS1). It manages UPC, GLN, and ISRC identifiers, featuring an advanced licensing system.
+Big Mann Entertainment (BME) is a media distribution platform designed to distribute content across 91+ (now 106+) platforms, incorporating robust admin controls and adhering to industry compliance standards (DDEX, IPI, ISNI, AARC, MDX, MLC, GS1). It features advanced licensing, UPC, GLN, and ISRC identifier management.
 
-The project began with stabilizing the MVP, resolving numerous backend (404s, API endpoints, validation) and frontend (JS errors, file upload, navigation) issues to achieve 100% functional stability. Subsequent enhancements included:
-- **AWS Integration:** S3, SES, CloudFront, Lambda, Rekognition for scalable media operations.
-- **Enhanced Upload:** Drag-and-drop media upload with comprehensive metadata input and real-time validation.
-- **Phase 1: Metadata Parser & Validator:** Support for DDEX ERN (XML), MEAD, JSON, CSV with schema, field, and duplicate validation.
-- **Phase 2: Advanced Metadata Features:** Batch processing, advanced reporting, and support for additional metadata formats (ID3, MusicBrainz, iTunes, ISNI).
-- **Phase 3: Rights & Compliance Checker:** Checks for territory, usage rights, expiry dates, and embargo logic.
-- **Phase 4: Smart Contract Trigger:** Auto-trigger licensing or DAO votes on valid content submission using Web3/blockchain integration (Ethereum mainnet).
-- **Logging & Audit Trail:** Immutable logs of uploads, validations, rights checks, and timestamped metadata snapshots, with content owner, admin, and super admin access, export formats, and real-time notifications.
-- **System Stability & Cleanup:** Achieve 100% functionality by fixing all errors and critical problems, and systematically remove all placeholder and 'emergent' references to prepare for production.
-- **Upcoming:** Connect Stripe account for payment processing.
+So far, the platform has achieved 100% functional stability. Key implementations include AWS integration (S3, SES, CloudFront, Lambda, Rekognition) for scalable media operations, an enhanced drag-and-drop upload component with metadata validation (DDEX ERN, MEAD, JSON, CSV, ID3, MusicBrainz, iTunes, ISNI), and a comprehensive Rights & Compliance Checker. Web3 integration enables smart contract triggers for licensing/DAO votes. An immutable Logging & Audit Trail with granular access controls is in place.
+
+Recent additions include a fully functional Stripe payment gateway, pervasive logo branding across the application, a fixed password reset flow, and the integration of user-specific ISRC Prefix (QZ9H8) and Publisher Number (PA04UV) into business identifiers. The platform now supports 106+ distribution platforms, including model agencies for image uploads. The current focus is on implementing advanced image upload and metadata standards (IPTC/XMP).
 </product_requirements>
 
 <key_technical_concepts>
-- **React**: Frontend UI framework.
+- **React**: Frontend development.
 - **FastAPI**: Python backend API.
-- **MongoDB**: NoSQL database ().
-- **AWS S3, SES, CloudFront, Lambda, Rekognition**: Cloud services for media.
-- **Boto3**: AWS SDK.
-- **Web3/Blockchain**: Ethereum mainnet integration for smart contracts using .
-- **ReportLab**: Python library for PDF generation (for audit reports).
-- **Pydantic**: Data validation for API models.
-- **Kubernetes Ingress**: Manages API routing (prefix ).
-- **Environment Variables**: Secure configuration.
-- ****: Password hashing.
-- ****: Browser compatibility data.
+- **MongoDB**: NoSQL database.
+- **AWS (S3, SES, CloudFront, Lambda, Rekognition)**: Cloud services.
+- **Web3/Blockchain**: Ethereum integration ().
+- **Stripe**: Payment processing.
+- **Piexif, Pillow**: Python libraries for image metadata (IPTC/XMP).
+- **Pydantic**: Data validation.
+- **Kubernetes Ingress**: API routing ( prefix).
+- **Environment Variables**: Configuration.
 </key_technical_concepts>
 
 <code_architecture>
@@ -40,62 +33,68 @@ The project began with stabilizing the MVP, resolving numerous backend (404s, AP
 **File Analysis & Changes:**
 
 -   :
-    -   **Importance**: Central FastAPI application.
-    -   **Changes Made**: Integrated  and . Modified  to include audit logging. Added root  and  endpoints. Added  endpoint. Crucially, fixed a bug where  was not being included in the main . Removed duplicate router inclusions. Temporarily commented out problematic Stripe imports.
+    -   **Importance**: Main FastAPI application.
+    -   **Changes Made**: Integrated  and . Added a Stripe webhook endpoint. Updated business identifier endpoints to return  and . Modified email templates to include the Big Mann Entertainment logo and ownership credit.  dictionary updated to include 106+ platforms and new model agencies.
 -   :
     -   **Importance**: Stores environment variables.
-    -   **Changes Made**: Added . Removed  references from AWS configuration variables. Updated  from test_db to big_mann_entertainment_db.
+    -   **Changes Made**:  updated with the complete live secret key.  and  are confirmed to be correctly set.
 -   :
     -   **Importance**: Manages Python dependencies.
-    -   **Changes Made**: Added  and .
+    -   **Changes Made**: Added  (implicitly checked), , and  for image metadata.
 -    (NEW):
-    -   **Importance**: Defines Pydantic models for smart contract data.
-    -   **Changes Made**: Created to support Web3 integration.
+    -   **Importance**: Defines Pydantic models for payment-related data.
+    -   **Changes Made**: Created to support Stripe integration (found to exist and used).
 -    (NEW):
-    -   **Importance**: Implements Web3 integration logic.
-    -   **Changes Made**: Created to use real Infura API connection instead of simulation. Updated Web3 configuration with actual Infura URLs.
--    (NEW, completed):
-    -   **Importance**: Defines FastAPI endpoints for smart contract actions.
-    -   **Changes Made**: Partially created initially, then completed with various endpoints for contract management, DAO voting, licensing, and analytics.
--    (NEW):
-    -   **Importance**: Defines Pydantic models for audit trail data.
-    -   **Changes Made**: Newly created for the audit system.
--    (NEW):
-    -   **Importance**: Implements business logic for logging and audit trail.
+    -   **Importance**: Implements business logic for Stripe payment processing using .
     -   **Changes Made**: Newly created.
 -    (NEW):
-    -   **Importance**: Defines FastAPI endpoints for audit trail.
+    -   **Importance**: Defines FastAPI endpoints for Stripe operations (e.g., creating checkout sessions, managing subscriptions).
+    -   **Changes Made**: Newly created, including import fixes.
+-    (NEW):
+    -   **Importance**: Will handle IPTC/XMP metadata extraction, model release forms, and DDEX-compliant descriptors for images.
+    -   **Changes Made**: Newly created.
+-    (NEW):
+    -   **Importance**: Will define FastAPI endpoints for image uploads, utilizing the .
     -   **Changes Made**: Newly created.
 -   :
-    -   **Importance**: Defines FastAPI endpoints for GS1 services.
-    -   **Changes Made**: Fixed a  (unterminated string literal).
--   :
-    -   **Importance**: Main React component managing routes and UI.
-    -   **Changes Made**: Integrated  and  (imports, routes, navigation links for desktop and mobile). Cleaned placeholder text.
--    (NEW) &  (NEW):
-    -   **Importance**: Frontend UI for Web3 interactions.
-    -   **Changes Made**: Created for Phase 4. Cleaned placeholder text.
--    (NEW) &  (NEW):
-    -   **Importance**: Frontend UI for viewing audit logs.
-    -   **Changes Made**: Created for Audit Trail feature. Cleaned placeholder text.
+    -   **Importance**: Main React component managing routes, UI, and global state.
+    -   **Changes Made**: Integrated , , and updated their routes and navigation links. Logo added to header, mobile nav, Login, Register, ForgotPassword, Home components. Footer with logo added. Platforms list updated to reflect all 106+ platforms and model agencies. Business Identifiers page updated to display ISRC/Publisher numbers.
 -   :
     -   **Importance**: Frontend environment variables.
-    -   **Changes Made**: Removed  from  and  was updated (implicitly during cleanup).
+    -   **Changes Made**:  added with the user's live publishable key.
 -   :
-    -   **Importance**: Manages frontend dependencies.
-    -   **Changes Made**: Removed  references. Dependencies reinstalled during cleanup.
--   :
-    -   **Importance**: Documentation of tasks, test plans, results.
-    -   **Changes Made**: Regularly updated to track Phase 4 and Audit Trail progress, and the 100% functionality fixes.
+    -   **Importance**: Main HTML file.
+    -   **Changes Made**: Favicon and additional logo references added.
 -    (NEW):
-    -   **Importance**: Integration test for full system functionality.
-    -   **Changes Made**: Created, extensively modified, and refined to accurately test core functionality and verify the 100% functionality goal. Cleaned placeholder URLs.
--    (NEW):
-    -   **Importance**: Documented the extensive cleanup operation.
-    -   **Changes Made**: Created to summarize the removal of placeholder and emergent references.
+    -   **Importance**: The official Big Mann Entertainment logo asset.
+    -   **Changes Made**: Downloaded and saved here.
+-    (NEW) &  (NEW):
+    -   **Importance**: Frontend UI for Stripe payment interactions.
+    -   **Changes Made**: Created and updated with logo.
+-    (NEW) &  (NEW):
+    -   **Importance**: Frontend UI for viewing earnings and revenue.
+    -   **Changes Made**: Created and updated with logo.
 -   :
-    -   **Importance**: Project instructions.
-    -   **Changes Made**: Cleaned up development placeholders.
+    -   **Importance**: Handles media uploads.
+    -   **Changes Made**: Logo added.
+-   :
+    -   **Importance**: Styles for the upload component.
+    -   **Changes Made**: CSS for the logo added.
+-    & :
+    -   **Importance**: Frontend for rights and compliance features.
+    -   **Changes Made**: Logo added to component and corresponding CSS.
+-    & :
+    -   **Importance**: Frontend for smart contract interactions.
+    -   **Changes Made**: Logo added to component and corresponding CSS.
+-    & :
+    -   **Importance**: Frontend for audit log viewing.
+    -   **Changes Made**: Logo added to component and corresponding CSS.
+-   :
+    -   **Importance**: Contains components for Label Marketing & Promotion.
+    -   **Changes Made**: Missing , , , and  components were created and integrated to resolve runtime errors.
+-   :
+    -   **Importance**: Documents tasks and test results.
+    -   **Changes Made**: Updated to reflect Stripe integration, logo implementation, password reset fixes, business identifier updates, and platforms integration, including detailed test outcomes.
 </code_architecture>
 
 <pending_tasks>
@@ -103,20 +102,17 @@ The project began with stabilizing the MVP, resolving numerous backend (404s, AP
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer completed an extensive cleanup operation across the entire Big Mann Entertainment codebase. This involved systematically removing all placeholder and emergent references from files including , , , , , , , , , , , , and .
+Immediately prior to this summary, the AI engineer was working on implementing comprehensive image upload and metadata standards. This involves ensuring compatibility and discoverability by using IPTC/XMP metadata for fields like model name, agency, shoot date, and usage rights. It also includes incorporating model release forms and licensing terms, and tagging images with DDEX-compliant descriptors where relevant for DSPs or licensing platforms.
 
-This cleanup process also served as a final debugging pass, resolving critical issues such as:
-1.  A  for  in , which was temporarily fixed by commenting out the problematic imports.
-2.  A  (unterminated string literal) in .
-3.  Ensuring the  in  correctly points to the non-emergent production backend URL (implicitly, though the test had to be updated to reflect this).
-4.  Updating the  in  to .
+To address this, the following actions have been taken in the backend:
+1.  **Updated **: Added  and  libraries for advanced image metadata handling and processing.
+2.  **Created **: A new service file specifically for handling the logic of IPTC/XMP metadata extraction and processing, as well as managing model release forms.
+3.  **Created **: A new FastAPI endpoint file to expose the image upload functionality, which will interact with the .
+4.  **Integrated **: The  file has been updated to include the newly created image upload endpoints, making them accessible via the API.
 
-The entire application has been re-verified to be **100% functional** after these changes, with the API root and health endpoints responding correctly, and all core systems operational. A  file was generated to document these changes.
-
-The very next explicit request from the user is to **Connect my Stripe account so I can receive payments**. This marks the beginning of the next major integration task.
+The current state is that the backend infrastructure for these new image metadata standards has been set up, and the next immediate step is to create the corresponding frontend components to allow users to interact with this new functionality.
 </current_work>
 
 <optional_next_step>
-I will retrieve the Stripe integration playbook using the  tool.
+Create a comprehensive frontend component for image uploads with metadata standards.
 </optional_next_step>
-
