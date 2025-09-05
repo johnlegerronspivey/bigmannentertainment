@@ -2755,8 +2755,8 @@ const Platforms = () => {
           <div className="text-green-100">Music Streaming</div>
         </div>
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg text-center">
-          <div className="text-3xl font-bold">{allPlatforms["Web3 & Blockchain"].length}</div>
-          <div className="text-orange-100">Web3 & Blockchain</div>
+          <div className="text-3xl font-bold">{allPlatforms["Model Agencies & Photography"].length}</div>
+          <div className="text-orange-100">Model Agencies</div>
         </div>
       </div>
 
