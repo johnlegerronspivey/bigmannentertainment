@@ -196,6 +196,55 @@ const ImageUploadComponent = () => {
         }));
     };
 
+    const handleWeb3ConfigChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setWeb3Config(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleRoyaltyRecipientChange = (index, field, value) => {
+        const updated = [...royaltyRecipients];
+        updated[index][field] = value;
+        
+        // Ensure percentages don't exceed 100%
+        if (field === 'percentage') {
+            const total = updated.reduce((sum, recipient) => sum + Number(recipient.percentage), 0);
+            if (total > 100) {
+                setError('Total royalty percentages cannot exceed 100%');
+                return;
+            }
+        }
+        
+        setRoyaltyRecipients(updated);
+        setError('');
+    };
+
+    const addRoyaltyRecipient = () => {
+        const currentTotal = royaltyRecipients.reduce((sum, recipient) => sum + Number(recipient.percentage), 0);
+        if (currentTotal >= 100) {
+            setError('Cannot add more recipients - total percentage already at 100%');
+            return;
+        }
+        
+        setRoyaltyRecipients(prev => [...prev, { address: '', percentage: 0, role: 'contributor' }]);
+    };
+
+    const removeRoyaltyRecipient = (index) => {
+        if (royaltyRecipients.length > 1) {
+            setRoyaltyRecipients(prev => prev.filter((_, i) => i !== index));
+        }
+    };
+
+    const handleDaoConfigChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setDaoGovernance(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
     const uploadImage = async () => {
         if (!selectedFile) {
             setError('Please select an image file');
