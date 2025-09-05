@@ -460,3 +460,72 @@ class ImageMetadataService:
         except Exception as e:
             logger.error(f"Error retrieving image metadata: {str(e)}")
             return None
+
+    async def get_user_images(self, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get user's uploaded images with metadata"""
+        try:
+            query = {"user_id": user_id}
+            images = []
+            
+            async for doc in self.db.image_metadata.find(query).sort("uploaded_at", -1).limit(limit):
+                # Convert ObjectId to str for JSON serialization
+                doc["_id"] = str(doc["_id"])
+                
+                # Convert datetime to string
+                if doc.get("uploaded_at"):
+                    doc["uploaded_at"] = doc["uploaded_at"].isoformat()
+                if doc.get("shoot_date"):
+                    doc["shoot_date"] = doc["shoot_date"].isoformat()
+                
+                images.append(doc)
+            
+            return images
+            
+        except Exception as e:
+            logger.error(f"Error getting user images: {str(e)}")
+            return []
+
+    async def get_agency_portfolio(self, agency_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get agency portfolio with images and metadata"""
+        try:
+            # Query for images associated with the agency
+            query = {"agency_name": agency_id}
+            portfolio = []
+            
+            async for doc in self.db.image_metadata.find(query).sort("uploaded_at", -1).limit(limit):
+                # Convert ObjectId to str for JSON serialization
+                doc["_id"] = str(doc["_id"])
+                
+                # Convert datetime to string
+                if doc.get("uploaded_at"):
+                    doc["uploaded_at"] = doc["uploaded_at"].isoformat()
+                if doc.get("shoot_date"):
+                    doc["shoot_date"] = doc["shoot_date"].isoformat()
+                
+                # Add portfolio-specific metadata
+                portfolio_item = {
+                    "metadata_id": doc.get("id"),
+                    "filename": doc.get("filename"),
+                    "model_name": doc.get("model_name"),
+                    "photographer_name": doc.get("photographer_name"),
+                    "shoot_date": doc.get("shoot_date"),
+                    "usage_rights": doc.get("usage_rights"),
+                    "headline": doc.get("headline"),
+                    "caption": doc.get("caption"),
+                    "keywords": doc.get("keywords", []),
+                    "content_rating": doc.get("content_rating"),
+                    "dimensions": f"{doc.get('width', 0)}x{doc.get('height', 0)}",
+                    "file_size": doc.get("file_size"),
+                    "uploaded_at": doc.get("uploaded_at"),
+                    "validation": doc.get("validation", {}),
+                    "commercial_approved": doc.get("commercial_approved", False),
+                    "has_model_release": doc.get("model_release") is not None
+                }
+                
+                portfolio.append(portfolio_item)
+            
+            return portfolio
+            
+        except Exception as e:
+            logger.error(f"Error getting agency portfolio: {str(e)}")
+            return []
