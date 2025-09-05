@@ -115,6 +115,7 @@ class AdvancedImageUploadTester:
                 else:
                     error_text = await response.text()
                     logger.error(f"❌ User registration failed: {response.status} - {error_text}")
+                    print(f"Registration error details: {error_text}")
                     return False
                     
         except Exception as e:
