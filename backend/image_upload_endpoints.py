@@ -270,6 +270,227 @@ async def upload_image_with_metadata(
         logger.error(f"Error processing image upload: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
 
+
+@image_router.post("/batch-upload")
+async def batch_upload_images(
+    files: List[UploadFile] = File(...),
+    model_name: Optional[str] = Form(None),
+    agency_name: Optional[str] = Form(None),
+    photographer_name: Optional[str] = Form(None),
+    shoot_date: Optional[str] = Form(None),
+    usage_rights: str = Form("editorial_only"),
+    territory_rights: str = Form("worldwide"),
+    duration_rights: str = Form("perpetual"),
+    exclusive: bool = Form(False),
+    headline: Optional[str] = Form(None),
+    caption: Optional[str] = Form(None),
+    keywords: Optional[str] = Form(None),
+    copyright_notice: Optional[str] = Form(None),
+    license_terms: Optional[str] = Form(None),
+    content_rating: str = Form("general"),
+    target_agencies: Optional[str] = Form(None),
+    base_pricing: Optional[str] = Form("0"),
+    max_resolution: str = Form("4000"),
+    # Web3 NFT Parameters
+    enable_nft: Optional[str] = Form("false"),
+    blockchain: str = Form("polygon"),
+    token_standard: str = Form("ERC1155"),  # Default to ERC1155 for batch
+    royalty_recipients: Optional[str] = Form(None),
+    # DAO Governance Parameters
+    enable_dao: Optional[str] = Form("false"),
+    proposal_type: str = Form("licensing_terms"),
+    voting_period: int = Form(7),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload multiple images with batch processing and Web3 integration"""
+    
+    if len(files) > 50:  # Reasonable batch limit
+        raise HTTPException(status_code=400, detail="Maximum 50 files per batch")
+    
+    successful_uploads = []
+    failed_uploads = []
+    
+    # Parse common parameters
+    target_agencies_list = json.loads(target_agencies) if target_agencies else []
+    
+    for file in files:
+        try:
+            # Validate file type
+            if not file.content_type or not file.content_type.startswith('image/'):
+                failed_uploads.append({
+                    "filename": file.filename,
+                    "error": "Invalid file type"
+                })
+                continue
+            
+            # Read file content
+            file_content = await file.read()
+            
+            # Validate file size (500MB limit)
+            if len(file_content) > 500 * 1024 * 1024:
+                failed_uploads.append({
+                    "filename": file.filename,
+                    "error": "File too large (>500MB)"
+                })
+                continue
+            
+            # Process image metadata
+            metadata = await image_service.extract_metadata(file_content, file.filename)
+            
+            # Update metadata with form data
+            if model_name:
+                metadata.model_name = model_name
+            if agency_name:
+                metadata.agency_name = agency_name
+            if photographer_name:
+                metadata.photographer_name = photographer_name
+            if shoot_date:
+                metadata.shoot_date = datetime.fromisoformat(shoot_date).date()
+            
+            metadata.usage_rights = usage_rights
+            metadata.territory_rights = territory_rights
+            metadata.duration_rights = duration_rights
+            metadata.exclusive = exclusive
+            metadata.headline = headline or f"Image: {file.filename}"
+            metadata.caption = caption
+            metadata.keywords = keywords.split(',') if keywords else []
+            metadata.copyright_notice = copyright_notice
+            metadata.license_terms = license_terms
+            metadata.content_rating = content_rating
+            metadata.target_agencies = target_agencies_list
+            
+            # Generate model release if commercial usage
+            if usage_rights in ['commercial', 'unrestricted'] and model_name and photographer_name:
+                metadata.model_release = image_service.generate_model_release(
+                    model_name, photographer_name, shoot_date
+                )
+            
+            # Validate metadata
+            validation_result = image_service.validate_commercial_usage(metadata)
+            
+            # Store metadata
+            metadata_id = await image_service.store_image_metadata(metadata)
+            
+            upload_result = {
+                "filename": file.filename,
+                "metadata_id": metadata_id,
+                "file_info": {
+                    "size": len(file_content),
+                    "dimensions": f"{metadata.width}x{metadata.height}",
+                    "format": metadata.mime_type
+                },
+                "metadata_summary": {
+                    "iptc_fields": len(metadata.iptc_metadata.dict()) if metadata.iptc_metadata else 0,
+                    "ddex_compliant": metadata.ddex_descriptor is not None,
+                    "has_model_release": metadata.model_release is not None,
+                    "usage_rights": metadata.usage_rights,
+                    "commercial_approved": validation_result["approved"] if validation_result else None
+                },
+                "validation": validation_result
+            }
+            
+            # Add Web3 processing for batch (if enabled)
+            if enable_nft and enable_nft.lower() == "true":
+                try:
+                    # Parse royalty recipients (same for all files in batch)
+                    recipients = []
+                    if royalty_recipients:
+                        recipients_data = json.loads(royalty_recipients)
+                        for recipient_data in recipients_data:
+                            recipients.append(RoyaltyRecipient(
+                                address=recipient_data["address"],
+                                percentage=int(recipient_data["percentage"]),
+                                role=recipient_data["role"]
+                            ))
+                    
+                    mint_request = NFTMintRequest(
+                        to_address=current_user.wallet_address or "0x" + "0" * 40,
+                        token_uri=f"ipfs://batch_metadata_{metadata_id}",
+                        license_type=usage_rights,
+                        duration=int(duration_rights.replace("_years", "").replace("perpetual", "0")),
+                        restrictions=license_terms or "",
+                        commercial_use=usage_rights in ["commercial", "unrestricted"],
+                        max_resolution=int(max_resolution) if max_resolution != "unlimited" else 999999,
+                        base_pricing=Decimal(base_pricing) if base_pricing else Decimal("0"),
+                        royalty_recipients=recipients if recipients else [
+                            RoyaltyRecipient(
+                                address=current_user.wallet_address or "0x" + "0" * 40,
+                                percentage=100,
+                                role="creator"
+                            )
+                        ]
+                    )
+                    
+                    nft_result = await web3_service.mint_nft_license(
+                        network=blockchain,
+                        token_standard=token_standard,
+                        mint_request=mint_request,
+                        user_id=current_user.id
+                    )
+                    
+                    upload_result["nft_minting"] = nft_result
+                    
+                except Exception as e:
+                    logger.error(f"Batch NFT minting failed for {file.filename}: {str(e)}")
+                    upload_result["nft_minting"] = {
+                        "success": False,
+                        "error": str(e)
+                    }
+            
+            successful_uploads.append(upload_result)
+            
+        except Exception as e:
+            logger.error(f"Batch upload failed for {file.filename}: {str(e)}")
+            failed_uploads.append({
+                "filename": file.filename,
+                "error": str(e)
+            })
+    
+    # Create DAO proposal for batch if enabled
+    dao_result = None
+    if enable_dao and enable_dao.lower() == "true" and successful_uploads:
+        try:
+            proposal_request = DAOProposalRequest(
+                proposal_type=proposal_type,
+                title=f"Batch License Terms Approval: {len(successful_uploads)} Images",
+                description=f"Approve licensing terms for batch upload of {len(successful_uploads)} images with {usage_rights} usage rights",
+                voting_period=voting_period,
+                proposal_data={
+                    "batch_size": len(successful_uploads),
+                    "usage_rights": usage_rights,
+                    "base_pricing": base_pricing,
+                    "max_resolution": max_resolution,
+                    "photographer": photographer_name,
+                    "agency": agency_name,
+                    "metadata_ids": [upload["metadata_id"] for upload in successful_uploads]
+                }
+            )
+            
+            dao_result = await web3_service.create_dao_proposal(
+                network=blockchain,
+                proposal_request=proposal_request,
+                proposer_user_id=current_user.id
+            )
+            
+        except Exception as e:
+            logger.error(f"Batch DAO proposal creation failed: {str(e)}")
+            dao_result = {
+                "success": False,
+                "error": str(e)
+            }
+    
+    return {
+        "success": True,
+        "batch_processing": True,
+        "total_files": len(files),
+        "successful_uploads": len(successful_uploads),
+        "failed_uploads": len(failed_uploads),
+        "results": successful_uploads,
+        "errors": failed_uploads,
+        "dao_proposal": dao_result,
+        "web3_enabled": enable_nft and enable_nft.lower() == "true"
+    }
+
 @image_router.post("/model-release")
 async def create_model_release(
     model_name: str = Form(...),
