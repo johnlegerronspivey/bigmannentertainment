@@ -546,7 +546,7 @@ const Home = () => {
               Complete Media Distribution Empire
             </p>
             <p className="text-lg mb-8 max-w-4xl mx-auto">
-              Distribute your content across 90+ platforms including social media, streaming, radio, TV, podcasts, NFT marketplaces, and Web3 platforms
+              Distribute your content across 106+ platforms worldwide including music streaming, social media, video platforms, podcast networks, and premier model agencies
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!user ? (
