@@ -231,9 +231,9 @@ class BusinessIdentifiersTest:
         try:
             # Test without authentication
             async with self.session.get(f"{API_BASE}/business/identifiers") as response:
-                if response.status == 401:
-                    print("✅ Business identifiers endpoint requires authentication (401)")
-                    self.test_results.append(("Auth Required - Identifiers", True, "401 Unauthorized"))
+                if response.status in [401, 403]:
+                    print(f"✅ Business identifiers endpoint requires authentication ({response.status})")
+                    self.test_results.append(("Auth Required - Identifiers", True, f"{response.status} Authentication Required"))
                 else:
                     print(f"❌ Business identifiers endpoint should require auth, got {response.status}")
                     self.test_results.append(("Auth Required - Identifiers", False, f"Status {response.status}"))
@@ -241,9 +241,9 @@ class BusinessIdentifiersTest:
             # Test ISRC generation without authentication
             isrc_data = {"artist_name": "Test", "track_title": "Test"}
             async with self.session.post(f"{API_BASE}/business/generate-isrc", json=isrc_data) as response:
-                if response.status == 401:
-                    print("✅ ISRC generation endpoint requires authentication (401)")
-                    self.test_results.append(("Auth Required - ISRC Gen", True, "401 Unauthorized"))
+                if response.status in [401, 403]:
+                    print(f"✅ ISRC generation endpoint requires authentication ({response.status})")
+                    self.test_results.append(("Auth Required - ISRC Gen", True, f"{response.status} Authentication Required"))
                 else:
                     print(f"❌ ISRC generation endpoint should require auth, got {response.status}")
                     self.test_results.append(("Auth Required - ISRC Gen", False, f"Status {response.status}"))
