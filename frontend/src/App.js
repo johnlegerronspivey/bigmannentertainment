@@ -422,6 +422,13 @@ const Navigation = () => {
                 Upload
               </Link>
               <Link 
+                to="/image-upload" 
+                className="hover:text-purple-200 py-2 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Image Upload & NFT
+              </Link>
+              <Link 
                 to="/rights-compliance" 
                 className="hover:text-purple-200 py-2 px-2"
                 onClick={() => setIsMenuOpen(false)}
