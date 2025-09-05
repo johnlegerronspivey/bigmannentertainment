@@ -2638,61 +2638,166 @@ const Distribute = () => {
   );
 };
 
-const Platforms = () => (
-  <div className="max-w-6xl mx-auto p-6">
-    <h1 className="text-3xl font-bold text-gray-900 mb-4">Distribution Platforms</h1>
-    <p className="text-gray-600 mb-6">Distribute your content across 90+ platforms worldwide</p>
-    
-    <div className="grid md:grid-cols-3 gap-6 mb-8">
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-xl font-semibold mb-3 text-purple-600">Social Media</h3>
-        <div className="space-y-2 text-sm text-gray-600">
-          <p>• Instagram</p>
-          <p>• TikTok</p>
-          <p>• Facebook</p>
-          <p>• Twitter/X</p>
-          <p>• YouTube</p>
-          <p>• Snapchat</p>
-          <p>• LinkedIn</p>
-          <p>• Pinterest</p>
-        </div>
+const Platforms = () => {
+  // Define all 91 platforms organized by category
+  const allPlatforms = {
+    "Social Media": [
+      "Instagram", "Twitter/X", "Facebook", "TikTok", "YouTube", "Snapchat", 
+      "LinkedIn", "Pinterest", "Reddit", "Discord", "Telegram", "WhatsApp Business"
+    ],
+    "Music Streaming": [
+      "Spotify", "Apple Music", "Amazon Music", "Tidal", "Deezer", "Pandora", 
+      "SoundCloud", "Bandcamp", "YouTube Music", "Audiomack", "Mixcloud", 
+      "ReverbNation", "DatPiff", "Spinrilla", "Napster"
+    ],
+    "Podcast Platforms": [
+      "Apple Podcasts", "Spotify Podcasts", "Google Podcasts", "Stitcher", 
+      "Overcast", "Pocket Casts", "Castbox", "Anchor"
+    ],
+    "Radio & Broadcasting": [
+      "iHeartRadio", "SiriusXM", "TuneIn", "Radio.com", "Live365", 
+      "RadioIO", "Streema", "radio.net", "Zeno.FM", "SHOUTcast"
+    ],
+    "Video Streaming": [
+      "Netflix", "Hulu", "Amazon Prime Video", "HBO Max", "Disney+", 
+      "Paramount+", "Peacock", "The Roku Channel"
+    ],
+    "Rights Organizations": [
+      "ASCAP", "BMI", "SESAC", "SoundExchange", "Harry Fox Agency"
+    ],
+    "Web3 & Blockchain": [
+      "Ethereum Mainnet", "Polygon (MATIC)", "Solana Mainnet", "Avalanche", 
+      "Binance Smart Chain", "Audius", "Catalog", "Sound.xyz", "Royal", "OpenSea"
+    ],
+    "International Music": [
+      "JOOX", "Anghami", "Gaana", "JioSaavn", "Yandex Music", 
+      "QQ Music", "NetEase Cloud Music", "Boomplay"
+    ],
+    "Digital Platforms": [
+      "Twitch", "Kick", "Rumble", "Dailymotion", "Vimeo", "Odysee", 
+      "BitChute", "Brighteon", "GETTR", "Gab", "Parler", "Truth Social", 
+      "Clubhouse", "Twitter Spaces", "Greenroom (Spotify Live)"
+    ]
+  };
+
+  const totalPlatforms = Object.values(allPlatforms).reduce((sum, category) => sum + category.length, 0);
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="text-center mb-8">
+        <img 
+          src="/big-mann-logo.png" 
+          alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+          className="w-20 h-20 object-contain mx-auto mb-4 shadow-lg rounded-lg"
+        />
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Distribution Platforms</h1>
+        <p className="text-xl text-gray-600 mb-2">Distribute your content across <span className="font-bold text-purple-600">{totalPlatforms} platforms</span> worldwide</p>
+        <p className="text-gray-500">Complete Media Distribution Empire by Big Mann Entertainment</p>
       </div>
       
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-xl font-semibold mb-3 text-purple-600">Music Streaming</h3>
-        <div className="space-y-2 text-sm text-gray-600">
-          <p>• Spotify</p>
-          <p>• Apple Music</p>
-          <p>• Amazon Music</p>
-          <p>• Tidal</p>
-          <p>• SoundCloud</p>
-          <p>• Pandora</p>
-          <p>• Deezer</p>
-          <p>• Bandcamp</p>
-        </div>
+      {/* Platform Categories Grid */}
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 mb-8">
+        {Object.entries(allPlatforms).map(([category, platforms]) => (
+          <div key={category} className="bg-white p-6 rounded-lg shadow-lg border-l-4 border-purple-500">
+            <div className="flex items-center mb-4">
+              <h3 className="text-xl font-semibold text-purple-700">{category}</h3>
+              <span className="ml-2 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                {platforms.length}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {platforms.map((platform) => (
+                <div key={platform} className="flex items-center text-sm text-gray-700">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                  {platform}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
       
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-xl font-semibold mb-3 text-purple-600">TV & Broadcasting</h3>
-        <div className="space-y-2 text-sm text-gray-600">
-          <p>• Netflix</p>
-          <p>• Hulu</p>
-          <p>• HBO Max</p>
-          <p>• MTV</p>
-          <p>• BET</p>
-          <p>• CNN</p>
-          <p>• ESPN</p>
-          <p>• Tubi</p>
+      {/* Platform Statistics */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg text-center">
+          <div className="text-3xl font-bold">{totalPlatforms}</div>
+          <div className="text-purple-100">Total Platforms</div>
+        </div>
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg text-center">
+          <div className="text-3xl font-bold">{allPlatforms["Social Media"].length}</div>
+          <div className="text-blue-100">Social Media</div>
+        </div>
+        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg text-center">
+          <div className="text-3xl font-bold">{allPlatforms["Music Streaming"].length}</div>
+          <div className="text-green-100">Music Streaming</div>
+        </div>
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg text-center">
+          <div className="text-3xl font-bold">{allPlatforms["Web3 & Blockchain"].length}</div>
+          <div className="text-orange-100">Web3 & Blockchain</div>
+        </div>
+      </div>
+
+      {/* Platform Types Overview */}
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-8 rounded-lg">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Platform Coverage</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="text-center">
+            <div className="text-4xl mb-2">🌐</div>
+            <h3 className="font-semibold text-gray-800">Global Reach</h3>
+            <p className="text-sm text-gray-600">Platforms spanning North America, Europe, Asia, Africa, and more</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">🎵</div>
+            <h3 className="font-semibold text-gray-800">Music Focus</h3>
+            <p className="text-sm text-gray-600">Comprehensive music streaming and audio platform coverage</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">📱</div>
+            <h3 className="font-semibold text-gray-800">Multi-Format</h3>
+            <p className="text-sm text-gray-600">Support for audio, video, images, and multimedia content</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">🚀</div>
+            <h3 className="font-semibold text-gray-800">Emerging Tech</h3>
+            <p className="text-sm text-gray-600">Web3, blockchain, and NFT marketplace integration</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">📺</div>
+            <h3 className="font-semibold text-gray-800">Video & TV</h3>
+            <p className="text-sm text-gray-600">Major streaming services and television networks</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">⚖️</div>
+            <h3 className="font-semibold text-gray-800">Rights Management</h3>
+            <p className="text-sm text-gray-600">Music rights organizations and royalty collection</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action */}
+      <div className="text-center mt-8 bg-white p-8 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to Distribute?</h2>
+        <p className="text-gray-600 mb-6">
+          Start distributing your content across all {totalPlatforms} platforms with Big Mann Entertainment
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link 
+            to="/distribute" 
+            className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition font-semibold"
+          >
+            Start Distribution
+          </Link>
+          <Link 
+            to="/register" 
+            className="bg-white text-purple-600 border-2 border-purple-600 px-8 py-3 rounded-lg hover:bg-purple-50 transition font-semibold"
+          >
+            Create Account
+          </Link>
         </div>
       </div>
     </div>
-    
-    <div className="text-center bg-purple-50 p-6 rounded-lg">
-      <p className="text-lg font-semibold text-purple-800 mb-2">90+ Platforms Available</p>
-      <p className="text-purple-600">Including Web3, NFT Marketplaces, Radio Stations, and More</p>
-    </div>
-  </div>
-);
+  );
+};
 
 const Pricing = () => {
   const navigate = useNavigate();
