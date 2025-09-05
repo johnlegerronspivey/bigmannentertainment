@@ -2063,6 +2063,23 @@ const Distribute = () => {
       { id: "clubhouse", name: "Clubhouse", icon: "🏠", active: true },
       { id: "spaces", name: "Twitter Spaces", icon: "🎤", active: true },
       { id: "greenroom", name: "Greenroom (Spotify Live)", icon: "🟢", active: true }
+    ],
+    "Model Agencies & Photography": [
+      { id: "img_models", name: "IMG Models", icon: "📸", active: true },
+      { id: "elite_model_management", name: "Elite Model Management", icon: "👑", active: true },
+      { id: "ford_models", name: "Ford Models", icon: "🚗", active: true },
+      { id: "wilhelmina_models", name: "Wilhelmina Models", icon: "💃", active: true },
+      { id: "next_management", name: "Next Management", icon: "⏭️", active: true },
+      { id: "women_management", name: "Women Management", icon: "👩", active: true },
+      { id: "society_management", name: "The Society Management", icon: "🏛️", active: true },
+      { id: "storm_models", name: "Storm Models", icon: "⛈️", active: true },
+      { id: "premier_model_management", name: "Premier Model Management", icon: "🌟", active: true },
+      { id: "select_model_management", name: "Select Model Management", icon: "✅", active: true },
+      { id: "models_com", name: "Models.com", icon: "🌐", active: true },
+      { id: "la_models", name: "LA Models", icon: "🌴", active: true },
+      { id: "new_york_models", name: "New York Models", icon: "🗽", active: true },
+      { id: "dna_models", name: "DNA Models", icon: "🧬", active: true },
+      { id: "modelwerk", name: "Modelwerk", icon: "🏭", active: true }
     ]
   };
 
