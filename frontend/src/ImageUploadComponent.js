@@ -46,7 +46,9 @@ const ImageUploadComponent = () => {
         copyrightNotice: '',
         licenseTerms: '',
         contentRating: 'general',
-        targetAgencies: []
+        targetAgencies: [],
+        basePricing: '',
+        maxResolution: '4000'
     });
 
     useEffect(() => {
