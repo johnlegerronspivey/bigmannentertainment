@@ -951,5 +951,8 @@ export {
   ProjectCard,
   CampaignCard,
   TransactionManagement,
-  RoyaltyManagement
+  RoyaltyManagement,
+  SocialMediaManagement,
+  PressManagement,
+  MarketingAnalytics
 };
