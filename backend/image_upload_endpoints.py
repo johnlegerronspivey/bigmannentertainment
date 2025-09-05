@@ -50,6 +50,17 @@ async def upload_image_with_metadata(
     license_terms: Optional[str] = Form(None),
     content_rating: str = Form("general"),
     target_agencies: Optional[str] = Form(None),  # JSON string of agency IDs
+    base_pricing: Optional[str] = Form("0"),
+    max_resolution: str = Form("4000"),
+    # Web3 NFT Parameters
+    enable_nft: Optional[str] = Form("false"),
+    blockchain: str = Form("polygon"),
+    token_standard: str = Form("ERC721"),
+    royalty_recipients: Optional[str] = Form(None),  # JSON string
+    # DAO Governance Parameters
+    enable_dao: Optional[str] = Form("false"),
+    proposal_type: str = Form("licensing_terms"),
+    voting_period: int = Form(7),
     current_user: User = Depends(get_current_user)
 ):
     """Upload image with comprehensive metadata extraction and model release validation"""
