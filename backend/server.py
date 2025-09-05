@@ -4886,6 +4886,7 @@ api_router.include_router(reporting_router)
 api_router.include_router(rights_router)
 api_router.include_router(contracts_router)
 api_router.include_router(audit_router)
+api_router.include_router(image_router)
 
 # Include the main api_router in the app
 
