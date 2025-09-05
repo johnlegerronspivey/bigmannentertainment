@@ -3,6 +3,7 @@ import './ImageUpload.css';
 
 const ImageUploadComponent = () => {
     const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]); // For batch upload
     const [preview, setPreview] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [uploadResult, setUploadResult] = useState(null);
@@ -10,8 +11,23 @@ const ImageUploadComponent = () => {
     const [metadataStandards, setMetadataStandards] = useState(null);
     const [userImages, setUserImages] = useState([]);
     const [modelReleases, setModelReleases] = useState([]);
+    const [isBatchMode, setIsBatchMode] = useState(false);
+    const [web3Config, setWeb3Config] = useState({
+        enableNFT: false,
+        blockchain: 'polygon',
+        tokenStandard: 'ERC721'
+    });
+    const [royaltyRecipients, setRoyaltyRecipients] = useState([
+        { address: '', percentage: 100, role: 'creator' }
+    ]);
+    const [daoGovernance, setDaoGovernance] = useState({
+        enableDAO: false,
+        proposalType: 'licensing_terms',
+        votingPeriod: 7
+    });
     
     const fileInputRef = useRef(null);
+    const batchFileInputRef = useRef(null);
     const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
     // Form data state
