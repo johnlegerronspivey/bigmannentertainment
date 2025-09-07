@@ -160,17 +160,18 @@ The CI/CD pipeline includes:
 ## 🌐 Environment URLs
 
 ### Development
-- **Frontend**: https://d36jfidccx04u0.cloudfront.net
-- **Backend API**: http://bigmann-development-alb-1207379331.us-east-1.elb.amazonaws.com
-- **Health Check**: http://bigmann-development-alb-1207379331.us-east-1.elb.amazonaws.com/health
+- **Frontend**: https://dev.bigmannentertainment.com
+- **Backend API**: https://api-dev.bigmannentertainment.com
+- **Health Check**: https://api-dev.bigmannentertainment.com/health
+- **Current CloudFront**: https://d36jfidccx04u0.cloudfront.net (temporary)
 
 ### Staging (Pending Deployment)
-- **Frontend**: TBD
-- **Backend API**: TBD
+- **Frontend**: https://staging.bigmannentertainment.com
+- **Backend API**: https://api-staging.bigmannentertainment.com
 
 ### Production (Pending Deployment)
-- **Frontend**: TBD
-- **Backend API**: TBD
+- **Frontend**: https://bigmannentertainment.com
+- **Backend API**: https://api.bigmannentertainment.com
 
 ## 🔧 Configuration Management
 
