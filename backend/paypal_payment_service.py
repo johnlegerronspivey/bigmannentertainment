@@ -212,31 +212,34 @@ class PayPalPaymentService:
                 "details": str(e)
             }
 
-    async def get_order(self, order_id: str) -> Dict[str, Any]:
-        """Get PayPal order details"""
+    async def get_payment(self, payment_id: str) -> Dict[str, Any]:
+        """Get PayPal payment details"""
         
         try:
-            request = OrdersGetRequest(order_id)
-            response = self.client.execute(request)
+            payment = Payment.find(payment_id)
             
-            order = response.result
+            if payment:
+                return {
+                    "success": True,
+                    "payment_id": payment.id,
+                    "status": payment.state,
+                    "amount": payment.transactions[0].amount.total,
+                    "currency": payment.transactions[0].amount.currency,
+                    "reference_id": payment.transactions[0].custom,
+                    "created_at": payment.create_time,
+                    "updated_at": payment.update_time
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Payment not found"
+                }
             
-            return {
-                "success": True,
-                "order_id": order.id,
-                "status": order.status,
-                "amount": order.purchase_units[0].amount.value,
-                "currency": order.purchase_units[0].amount.currency_code,
-                "reference_id": order.purchase_units[0].reference_id,
-                "created_at": order.create_time,
-                "updated_at": order.update_time
-            }
-            
-        except HttpError as e:
-            logger.error(f"Failed to get PayPal order: {str(e)}")
+        except Exception as e:
+            logger.error(f"Failed to get PayPal payment: {str(e)}")
             return {
                 "success": False,
-                "error": "Failed to retrieve order",
+                "error": "Failed to retrieve payment",
                 "details": str(e)
             }
 
