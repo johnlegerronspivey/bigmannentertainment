@@ -176,6 +176,26 @@ export class BigMannEnvironmentStack extends cdk.Stack {
 
     this.distribution = new cloudfront.Distribution(this, `${props.environment}-Distribution`, distributionProps);
 
+    // Create Route 53 DNS records if hosted zone and custom domain exist
+    if (hostedZone && props.domain && certificate) {
+      const customDomain = this.getSubdomain(props.environment, props.domain);
+      
+      // Frontend A record
+      new route53.ARecord(this, `${props.environment}-Frontend-ARecord`, {
+        zone: hostedZone,
+        recordName: customDomain,
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
+      });
+
+      // API subdomain for backend
+      const apiDomain = this.getAPISubdomain(props.environment, props.domain);
+      new route53.ARecord(this, `${props.environment}-API-ARecord`, {
+        zone: hostedZone,
+        recordName: apiDomain,
+        target: route53.RecordTarget.fromAlias(new targets.LoadBalancerTarget(this.loadBalancer)),
+      });
+    }
+
     // SNS Topic for Alerts
     this.alertTopic = new sns.Topic(this, `${props.environment}-Alerts`, {
       topicName: `bigmann-${props.environment}-alerts`,
