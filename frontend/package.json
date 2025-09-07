@@ -67,9 +67,9 @@
     "optimize": "npm run compress && npm run analyze",
     "compress": "gzip -k build/static/**/*.{js,css}",
     "analyze": "npx webpack-bundle-analyzer build/static/js/*.js",
-    "deploy:development": "aws s3 sync build/ s3://bigmann-frontend-development-314108682794 --delete",
-    "deploy:staging": "aws s3 sync build/ s3://bigmann-frontend-staging-314108682794 --delete",
-    "deploy:production": "aws s3 sync build/ s3://bigmann-frontend-production-314108682794 --delete"
+    "deploy:development": "aws s3 sync build/ s3://bigmann-frontend-development-314108682794 --delete && aws cloudfront create-invalidation --distribution-id E2N1CXV6XQWOJ1 --paths '/*'",
+    "deploy:staging": "aws s3 sync build/ s3://bigmann-frontend-staging-314108682794 --delete && aws cloudfront create-invalidation --distribution-id ${STAGING_DISTRIBUTION_ID} --paths '/*'",
+    "deploy:production": "aws s3 sync build/ s3://bigmann-frontend-production-314108682794 --delete && aws cloudfront create-invalidation --distribution-id ${PRODUCTION_DISTRIBUTION_ID} --paths '/*'"
   },
   "browserslist": {
     "production": [
