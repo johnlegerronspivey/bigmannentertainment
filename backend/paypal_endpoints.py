@@ -64,7 +64,7 @@ async def create_paypal_order(
         
         return {
             "success": True,
-            "order_id": result["order_id"],
+            "payment_id": result["payment_id"],
             "approval_url": result["approval_url"],
             "reference_id": result["reference_id"],
             "amount": result["amount"],
