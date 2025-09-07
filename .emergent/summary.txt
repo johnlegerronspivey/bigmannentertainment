@@ -1,118 +1,95 @@
 <analysis>
-The previous AI engineer successfully brought the Big Mann Entertainment platform from an MVP to a robust, feature-rich application. Key milestones included stabilizing the core platform, integrating AWS for media handling, implementing comprehensive metadata parsing, advanced rights and compliance checks, and crucial Web3 smart contract functionality. A significant effort was dedicated to achieving 100% functionality through extensive bug fixes and a large-scale codebase cleanup, ensuring production readiness.
-
-Following this, the engineer integrated a complete Stripe payment system, including backend services, frontend components, and live API key configuration. Subsequent tasks involved a pervasive logo integration across the UI and email templates, fixing a critical password reset flow, and accurately integrating specific business identifiers (ISRC Prefix, Publisher Number). Most recently, the platform expanded its content distribution capabilities by integrating a comprehensive list of 106+ platforms, including new model agencies, and is currently in the process of implementing advanced image upload and metadata standards using IPTC/XMP.
+The previous AI engineer successfully brought the Big Mann Entertainment platform to a highly functional state. This trajectory details two major feature implementations: an advanced image upload system with Web3 NFT licensing, and a comprehensive PayPal payment gateway to complement the existing Stripe integration. The engineer systematically explored the codebase, received integration playbooks, implemented new backend services and frontend components, and conducted thorough testing (backend and frontend). Debugging efforts included resolving database query issues and clarifying expected UI behavior versus actual bugs. The work concluded with 100% functional image upload and payment systems. The current task initiated by the user is setting up AWS multi-environment deployment.
 </analysis>
 
 <product_requirements>
-Big Mann Entertainment (BME) is a media distribution platform designed to distribute content across 91+ (now 106+) platforms, incorporating robust admin controls and adhering to industry compliance standards (DDEX, IPI, ISNI, AARC, MDX, MLC, GS1). It features advanced licensing, UPC, GLN, and ISRC identifier management.
+Big Mann Entertainment (BME) is a media distribution platform for 106+ platforms, featuring robust admin controls and compliance with industry standards (DDEX, IPI, ISNI, AARC, MDX, MLC, GS1), advanced licensing, UPC, GLN, and ISRC identifier management. It has achieved 100% functional stability with AWS integration (S3, SES, CloudFront, Lambda, Rekognition) for media, an enhanced drag-and-drop upload component with metadata validation, and a comprehensive Rights & Compliance Checker. Web3 integration enables smart contract triggers. An immutable Logging & Audit Trail is in place. Recent additions include a Stripe payment gateway, pervasive logo branding, a fixed password reset flow, and user-specific ISRC Prefix and Publisher Number integration.
 
-So far, the platform has achieved 100% functional stability. Key implementations include AWS integration (S3, SES, CloudFront, Lambda, Rekognition) for scalable media operations, an enhanced drag-and-drop upload component with metadata validation (DDEX ERN, MEAD, JSON, CSV, ID3, MusicBrainz, iTunes, ISNI), and a comprehensive Rights & Compliance Checker. Web3 integration enables smart contract triggers for licensing/DAO votes. An immutable Logging & Audit Trail with granular access controls is in place.
-
-Recent additions include a fully functional Stripe payment gateway, pervasive logo branding across the application, a fixed password reset flow, and the integration of user-specific ISRC Prefix (QZ9H8) and Publisher Number (PA04UV) into business identifiers. The platform now supports 106+ distribution platforms, including model agencies for image uploads. The current focus is on implementing advanced image upload and metadata standards (IPTC/XMP).
+New features implemented during this trajectory:
+1.  **Advanced Image Upload & NFT Licensing**: Supports IPTC/XMP metadata, model release forms, DDEX descriptors. Leverages ERC-721/ERC-115 for image licensing, embeds royalty splits/usage terms into smart contracts, enables agencies to manage licenses via a DAO-style dashboard, and provides role-based access for talent portfolios.
+2.  **PayPal Payment Gateway**: Integrated with Client ID and Secret to offer an additional payment option alongside Stripe.
+3.  **AWS Multi-Environment Setup**: The user has requested to integrate, connect, and update Development, Staging, and Production environments using AWS services.
 </product_requirements>
 
 <key_technical_concepts>
-- **React**: Frontend development.
-- **FastAPI**: Python backend API.
-- **MongoDB**: NoSQL database.
-- **AWS (S3, SES, CloudFront, Lambda, Rekognition)**: Cloud services.
-- **Web3/Blockchain**: Ethereum integration ().
-- **Stripe**: Payment processing.
-- **Piexif, Pillow**: Python libraries for image metadata (IPTC/XMP).
-- **Pydantic**: Data validation.
-- **Kubernetes Ingress**: API routing ( prefix).
-- **Environment Variables**: Configuration.
+-   **React**: Frontend development.
+-   **FastAPI**: Python backend API.
+-   **MongoDB**: NoSQL database.
+-   **AWS (S3, SES, CloudFront, Lambda, Rekognition)**: Cloud services.
+-   **Web3/Blockchain**: Ethereum integration (, ERC-721/ERC-115).
+-   **Stripe**: Payment processing.
+-   **PayPal (paypalrestsdk)**: Payment processing.
+-   **Piexif, Pillow**: Python for image metadata (IPTC/XMP).
+-   **Pydantic**: Data validation.
+-   **Kubernetes Ingress**: API routing.
+-   **Environment Variables**: Configuration.
+-   **Emergentintegrations**: Custom library for third-party integrations.
 </key_technical_concepts>
 
 <code_architecture>
-**Directory Structure:**
+The application features a React frontend and a FastAPI backend, utilizing MongoDB for data storage within a Kubernetes environment.
 
 
 
-**File Analysis & Changes:**
-
 -   :
-    -   **Importance**: Main FastAPI application.
-    -   **Changes Made**: Integrated  and . Added a Stripe webhook endpoint. Updated business identifier endpoints to return  and . Modified email templates to include the Big Mann Entertainment logo and ownership credit.  dictionary updated to include 106+ platforms and new model agencies.
+    -   **Importance**: Central FastAPI application, routing API requests.
+    -   **Changes Made**: Integrated  and  routers to expose new functionalities.
 -   :
-    -   **Importance**: Stores environment variables.
-    -   **Changes Made**:  updated with the complete live secret key.  and  are confirmed to be correctly set.
+    -   **Importance**: Stores backend environment variables, including sensitive keys.
+    -   **Changes Made**: Updated with  and  for PayPal integration.
 -   :
-    -   **Importance**: Manages Python dependencies.
-    -   **Changes Made**: Added  (implicitly checked), , and  for image metadata.
--    (NEW):
-    -   **Importance**: Defines Pydantic models for payment-related data.
-    -   **Changes Made**: Created to support Stripe integration (found to exist and used).
--    (NEW):
-    -   **Importance**: Implements business logic for Stripe payment processing using .
-    -   **Changes Made**: Newly created.
--    (NEW):
-    -   **Importance**: Defines FastAPI endpoints for Stripe operations (e.g., creating checkout sessions, managing subscriptions).
-    -   **Changes Made**: Newly created, including import fixes.
--    (NEW):
-    -   **Importance**: Will handle IPTC/XMP metadata extraction, model release forms, and DDEX-compliant descriptors for images.
-    -   **Changes Made**: Newly created.
--    (NEW):
-    -   **Importance**: Will define FastAPI endpoints for image uploads, utilizing the .
-    -   **Changes Made**: Newly created.
+    -   **Importance**: Manages Python dependencies for the backend.
+    -   **Changes Made**: Added ,  (for image metadata), and  (for PayPal).
 -   :
-    -   **Importance**: Main React component managing routes, UI, and global state.
-    -   **Changes Made**: Integrated , , and updated their routes and navigation links. Logo added to header, mobile nav, Login, Register, ForgotPassword, Home components. Footer with logo added. Platforms list updated to reflect all 106+ platforms and model agencies. Business Identifiers page updated to display ISRC/Publisher numbers.
+    -   **Importance**: Handles image metadata processing (IPTC/XMP) and model release forms.
+    -   **Changes Made**: Enhanced with  and  methods to support agency-specific data.
+-   :
+    -   **Importance**: Defines FastAPI endpoints for image uploads.
+    -   **Changes Made**: Integrated with , added batch upload, and endpoints for user NFTs and DAO proposals.
+-    (NEW):
+    -   **Importance**: New service for Web3 NFT licensing, including smart contract (ERC-721/ERC-115) interactions, royalty splits, and DAO management.
+    -   **Changes Made**: Newly created to handle blockchain logic.
+-    (NEW):
+    -   **Importance**: New service implementing PayPal payment processing.
+    -   **Changes Made**: Newly created using  for order creation and execution.
+-    (NEW):
+    -   **Importance**: Defines FastAPI endpoints for PayPal operations.
+    -   **Changes Made**: Newly created to expose PayPal API routes.
+-   :
+    -   **Importance**: Main React component managing application routes and global UI.
+    -   **Changes Made**: Integrated  and  routes; navigation confirmed to be conditional on user authentication.
 -   :
     -   **Importance**: Frontend environment variables.
-    -   **Changes Made**:  added with the user's live publishable key.
+    -   **Changes Made**: Added  for PayPal integration.
 -   :
-    -   **Importance**: Main HTML file.
-    -   **Changes Made**: Favicon and additional logo references added.
--    (NEW):
-    -   **Importance**: The official Big Mann Entertainment logo asset.
-    -   **Changes Made**: Downloaded and saved here.
--    (NEW) &  (NEW):
-    -   **Importance**: Frontend UI for Stripe payment interactions.
-    -   **Changes Made**: Created and updated with logo.
--    (NEW) &  (NEW):
-    -   **Importance**: Frontend UI for viewing earnings and revenue.
-    -   **Changes Made**: Created and updated with logo.
+    -   **Importance**: Frontend UI for payment interactions.
+    -   **Changes Made**: Modified to include PayPal as an additional payment option, alongside Stripe, with selection and processing logic.
+-   :
+    -   **Importance**: Styles for payment components.
+    -   **Changes Made**: Added CSS specific to the new payment method selection UI.
 -   :
     -   **Importance**: Handles media uploads.
-    -   **Changes Made**: Logo added.
+    -   **Changes Made**: Enhanced with Web3 functionality, batch upload capabilities, DAO governance features, and new UI sections for NFT minting and agency portfolio management.
+-    (NEW):
+    -   **Importance**: Styles for the .
+    -   **Changes Made**: Newly created to style the enhanced image upload UI.
+-    (NEW):
+    -   **Importance**: Frontend UI for PayPal-specific payment interactions.
+    -   **Changes Made**: Newly created.
 -   :
-    -   **Importance**: Styles for the upload component.
-    -   **Changes Made**: CSS for the logo added.
--    & :
-    -   **Importance**: Frontend for rights and compliance features.
-    -   **Changes Made**: Logo added to component and corresponding CSS.
--    & :
-    -   **Importance**: Frontend for smart contract interactions.
-    -   **Changes Made**: Logo added to component and corresponding CSS.
--    & :
-    -   **Importance**: Frontend for audit log viewing.
-    -   **Changes Made**: Logo added to component and corresponding CSS.
--   :
-    -   **Importance**: Contains components for Label Marketing & Promotion.
-    -   **Changes Made**: Missing , , , and  components were created and integrated to resolve runtime errors.
--   :
-    -   **Importance**: Documents tasks and test results.
-    -   **Changes Made**: Updated to reflect Stripe integration, logo implementation, password reset fixes, business identifier updates, and platforms integration, including detailed test outcomes.
+    -   **Importance**: Documents testing protocols, user problem statements, and test results.
+    -   **Changes Made**: Updated comprehensively with detailed test outcomes and resolutions for both image upload/NFT and PayPal integrations.
 </code_architecture>
 
 <pending_tasks>
-- Music Reports Integration: Detailed frontend display, configuration, and API documentation/credentials are still pending.
+-   Music Reports Integration: Detailed frontend display, configuration, and API documentation/credentials are still pending.
+-   AWS Multi-Environment Deployment: Implement, connect, and update Development, Staging, and Production environments using AWS services.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was working on implementing comprehensive image upload and metadata standards. This involves ensuring compatibility and discoverability by using IPTC/XMP metadata for fields like model name, agency, shoot date, and usage rights. It also includes incorporating model release forms and licensing terms, and tagging images with DDEX-compliant descriptors where relevant for DSPs or licensing platforms.
-
-To address this, the following actions have been taken in the backend:
-1.  **Updated **: Added  and  libraries for advanced image metadata handling and processing.
-2.  **Created **: A new service file specifically for handling the logic of IPTC/XMP metadata extraction and processing, as well as managing model release forms.
-3.  **Created **: A new FastAPI endpoint file to expose the image upload functionality, which will interact with the .
-4.  **Integrated **: The  file has been updated to include the newly created image upload endpoints, making them accessible via the API.
-
-The current state is that the backend infrastructure for these new image metadata standards has been set up, and the next immediate step is to create the corresponding frontend components to allow users to interact with this new functionality.
+Immediately prior to this summary, the AI engineer was tasked with setting up comprehensive AWS infrastructure for Development, Staging, and Production environments for the Big Mann Entertainment platform. The AI has successfully obtained a detailed AWS multi-environment deployment playbook from the  and is currently in the initial phase of gathering specific requirements and AWS access details from the user to proceed with the actual implementation of the infrastructure.
 </current_work>
 
 <optional_next_step>
-Create a comprehensive frontend component for image uploads with metadata standards.
+Gather specific AWS access details and environment-specific requirements from the user.
 </optional_next_step>
