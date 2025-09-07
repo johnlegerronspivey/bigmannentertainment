@@ -368,8 +368,9 @@ export class CICDPipelineStack extends cdk.Stack {
   private createTestProject(): codebuild.Project {
     return new codebuild.Project(this, 'TestProject', {
       projectName: 'bigmann-test-project',
-      source: codebuild.Source.codeCommit({
-        repository: codebuild.Repository.fromSourceVersion('main'),
+      source: codebuild.Source.gitHub({
+        owner: 'your-github-owner',
+        repo: 'bigmann-entertainment',
       }),
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
