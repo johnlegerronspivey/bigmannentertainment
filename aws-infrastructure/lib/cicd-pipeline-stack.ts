@@ -534,8 +534,9 @@ EOF`,
 
     const project = new codebuild.Project(this, `Deploy${component.charAt(0).toUpperCase() + component.slice(1)}${environment.charAt(0).toUpperCase() + environment.slice(1)}`, {
       projectName: projectName,
-      source: codebuild.Source.codeCommit({
-        repository: codebuild.Repository.fromSourceVersion('main'),
+      source: codebuild.Source.gitHub({
+        owner: 'your-github-owner',
+        repo: 'bigmann-entertainment',
       }),
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
