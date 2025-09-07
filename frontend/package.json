@@ -57,7 +57,19 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "build:development": "REACT_APP_STAGE=development craco build",
+    "build:staging": "REACT_APP_STAGE=staging craco build",
+    "build:production": "REACT_APP_STAGE=production craco build && npm run optimize",
+    "test": "craco test --coverage --watchAll=false",
+    "test:development": "REACT_APP_STAGE=development npm run test",
+    "test:staging": "REACT_APP_STAGE=staging npm run test",
+    "test:production": "REACT_APP_STAGE=production npm run test",
+    "optimize": "npm run compress && npm run analyze",
+    "compress": "gzip -k build/static/**/*.{js,css}",
+    "analyze": "npx webpack-bundle-analyzer build/static/js/*.js",
+    "deploy:development": "aws s3 sync build/ s3://bigmann-frontend-development-314108682794 --delete",
+    "deploy:staging": "aws s3 sync build/ s3://bigmann-frontend-staging-314108682794 --delete",
+    "deploy:production": "aws s3 sync build/ s3://bigmann-frontend-production-314108682794 --delete"
   },
   "browserslist": {
     "production": [
