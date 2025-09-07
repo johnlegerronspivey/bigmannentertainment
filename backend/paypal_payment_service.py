@@ -108,7 +108,7 @@ class PayPalPaymentService:
                     "updated_at": datetime.now(timezone.utc)
                 }
                 
-                if self.mongo_db:
+                if self.mongo_db is not None:
                     await self.mongo_db.paypal_payments.insert_one(payment_record)
                 
                 # Extract approval URL
