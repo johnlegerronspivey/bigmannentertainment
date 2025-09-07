@@ -123,7 +123,7 @@ async def get_paypal_payment(
         if not result["success"]:
             raise HTTPException(
                 status_code=404,
-                detail="Order not found"
+                detail="Payment not found"
             )
         
         return result
