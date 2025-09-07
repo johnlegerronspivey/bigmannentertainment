@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request, Query
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, List, Dict, Any
 import logging
 import json
 import os
 import uuid
 from datetime import datetime
+import jwt
 
 from image_metadata_service import (
     ImageMetadataService, 
@@ -20,10 +22,48 @@ from web3_nft_service import (
     DAOProposalRequest,
     RoyaltyRecipient
 )
-from server import get_current_user, User, db
+
+# Import database connection
+import asyncio
+import motor.motor_asyncio
+from pydantic import BaseModel
 from decimal import Decimal
 
 logger = logging.getLogger(__name__)
+
+# Security
+security = HTTPBearer()
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
+
+# Database connection - standalone to avoid circular import
+client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("MONGO_URL", "mongodb://localhost:27017"))
+db = client[os.getenv("DB_NAME", "bigmann_entertainment")]
+
+# User model for authentication
+class User(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    role: str = "user"
+    is_active: bool = True
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current user from JWT token - standalone version"""
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        email = payload.get("email")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        
+        # Get user from database
+        user_doc = await db.users.find_one({"email": email})
+        if user_doc is None:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return User(**user_doc)
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
 # Create router
 image_router = APIRouter(prefix="/images", tags=["image_upload"])
