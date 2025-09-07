@@ -2940,7 +2940,7 @@ async def register_user(user_data: UserCreate, request: Request):
     
     # Send welcome email
     try:
-        await enhanced_email_service.send_welcome_email(user.email, user.full_name)
+        await email_service.send_welcome_email(user.email, user.full_name)
     except Exception as e:
         print(f"Failed to send welcome email: {str(e)}")
         # Don't fail registration if email fails
