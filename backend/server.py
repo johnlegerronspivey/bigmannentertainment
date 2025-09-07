@@ -5302,7 +5302,7 @@ from reporting_endpoints import router as reporting_router
 from rights_endpoints import router as rights_router
 from smart_contract_endpoints import router as contracts_router
 from audit_endpoints import router as audit_router
-# from image_upload_endpoints import image_router  # Temporarily disabled due to libxmp dependency
+from image_upload_endpoints import image_router
 from paypal_endpoints import paypal_router
 
 # Initialize Payment Service
