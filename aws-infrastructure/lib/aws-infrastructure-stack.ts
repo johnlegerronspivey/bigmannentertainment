@@ -79,6 +79,39 @@ export class BigMannEnvironmentStack extends cdk.Stack {
       loadBalancerName: `bigmann-${props.environment}-alb`,
     });
 
+    // SSL Certificate and Domain Setup
+    let certificate: certificatemanager.Certificate | undefined;
+    let hostedZone: route53.IHostedZone | undefined;
+    
+    if (props.domain) {
+      // Look up existing hosted zone or create new one
+      try {
+        hostedZone = route53.HostedZone.fromLookup(this, `${props.environment}-HostedZone`, {
+          domainName: props.domain,
+        });
+        this.hostedZone = hostedZone;
+      } catch (error) {
+        console.log(`Hosted zone for ${props.domain} not found, will use CloudFront domain`);
+      }
+      
+      // Create SSL certificate for custom domain
+      if (hostedZone && props.environment === 'production') {
+        certificate = new certificatemanager.Certificate(this, `${props.environment}-Certificate`, {
+          domainName: props.domain,
+          subjectAlternativeNames: [`*.${props.domain}`],
+          validation: certificatemanager.CertificateValidation.fromDns(hostedZone),
+        });
+        this.certificate = certificate;
+      } else if (props.environment !== 'production') {
+        // For development and staging, create wildcard certificate
+        certificate = new certificatemanager.Certificate(this, `${props.environment}-Certificate`, {
+          domainName: this.getSubdomain(props.environment, props.domain),
+          validation: certificatemanager.CertificateValidation.fromDns(),
+        });
+        this.certificate = certificate;
+      }
+    }
+
     // S3 Bucket for React App
     this.frontendBucket = new s3.Bucket(this, `${props.environment}-Frontend-Bucket`, {
       bucketName: `bigmann-frontend-${props.environment}-${this.account}`,
@@ -99,10 +132,10 @@ export class BigMannEnvironmentStack extends cdk.Stack {
     // Grant CloudFront read access to S3 bucket
     this.frontendBucket.grantRead(originAccessIdentity);
 
-    // CloudFront Distribution
-    this.distribution = new cloudfront.Distribution(this, `${props.environment}-Distribution`, {
+    // CloudFront Distribution with custom domain
+    const distributionProps: any = {
       defaultBehavior: {
-        origin: new origins.S3Origin(this.frontendBucket, {
+        origin: origins.S3BucketOrigin.withOriginAccessIdentity(this.frontendBucket, {
           originAccessIdentity: originAccessIdentity,
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -132,7 +165,16 @@ export class BigMannEnvironmentStack extends cdk.Stack {
       ],
       priceClass: props.environment === 'production' ? 
         cloudfront.PriceClass.PRICE_CLASS_ALL : cloudfront.PriceClass.PRICE_CLASS_100,
-    });
+    };
+
+    // Add custom domain if certificate is available
+    if (certificate && props.domain) {
+      const customDomain = this.getSubdomain(props.environment, props.domain);
+      distributionProps.domainNames = [customDomain];
+      distributionProps.certificate = certificate;
+    }
+
+    this.distribution = new cloudfront.Distribution(this, `${props.environment}-Distribution`, distributionProps);
 
     // SNS Topic for Alerts
     this.alertTopic = new sns.Topic(this, `${props.environment}-Alerts`, {
