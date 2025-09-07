@@ -96,12 +96,12 @@ async def capture_paypal_payment(
         
         return {
             "success": True,
-            "capture_id": result["capture_id"],
-            "order_id": result["order_id"],
+            "sale_id": result["sale_id"],
+            "payment_id": result["payment_id"],
             "status": result["status"],
             "amount": result["amount"],
             "currency": result["currency"],
-            "reference_id": result["reference_id"]
+            "transaction_id": result["transaction_id"]
         }
         
     except HTTPException:
