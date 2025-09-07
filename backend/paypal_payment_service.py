@@ -257,7 +257,7 @@ class PayPalPaymentService:
             logger.info(f"Refund requested for sale: {sale_id}")
             
             # Record refund request in database
-            if self.mongo_db:
+            if self.mongo_db is not None:
                 refund_record = {
                     "id": str(uuid.uuid4()),
                     "paypal_sale_id": sale_id,
