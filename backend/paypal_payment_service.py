@@ -11,11 +11,9 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import uuid
 
-from paypalcheckoutsdk.core import SandboxEnvironment, LiveEnvironment, PayPalHttpClient
-from paypalcheckoutsdk.orders import OrdersCreateRequest, OrdersCaptureRequest, OrdersGetRequest
-from paypalcheckoutsdk.payments import CapturesRefundRequest
-from paypalcheckoutsdk.webhooks import WebhookVerifySignatureRequest
-from paypalhttp import HttpError
+import paypalrestsdk
+from paypalrestsdk import Payment, WebProfile
+from paypalrestsdk.exceptions import ResourceNotFound, UnauthorizedAccess, MissingConfig
 
 logger = logging.getLogger(__name__)
 
