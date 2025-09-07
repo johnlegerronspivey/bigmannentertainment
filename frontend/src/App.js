@@ -880,6 +880,7 @@ const Register = () => {
     country: 'US'
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const { register } = useAuth();
