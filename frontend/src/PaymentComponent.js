@@ -224,6 +224,47 @@ const PaymentComponent = () => {
         }).format(amount);
     };
 
+    const getPaymentAmount = () => {
+        if (paymentType === 'package' && selectedPackage && packages[selectedPackage]) {
+            return packages[selectedPackage].amount;
+        } else if (paymentType === 'custom' && customAmount) {
+            return parseFloat(customAmount);
+        }
+        return 0;
+    };
+
+    const getPaymentDescription = () => {
+        if (paymentType === 'package' && selectedPackage && packages[selectedPackage]) {
+            return `Big Mann Entertainment - ${packages[selectedPackage].name}`;
+        } else if (paymentType === 'custom') {
+            return `Big Mann Entertainment - Custom Payment`;
+        }
+        return 'Big Mann Entertainment Service';
+    };
+
+    const handlePayPalSuccess = async (paymentData) => {
+        setLoading(false);
+        setShowPayPal(false);
+        updateStatus('PayPal payment successful! Thank you for your purchase.', 'success');
+        
+        // Refresh user data
+        await fetchUserCredits();
+        await fetchTransactions();
+    };
+
+    const handlePayPalError = (errorData) => {
+        setLoading(false);
+        setShowPayPal(false);
+        setError(`PayPal payment failed: ${errorData.error || 'Unknown error'}`);
+        updateStatus('PayPal payment failed. Please try again.', 'error');
+    };
+
+    const handlePayPalCancel = () => {
+        setLoading(false);
+        setShowPayPal(false);
+        updateStatus('PayPal payment was cancelled.', 'info');
+    };
+
     return (
         <div className="payment-container">
             <div className="payment-header">
