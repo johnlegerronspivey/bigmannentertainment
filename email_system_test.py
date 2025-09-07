@@ -290,10 +290,10 @@ class EmailSystemTester:
             "password": "WelcomeTest123!",
             "full_name": "Welcome Test User",
             "phone": "555-0124",
-            "address": "124 Welcome Street",
+            "address_line1": "124 Welcome Street",
             "city": "Welcome City",
-            "state": "Welcome State",
-            "zip_code": "12346",
+            "state_province": "Welcome State",
+            "postal_code": "12346",
             "country": "United States",
             "date_of_birth": "1991-01-01",
             "gender": "prefer_not_to_say"
