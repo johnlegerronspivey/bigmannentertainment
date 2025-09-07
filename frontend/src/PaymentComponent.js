@@ -7,6 +7,8 @@ const PaymentComponent = () => {
     const [selectedPackage, setSelectedPackage] = useState('');
     const [customAmount, setCustomAmount] = useState('');
     const [paymentType, setPaymentType] = useState('package'); // package or custom
+    const [paymentMethod, setPaymentMethod] = useState('stripe'); // stripe or paypal
+    const [showPayPal, setShowPayPal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [userCredits, setUserCredits] = useState(null);
