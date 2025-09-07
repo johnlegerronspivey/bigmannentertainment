@@ -34,7 +34,7 @@ xmlschema>=2.5.0
 jsonschema>=4.17.0
 web3>=6.15.0
 eth-account>=0.11.0
-paypal-checkout-serversdk-python>=1.0.1
+paypalrestsdk>=1.13.3
 eth-utils>=3.0.0
 reportlab>=4.0.0
 # Image metadata and processing libraries
