@@ -13,7 +13,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bigmannentertainment.com/api')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://api-dev.bigmannentertainment.com')
 if not BACKEND_URL.endswith('/api'):
     BACKEND_URL = BACKEND_URL.rstrip('/') + '/api'
 
