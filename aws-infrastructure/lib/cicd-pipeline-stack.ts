@@ -211,8 +211,9 @@ export class CICDPipelineStack extends cdk.Stack {
   private createBackendBuildProject(): codebuild.Project {
     const project = new codebuild.Project(this, 'BackendBuild', {
       projectName: 'bigmann-backend-build',
-      source: codebuild.Source.codeCommit({
-        repository: codebuild.Repository.fromSourceVersion('main'),
+      source: codebuild.Source.gitHub({
+        owner: 'your-github-owner',
+        repo: 'bigmann-entertainment',
       }),
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
