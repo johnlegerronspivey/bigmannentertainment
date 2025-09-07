@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # MongoDB for local development
+  mongodb:
+    image: mongo:7.0
+    container_name: bigmann-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: bigmann_entertainment_development
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - bigmann-network
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: bigmann-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bigmann-network
+
+  # FastAPI Backend - Development
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: bigmann-backend-dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - MONGO_URL=mongodb://admin:password@mongodb:27017/bigmann_entertainment_development?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - bigmann-network
+    profiles:
+      - development
+
+  # FastAPI Backend - Staging
+  backend-staging:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: staging
+    container_name: bigmann-backend-staging
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      - ENVIRONMENT=staging
+      - MONGO_URL=mongodb://admin:password@mongodb:27017/bigmann_entertainment_staging?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - bigmann-network
+    profiles:
+      - staging
+
+  # FastAPI Backend - Production
+  backend-prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: bigmann-backend-prod
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      - ENVIRONMENT=production
+      - MONGO_URL=mongodb://admin:password@mongodb:27017/bigmann_entertainment_production?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - bigmann-network
+    profiles:
+      - production
+
+  # React Frontend - Development (for local testing)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: bigmann-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8000
+      - REACT_APP_ENVIRONMENT=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend-dev
+    networks:
+      - bigmann-network
+    profiles:
+      - development
+
+  # NGINX reverse proxy for local testing
+  nginx:
+    image: nginx:alpine
+    container_name: bigmann-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend-dev
+      - frontend
+    networks:
+      - bigmann-network
+    profiles:
+      - development
+
+  # LocalStack for AWS services emulation
+  localstack:
+    image: localstack/localstack:latest
+    container_name: bigmann-localstack
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,secretsmanager,sns,ses,cloudwatch,iam
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./localstack:/etc/localstack/init/ready.d
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bigmann-network
+    profiles:
+      - development
+      - testing
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  bigmann-network:
+    driver: bridge
