@@ -145,83 +145,70 @@ class PayPalPaymentService:
                 "details": str(e)
             }
 
-    async def capture_order(self, order_id: str) -> Dict[str, Any]:
-        """Capture payment for a PayPal order"""
+    async def execute_payment(self, payment_id: str, payer_id: str) -> Dict[str, Any]:
+        """Execute a PayPal payment after approval"""
         
         try:
-            # Create capture request
-            request = OrdersCaptureRequest(order_id)
-            request.prefer('return=representation')
+            # Find payment
+            payment = Payment.find(payment_id)
             
-            # Execute capture
-            response = self.client.execute(request)
-            
-            # Extract capture details
-            capture_result = response.result
-            purchase_unit = capture_result.purchase_units[0]
-            
-            if purchase_unit.payments and purchase_unit.payments.captures:
-                capture = purchase_unit.payments.captures[0]
-                
-                # Update order in database
-                if self.mongo_db:
-                    await self.mongo_db.paypal_orders.update_one(
-                        {"paypal_order_id": order_id},
-                        {
-                            "$set": {
-                                "status": capture_result.status,
-                                "capture_id": capture.id,
-                                "captured_at": datetime.now(timezone.utc),
-                                "updated_at": datetime.now(timezone.utc)
+            if payment:
+                # Execute payment
+                if payment.execute({"payer_id": payer_id}):
+                    # Update payment in database
+                    if self.mongo_db:
+                        await self.mongo_db.paypal_payments.update_one(
+                            {"paypal_payment_id": payment_id},
+                            {
+                                "$set": {
+                                    "status": payment.state,
+                                    "payer_id": payer_id,
+                                    "executed_at": datetime.now(timezone.utc),
+                                    "updated_at": datetime.now(timezone.utc)
+                                }
                             }
-                        }
-                    )
-                
-                # Create payment record
-                payment_record = {
-                    "id": str(uuid.uuid4()),
-                    "paypal_order_id": order_id,
-                    "paypal_capture_id": capture.id,
-                    "amount": capture.amount.value,
-                    "currency": capture.amount.currency_code,
-                    "status": capture.status,
-                    "reference_id": purchase_unit.reference_id,
-                    "created_at": datetime.now(timezone.utc)
-                }
-                
-                if self.mongo_db:
-                    await self.mongo_db.paypal_payments.insert_one(payment_record)
-                
-                logger.info(f"PayPal payment captured: {capture.id}")
-                
-                return {
-                    "success": True,
-                    "capture_id": capture.id,
-                    "order_id": order_id,
-                    "status": capture.status,
-                    "amount": capture.amount.value,
-                    "currency": capture.amount.currency_code,
-                    "reference_id": purchase_unit.reference_id
-                }
+                        )
+                    
+                    # Get transaction details
+                    transaction = payment.transactions[0]
+                    related_resources = transaction.related_resources[0]
+                    sale = related_resources.sale
+                    
+                    logger.info(f"PayPal payment executed: {payment_id}")
+                    
+                    return {
+                        "success": True,
+                        "payment_id": payment_id,
+                        "payer_id": payer_id,
+                        "status": payment.state,
+                        "sale_id": sale.id,
+                        "amount": sale.amount.total,
+                        "currency": sale.amount.currency,
+                        "transaction_id": sale.id
+                    }
+                else:
+                    logger.error(f"PayPal payment execution failed: {payment.error}")
+                    return {
+                        "success": False,
+                        "error": "Payment execution failed",
+                        "details": payment.error
+                    }
             else:
                 return {
                     "success": False,
-                    "error": "No captures found in payment response"
+                    "error": "Payment not found"
                 }
                 
-        except HttpError as e:
-            logger.error(f"PayPal capture failed: {str(e)}")
-            error_details = json.loads(e.message) if hasattr(e, 'message') else str(e)
+        except ResourceNotFound:
             return {
                 "success": False,
-                "error": "PayPal capture failed",
-                "details": error_details
+                "error": "Payment not found"
             }
         except Exception as e:
-            logger.error(f"Unexpected error capturing PayPal payment: {str(e)}")
+            logger.error(f"Unexpected error executing PayPal payment: {str(e)}")
             return {
                 "success": False,
-                "error": "Unexpected error during capture",
+                "error": "Unexpected error during payment execution",
                 "details": str(e)
             }
 
