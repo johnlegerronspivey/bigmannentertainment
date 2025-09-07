@@ -2897,6 +2897,25 @@ def calculate_upc_check_digit(upc_11_digits: str) -> str:
 # API Endpoints
 @api_router.post("/auth/register", response_model=Token)
 async def register_user(user_data: UserCreate, request: Request):
+    # Validate email format
+    import re
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, user_data.email):
+        raise HTTPException(status_code=400, detail="Invalid email format")
+    
+    # Validate password complexity
+    if len(user_data.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    
+    if not re.search(r'[A-Z]', user_data.password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one uppercase letter")
+    
+    if not re.search(r'[a-z]', user_data.password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one lowercase letter")
+    
+    if not re.search(r'\d', user_data.password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one number")
+    
     # Check if user exists
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
