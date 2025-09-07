@@ -32,6 +32,8 @@ export class BigMannEnvironmentStack extends cdk.Stack {
   public readonly frontendBucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
   public readonly alertTopic: sns.Topic;
+  public readonly certificate?: certificatemanager.Certificate;
+  public readonly hostedZone?: route53.IHostedZone;
 
   constructor(scope: Construct, id: string, props: BigMannEnvironmentStackProps) {
     super(scope, id, props);
