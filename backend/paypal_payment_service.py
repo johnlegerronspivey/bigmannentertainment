@@ -156,7 +156,7 @@ class PayPalPaymentService:
                 # Execute payment
                 if payment.execute({"payer_id": payer_id}):
                     # Update payment in database
-                    if self.mongo_db:
+                    if self.mongo_db is not None:
                         await self.mongo_db.paypal_payments.update_one(
                             {"paypal_payment_id": payment_id},
                             {
