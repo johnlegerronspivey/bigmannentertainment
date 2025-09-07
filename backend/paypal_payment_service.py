@@ -334,7 +334,7 @@ class PayPalPaymentService:
                 capture_id = resource.get('id')
                 order_id = resource.get('supplementary_data', {}).get('related_ids', {}).get('order_id')
                 
-                if self.mongo_db and order_id:
+                if self.mongo_db is not None and order_id:
                     await self.mongo_db.paypal_orders.update_one(
                         {"paypal_order_id": order_id},
                         {
