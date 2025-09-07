@@ -2385,7 +2385,7 @@ class EmailService:
         """
         
         return await self.send_email(to_email, subject, html_content)
-# Initialize email service
+# Initialize email service with SES and SMTP fallback
 email_service = SESService()
 
 # AWS S3 Service Class
