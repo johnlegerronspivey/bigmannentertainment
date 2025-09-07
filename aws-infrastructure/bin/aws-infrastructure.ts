@@ -11,6 +11,8 @@ const region = 'us-east-1';
 // Development Environment
 new BigMannEnvironmentStack(app, 'BigMann-Development', {
   environment: 'development',
+  domain: 'bigmannentertainment.com',
+  createCertificate: true,
   env: {
     account: account,
     region: region,
@@ -25,6 +27,8 @@ new BigMannEnvironmentStack(app, 'BigMann-Development', {
 // Staging Environment
 new BigMannEnvironmentStack(app, 'BigMann-Staging', {
   environment: 'staging',
+  domain: 'bigmannentertainment.com',
+  createCertificate: true,
   env: {
     account: account,
     region: region,
@@ -40,6 +44,7 @@ new BigMannEnvironmentStack(app, 'BigMann-Staging', {
 new BigMannEnvironmentStack(app, 'BigMann-Production', {
   environment: 'production',
   domain: 'bigmannentertainment.com',
+  createCertificate: true,
   env: {
     account: account,
     region: region,
