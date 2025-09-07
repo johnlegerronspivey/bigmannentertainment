@@ -84,6 +84,94 @@
     color: #dc3545;
 }
 
+/* Payment method selection */
+.payment-method-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+}
+
+.payment-method-section h3 {
+    color: #2d3748;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.payment-method-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.payment-method-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.payment-method-option:hover {
+    border-color: #4facfe;
+    background: #f0f8ff;
+    transform: translateY(-2px);
+}
+
+.payment-method-option input[type="radio"] {
+    margin-right: 15px;
+    width: 18px;
+    height: 18px;
+    accent-color: #4facfe;
+}
+
+.payment-method-option input[type="radio"]:checked + .method-info {
+    color: #4facfe;
+    font-weight: 600;
+}
+
+.method-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.payment-method-logo {
+    width: 40px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.paypal-integration {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 2px dashed #cbd5e0;
+}
+
+/* Payment buttons */
+.stripe-button {
+    background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%);
+}
+
+.stripe-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+}
+
+.paypal-button {
+    background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+}
+
+.paypal-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #005ea6 0%, #004182 100%);
+}
+
 /* Payment Type Section */
 .payment-type-section {
     background: rgba(255, 255, 255, 0.95);
