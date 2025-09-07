@@ -38,7 +38,7 @@ class PayPalPaymentService:
         
         logger.info(f"PayPal service initialized - Environment: {'sandbox' if self.is_sandbox else 'live'}")
 
-    async def create_order(
+    async def create_payment(
         self,
         amount: Decimal,
         currency: str = "USD",
@@ -49,97 +49,99 @@ class PayPalPaymentService:
         user_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Create a PayPal order for payment"""
+        """Create a PayPal payment for processing"""
         
         try:
             # Generate reference ID if not provided
             if not reference_id:
                 reference_id = f"BME_{uuid.uuid4().hex[:12]}"
             
-            # Create order request
-            request = OrdersCreateRequest()
-            request.prefer('return=representation')
+            # Set default URLs if not provided
+            if not return_url:
+                return_url = "https://bme-platform.preview.emergentagent.com/payment/success"
+            if not cancel_url:
+                cancel_url = "https://bme-platform.preview.emergentagent.com/payment/cancel"
             
-            # Order details
-            order_body = {
-                "intent": "CAPTURE",
-                "application_context": {
-                    "brand_name": "Big Mann Entertainment",
-                    "landing_page": "BILLING",
-                    "user_action": "PAY_NOW",
-                    "shipping_preference": "NO_SHIPPING"
+            # Create payment object
+            payment = Payment({
+                "intent": "sale",
+                "payer": {
+                    "payment_method": "paypal"
                 },
-                "purchase_units": [{
-                    "reference_id": reference_id,
-                    "description": description,
+                "redirect_urls": {
+                    "return_url": return_url,
+                    "cancel_url": cancel_url
+                },
+                "transactions": [{
+                    "item_list": {
+                        "items": [{
+                            "name": description,
+                            "sku": reference_id,
+                            "price": str(amount),
+                            "currency": currency,
+                            "quantity": 1
+                        }]
+                    },
                     "amount": {
-                        "currency_code": currency,
-                        "value": str(amount)
-                    }
+                        "total": str(amount),
+                        "currency": currency
+                    },
+                    "description": description,
+                    "custom": reference_id
                 }]
-            }
+            })
             
-            # Add return URLs if provided
-            if return_url and cancel_url:
-                order_body["application_context"]["return_url"] = return_url
-                order_body["application_context"]["cancel_url"] = cancel_url
-            
-            request.request_body(order_body)
-            
-            # Execute request
-            response = self.client.execute(request)
-            
-            # Store order in database
-            order_record = {
-                "id": str(uuid.uuid4()),
-                "paypal_order_id": response.result.id,
-                "reference_id": reference_id,
-                "amount": str(amount),
-                "currency": currency,
-                "description": description,
-                "status": response.result.status,
-                "user_id": user_id,
-                "metadata": metadata or {},
-                "created_at": datetime.now(timezone.utc),
-                "updated_at": datetime.now(timezone.utc)
-            }
-            
-            if self.mongo_db:
-                await self.mongo_db.paypal_orders.insert_one(order_record)
-            
-            # Return order details
-            result = {
-                "success": True,
-                "order_id": response.result.id,
-                "reference_id": reference_id,
-                "status": response.result.status,
-                "amount": str(amount),
-                "currency": currency,
-                "approval_url": None
-            }
-            
-            # Extract approval URL for redirect
-            for link in response.result.links:
-                if link.rel == "approve":
-                    result["approval_url"] = link.href
-                    break
-            
-            logger.info(f"PayPal order created: {response.result.id}")
-            return result
-            
-        except HttpError as e:
-            logger.error(f"PayPal order creation failed: {str(e)}")
-            error_details = json.loads(e.message) if hasattr(e, 'message') else str(e)
-            return {
-                "success": False,
-                "error": "PayPal order creation failed",
-                "details": error_details
-            }
+            # Create payment
+            if payment.create():
+                # Store payment in database
+                payment_record = {
+                    "id": str(uuid.uuid4()),
+                    "paypal_payment_id": payment.id,
+                    "reference_id": reference_id,
+                    "amount": str(amount),
+                    "currency": currency,
+                    "description": description,
+                    "status": payment.state,
+                    "user_id": user_id,
+                    "metadata": metadata or {},
+                    "created_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(timezone.utc)
+                }
+                
+                if self.mongo_db:
+                    await self.mongo_db.paypal_payments.insert_one(payment_record)
+                
+                # Extract approval URL
+                approval_url = None
+                for link in payment.links:
+                    if link.rel == "approval_url":
+                        approval_url = link.href
+                        break
+                
+                logger.info(f"PayPal payment created: {payment.id}")
+                
+                return {
+                    "success": True,
+                    "payment_id": payment.id,
+                    "reference_id": reference_id,
+                    "status": payment.state,
+                    "amount": str(amount),
+                    "currency": currency,
+                    "approval_url": approval_url
+                }
+            else:
+                logger.error(f"PayPal payment creation failed: {payment.error}")
+                return {
+                    "success": False,
+                    "error": "PayPal payment creation failed",
+                    "details": payment.error
+                }
+                
         except Exception as e:
-            logger.error(f"Unexpected error creating PayPal order: {str(e)}")
+            logger.error(f"Unexpected error creating PayPal payment: {str(e)}")
             return {
                 "success": False,
-                "error": "Unexpected error during order creation",
+                "error": "Unexpected error during payment creation",
                 "details": str(e)
             }
 
