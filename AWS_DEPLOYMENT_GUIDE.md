@@ -40,9 +40,11 @@ This guide provides comprehensive instructions for deploying the Big Mann Entert
 ## 🚀 Deployment Status
 
 ### ✅ Development Environment
-- **Status**: DEPLOYED
+- **Status**: DEPLOYED (Domain Configuration Updated)
 - **Stack Name**: BigMann-Development
-- **CloudFront URL**: https://d36jfidccx04u0.cloudfront.net
+- **Custom Domain**: https://dev.bigmannentertainment.com
+- **API Domain**: https://api-dev.bigmannentertainment.com
+- **CloudFront URL**: https://d36jfidccx04u0.cloudfront.net (fallback)
 - **Load Balancer**: bigmann-development-alb-1207379331.us-east-1.elb.amazonaws.com
 - **ECR Repository**: 314108682794.dkr.ecr.us-east-1.amazonaws.com/bigmann-fastapi-development
 - **S3 Bucket**: bigmann-frontend-development-314108682794
