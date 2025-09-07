@@ -134,22 +134,25 @@ async def get_paypal_payment(
         logger.error(f"Error retrieving PayPal order: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@paypal_router.post("/captures/{capture_id}/refund")
-async def refund_paypal_capture(
-    capture_id: str,
-    amount: Optional[float] = None,
-    note: Optional[str] = None,
+class PayPalRefundRequest(BaseModel):
+    amount: Optional[float] = None
+    note: Optional[str] = None
+
+@paypal_router.post("/captures/{sale_id}/refund")
+async def refund_paypal_sale(
+    sale_id: str,
+    refund_request: PayPalRefundRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """Refund a PayPal capture"""
+    """Refund a PayPal sale"""
     
     try:
-        refund_amount = Decimal(str(amount)) if amount else None
+        refund_amount = Decimal(str(refund_request.amount)) if refund_request.amount else None
         
-        result = await paypal_service.refund_capture(
-            capture_id=capture_id,
+        result = await paypal_service.refund_sale(
+            sale_id=sale_id,
             amount=refund_amount,
-            note=note
+            note=refund_request.note
         )
         
         if not result["success"]:
