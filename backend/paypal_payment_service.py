@@ -29,18 +29,12 @@ class PayPalPaymentService:
         # Environment setup (sandbox by default, use live for production)
         self.is_sandbox = os.getenv('PAYPAL_ENVIRONMENT', 'sandbox').lower() == 'sandbox'
         
-        if self.is_sandbox:
-            environment = SandboxEnvironment(
-                client_id=self.client_id, 
-                client_secret=self.client_secret
-            )
-        else:
-            environment = LiveEnvironment(
-                client_id=self.client_id, 
-                client_secret=self.client_secret
-            )
-        
-        self.client = PayPalHttpClient(environment)
+        # Configure PayPal SDK
+        paypalrestsdk.configure({
+            "mode": "sandbox" if self.is_sandbox else "live",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret
+        })
         
         logger.info(f"PayPal service initialized - Environment: {'sandbox' if self.is_sandbox else 'live'}")
 
