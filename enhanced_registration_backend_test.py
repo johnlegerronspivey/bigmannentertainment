@@ -14,8 +14,8 @@ import re
 from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
-# Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://api-dev.bigmannentertainment.com')
+# Configuration - Use internal backend URL for testing
+BACKEND_URL = "http://localhost:8001"
 API_BASE = f"{BACKEND_URL}/api"
 
 class EnhancedRegistrationTester:
