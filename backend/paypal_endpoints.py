@@ -46,14 +46,14 @@ async def create_paypal_order(
         
         # Create payment (using the correct method name)
         result = await paypal_service.create_payment(
-            amount=Decimal(str(amount)),
-            currency=currency,
-            description=description,
-            reference_id=reference_id,
-            return_url=return_url,
-            cancel_url=cancel_url,
+            amount=Decimal(str(order_request.amount)),
+            currency=order_request.currency,
+            description=order_request.description,
+            reference_id=order_request.reference_id,
+            return_url=order_request.return_url,
+            cancel_url=order_request.cancel_url,
             user_id=current_user.id,
-            metadata=metadata
+            metadata=order_request.metadata
         )
         
         if not result["success"]:
