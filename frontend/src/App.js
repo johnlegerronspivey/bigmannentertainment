@@ -972,7 +972,10 @@ const Register = () => {
     const result = await register(registrationData);
     
     if (result.success) {
-      navigate('/');
+      setSuccess('Account created successfully! Welcome to Big Mann Entertainment!');
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
     } else {
       setError(result.error);
     }
