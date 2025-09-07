@@ -344,16 +344,89 @@ const PaymentComponent = () => {
                 </div>
             )}
 
-            {/* Payment Button */}
-            <div className="payment-button-section">
-                <button
-                    onClick={initiatePayment}
-                    disabled={loading || (paymentType === 'package' && !selectedPackage) || (paymentType === 'custom' && !customAmount)}
-                    className="payment-button"
-                >
-                    {loading ? 'Processing...' : 'Proceed to Payment'}
-                </button>
+            {/* Payment Method Selection */}
+            <div className="payment-method-section">
+                <h3>Select Payment Method</h3>
+                <div className="payment-method-options">
+                    <label className="payment-method-option">
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="stripe"
+                            checked={paymentMethod === 'stripe'}
+                            onChange={(e) => {
+                                setPaymentMethod(e.target.value);
+                                setShowPayPal(false);
+                            }}
+                        />
+                        <div className="method-info">
+                            <img 
+                                src="https://stripe.com/img/v3/home/social.png" 
+                                alt="Stripe" 
+                                className="payment-method-logo"
+                            />
+                            <span>Credit/Debit Card (Stripe)</span>
+                        </div>
+                    </label>
+                    <label className="payment-method-option">
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="paypal"
+                            checked={paymentMethod === 'paypal'}
+                            onChange={(e) => {
+                                setPaymentMethod(e.target.value);
+                                setShowPayPal(false);
+                            }}
+                        />
+                        <div className="method-info">
+                            <img 
+                                src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" 
+                                alt="PayPal" 
+                                className="payment-method-logo"
+                            />
+                            <span>PayPal</span>
+                        </div>
+                    </label>
+                </div>
             </div>
+
+            {/* Payment Processing */}
+            {paymentMethod === 'stripe' && (
+                <div className="payment-button-section">
+                    <button
+                        onClick={initiatePayment}
+                        disabled={loading || (paymentType === 'package' && !selectedPackage) || (paymentType === 'custom' && !customAmount)}
+                        className="payment-button stripe-button"
+                    >
+                        {loading ? 'Processing...' : 'Pay with Stripe'}
+                    </button>
+                </div>
+            )}
+
+            {paymentMethod === 'paypal' && (
+                <div className="payment-button-section">
+                    <button
+                        onClick={() => setShowPayPal(true)}
+                        disabled={loading || (paymentType === 'package' && !selectedPackage) || (paymentType === 'custom' && !customAmount)}
+                        className="payment-button paypal-button"
+                    >
+                        Pay with PayPal
+                    </button>
+
+                    {showPayPal && (
+                        <div className="paypal-integration">
+                            <PayPalPaymentComponent
+                                amount={getPaymentAmount()}
+                                description={getPaymentDescription()}
+                                onSuccess={handlePayPalSuccess}
+                                onError={handlePayPalError}
+                                onCancel={handlePayPalCancel}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Transaction History */}
             {transactions.length > 0 && (
