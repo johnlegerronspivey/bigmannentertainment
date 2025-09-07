@@ -955,6 +955,13 @@ const Register = () => {
     setLoading(true);
     setError('');
 
+    // Validate required fields for step 2
+    if (!formData.address_line1 || !formData.city || !formData.state_province || !formData.postal_code) {
+      setError('Please fill in all required address fields');
+      setLoading(false);
+      return;
+    }
+
     // Convert date string to Date object
     const registrationData = {
       ...formData,
