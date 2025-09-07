@@ -2386,7 +2386,7 @@ class EmailService:
         
         return await self.send_email(to_email, subject, html_content)
 # Initialize email service
-email_service = EmailService()
+email_service = SESService()
 
 # AWS S3 Service Class
 class S3Service:
