@@ -5363,7 +5363,7 @@ api_router.include_router(reporting_router)
 api_router.include_router(rights_router)
 api_router.include_router(contracts_router)
 api_router.include_router(audit_router)
-# api_router.include_router(image_router)  # Temporarily disabled due to libxmp dependency
+api_router.include_router(image_router)
 api_router.include_router(paypal_router)
 
 # Include the main api_router in the app
