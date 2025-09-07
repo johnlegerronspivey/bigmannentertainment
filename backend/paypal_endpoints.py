@@ -164,7 +164,7 @@ async def refund_paypal_sale(
         return {
             "success": True,
             "refund_id": result["refund_id"],
-            "capture_id": result["capture_id"],
+            "sale_id": result["sale_id"],
             "status": result["status"],
             "amount": result["amount"],
             "currency": result["currency"]
