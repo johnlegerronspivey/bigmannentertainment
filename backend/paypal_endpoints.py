@@ -21,26 +21,31 @@ paypal_router = APIRouter(prefix="/paypal", tags=["PayPal Payments"])
 # Initialize PayPal service
 paypal_service = PayPalPaymentService(db)
 
+from pydantic import BaseModel
+
+class PayPalOrderRequest(BaseModel):
+    amount: float
+    currency: str = "USD"
+    description: Optional[str] = "Big Mann Entertainment Service"
+    reference_id: Optional[str] = None
+    return_url: Optional[str] = None
+    cancel_url: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
 @paypal_router.post("/orders")
 async def create_paypal_order(
-    amount: float,
-    currency: str = "USD",
-    description: Optional[str] = "Big Mann Entertainment Service",
-    reference_id: Optional[str] = None,
-    return_url: Optional[str] = None,
-    cancel_url: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    order_request: PayPalOrderRequest,
     current_user: User = Depends(get_current_user)
 ):
     """Create a PayPal order for payment"""
     
     try:
         # Validate amount
-        if amount <= 0:
+        if order_request.amount <= 0:
             raise HTTPException(status_code=400, detail="Amount must be positive")
         
-        # Create order
-        result = await paypal_service.create_order(
+        # Create payment (using the correct method name)
+        result = await paypal_service.create_payment(
             amount=Decimal(str(amount)),
             currency=currency,
             description=description,
