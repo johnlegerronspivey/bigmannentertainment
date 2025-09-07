@@ -88,10 +88,10 @@ class EmailSystemTester:
             "password": self.test_user_password,
             "full_name": "Email Test User",
             "phone": "555-0123",
-            "address": "123 Test Street",
+            "address_line1": "123 Test Street",
             "city": "Test City",
-            "state": "Test State",
-            "zip_code": "12345",
+            "state_province": "Test State",
+            "postal_code": "12345",
             "country": "United States",
             "date_of_birth": "1990-01-01",
             "gender": "prefer_not_to_say"
