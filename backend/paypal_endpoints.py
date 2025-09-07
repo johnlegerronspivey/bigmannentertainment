@@ -110,15 +110,15 @@ async def capture_paypal_payment(
         logger.error(f"Error capturing PayPal order: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@paypal_router.get("/orders/{order_id}")
-async def get_paypal_order(
-    order_id: str,
+@paypal_router.get("/orders/{payment_id}")
+async def get_paypal_payment(
+    payment_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Get PayPal order details"""
+    """Get PayPal payment details"""
     
     try:
-        result = await paypal_service.get_order(order_id)
+        result = await paypal_service.get_payment(payment_id)
         
         if not result["success"]:
             raise HTTPException(
