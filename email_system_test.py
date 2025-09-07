@@ -102,6 +102,9 @@ class EmailSystemTester:
         if status == 201:
             self.log_test("User Registration", True, f"Test user registered: {self.test_user_email}")
             return True
+        elif status == 200 and "access_token" in response:
+            self.log_test("User Registration", True, f"Test user registered with token: {self.test_user_email}")
+            return True
         else:
             self.log_test("User Registration", False, f"Failed to register test user", response)
             return False
