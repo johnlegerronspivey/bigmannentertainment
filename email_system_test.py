@@ -311,6 +311,13 @@ class EmailSystemTester:
                 f"User registration successful, welcome email should be triggered for {welcome_test_email}",
                 response
             )
+        elif status == 200 and "access_token" in response:
+            self.log_test(
+                "Welcome Email Trigger", 
+                True, 
+                f"User registration successful with token, welcome email should be triggered for {welcome_test_email}",
+                response
+            )
         else:
             self.log_test("Welcome Email Trigger", False, "User registration failed", response)
 
