@@ -14,7 +14,7 @@ import secrets
 import string
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://api-dev.bigmannentertainment.com')
+BACKEND_URL = "http://localhost:8001"
 API_BASE = f"{BACKEND_URL}/api"
 
 class RegistrationTester:
