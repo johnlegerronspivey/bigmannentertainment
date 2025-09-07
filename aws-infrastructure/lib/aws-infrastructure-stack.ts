@@ -16,8 +16,9 @@ import { Construct } from 'constructs';
 
 export interface BigMannEnvironmentStackProps extends cdk.StackProps {
   environment: string;
-  domain?: string;
+  domain: string;
   certificateArn?: string;
+  createCertificate?: boolean;
 }
 
 export class BigMannEnvironmentStack extends cdk.Stack {
