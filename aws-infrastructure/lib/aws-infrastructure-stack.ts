@@ -505,4 +505,30 @@ export class BigMannEnvironmentStack extends cdk.Stack {
       exportName: `${environment}-CodeBuild-Role-ARN`,
     });
   }
+
+  private getSubdomain(environment: string, domain: string): string {
+    switch (environment) {
+      case 'production':
+        return domain; // bigmannentertainment.com
+      case 'staging':
+        return `staging.${domain}`; // staging.bigmannentertainment.com
+      case 'development':
+        return `dev.${domain}`; // dev.bigmannentertainment.com
+      default:
+        return `${environment}.${domain}`;
+    }
+  }
+
+  private getAPISubdomain(environment: string, domain: string): string {
+    switch (environment) {
+      case 'production':
+        return `api.${domain}`; // api.bigmannentertainment.com
+      case 'staging':
+        return `api-staging.${domain}`; // api-staging.bigmannentertainment.com
+      case 'development':
+        return `api-dev.${domain}`; // api-dev.bigmannentertainment.com
+      default:
+        return `api-${environment}.${domain}`;
+    }
+  }
 }
