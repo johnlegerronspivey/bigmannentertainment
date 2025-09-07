@@ -2128,13 +2128,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Registration Form and Sign Up Process - Frontend Testing"
-    - "Advanced ImageUploadComponent with Web3 NFT Integration"
-    - "Audit Trail & Logging System Implementation"
-    - "Immutable Log Generation and Cryptographic Integrity"
-    - "Metadata Snapshot Creation and Timeline Tracking"
-    - "Real-time Security Monitoring and Compliance Alerts"
-    - "Role-based Audit Access and Report Generation"
+    - "Complete Upload-to-Payout Workflow Testing"
+    - "Stripe Payment Frontend Integration"
+    - "Tax Management Interface"
   stuck_tasks:
     - "Advanced ImageUploadComponent with Web3 NFT Integration"
   test_all: false
