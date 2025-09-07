@@ -25,7 +25,7 @@ import base64
 import smtplib
 import boto3
 import re
-from botocore.exceptions import ClientError, BotoCoreError
+from botocore.exceptions import ClientError, BotoCoreError, NoCredentialsError
 from jinja2 import Template
 try:
     from email.mime.text import MimeText
