@@ -5070,10 +5070,19 @@ async def get_phase2_status():
 
 app.include_router(api_router)
 
-# CORS middleware
+# CORS configuration for multi-environment setup
+cors_origins = [
+    "http://localhost:3000",  # Local development
+    "https://bigmannentertainment.com",  # Production
+    "https://dev.bigmannentertainment.com",  # Development
+    "https://staging.bigmannentertainment.com",  # Staging
+    "https://d36jfidccx04u0.cloudfront.net",  # Current CloudFront (temporary)
+    "https://media-dist-deploy.preview.emergentagent.com",  # Current preview URL
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this properly for production
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
