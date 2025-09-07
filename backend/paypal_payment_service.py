@@ -393,7 +393,7 @@ class PayPalPaymentService:
     async def get_user_payments(self, user_id: str) -> List[Dict[str, Any]]:
         """Get user's PayPal payment history"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return []
         
         try:
