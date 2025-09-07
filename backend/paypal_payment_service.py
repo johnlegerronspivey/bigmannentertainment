@@ -369,7 +369,7 @@ class PayPalPaymentService:
                 # Payment was refunded
                 refund_id = resource.get('id')
                 
-                if self.mongo_db:
+                if self.mongo_db is not None:
                     await self.mongo_db.paypal_refunds.update_one(
                         {"paypal_refund_id": refund_id},
                         {
