@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Payment.css';
+import PayPalPaymentComponent from './PayPalPaymentComponent';
 
 const PaymentComponent = () => {
     const [packages, setPackages] = useState({});
