@@ -898,6 +898,28 @@ const Register = () => {
     return age >= 18;
   };
 
+  const validatePassword = (password) => {
+    const errors = [];
+    if (password.length < 8) {
+      errors.push("Password must be at least 8 characters long");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Password must contain at least one uppercase letter");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("Password must contain at least one lowercase letter");
+    }
+    if (!/\d/.test(password)) {
+      errors.push("Password must contain at least one number");
+    }
+    return errors;
+  };
+
+  const validateEmail = (email) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email);
+  };
+
   const handleNextStep = () => {
     if (step === 1) {
       // Validate basic info
@@ -905,6 +927,20 @@ const Register = () => {
         setError('Please fill in all required fields');
         return;
       }
+      
+      // Validate email format
+      if (!validateEmail(formData.email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
+      
+      // Validate password
+      const passwordErrors = validatePassword(formData.password);
+      if (passwordErrors.length > 0) {
+        setError(passwordErrors.join('. '));
+        return;
+      }
+      
       if (!formData.date_of_birth || !validateAge(formData.date_of_birth)) {
         setError('You must be 18 or older to register');
         return;
