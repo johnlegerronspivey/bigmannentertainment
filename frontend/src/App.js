@@ -1137,6 +1137,22 @@ const Register = () => {
                   <option value="CA">Canada</option>
                   <option value="UK">United Kingdom</option>
                   <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="ES">Spain</option>
+                  <option value="IT">Italy</option>
+                  <option value="NL">Netherlands</option>
+                  <option value="SE">Sweden</option>
+                  <option value="NO">Norway</option>
+                  <option value="DK">Denmark</option>
+                  <option value="JP">Japan</option>
+                  <option value="KR">South Korea</option>
+                  <option value="BR">Brazil</option>
+                  <option value="MX">Mexico</option>
+                  <option value="IN">India</option>
+                  <option value="NG">Nigeria</option>
+                  <option value="ZA">South Africa</option>
+                  <option value="NZ">New Zealand</option>
                 </select>
               </div>
 
