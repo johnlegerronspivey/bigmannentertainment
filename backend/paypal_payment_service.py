@@ -420,7 +420,7 @@ class PayPalPaymentService:
     async def get_payment_analytics(self) -> Dict[str, Any]:
         """Get PayPal payment analytics"""
         
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return {}
         
         try:
