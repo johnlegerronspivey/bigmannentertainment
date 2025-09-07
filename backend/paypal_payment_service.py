@@ -403,12 +403,12 @@ class PayPalPaymentService:
             ).sort("created_at", -1):
                 payments.append({
                     "id": payment["id"],
-                    "paypal_capture_id": payment["paypal_capture_id"],
+                    "paypal_payment_id": payment.get("paypal_payment_id", "N/A"),
                     "amount": payment["amount"],
                     "currency": payment["currency"],
                     "status": payment["status"],
                     "reference_id": payment["reference_id"],
-                    "created_at": payment["created_at"].isoformat()
+                    "created_at": payment["created_at"].isoformat() if isinstance(payment["created_at"], datetime) else payment["created_at"]
                 })
             
             return payments
