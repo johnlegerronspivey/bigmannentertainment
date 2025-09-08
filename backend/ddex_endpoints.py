@@ -903,3 +903,21 @@ async def get_music_reports_cwr_integration(current_user: User = Depends(get_cur
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve Music Reports CWR integration: {str(e)}")
+
+@ddex_router.post("/music-reports/sync")
+async def sync_music_reports_cwr(current_user: User = Depends(get_current_user)):
+    """Initiate sync with Music Reports (mock implementation)"""
+    try:
+        # Mock sync process
+        sync_result = {
+            "sync_id": f"sync_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "status": "initiated",
+            "message": "Music Reports sync initiated successfully",
+            "estimated_duration": "2-5 minutes",
+            "works_to_sync": await db.ddex_cwr_registrations.count_documents({"user_id": current_user.id})
+        }
+        
+        return {"sync_result": sync_result}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initiate Music Reports sync: {str(e)}")
