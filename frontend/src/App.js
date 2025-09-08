@@ -3196,6 +3196,10 @@ function App() {
             <Route path="/ddex/messages" element={<ProtectedRoute><DDEXMessageList /></ProtectedRoute>} />
             <Route path="/ddex/identifiers" element={<ProtectedRoute><DDEXIdentifierGenerator /></ProtectedRoute>} />
 
+            {/* Music Reports routes */}
+            <Route path="/music-reports" element={<ProtectedRoute><MusicReportsDashboard /></ProtectedRoute>} />
+            <Route path="/music-reports/dashboard" element={<ProtectedRoute><MusicReportsDashboard /></ProtectedRoute>} />
+
             {/* Sponsorship routes */}
             <Route path="/sponsorship" element={<ProtectedRoute><SponsorshipDashboard /></ProtectedRoute>} />
             <Route path="/sponsorship/deals" element={<ProtectedRoute><SponsorshipDealCreator /></ProtectedRoute>} />
