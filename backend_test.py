@@ -25,8 +25,8 @@ import time
 from datetime import datetime
 from typing import Dict, List, Optional
 
-# Backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://api-dev.bigmannentertainment.com')
+# Backend URL from environment - use local for testing
+BACKEND_URL = "http://localhost:8001"
 API_BASE = f"{BACKEND_URL}/api"
 
 class BigMannBackendTester:
