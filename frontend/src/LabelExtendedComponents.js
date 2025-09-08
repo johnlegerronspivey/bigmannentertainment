@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { BudgetManagement, FinancialReports } from './FinancialManagementFixes';
 
 // Get API URL from environment
 const API = process.env.REACT_APP_BACKEND_URL;
