@@ -2579,37 +2579,12 @@ const Distribute = () => {
                   </div>
                 </div>
               ))
-            )} 
-                          ? 'border-purple-500 bg-purple-50' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{platform.icon}</span>
-                        <div>
-                          <p className="font-medium">{platform.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {platform.active ? 'Active' : 'Coming Soon'}
-                          </p>
-                        </div>
-                        {selectedPlatforms.includes(platform.id) && (
-                          <div className="ml-auto text-purple-600">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+            )}
 
             <div className="mt-6 pt-6 border-t">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  {selectedMedia ? `Selected: ${selectedMedia.title}` : 'No content selected'} • {selectedPlatforms.length} of {totalPlatforms}+ platforms selected
+                  {selectedMedia ? `Selected: ${selectedMedia.title}` : 'No content selected'} • {selectedPlatforms.length} of {Object.values(platforms).reduce((sum, platformList) => sum + platformList.length, 0)} platforms selected
                 </div>
                 <button
                   onClick={startDistribution}
