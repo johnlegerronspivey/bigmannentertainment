@@ -5289,6 +5289,7 @@ async def get_admin_analytics(current_user: User = Depends(get_current_admin_use
 # Include other endpoint routers
 from ddex_endpoints import ddex_router
 from music_reports_endpoints import music_reports_router
+from workflow_enhancement_endpoints import workflow_router
 from sponsorship_endpoints import sponsorship_router
 from tax_endpoints import tax_router
 from industry_endpoints import industry_router
