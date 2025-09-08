@@ -2741,52 +2741,99 @@ const Distribute = () => {
 };
 
 const Platforms = () => {
-  // Define all 91 platforms organized by category
-  const allPlatforms = {
-    "Social Media": [
-      "Instagram", "Twitter/X", "Facebook", "TikTok", "YouTube", "Snapchat", 
-      "LinkedIn", "Pinterest", "Reddit", "Discord", "Telegram", "WhatsApp Business"
-    ],
-    "Music Streaming": [
-      "Spotify", "Apple Music", "Amazon Music", "Tidal", "Deezer", "Pandora", 
-      "SoundCloud", "Bandcamp", "YouTube Music", "Audiomack", "Mixcloud", 
-      "ReverbNation", "DatPiff", "Spinrilla", "Napster"
-    ],
-    "Podcast Platforms": [
-      "Apple Podcasts", "Spotify Podcasts", "Google Podcasts", "Stitcher", 
-      "Overcast", "Pocket Casts", "Castbox", "Anchor"
-    ],
-    "Radio & Broadcasting": [
-      "iHeartRadio", "SiriusXM", "TuneIn", "Radio.com", "Live365", 
-      "RadioIO", "Streema", "radio.net", "Zeno.FM", "SHOUTcast"
-    ],
-    "Video Streaming": [
-      "Netflix", "Hulu", "Amazon Prime Video", "HBO Max", "Disney+", 
-      "Paramount+", "Peacock", "The Roku Channel"
-    ],
-    "Rights Organizations": [
-      "ASCAP", "BMI", "SESAC", "SoundExchange", "Harry Fox Agency"
-    ],
-    "Web3 & Blockchain": [
-      "Ethereum Mainnet", "Polygon (MATIC)", "Solana Mainnet", "Avalanche", 
-      "Binance Smart Chain", "Audius", "Catalog", "Sound.xyz", "Royal", "OpenSea"
-    ],
-    "International Music": [
-      "JOOX", "Anghami", "Gaana", "JioSaavn", "Yandex Music", 
-      "QQ Music", "NetEase Cloud Music", "Boomplay"
-    ],
-    "Digital Platforms": [
-      "Twitch", "Kick", "Rumble", "Dailymotion", "Vimeo", "Odysee", 
-      "BitChute", "Brighteon", "GETTR", "Gab", "Parler", "Truth Social", 
-      "Clubhouse", "Twitter Spaces", "Greenroom (Spotify Live)"
-    ],
-    "Model Agencies & Photography": [
-      "IMG Models", "Elite Model Management", "Ford Models", "Wilhelmina Models", 
-      "Next Management", "Women Management", "The Society Management", "Storm Models", 
-      "Premier Model Management", "Select Model Management", "Models.com", 
-      "LA Models", "New York Models", "DNA Models", "Modelwerk"
-    ]
+  const [allPlatforms, setAllPlatforms] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Fetch platforms from backend API
+  useEffect(() => {
+    const fetchPlatforms = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/distribution/platforms`);
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Organize platforms by category
+          const organizedPlatforms = {};
+          
+          if (data.platforms) {
+            Object.entries(data.platforms).forEach(([platformId, platformConfig]) => {
+              const category = getCategoryDisplayName(platformConfig.type);
+              if (!organizedPlatforms[category]) {
+                organizedPlatforms[category] = [];
+              }
+              organizedPlatforms[category].push({
+                id: platformId,
+                name: platformConfig.name,
+                description: platformConfig.description,
+                type: platformConfig.type,
+                supported_formats: platformConfig.supported_formats,
+                max_file_size: platformConfig.max_file_size
+              });
+            });
+          }
+          
+          // Sort platforms within each category
+          Object.keys(organizedPlatforms).forEach(category => {
+            organizedPlatforms[category].sort((a, b) => a.name.localeCompare(b.name));
+          });
+          
+          setAllPlatforms(organizedPlatforms);
+        } else {
+          setError('Failed to load platforms');
+        }
+      } catch (error) {
+        console.error('Error fetching platforms:', error);
+        setError('Error loading platforms');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPlatforms();
+  }, []);
+
+  // Helper function to get display name for category
+  const getCategoryDisplayName = (type) => {
+    const categoryMap = {
+      'social_media': 'Social Media',
+      'music_streaming': 'Music Streaming', 
+      'podcast_platforms': 'Podcast Platforms',
+      'radio_broadcast': 'Radio & Broadcasting',
+      'television_video': 'Video Streaming',
+      'rights_organizations': 'Rights Organizations',
+      'web3_blockchain': 'Web3 & Blockchain',
+      'international_music': 'International Music',
+      'digital_platforms': 'Digital Platforms',
+      'modeling_agencies': 'Model Agencies & Photography'
+    };
+    return categoryMap[type] || 'Other Platforms';
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading platforms...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-red-600">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const totalPlatforms = Object.values(allPlatforms).reduce((sum, category) => sum + category.length, 0);
 
