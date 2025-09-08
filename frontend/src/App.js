@@ -3171,7 +3171,7 @@ function App() {
 
             {/* Protected routes */}
             <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
-            <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+            <Route path="/upload" element={<ProtectedRoute><MediaUploadComponent /></ProtectedRoute>} />
             <Route path="/rights-compliance" element={<ProtectedRoute><RightsComplianceWrapper /></ProtectedRoute>} />
             <Route path="/smart-contracts" element={<ProtectedRoute><SmartContractComponent /></ProtectedRoute>} />
             <Route path="/audit-trail" element={<ProtectedRoute><AuditTrailComponent /></ProtectedRoute>} />
