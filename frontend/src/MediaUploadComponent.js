@@ -20,7 +20,7 @@ const MediaUploadComponent = () => {
 
   // Get auth token
   const getAuthToken = () => {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('token');
   };
 
   // Fetch user's media files
