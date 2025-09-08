@@ -77,6 +77,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
+from distribution_service import DistributionService
+
+# Initialize services
+distribution_service = DistributionService(db)
+
 # Create router
 media_router = APIRouter(prefix="/media", tags=["media_upload"])
 
