@@ -171,7 +171,7 @@ class DetailedTester:
         wav_header = b'RIFF\x24\x08\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x02\x00\x44\xac\x00\x00\x10\xb1\x02\x00\x04\x00\x10\x00data\x00\x08\x00\x00'
         test_audio_content = wav_header + b'\x00' * 2048
         
-        # Test media upload
+        # Test media upload with proper content type
         upload_data = {
             "title": "Test Upload Track",
             "description": "Testing upload functionality",
