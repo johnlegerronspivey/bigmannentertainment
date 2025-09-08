@@ -61,8 +61,9 @@ class DetailedTester:
                     if data:
                         for key, value in data.items():
                             form_data.add_field(key, str(value))
-                    for key, file_data in files.items():
-                        form_data.add_field(key, file_data[1], filename=file_data[0])
+                    for key, file_info in files.items():
+                        filename, file_content, content_type = file_info
+                        form_data.add_field(key, file_content, filename=filename, content_type=content_type)
                     
                     async with self.session.post(url, data=form_data, headers=headers) as response:
                         response_text = await response.text()
