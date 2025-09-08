@@ -3830,7 +3830,7 @@ async def delete_media(media_id: str, current_user: User = Depends(get_current_u
     
     return {"message": "Media deleted successfully"}
 
-@api_router.post("/media/{media_id}/metadata")
+@api_router.post("/content/{media_id}/metadata")
 async def update_media_metadata(
     media_id: str,
     metadata: Dict[str, Any],
