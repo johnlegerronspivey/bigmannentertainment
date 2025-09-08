@@ -19,7 +19,7 @@ import EnhancedUploadComponent from './EnhancedUploadComponent';
 import RightsComplianceComponent from './RightsComplianceComponent';
 import SmartContractComponent from './SmartContractComponent';
 import AuditTrailComponent from './AuditTrailComponent';
-import ImageUploadComponent from './ImageUploadComponent';
+import MediaUploadComponent from './MediaUploadComponent';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
