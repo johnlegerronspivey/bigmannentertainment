@@ -5302,7 +5302,7 @@ from reporting_endpoints import router as reporting_router
 from rights_endpoints import router as rights_router
 from smart_contract_endpoints import router as contracts_router
 from audit_endpoints import router as audit_router
-from image_upload_endpoints import image_router
+from media_upload_endpoints import media_router
 from paypal_endpoints import paypal_router
 
 # Initialize Payment Service
@@ -5363,7 +5363,7 @@ api_router.include_router(reporting_router)
 api_router.include_router(rights_router)
 api_router.include_router(contracts_router)
 api_router.include_router(audit_router)
-api_router.include_router(image_router)
+api_router.include_router(media_router)
 api_router.include_router(paypal_router)
 
 # Include the main api_router in the app
