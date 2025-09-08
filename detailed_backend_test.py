@@ -264,13 +264,11 @@ class DetailedTester:
         """Test payout system with detailed analysis"""
         print("\n💸 TESTING PAYOUT (DETAILED)")
         
-        # Test payout request
+        # Test payout request with Form data
         payout_data = {
-            "amount": 25.00,
-            "payment_method": "paypal",
-            "payment_details": {
-                "email": self.test_user_email
-            }
+            "amount": "25.00",
+            "payout_method": "paypal", 
+            "payout_details": self.test_user_email
         }
         
         response = await self.make_request("POST", "/media/request-payout", payout_data)
