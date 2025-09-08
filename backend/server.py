@@ -3797,7 +3797,7 @@ async def update_media(
         "media": MediaContent(**updated_media)
     }
 
-@api_router.delete("/media/{media_id}")
+@api_router.delete("/content/{media_id}")
 async def delete_media(media_id: str, current_user: User = Depends(get_current_user)):
     """Delete media and its associated file"""
     media = await db.media_content.find_one({"id": media_id})
