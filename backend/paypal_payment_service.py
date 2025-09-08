@@ -58,9 +58,9 @@ class PayPalPaymentService:
             
             # Set default URLs if not provided
             if not return_url:
-                return_url = "https://media-dist-deploy.preview.emergentagent.com/payment/success"
+                return_url = "https://bme-platform-1.preview.emergentagent.com/payment/success"
             if not cancel_url:
-                cancel_url = "https://media-dist-deploy.preview.emergentagent.com/payment/cancel"
+                cancel_url = "https://bme-platform-1.preview.emergentagent.com/payment/cancel"
             
             # Create payment object
             payment = Payment({
