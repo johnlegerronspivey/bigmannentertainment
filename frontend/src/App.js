@@ -2862,9 +2862,14 @@ const Platforms = () => {
             </div>
             <div className="space-y-2">
               {platforms.map((platform) => (
-                <div key={platform} className="flex items-center text-sm text-gray-700">
+                <div key={platform.id || platform.name} className="flex items-center text-sm text-gray-700">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                  {platform}
+                  <div>
+                    <div className="font-medium">{platform.name || platform}</div>
+                    {platform.description && (
+                      <div className="text-xs text-gray-500">{platform.description}</div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -2879,15 +2884,15 @@ const Platforms = () => {
           <div className="text-purple-100">Total Platforms</div>
         </div>
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg text-center">
-          <div className="text-3xl font-bold">{allPlatforms["Social Media"].length}</div>
+          <div className="text-3xl font-bold">{allPlatforms["Social Media"]?.length || 0}</div>
           <div className="text-blue-100">Social Media</div>
         </div>
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg text-center">
-          <div className="text-3xl font-bold">{allPlatforms["Music Streaming"].length}</div>
+          <div className="text-3xl font-bold">{allPlatforms["Music Streaming"]?.length || 0}</div>
           <div className="text-green-100">Music Streaming</div>
         </div>
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg text-center">
-          <div className="text-3xl font-bold">{allPlatforms["Model Agencies & Photography"].length}</div>
+          <div className="text-3xl font-bold">{allPlatforms["Model Agencies & Photography"]?.length || 0}</div>
           <div className="text-orange-100">Model Agencies</div>
         </div>
       </div>
