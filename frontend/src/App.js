@@ -2035,11 +2035,111 @@ const Distribute = () => {
   const [distributions, setDistributions] = useState([]);
   const [loadingMedia, setLoadingMedia] = useState(true);
   const [error, setError] = useState(null);
+  const [platforms, setPlatforms] = useState({});
+  const [loadingPlatforms, setLoadingPlatforms] = useState(true);
   
   const location = useLocation();
 
-  // Distribution platforms (91 platforms organized by category)
-  const platforms = {
+  // Fetch platforms from API
+  useEffect(() => {
+    const fetchPlatforms = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/distribution/platforms`);
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Organize platforms by category with display formatting
+          const organizedPlatforms = {};
+          
+          if (data.platforms) {
+            Object.entries(data.platforms).forEach(([platformId, platformConfig]) => {
+              const category = getCategoryDisplayName(platformConfig.type);
+              if (!organizedPlatforms[category]) {
+                organizedPlatforms[category] = [];
+              }
+              organizedPlatforms[category].push({
+                id: platformId,
+                name: platformConfig.name,
+                icon: getIconForPlatform(platformId),
+                active: true,
+                type: platformConfig.type,
+                description: platformConfig.description,
+                supported_formats: platformConfig.supported_formats,
+                max_file_size: platformConfig.max_file_size
+              });
+            });
+          }
+          
+          // Sort platforms within each category
+          Object.keys(organizedPlatforms).forEach(category => {
+            organizedPlatforms[category].sort((a, b) => a.name.localeCompare(b.name));
+          });
+          
+          setPlatforms(organizedPlatforms);
+        } else {
+          setError('Failed to load platforms');
+        }
+      } catch (error) {
+        console.error('Error fetching platforms:', error);
+        setError('Error loading platforms');
+      } finally {
+        setLoadingPlatforms(false);
+      }
+    };
+    
+    fetchPlatforms();
+  }, []);
+
+  // Helper function to get display name for category
+  const getCategoryDisplayName = (type) => {
+    const categoryMap = {
+      'social_media': 'Social Media',
+      'music_streaming': 'Music Streaming', 
+      'podcast_platforms': 'Podcast Platforms',
+      'radio_broadcast': 'Radio & Broadcasting',
+      'television_video': 'Video Streaming',
+      'rights_organizations': 'Rights Organizations',
+      'web3_blockchain': 'Web3 & Blockchain',
+      'international_music': 'International Music',
+      'digital_platforms': 'Digital Platforms',
+      'modeling_agencies': 'Model Agencies & Photography'
+    };
+    return categoryMap[type] || 'Other Platforms';
+  };
+
+  // Helper function to get icon for platform
+  const getIconForPlatform = (platformId) => {
+    const iconMap = {
+      'instagram': '📸',
+      'twitter': '🐦',
+      'facebook': '👥',
+      'tiktok': '🎵',
+      'youtube': '📺',
+      'snapchat': '👻',
+      'snapchat_enhanced': '👻',
+      'linkedin': '💼',
+      'pinterest': '📌',
+      'reddit': '🔗',
+      'discord': '🎮',
+      'telegram': '✈️',
+      'whatsapp_business': '💬',
+      'threads': '🧵',
+      'tumblr': '📝',
+      'theshaderoom': '🎭',
+      'hollywoodunlocked': '🎬',
+      'spotify': '🎶',
+      'apple_music': '🍎',
+      'amazon_music': '🛒',
+      'livemixtapes': '🎤',
+      'mymixtapez': '📻',
+      'worldstarhiphop': '🌟',
+      'tidal': '🌊',
+      'deezer': '🎧',
+      'pandora': '📻',
+      'soundcloud': '☁️'
+    };
+    return iconMap[platformId] || '🎵';
+  };
     "Social Media": [
       { id: "instagram", name: "Instagram", icon: "📸", active: true },
       { id: "twitter", name: "Twitter/X", icon: "🐦", active: true },
