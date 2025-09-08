@@ -3752,7 +3752,7 @@ async def download_media(media_id: str, current_user: User = Depends(get_current
 
 # MISSING MEDIA ENDPOINTS - IMPLEMENTING FOR 100% FUNCTIONALITY
 
-@api_router.put("/media/{media_id}")
+@api_router.put("/content/{media_id}")
 async def update_media(
     media_id: str,
     title: Optional[str] = Form(None),
