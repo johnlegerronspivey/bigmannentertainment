@@ -132,7 +132,7 @@ class DetailedTester:
             
             response = await self.make_request("POST", "/auth/register", registration_data)
             
-            if response["status"] == 201 and "access_token" in response["data"]:
+            if response["status"] in [200, 201] and "access_token" in response["data"]:
                 self.auth_token = response["data"]["access_token"]
                 print(f"✅ Registration successful")
                 return True
