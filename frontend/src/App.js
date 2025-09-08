@@ -3,6 +3,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import { DDEXERNCreator, DDEXCWRCreator, DDEXMessageList, DDEXIdentifierGenerator, DDEXAdminDashboard } from "./DDEXComponents";
+import { MusicReportsDashboard } from "./MusicReportsComponents";
 import { SponsorshipDashboard, SponsorshipDealCreator, MetricsRecorder, AdminSponsorshipOverview } from "./SponsorshipComponents";
 import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, BusinessLicenseManagement, ComplianceDashboard } from "./TaxComponents";
 import { BusinessIdentifiers, UPCGenerator, ISRCGenerator, ProductManagement } from "./BusinessComponents";
