@@ -193,79 +193,29 @@ async def distribute_media(
     distribution_request: DistributionRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """Distribute media to selected platforms"""
+    """Distribute media to selected platforms using comprehensive distribution service"""
     try:
-        # Verify media ownership
-        media = await db.media_uploads.find_one({
-            "id": distribution_request.media_id,
-            "user_id": current_user.id
-        })
-        
-        if not media:
-            raise HTTPException(status_code=404, detail="Media not found or access denied")
-        
-        # Available platforms
-        available_platforms = [
-            "spotify", "apple_music", "youtube_music", "amazon_music", "tidal",
-            "deezer", "pandora", "soundcloud", "bandcamp", "beatport",
-            "instagram", "tiktok", "facebook", "twitter", "snapchat",
-            "youtube", "vimeo", "twitch", "dailymotion", "rumble"
-        ]
-        
-        # Validate platforms
-        invalid_platforms = [p for p in distribution_request.platforms if p not in available_platforms]
-        if invalid_platforms:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Invalid platforms: {invalid_platforms}"
-            )
-        
-        # Create distribution record
-        distribution_id = str(uuid.uuid4())
-        distribution_record = {
-            "id": distribution_id,
-            "media_id": distribution_request.media_id,
-            "user_id": current_user.id,
-            "platforms": distribution_request.platforms,
-            "status": "pending",
-            "release_date": distribution_request.release_date or datetime.utcnow(),
-            "pricing_tier": distribution_request.pricing_tier,
-            "created_at": datetime.utcnow(),
-            "distribution_results": {}
-        }
-        
-        await db.distributions.insert_one(distribution_record)
-        
-        # Simulate distribution process
-        distribution_results = {}
-        for platform in distribution_request.platforms:
-            # Simulate platform-specific distribution
-            distribution_results[platform] = {
-                "status": "submitted",
-                "submission_id": f"{platform}_{str(uuid.uuid4())[:8]}",
-                "estimated_go_live": (datetime.utcnow()).isoformat()
-            }
-        
-        # Update distribution record
-        await db.distributions.update_one(
-            {"id": distribution_id},
-            {
-                "$set": {
-                    "status": "submitted",
-                    "distribution_results": distribution_results,
-                    "updated_at": datetime.utcnow()
-                }
+        result = await distribution_service.submit_for_distribution(
+            media_id=distribution_request.media_id,
+            user_id=current_user.id,
+            platforms=distribution_request.platforms,
+            metadata={
+                "release_date": distribution_request.release_date.isoformat() if distribution_request.release_date else None,
+                "pricing_tier": distribution_request.pricing_tier
             }
         )
         
         return {
             "success": True,
-            "message": f"Media distributed to {len(distribution_request.platforms)} platforms",
-            "distribution_id": distribution_id,
-            "platforms": distribution_request.platforms,
-            "distribution_results": distribution_results
+            "message": f"Media distributed to {result['platforms_submitted']} platforms successfully",
+            "distribution_id": result["distribution_id"],
+            "platforms_submitted": result["platforms_submitted"],
+            "platforms_rejected": result["platforms_rejected"],
+            "distribution_statuses": result["statuses"]
         }
         
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Distribution error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Distribution failed: {str(e)}")
