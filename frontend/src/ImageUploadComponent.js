@@ -534,7 +534,7 @@ const MediaUploadComponent = () => {
   );
 };
 
-export default MediaUploadComponent;
+export { MediaUploadComponent };
 import './ImageUpload.css';
 
 const ImageUploadComponent = () => {
