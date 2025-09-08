@@ -44,7 +44,7 @@ const MediaUploadComponent = () => {
   // Fetch available platforms
   const fetchPlatforms = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/media/platforms`, {
+      const response = await fetch(`${BACKEND_URL}/api/distribution/platforms`, {
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`
         }
