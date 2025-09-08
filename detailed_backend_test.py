@@ -76,20 +76,56 @@ class DetailedTester:
                             "headers": dict(response.headers)
                         }
                 else:
-                    # Handle JSON data
-                    json_headers = headers or {}
-                    json_headers["Content-Type"] = "application/json"
-                    async with self.session.post(url, json=data, headers=json_headers) as response:
-                        response_text = await response.text()
-                        try:
-                            response_data = json.loads(response_text)
-                        except json.JSONDecodeError:
-                            response_data = {"raw_response": response_text}
-                        return {
-                            "status": response.status,
-                            "data": response_data,
-                            "headers": dict(response.headers)
-                        }
+                    # Handle JSON or form data
+                    if files:
+                        # This shouldn't happen but handle it
+                        json_headers = headers or {}
+                        json_headers["Content-Type"] = "application/json"
+                        async with self.session.post(url, json=data, headers=json_headers) as response:
+                            response_text = await response.text()
+                            try:
+                                response_data = json.loads(response_text)
+                            except json.JSONDecodeError:
+                                response_data = {"raw_response": response_text}
+                            return {
+                                "status": response.status,
+                                "data": response_data,
+                                "headers": dict(response.headers)
+                            }
+                    else:
+                        # Handle form data for payout requests
+                        if data and any(key in ["amount", "payout_method", "payout_details"] for key in data.keys()):
+                            # This is form data
+                            form_data = aiohttp.FormData()
+                            for key, value in data.items():
+                                form_data.add_field(key, str(value))
+                            
+                            async with self.session.post(url, data=form_data, headers=headers) as response:
+                                response_text = await response.text()
+                                try:
+                                    response_data = json.loads(response_text)
+                                except json.JSONDecodeError:
+                                    response_data = {"raw_response": response_text}
+                                return {
+                                    "status": response.status,
+                                    "data": response_data,
+                                    "headers": dict(response.headers)
+                                }
+                        else:
+                            # Handle JSON data
+                            json_headers = headers or {}
+                            json_headers["Content-Type"] = "application/json"
+                            async with self.session.post(url, json=data, headers=json_headers) as response:
+                                response_text = await response.text()
+                                try:
+                                    response_data = json.loads(response_text)
+                                except json.JSONDecodeError:
+                                    response_data = {"raw_response": response_text}
+                                return {
+                                    "status": response.status,
+                                    "data": response_data,
+                                    "headers": dict(response.headers)
+                                }
                         
         except Exception as e:
             return {
