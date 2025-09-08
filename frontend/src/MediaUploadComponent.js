@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ImageUpload.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://api-dev.bigmannentertainment.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const MediaUploadComponent = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
