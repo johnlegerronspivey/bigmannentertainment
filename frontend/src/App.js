@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation,
 import axios from "axios";
 import { DDEXERNCreator, DDEXCWRCreator, DDEXMessageList, DDEXIdentifierGenerator, DDEXAdminDashboard } from "./DDEXComponents";
 import { MusicReportsDashboard } from "./MusicReportsComponents";
+import { EnhancedUserDashboard, OnboardingTracker, SuccessCelebration } from "./WorkflowEnhancementComponents";
 import { SponsorshipDashboard, SponsorshipDealCreator, MetricsRecorder, AdminSponsorshipOverview } from "./SponsorshipComponents";
 import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, BusinessLicenseManagement, ComplianceDashboard } from "./TaxComponents";
 import { BusinessIdentifiers, UPCGenerator, ISRCGenerator, ProductManagement } from "./BusinessComponents";
