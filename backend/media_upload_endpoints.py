@@ -85,6 +85,37 @@ distribution_service = DistributionService(db)
 # Create router
 media_router = APIRouter(prefix="/media", tags=["media_upload"])
 
+@media_router.get("/health")
+async def media_health_check():
+    """Health check endpoint for media services"""
+    try:
+        # Check database connection
+        db_status = "connected"
+        try:
+            await db.command("ping")
+        except Exception:
+            db_status = "disconnected"
+        
+        # Check distribution service
+        platforms_count = len(distribution_service.platforms)
+        
+        return {
+            "success": True,
+            "service": "media_upload",
+            "status": "healthy",
+            "database": db_status,
+            "platforms_available": platforms_count,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "service": "media_upload", 
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
 @media_router.post("/upload")
 async def upload_media_file(
     file: UploadFile = File(...),
