@@ -6,19 +6,21 @@ Enhanced endpoints for Music Reports integration
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
+import sys
+import os
 
-from .models import User
-from .auth import get_current_user
-from .database import get_database
-from .music_reports_service import MusicReportsService
+# Add current directory to path for imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from server import User, get_current_user, db
+from music_reports_service import MusicReportsService
 
 # Create router
 music_reports_router = APIRouter(prefix="/music-reports", tags=["Music Reports"])
 
 @music_reports_router.get("/dashboard")
 async def get_music_reports_dashboard(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get comprehensive Music Reports dashboard data"""
     try:
@@ -62,8 +64,7 @@ async def get_music_reports_dashboard(
 
 @music_reports_router.get("/integration-status")
 async def get_integration_status(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get detailed Music Reports integration status"""
     try:
@@ -78,7 +79,6 @@ async def get_integration_status(
 @music_reports_router.get("/cwr-works")
 async def get_cwr_works(
     current_user: User = Depends(get_current_user),
-    db = Depends(get_database),
     limit: int = Query(50, description="Number of works to return"),
     offset: int = Query(0, description="Number of works to skip")
 ):
@@ -106,8 +106,7 @@ async def get_cwr_works(
 
 @music_reports_router.post("/sync")
 async def initiate_sync(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Initiate synchronization with Music Reports"""
     try:
@@ -122,7 +121,6 @@ async def initiate_sync(
 @music_reports_router.get("/royalties")
 async def get_royalty_data(
     current_user: User = Depends(get_current_user),
-    db = Depends(get_database),
     period: Optional[str] = Query(None, description="Period to get royalties for (e.g., '2024-Q4')")
 ):
     """Get royalty collection data from Music Reports"""
@@ -137,8 +135,7 @@ async def get_royalty_data(
 
 @music_reports_router.get("/royalties/summary")
 async def get_royalty_summary(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get royalty collection summary"""
     try:
@@ -161,8 +158,7 @@ async def get_royalty_summary(
 
 @music_reports_router.get("/capabilities")
 async def get_sync_capabilities(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get Music Reports sync capabilities and supported features"""
     try:
@@ -177,7 +173,6 @@ async def get_sync_capabilities(
 @music_reports_router.get("/sync-history")
 async def get_sync_history(
     current_user: User = Depends(get_current_user),
-    db = Depends(get_database),
     limit: int = Query(20, description="Number of sync records to return")
 ):
     """Get Music Reports sync history"""
@@ -207,8 +202,7 @@ async def get_sync_history(
 
 @music_reports_router.get("/statements")
 async def get_royalty_statements(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get royalty statements from Music Reports"""
     try:
@@ -225,8 +219,7 @@ async def get_royalty_statements(
 @music_reports_router.get("/statements/{statement_id}")
 async def download_statement(
     statement_id: str,
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Download a specific royalty statement"""
     try:
