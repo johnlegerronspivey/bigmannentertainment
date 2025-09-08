@@ -20,8 +20,8 @@ from datetime import datetime
 import uuid
 import time
 
-# Backend URL from environment
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://api-dev.bigmannentertainment.com')
+# Backend URL from environment - use local for testing
+BACKEND_URL = "http://localhost:8001"
 API_BASE = f"{BACKEND_URL}/api"
 
 class UploadToPayoutWorkflowTester:
