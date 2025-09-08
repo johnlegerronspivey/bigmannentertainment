@@ -6,19 +6,19 @@ Enhanced endpoints for user workflow tracking and progress analytics
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from .models import User
-from .auth import get_current_user
-from .database import get_database
-from .workflow_enhancement_service import WorkflowEnhancementService
+from server import User, get_current_user, db
+from workflow_enhancement_service import WorkflowEnhancementService
 
 # Create router
 workflow_router = APIRouter(prefix="/user", tags=["User Workflow"])
 
 @workflow_router.get("/workflow-progress")
 async def get_workflow_progress(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get comprehensive user workflow progress and analytics"""
     try:
@@ -33,8 +33,7 @@ async def get_workflow_progress(
 @workflow_router.post("/track-action")
 async def track_user_action(
     action_data: Dict[str, Any],
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Track user actions for analytics and progress"""
     try:
@@ -59,7 +58,6 @@ async def track_user_action(
 @workflow_router.get("/analytics")
 async def get_user_analytics(
     current_user: User = Depends(get_current_user),
-    db = Depends(get_database),
     period_days: int = Query(30, description="Number of days to analyze")
 ):
     """Get user analytics and engagement data"""
@@ -74,8 +72,7 @@ async def get_user_analytics(
 
 @workflow_router.get("/onboarding-status")
 async def get_onboarding_status(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get user's onboarding progress and completion status"""
     try:
@@ -89,8 +86,7 @@ async def get_onboarding_status(
 
 @workflow_router.get("/dashboard")
 async def get_enhanced_dashboard_data(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get comprehensive dashboard data including progress, analytics, and recommendations"""
     try:
@@ -148,8 +144,7 @@ async def get_enhanced_dashboard_data(
 
 @workflow_router.get("/achievements")
 async def get_user_achievements(
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Get user's achievements and badges"""
     try:
@@ -172,7 +167,6 @@ async def get_user_achievements(
 @workflow_router.get("/next-steps")
 async def get_recommended_next_steps(
     current_user: User = Depends(get_current_user),
-    db = Depends(get_database),
     limit: int = Query(5, description="Maximum number of recommendations")
 ):
     """Get personalized next step recommendations"""
@@ -193,8 +187,7 @@ async def get_recommended_next_steps(
 @workflow_router.post("/complete-milestone")
 async def complete_milestone(
     milestone_data: Dict[str, Any],
-    current_user: User = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: User = Depends(get_current_user)
 ):
     """Mark a milestone as completed"""
     try:
