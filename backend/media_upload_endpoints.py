@@ -327,3 +327,97 @@ async def get_user_payouts(
     except Exception as e:
         logger.error(f"Get payouts error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve payouts: {str(e)}")
+
+@media_router.get("/platforms")
+async def get_available_platforms(current_user: User = Depends(get_current_user)):
+    """Get all available distribution platforms"""
+    try:
+        platforms_data = {}
+        for platform_id, platform_info in distribution_service.platforms.items():
+            platforms_data[platform_id] = {
+                "name": platform_info.name,
+                "category": platform_info.category,
+                "revenue_share": platform_info.revenue_share,
+                "minimum_payout": platform_info.minimum_payout,
+                "processing_time_days": platform_info.processing_time_days,
+                "supported_formats": platform_info.supported_formats,
+                "geographic_availability": platform_info.geographic_availability,
+                "is_active": platform_info.is_active
+            }
+        
+        return {
+            "success": True,
+            "platforms": platforms_data,
+            "total_platforms": len(platforms_data)
+        }
+        
+    except Exception as e:
+        logger.error(f"Get platforms error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve platforms: {str(e)}")
+
+@media_router.post("/simulate-earnings")
+async def simulate_earnings_data(
+    days_back: int = 30,
+    current_user: User = Depends(get_current_user)
+):
+    """Simulate earnings data for testing (Admin/Development only)"""
+    try:
+        if current_user.role not in ["admin", "developer"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        records_created = await distribution_service.simulate_earnings(days_back)
+        
+        return {
+            "success": True,
+            "message": f"Simulated earnings for {records_created} distribution records",
+            "records_created": records_created
+        }
+        
+    except Exception as e:
+        logger.error(f"Simulate earnings error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Earnings simulation failed: {str(e)}")
+
+@media_router.get("/analytics")
+async def get_user_analytics(current_user: User = Depends(get_current_user)):
+    """Get comprehensive user analytics"""
+    try:
+        # Get platform analytics
+        platform_analytics = await distribution_service.get_platform_analytics(current_user.id)
+        
+        # Get earnings data
+        earnings_data = await distribution_service.get_user_earnings(current_user.id)
+        
+        # Get upload statistics
+        total_uploads = await db.media_uploads.count_documents({"user_id": current_user.id})
+        total_distributions = await db.distributions.count_documents({"user_id": current_user.id})
+        
+        # Get recent activity
+        recent_uploads = await db.media_uploads.find(
+            {"user_id": current_user.id}
+        ).sort("created_at", -1).limit(5).to_list(length=5)
+        
+        recent_distributions = await db.distributions.find(
+            {"user_id": current_user.id}
+        ).sort("created_at", -1).limit(5).to_list(length=5)
+        
+        return {
+            "success": True,
+            "analytics": {
+                "overview": {
+                    "total_uploads": total_uploads,
+                    "total_distributions": total_distributions,
+                    "total_earnings": earnings_data["total_earnings"],
+                    "total_streams": earnings_data["total_streams"]
+                },
+                "platform_analytics": platform_analytics,
+                "earnings_breakdown": earnings_data["platform_breakdown"],
+                "recent_activity": {
+                    "recent_uploads": recent_uploads,
+                    "recent_distributions": recent_distributions
+                }
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Get analytics error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve analytics: {str(e)}")
