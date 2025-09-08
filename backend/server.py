@@ -3712,7 +3712,7 @@ async def get_media_analytics(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get media analytics: {str(e)}")
 
-@api_router.get("/media/{media_id}")
+@api_router.get("/content/{media_id}")
 async def get_media_item(media_id: str, current_user: User = Depends(get_current_user)):
     media = await db.media_content.find_one({"id": media_id})
     if not media:
@@ -3724,7 +3724,7 @@ async def get_media_item(media_id: str, current_user: User = Depends(get_current
     
     return MediaContent(**media)
 
-@api_router.get("/media/{media_id}/download")
+@api_router.get("/content/{media_id}/download")
 async def download_media(media_id: str, current_user: User = Depends(get_current_user)):
     media = await db.media_content.find_one({"id": media_id})
     if not media:
