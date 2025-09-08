@@ -245,8 +245,8 @@ class DetailedTester:
             
             # Show platform categories
             categories = {}
-            for platform in platforms:
-                cat = platform.get("type", "unknown")
+            for platform_id, platform_info in platforms.items():
+                cat = platform_info.get("category", "unknown")
                 categories[cat] = categories.get(cat, 0) + 1
             print(f"   Categories: {categories}")
         else:
