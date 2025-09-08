@@ -286,47 +286,23 @@ async def request_payout(
     payout_details: str = Form(...),
     current_user: User = Depends(get_current_user)
 ):
-    """Request payout of earnings"""
+    """Request payout of earnings using comprehensive distribution service"""
     try:
-        # Validate payout amount
-        if amount <= 0:
-            raise HTTPException(status_code=400, detail="Payout amount must be greater than 0")
-        
-        # Check user's available balance (simplified)
-        available_balance = 156.78  # This would come from actual earnings calculation
-        
-        if amount > available_balance:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Insufficient balance. Available: ${available_balance}"
-            )
-        
-        # Create payout request
-        payout_id = str(uuid.uuid4())
-        payout_request = {
-            "id": payout_id,
-            "user_id": current_user.id,
-            "amount": amount,
-            "payout_method": payout_method,
-            "payout_details": payout_details,
-            "status": "pending",
-            "requested_at": datetime.utcnow(),
-            "processing_fee": amount * 0.025,  # 2.5% processing fee
-            "net_amount": amount * 0.975
-        }
-        
-        await db.payout_requests.insert_one(payout_request)
+        result = await distribution_service.process_payout_request(
+            user_id=current_user.id,
+            amount=amount,
+            method=payout_method,
+            details=payout_details
+        )
         
         return {
             "success": True,
             "message": "Payout request submitted successfully",
-            "payout_id": payout_id,
-            "amount": amount,
-            "processing_fee": payout_request["processing_fee"],
-            "net_amount": payout_request["net_amount"],
-            "status": "pending"
+            "payout_details": result
         }
         
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Payout request error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Payout request failed: {str(e)}")
