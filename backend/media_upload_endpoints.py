@@ -247,44 +247,32 @@ async def get_user_earnings(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None
 ):
-    """Get user's earnings from distributed media"""
+    """Get user's comprehensive earnings from distributed media"""
     try:
-        # Build query
-        query = {"user_id": current_user.id}
+        # Parse dates if provided
+        start_dt = datetime.fromisoformat(start_date) if start_date else None
+        end_dt = datetime.fromisoformat(end_date) if end_date else None
         
-        # Simulate earnings data
-        earnings_data = {
-            "total_earnings": 156.78,
-            "pending_earnings": 23.45,
-            "last_payout": 133.33,
-            "earnings_by_platform": {
-                "spotify": 45.67,
-                "apple_music": 38.22,
-                "youtube_music": 28.91,
-                "amazon_music": 22.14,
-                "tidal": 12.83,
-                "others": 9.01
-            },
-            "earnings_by_media": [],
-            "payout_history": []
-        }
+        # Get earnings data from distribution service
+        earnings_data = await distribution_service.get_user_earnings(
+            user_id=current_user.id,
+            start_date=start_dt,
+            end_date=end_dt
+        )
         
-        # Get user's media for earnings breakdown
-        media_cursor = db.media_uploads.find({"user_id": current_user.id})
-        user_media = await media_cursor.to_list(length=None)
-        
-        for media in user_media:
-            earnings_data["earnings_by_media"].append({
-                "media_id": media["id"],
-                "title": media["title"],
-                "total_streams": 1250 + hash(media["id"]) % 10000,
-                "total_earnings": 15.67 + (hash(media["id"]) % 50),
-                "last_updated": datetime.utcnow().isoformat()
-            })
+        # Get platform analytics
+        platform_analytics = await distribution_service.get_platform_analytics(current_user.id)
         
         return {
             "success": True,
-            "earnings_data": earnings_data
+            "earnings_summary": {
+                "total_earnings": earnings_data["total_earnings"],
+                "total_streams": earnings_data["total_streams"],
+                "currency": "USD"
+            },
+            "platform_breakdown": earnings_data["platform_breakdown"],
+            "media_breakdown": earnings_data["media_breakdown"],
+            "platform_analytics": platform_analytics
         }
         
     except Exception as e:
