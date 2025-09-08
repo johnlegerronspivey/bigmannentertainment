@@ -2512,22 +2512,74 @@ const Distribute = () => {
                     setSelectedPlatforms(allIds);
                   }}
                   className="text-purple-600 hover:text-purple-800 px-3 py-1 text-sm"
+                  disabled={loadingPlatforms}
                 >
                   Select All
                 </button>
               </div>
             </div>
 
-            {Object.entries(platforms).map(([category, platformList]) => (
-              <div key={category} className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">{category}</h4>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {platformList.map((platform) => (
-                    <div
-                      key={platform.id}
-                      onClick={() => handlePlatformToggle(platform.id)}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedPlatforms.includes(platform.id) 
+            {loadingPlatforms ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <span className="ml-3 text-gray-600">Loading platforms...</span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-red-600 mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="text-purple-600 hover:underline"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : Object.keys(platforms).length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No platforms available</p>
+              </div>
+            ) : (
+              Object.entries(platforms).map(([category, platformList]) => (
+                <div key={category} className="mb-6">
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    {category} ({platformList.length})
+                  </h4>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {platformList.map((platform) => (
+                      <div
+                        key={platform.id}
+                        onClick={() => handlePlatformToggle(platform.id)}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          selectedPlatforms.includes(platform.id) 
+                            ? 'border-purple-500 bg-purple-50' 
+                            : 'border-gray-200 hover:border-purple-300'
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          <div className="text-2xl mr-3">{platform.icon}</div>
+                          <div className="flex-1">
+                            <h5 className="text-sm font-medium">{platform.name}</h5>
+                            {platform.description && (
+                              <p className="text-xs text-gray-500 mt-1">{platform.description}</p>
+                            )}
+                            <p className={`text-xs ${platform.active ? 'text-green-600' : 'text-orange-600'} mt-1`}>
+                              {platform.active ? 'Active' : 'Coming Soon'}
+                            </p>
+                          </div>
+                          {selectedPlatforms.includes(platform.id) && (
+                            <div className="ml-auto text-purple-600">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )} 
                           ? 'border-purple-500 bg-purple-50' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
