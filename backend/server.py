@@ -4697,23 +4697,33 @@ async def aws_services_health_check():
 # Content Distribution Endpoints
 @api_router.get("/distribution/platforms")
 async def get_distribution_platforms():
-    """Get all available distribution platforms"""
-    platforms = []
+    """Get all available distribution platforms organized by category"""
+    try:
+        # Return platforms organized in a structure the frontend expects
+        return {
+            "platforms": DISTRIBUTION_PLATFORMS,
+            "total_count": len(DISTRIBUTION_PLATFORMS),
+            "categories": _organize_platforms_by_category()
+        }
+    except Exception as e:
+        logging.error(f"Error getting distribution platforms: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get distribution platforms: {str(e)}")
+
+def _organize_platforms_by_category():
+    """Helper function to organize platforms by category"""
+    categories = {}
     for platform_id, config in DISTRIBUTION_PLATFORMS.items():
-        platforms.append({
+        category = config.get("type", "other")
+        if category not in categories:
+            categories[category] = []
+        categories[category].append({
             "id": platform_id,
             "name": config["name"],
-            "type": config["type"],
-            "supported_formats": config["supported_formats"],
-            "max_file_size": config["max_file_size"],
             "description": config.get("description", ""),
-            "credentials_required": config["credentials_required"]
+            "supported_formats": config.get("supported_formats", []),
+            "max_file_size": config.get("max_file_size", 0)
         })
-    
-    return {
-        "platforms": platforms,
-        "total_count": len(platforms)
-    }
+    return categories
 
 @api_router.post("/distribution/distribute")
 async def distribute_content(
