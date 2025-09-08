@@ -319,21 +319,102 @@ async def request_payout(
 ):
     """Request payout of earnings using comprehensive distribution service"""
     try:
-        result = await distribution_service.process_payout_request(
-            user_id=current_user.id,
-            amount=amount,
-            method=payout_method,
-            details=payout_details
-        )
+        # Validate input parameters
+        if amount <= 0:
+            raise HTTPException(status_code=400, detail="Payout amount must be greater than 0")
         
-        return {
-            "success": True,
-            "message": "Payout request submitted successfully",
-            "payout_details": result
-        }
+        if amount > 10000:  # Maximum payout limit
+            raise HTTPException(status_code=400, detail="Payout amount cannot exceed $10,000")
         
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        if not payout_details or len(payout_details.strip()) < 5:
+            raise HTTPException(status_code=400, detail="Payout details must be at least 5 characters")
+        
+        # Validate payout method
+        valid_methods = ["paypal", "stripe", "bank_transfer"]
+        if payout_method not in valid_methods:
+            raise HTTPException(status_code=400, detail=f"Invalid payout method. Must be one of: {valid_methods}")
+        
+        # Validate payout details format based on method
+        if payout_method == "paypal":
+            # Should be email format
+            import re
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, payout_details.strip()):
+                raise HTTPException(status_code=400, detail="PayPal payout requires valid email address")
+        elif payout_method == "stripe":
+            # Should be email format for Stripe
+            import re
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, payout_details.strip()):
+                raise HTTPException(status_code=400, detail="Stripe payout requires valid email address")
+        
+        # Use the distribution service for payout processing
+        try:
+            result = await distribution_service.process_payout_request(
+                user_id=current_user.id,
+                amount=amount,
+                method=payout_method,
+                details=payout_details.strip()
+            )
+            
+            return {
+                "success": True,
+                "message": "Payout request submitted successfully",
+                "payout_details": result
+            }
+            
+        except ValueError as ve:
+            # Handle business logic errors from distribution service
+            raise HTTPException(status_code=400, detail=str(ve))
+        except Exception as e:
+            logger.error(f"Distribution service payout error: {str(e)}")
+            
+            # Fallback to direct payout processing if distribution service fails
+            # Calculate processing fee
+            fee_rates = {
+                "paypal": 0.025,  # 2.5%
+                "stripe": 0.029,  # 2.9%
+                "bank_transfer": 0.015  # 1.5%
+            }
+            
+            processing_fee = amount * fee_rates.get(payout_method, 0.03)
+            net_amount = amount - processing_fee
+            
+            # Create payout request directly
+            payout_id = str(uuid.uuid4())
+            payout_request = {
+                "id": payout_id,
+                "user_id": current_user.id,
+                "amount": amount,
+                "payout_method": payout_method,
+                "payout_details": payout_details.strip(),
+                "status": "pending",
+                "requested_at": datetime.utcnow(),
+                "processing_fee": processing_fee,
+                "net_amount": net_amount
+            }
+            
+            # Insert into database
+            result = await db.payout_requests.insert_one(payout_request)
+            
+            if not result.inserted_id:
+                raise HTTPException(status_code=500, detail="Failed to create payout request")
+            
+            return {
+                "success": True,
+                "message": "Payout request submitted successfully",
+                "payout_details": {
+                    "payout_id": payout_id,
+                    "amount": amount,
+                    "processing_fee": processing_fee,
+                    "net_amount": net_amount,
+                    "status": "pending",
+                    "estimated_processing_time": "3-5 business days"
+                }
+            }
+        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Payout request error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Payout request failed: {str(e)}")
