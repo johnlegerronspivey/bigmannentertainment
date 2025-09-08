@@ -1372,6 +1372,12 @@ DISTRIBUTION_PLATFORMS = {
     }
 }
 
+# Enhanced Distribution Platform Configurations
+from .enhanced_distribution_platforms import NEW_DISTRIBUTION_PLATFORMS, PLATFORM_CATEGORIES, PLATFORM_REVENUE_CONFIG
+
+# Merge new platforms with existing platforms
+DISTRIBUTION_PLATFORMS.update(NEW_DISTRIBUTION_PLATFORMS)
+
 # Authentication functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
