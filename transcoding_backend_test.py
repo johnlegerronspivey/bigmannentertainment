@@ -497,17 +497,16 @@ class TranscodingSystemTester:
         
         for platform in test_platforms:
             try:
-                # Use form data instead of JSON
-                form_data = {
-                    "platform_name": platform,
-                    "content_metadata": json.dumps(test_content),
-                    "user_preferences": json.dumps({"quality_preference": "high"})
+                # Create request body with both content_metadata and user_preferences
+                request_body = {
+                    "content_metadata": test_content,
+                    "user_preferences": {"quality_preference": "high"}
                 }
                 
                 response = requests.post(
-                    f"{self.transcoding_url}/optimize/preset",
-                    headers={"Authorization": "Bearer mock_token_for_testing"},
-                    data=form_data,
+                    f"{self.transcoding_url}/optimize/preset?platform_name={platform}",
+                    headers={"Authorization": "Bearer mock_token_for_testing", "Content-Type": "application/json"},
+                    json=request_body,
                     timeout=10
                 )
                 
