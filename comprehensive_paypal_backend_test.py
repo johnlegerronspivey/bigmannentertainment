@@ -14,7 +14,7 @@ from decimal import Decimal
 import time
 
 # Backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://media-distributor.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bme-media-hub-1.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class ComprehensivePayPalTester:
