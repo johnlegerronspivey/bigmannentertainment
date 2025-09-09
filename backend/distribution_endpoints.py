@@ -61,24 +61,19 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 @router.post("/delivery-plans/create")
 async def create_delivery_plan(
-    content_id: str,
-    target_platforms: List[str],
-    strategy: DeliveryStrategy = DeliveryStrategy.OPTIMIZED_TIMING,
-    optimization_goal: OptimizationGoal = OptimizationGoal.MAX_REACH,
-    target_timezone: str = "UTC",
-    content_type: str = "music",
+    request: DeliveryPlanRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Create an optimized delivery plan for content distribution"""
     try:
         delivery_plan = await delivery_optimization_service.create_delivery_plan(
             user_id=user_id,
-            content_id=content_id,
-            target_platforms=target_platforms,
-            strategy=strategy,
-            optimization_goal=optimization_goal,
-            target_timezone=target_timezone,
-            content_type=content_type
+            content_id=request.content_id,
+            target_platforms=request.target_platforms,
+            strategy=request.strategy,
+            optimization_goal=request.optimization_goal,
+            target_timezone=request.target_timezone,
+            content_type=request.content_type
         )
         
         return {
