@@ -5364,6 +5364,7 @@ except Exception as e:
 # Include all routers in the api_router to get /api prefix
 api_router.include_router(ddex_router)
 api_router.include_router(music_reports_router)
+api_router.include_router(agency_router)
 api_router.include_router(workflow_router)
 api_router.include_router(sponsorship_router)
 api_router.include_router(tax_router)
