@@ -1372,7 +1372,16 @@ DISTRIBUTION_PLATFORMS = {
     }
 }
 
-from .agency_onboarding_endpoints import agency_router
+try:
+    from agency_onboarding_endpoints import agency_router
+except ImportError:
+    # If agency onboarding module is not available, create a dummy router
+    from fastapi import APIRouter
+    agency_router = APIRouter(prefix="/agency", tags=["Agency Onboarding"])
+    
+    @agency_router.get("/status")
+    async def agency_status():
+        return {"status": "Agency onboarding module not available"}
 
 # Authentication functions
 def verify_password(plain_password, hashed_password):
