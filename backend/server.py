@@ -1468,6 +1468,12 @@ from transcoding_endpoints import router as transcoding_router
 # Import distribution endpoints (Function 3)
 from distribution_endpoints import router as distribution_router
 
+# Import analytics endpoints (Function 4)
+from analytics_endpoints import router as analytics_router
+
+# Import lifecycle endpoints (Function 5)
+from lifecycle_endpoints import router as lifecycle_router
+
 # Authentication functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
