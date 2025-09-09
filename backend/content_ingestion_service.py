@@ -477,11 +477,11 @@ class ContentIngestionService:
         if ddex_metadata.isrc:
             if len(ddex_metadata.isrc) != 12:
                 issues.append("ISRC must be exactly 12 characters")
-            elif not ddex_metadata.isrc[:2].isalpha() or not ddx_metadata.isrc[2:5].isalnum():
+            elif not ddex_metadata.isrc[:2].isalpha() or not ddex_metadata.isrc[2:5].isalnum():
                 issues.append("ISRC format is invalid")
         
         # Genre validation
-        if not ddx_metadata.genre:
+        if not ddex_metadata.genre:
             issues.append("At least one genre is required")
         
         return len(issues) == 0, issues
