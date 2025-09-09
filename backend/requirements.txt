@@ -41,7 +41,7 @@ reportlab>=4.0.0
 pillow>=10.0.0
 solana
 aiohttp
-pyjwt==0.30.2
+PyJWT>=2.10.1
 iptcinfo3>=2.1.4
 pyexiv2>=2.8.0
 python-xmp-toolkit>=2.0.1
