@@ -317,6 +317,12 @@ class LifecycleManagementService:
         result = self.lifecycles_collection.insert_one(lifecycle_dict)
         lifecycle.lifecycle_id = str(result.inserted_id)
         
+        # Update the lifecycle document with the lifecycle_id
+        self.lifecycles_collection.update_one(
+            {"_id": result.inserted_id},
+            {"$set": {"lifecycle_id": lifecycle.lifecycle_id}}
+        )
+        
         return lifecycle
     
     async def create_content_version(self, 
