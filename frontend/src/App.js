@@ -3283,6 +3283,7 @@ function App() {
             <Route path="/tax/licenses" element={<ProtectedRoute><BusinessLicenseManagement /></ProtectedRoute>} />
             <Route path="/tax/compliance" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />
             <Route path="/social-strategy" element={<ProtectedRoute><SocialMediaStrategyDashboard /></ProtectedRoute>} />
+            <Route path="/content-ingestion" element={<ProtectedRoute><ContentIngestionDashboard /></ProtectedRoute>} />
 
             {/* Industry routes */}
             <Route path="/industry" element={<ProtectedRoute><IndustryDashboard /></ProtectedRoute>} />
