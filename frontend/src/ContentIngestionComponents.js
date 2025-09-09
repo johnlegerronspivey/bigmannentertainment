@@ -30,6 +30,7 @@ export const ContentIngestionDashboard = () => {
   const tabs = [
     { id: 'upload', name: 'Upload & Metadata', icon: '📤' },
     { id: 'transcoding', name: 'Transcoding & Optimization', icon: '🎬' },
+    { id: 'distribution', name: 'Distribution & Delivery', icon: '🌐' },
     { id: 'content', name: 'Content Library', icon: '📚' },
     { id: 'compliance', name: 'Compliance', icon: '✅' },
     { id: 'ddex', name: 'DDEX Management', icon: '🔄' },
