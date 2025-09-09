@@ -444,15 +444,17 @@ class LifecycleManagementService:
             }
             
             # Update lifecycle
-            update_data = {
-                "current_status": new_status.value,
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+            update_operations = {
+                "$set": {
+                    "current_status": new_status.value,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                },
                 "$push": {"status_history": status_entry}
             }
             
             self.lifecycles_collection.update_one(
                 {"content_id": content_id, "user_id": user_id},
-                {"$set": update_data}
+                update_operations
             )
             
             # Trigger status-specific automations
