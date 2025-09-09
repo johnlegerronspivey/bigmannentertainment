@@ -13,7 +13,7 @@ import os
 import sys
 
 # Backend URL from environment
-BACKEND_URL = "https://bme-media-hub-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://mediahub-dashboard.preview.emergentagent.com/api"
 
 class AgencyOnboardingTester:
     def __init__(self):
