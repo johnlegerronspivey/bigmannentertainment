@@ -689,6 +689,33 @@ DISTRIBUTION_PLATFORMS = {
         "credentials_required": ["api_key", "api_secret"],
         "description": "Music streaming service"
     },
+    "livemixtapes": {
+        "type": "music_streaming",
+        "name": "LiveMixtapes.com",
+        "api_endpoint": "https://api.livemixtapes.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 150 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Hip-hop mixtape hosting and streaming platform"
+    },
+    "mymixtapez": {
+        "type": "music_streaming",
+        "name": "MyMixtapez.com",
+        "api_endpoint": "https://api.mymixtapez.com/v2",
+        "supported_formats": ["audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Premier mixtape platform for independent artists"
+    },
+    "worldstarhiphop": {
+        "type": "music_streaming",
+        "name": "WorldStar Hip Hop",
+        "api_endpoint": "https://api.worldstarhiphop.com/v1",
+        "supported_formats": ["audio", "video"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Leading hip-hop content and music platform"
+    },
 
     # Podcast Platforms (8 platforms)
     "apple_podcasts": {
