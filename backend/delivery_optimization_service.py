@@ -299,7 +299,7 @@ class DeliveryOptimizationService:
         
         return delivery_plan
     
-    def _generate_delivery_window(self, platform: str, timezone: str, content_type: str) -> DeliveryWindow:
+    def _generate_delivery_window(self, platform: str, target_timezone: str, content_type: str) -> DeliveryWindow:
         """Generate optimal delivery window for a platform"""
         
         platform_data = self.platform_audience_data.get(platform, {})
