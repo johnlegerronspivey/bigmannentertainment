@@ -490,7 +490,7 @@ class DDEXMetadataService:
         root = ET.Element(
             'ern:CatalogListMessage',
             attrib={
-                'MessageSchemaVersionId': self.ddx_version,
+                'MessageSchemaVersionId': self.ddex_version,
                 'BusinessProfileVersionId': 'CommonReleaseTypes/41',
                 'xmlns:ern': self.namespace['ern'],
                 'xmlns:avs': self.namespace['avs'],
