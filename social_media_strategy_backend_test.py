@@ -52,7 +52,7 @@ class SocialMediaStrategyTester:
             print(f"   Response: {response_data}")
         print()
         
-    async def make_request(self, method: str, endpoint: str, data: Dict = None, params: Dict = None) -> tuple:
+    async def make_request(self, method: str, endpoint: str, data: Dict = None, params: Dict = None, use_params_for_post: bool = False) -> tuple:
         """Make HTTP request and return (success, response_data, status_code)"""
         try:
             url = f"{API_BASE}{endpoint}"
@@ -70,8 +70,12 @@ class SocialMediaStrategyTester:
                 'params': params
             }
             
+            # For some POST endpoints, data should be sent as query parameters
             if data:
-                kwargs['json'] = data
+                if use_params_for_post and method == 'POST':
+                    kwargs['params'] = {**(kwargs.get('params', {})), **data}
+                else:
+                    kwargs['json'] = data
                 
             async with self.session.request(method, url, **kwargs) as response:
                 try:
