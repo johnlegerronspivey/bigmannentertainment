@@ -123,7 +123,7 @@ class DDEXMetadataService:
         # Territory Code
         territory_code = ET.SubElement(release_detail_by_territory, 'ern:TerritoryCode')
         if ddex_metadata.licensing_terms and ddex_metadata.licensing_terms.territories:
-            territory_code.text = ddx_metadata.licensing_terms.territories[0]
+            territory_code.text = ddex_metadata.licensing_terms.territories[0]
         else:
             territory_code.text = "Worldwide"
         
