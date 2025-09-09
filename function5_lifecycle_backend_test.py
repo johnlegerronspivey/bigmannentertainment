@@ -345,6 +345,160 @@ class Function5LifecycleBackendTester:
         except Exception as e:
             self.log_test("Version Creation", False, f"Exception: {e}")
 
+    def test_create_automation_rule(self):
+        """Test creating automation rules"""
+        try:
+            rule_data = {
+                "rule_name": "Auto-Archive Old Content",
+                "description": "Automatically archive content that hasn't been viewed in 90 days",
+                "trigger_type": "time_based",
+                "trigger_conditions": {
+                    "days_inactive": 90
+                },
+                "action_type": "archive_content",
+                "action_parameters": {
+                    "reason": "Inactive for 90 days"
+                },
+                "applies_to_content_types": ["music", "video"],
+                "applies_to_platforms": ["spotify", "youtube"]
+            }
+            
+            response = requests.post(
+                f"{self.lifecycle_base}/automation/rules",
+                headers=self.get_headers(),
+                json=rule_data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success") and "automation_rule" in result:
+                    rule = result["automation_rule"]
+                    self.test_rule_id = rule.get("rule_id")
+                    self.log_test(
+                        "Create Automation Rule",
+                        True,
+                        f"Rule created: {rule.get('rule_name')} (ID: {self.test_rule_id})"
+                    )
+                else:
+                    self.log_test(
+                        "Create Automation Rule",
+                        False,
+                        "Response missing required fields",
+                        result
+                    )
+            else:
+                self.log_test(
+                    "Create Automation Rule",
+                    False,
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_test("Create Automation Rule", False, f"Exception: {e}")
+
+    def test_update_automation_rule(self):
+        """Test updating automation rule (Previously 404)"""
+        try:
+            if not self.test_rule_id:
+                self.log_test("Update Automation Rule", False, "No test rule ID available")
+                return
+            
+            update_data = {
+                "description": "Updated: Automatically archive content that hasn't been viewed in 60 days",
+                "trigger_conditions": {
+                    "days_inactive": 60
+                },
+                "is_active": True
+            }
+            
+            response = requests.put(
+                f"{self.lifecycle_base}/automation/rules/{self.test_rule_id}",
+                headers=self.get_headers(),
+                json=update_data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    self.log_test(
+                        "Update Automation Rule",
+                        True,
+                        f"Rule updated successfully: {result.get('rule_id')}"
+                    )
+                else:
+                    self.log_test(
+                        "Update Automation Rule",
+                        False,
+                        "Update failed",
+                        result
+                    )
+            elif response.status_code == 404:
+                self.log_test(
+                    "Update Automation Rule",
+                    False,
+                    "Automation rule not found",
+                    response.text
+                )
+            else:
+                self.log_test(
+                    "Update Automation Rule",
+                    False,
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_test("Update Automation Rule", False, f"Exception: {e}")
+
+    def test_delete_automation_rule(self):
+        """Test deleting automation rule (Previously 404)"""
+        try:
+            if not self.test_rule_id:
+                self.log_test("Delete Automation Rule", False, "No test rule ID available")
+                return
+            
+            response = requests.delete(
+                f"{self.lifecycle_base}/automation/rules/{self.test_rule_id}",
+                headers=self.get_headers(),
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    self.log_test(
+                        "Delete Automation Rule",
+                        True,
+                        f"Rule deleted successfully: {result.get('rule_id')}"
+                    )
+                else:
+                    self.log_test(
+                        "Delete Automation Rule",
+                        False,
+                        "Delete failed",
+                        result
+                    )
+            elif response.status_code == 404:
+                self.log_test(
+                    "Delete Automation Rule",
+                    False,
+                    "Automation rule not found",
+                    response.text
+                )
+            else:
+                self.log_test(
+                    "Delete Automation Rule",
+                    False,
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_test("Delete Automation Rule", False, f"Exception: {e}")
+
     def run_all_tests(self):
         """Run all Function 5 lifecycle management tests"""
         print("🎯 FUNCTION 5: CONTENT LIFECYCLE MANAGEMENT & AUTOMATION SYSTEM TESTING")
@@ -363,7 +517,18 @@ class Function5LifecycleBackendTester:
         # Test previously failing endpoints
         self.test_lifecycle_health_check()
         self.test_lifecycle_dashboard()
+        
+        print("\n📋 COMPREHENSIVE FUNCTION 5 TESTING:")
+        print("-" * 50)
+        
+        # Core lifecycle management
+        self.test_create_content_lifecycle()
         self.test_version_creation()
+        
+        # Automation management (Previously failing endpoints)
+        self.test_create_automation_rule()
+        self.test_update_automation_rule()  # Previously 404
+        self.test_delete_automation_rule()  # Previously 404
         
         # Print summary
         self.print_test_summary()
