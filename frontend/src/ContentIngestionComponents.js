@@ -120,6 +120,7 @@ export const ContentIngestionDashboard = () => {
       {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'upload' && <UploadMetadataTab onUploadComplete={fetchDashboardData} />}
+        {activeTab === 'transcoding' && <TranscodingTab />}
         {activeTab === 'content' && <ContentLibraryTab dashboardData={dashboardData} />}
         {activeTab === 'compliance' && <ComplianceTab />}
         {activeTab === 'ddex' && <DDEXManagementTab />}
