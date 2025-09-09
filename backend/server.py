@@ -1372,11 +1372,7 @@ DISTRIBUTION_PLATFORMS = {
     }
 }
 
-# Enhanced Distribution Platform Configurations
-from enhanced_distribution_platforms import NEW_DISTRIBUTION_PLATFORMS, PLATFORM_CATEGORIES, PLATFORM_REVENUE_CONFIG
-
-# Merge new platforms with existing platforms
-DISTRIBUTION_PLATFORMS.update(NEW_DISTRIBUTION_PLATFORMS)
+from .agency_onboarding_endpoints import agency_router
 
 # Authentication functions
 def verify_password(plain_password, hashed_password):
