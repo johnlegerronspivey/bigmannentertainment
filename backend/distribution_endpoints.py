@@ -151,14 +151,13 @@ async def list_delivery_plans(
 @router.post("/delivery-plans/{plan_id}/performance")
 async def update_delivery_performance(
     plan_id: str,
-    actual_reach: int,
-    actual_revenue: float,
+    request: PerformanceUpdateRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Update delivery plan with actual performance data"""
     try:
         success = await delivery_optimization_service.update_delivery_performance(
-            plan_id, user_id, actual_reach, actual_revenue
+            plan_id, user_id, request.actual_reach, request.actual_revenue
         )
         
         if not success:
