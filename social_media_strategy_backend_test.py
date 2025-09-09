@@ -148,7 +148,6 @@ class SocialMediaStrategyTester:
                 "name": "Video Content Recommendations",
                 "data": {
                     "content_type": "video",
-                    "target_audience": {"age_range": "18-34", "interests": ["entertainment", "music"]},
                     "content_duration": 60,
                     "monetization_priority": True
                 }
@@ -157,7 +156,6 @@ class SocialMediaStrategyTester:
                 "name": "Audio Content Recommendations", 
                 "data": {
                     "content_type": "audio",
-                    "target_audience": {"age_range": "25-44", "interests": ["music", "podcasts"]},
                     "monetization_priority": False
                 }
             },
