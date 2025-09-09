@@ -540,9 +540,9 @@ class DDEXMetadataService:
                 release_date.text = content_record.ddex_metadata.release_date.strftime('%Y-%m-%d')
                 
                 # Catalog Number
-                if content_record.ddx_metadata.upc:
+                if content_record.ddex_metadata.upc:
                     catalog_number = ET.SubElement(release_catalog_item, 'ern:CatalogNumber')
-                    catalog_number.text = content_record.ddx_metadata.upc
+                    catalog_number.text = content_record.ddex_metadata.upc
         
         # Convert to string with proper formatting
         xml_str = self._prettify_xml(root)
