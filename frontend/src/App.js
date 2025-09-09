@@ -3256,6 +3256,12 @@ function App() {
             <Route path="/music-reports" element={<ProtectedRoute><MusicReportsDashboard /></ProtectedRoute>} />
             <Route path="/music-reports/dashboard" element={<ProtectedRoute><MusicReportsDashboard /></ProtectedRoute>} />
 
+            {/* Agency Onboarding routes */}
+            <Route path="/agency/register" element={<ProtectedRoute><AgencyRegistrationWizard /></ProtectedRoute>} />
+            <Route path="/agency/dashboard" element={<ProtectedRoute><AgencyDashboard /></ProtectedRoute>} />
+            <Route path="/agency/license-builder" element={<ProtectedRoute><LicenseBuilder /></ProtectedRoute>} />
+            <Route path="/agency/royalty-tracker" element={<ProtectedRoute><RoyaltyTracker /></ProtectedRoute>} />
+
             {/* Sponsorship routes */}
             <Route path="/sponsorship" element={<ProtectedRoute><SponsorshipDashboard /></ProtectedRoute>} />
             <Route path="/sponsorship/deals" element={<ProtectedRoute><SponsorshipDealCreator /></ProtectedRoute>} />
