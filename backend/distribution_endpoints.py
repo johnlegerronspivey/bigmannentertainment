@@ -3,18 +3,21 @@ Distribution API Endpoints - Function 3: Content Distribution & Delivery Managem
 Provides API endpoints for content distribution, delivery optimization, and analytics.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone, timedelta
+from pydantic import BaseModel
 import json
+import uuid
 
 from delivery_optimization_service import (
     DeliveryOptimizationService,
     DeliveryStrategy,
     OptimizationGoal,
     DeliveryPlan,
-    DeliveryAnalytics
+    DeliveryAnalytics,
+    PlatformType
 )
 from distribution_service import DistributionService
 
@@ -26,6 +29,27 @@ delivery_optimization_service = DeliveryOptimizationService()
 # Create router
 router = APIRouter(prefix="/api/distribution", tags=["Content Distribution & Delivery Management"])
 security = HTTPBearer()
+
+# Request models
+class DeliveryPlanRequest(BaseModel):
+    content_id: str
+    target_platforms: List[str]
+    strategy: DeliveryStrategy = DeliveryStrategy.OPTIMIZED_TIMING
+    optimization_goal: OptimizationGoal = OptimizationGoal.MAX_REACH
+    target_timezone: str = "UTC"
+    content_type: str = "music"
+
+class DistributionJobRequest(BaseModel):
+    content_id: str
+    content_title: str
+    main_artist: str
+    content_type: str
+    target_platforms: List[str]
+    strategy: DeliveryStrategy = DeliveryStrategy.OPTIMIZED_TIMING
+    optimization_goal: OptimizationGoal = OptimizationGoal.MAX_REACH
+    scheduled_delivery: Optional[datetime] = None
+    priority: str = "medium"
+    metadata: Optional[Dict[str, Any]] = None
 
 # Dependency for authentication
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
