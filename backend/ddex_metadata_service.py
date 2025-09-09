@@ -262,7 +262,7 @@ class DDEXMetadataService:
         xml_str = self._prettify_xml(root)
         return xml_str
     
-    def _add_audio_resource_details(self, sound_recording_elem, content_file, ddx_metadata):
+    def _add_audio_resource_details(self, sound_recording_elem, content_file, ddex_metadata):
         """Add detailed information for audio resources"""
         
         # Resource Reference
