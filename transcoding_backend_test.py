@@ -618,11 +618,12 @@ class TranscodingSystemTester:
         
         for i, job_config in enumerate(test_jobs):
             try:
-                # Use form data instead of JSON
+                # Build query parameters
+                params = "&".join([f"{k}={v}" for k, v in job_config.items()])
+                
                 response = requests.post(
-                    f"{self.transcoding_url}/jobs/create",
+                    f"{self.transcoding_url}/jobs/create?{params}",
                     headers={"Authorization": "Bearer mock_token_for_testing"},
-                    data=job_config,
                     timeout=10
                 )
                 
