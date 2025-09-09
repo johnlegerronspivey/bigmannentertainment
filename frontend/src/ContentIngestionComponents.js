@@ -2686,4 +2686,922 @@ const DistributionTab = () => {
   );
 };
 
+// Analytics Tab Component - Function 4: Content Analytics & Performance Monitoring
+const AnalyticsTab = () => {
+  const [activeAnalyticsTab, setActiveAnalyticsTab] = useState('dashboard');
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [contentPerformances, setContentPerformances] = useState([]);
+  const [platformAnalytics, setPlatformAnalytics] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [eventForm, setEventForm] = useState({
+    content_id: '',
+    platform: 'spotify',
+    metric_type: 'views',
+    value: ''
+  });
+  const [roiForm, setRoiForm] = useState({
+    content_id: '',
+    production_cost: '',
+    marketing_cost: '',
+    distribution_cost: '',
+    platform_fees: ''
+  });
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, []);
+
+  const fetchAnalyticsData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Fetch analytics dashboard
+      const dashboardResponse = await axios.get(`${API}/api/analytics/dashboard`, { headers });
+      setAnalyticsData(dashboardResponse.data.dashboard);
+
+      // Fetch content performances
+      const performanceResponse = await axios.get(`${API}/api/analytics/content/performance/all`, { headers });
+      setContentPerformances(performanceResponse.data.content_performances || []);
+
+      // Fetch platform analytics
+      const platformResponse = await axios.get(`${API}/api/analytics/platforms/analytics/all`, { headers });
+      setPlatformAnalytics(platformResponse.data.platform_analytics || {});
+
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const trackEvent = async () => {
+    if (!eventForm.content_id || !eventForm.value) {
+      alert('Please provide content ID and value');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/api/analytics/events/track`, {
+        ...eventForm,
+        value: parseFloat(eventForm.value)
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Event tracked successfully!');
+        setEventForm({
+          content_id: '',
+          platform: 'spotify',
+          metric_type: 'views',
+          value: ''
+        });
+        fetchAnalyticsData();
+      }
+    } catch (error) {
+      console.error('Error tracking event:', error);
+      alert('Failed to track event');
+    }
+  };
+
+  const calculateROI = async () => {
+    if (!roiForm.content_id) {
+      alert('Please provide content ID');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/api/analytics/roi/calculate`, {
+        ...roiForm,
+        production_cost: parseFloat(roiForm.production_cost) || 0,
+        marketing_cost: parseFloat(roiForm.marketing_cost) || 0,
+        distribution_cost: parseFloat(roiForm.distribution_cost) || 0,
+        platform_fees: parseFloat(roiForm.platform_fees) || 0
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('ROI calculated successfully!');
+        const roi = response.data.roi_analysis;
+        alert(`ROI: ${roi.roi_percentage}% | Net Profit: $${roi.net_profit} | Payback: ${roi.payback_period_days} days`);
+      }
+    } catch (error) {
+      console.error('Error calculating ROI:', error);
+      alert('Failed to calculate ROI');
+    }
+  };
+
+  const analyticsTabs = [
+    { id: 'dashboard', name: 'Dashboard', icon: '📊' },
+    { id: 'performance', name: 'Content Performance', icon: '📈' },
+    { id: 'platforms', name: 'Platform Analytics', icon: '🏢' },
+    { id: 'tracking', name: 'Event Tracking', icon: '📋' },
+    { id: 'roi', name: 'ROI Analysis', icon: '💰' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">📊 Content Analytics & Performance Monitoring</h3>
+        <p className="text-gray-600">Track performance, analyze metrics, and optimize content strategy with comprehensive analytics</p>
+      </div>
+
+      {/* Sub-navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {analyticsTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveAnalyticsTab(tab.id)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeAnalyticsTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Dashboard Tab */}
+      {activeAnalyticsTab === 'dashboard' && (
+        <div className="space-y-6">
+          {analyticsData ? (
+            <>
+              {/* Key Metrics */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">📊 Key Metrics</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600">{analyticsData.total_views?.toLocaleString() || 0}</div>
+                    <div className="text-sm text-gray-600">Total Views</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600">{analyticsData.total_streams?.toLocaleString() || 0}</div>
+                    <div className="text-sm text-gray-600">Total Streams</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-purple-600">${analyticsData.total_revenue?.toFixed(2) || '0.00'}</div>
+                    <div className="text-sm text-gray-600">Total Revenue</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-orange-600">{analyticsData.average_engagement_rate?.toFixed(1) || '0.0'}%</div>
+                    <div className="text-sm text-gray-600">Avg Engagement</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Top Content */}
+              {analyticsData.top_performing_content && analyticsData.top_performing_content.length > 0 && (
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">🏆 Top Performing Content</h4>
+                  <div className="space-y-3">
+                    {analyticsData.top_performing_content.slice(0, 5).map((content, index) => (
+                      <div key={content.content_id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-lg font-bold text-gray-400">#{index + 1}</span>
+                          <div>
+                            <div className="font-medium">{content.content_title}</div>
+                            <div className="text-sm text-gray-600">ID: {content.content_id}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold">{content.total_views?.toLocaleString()} views</div>
+                          <div className="text-sm text-gray-600">{content.engagement_rate?.toFixed(1)}% engagement</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Platform Breakdown */}
+              {analyticsData.platform_breakdown && Object.keys(analyticsData.platform_breakdown).length > 0 && (
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">🏢 Platform Breakdown</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Object.entries(analyticsData.platform_breakdown).slice(0, 6).map(([platform, metrics]) => (
+                      <div key={platform} className="p-4 border rounded-lg">
+                        <h5 className="font-semibold capitalize">{platform.replace('_', ' ')}</h5>
+                        <div className="mt-2 space-y-1 text-sm">
+                          <div>Views: {metrics.views?.toLocaleString() || 0}</div>
+                          <div>Revenue: ${metrics.revenue?.toFixed(2) || '0.00'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow text-center">
+              <p className="text-gray-500">No analytics data available yet. Start tracking events to see performance metrics.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Performance Tab */}
+      {activeAnalyticsTab === 'performance' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">📈 Content Performance</h4>
+          
+          {contentPerformances.length > 0 ? (
+            <div className="space-y-4">
+              {contentPerformances.map((performance) => (
+                <div key={performance.content_id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h5 className="font-semibold">{performance.content_title}</h5>
+                      <div className="text-sm text-gray-600 mb-2">ID: {performance.content_id}</div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div><strong>Views:</strong> {performance.total_views?.toLocaleString()}</div>
+                        <div><strong>Streams:</strong> {performance.total_streams?.toLocaleString()}</div>
+                        <div><strong>Revenue:</strong> ${performance.total_revenue?.toFixed(2)}</div>
+                        <div><strong>Engagement:</strong> {performance.engagement_rate?.toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No content performance data available yet.</p>
+          )}
+        </div>
+      )}
+
+      {/* Platforms Tab */}
+      {activeAnalyticsTab === 'platforms' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">🏢 Platform Analytics</h4>
+          
+          {Object.keys(platformAnalytics).length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(platformAnalytics).map(([platform, analytics]) => (
+                <div key={platform} className="border rounded-lg p-4">
+                  <h5 className="font-semibold text-lg mb-3">{analytics.platform_name}</h5>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Content Pieces:</strong> {analytics.total_content_pieces}</div>
+                    <div><strong>Total Views:</strong> {analytics.total_views?.toLocaleString()}</div>
+                    <div><strong>Total Revenue:</strong> ${analytics.total_revenue?.toFixed(2)}</div>
+                    <div><strong>Avg Engagement:</strong> {analytics.average_engagement_rate?.toFixed(1)}%</div>
+                    <div><strong>Success Rate:</strong> {analytics.content_success_rate?.toFixed(1)}%</div>
+                  </div>
+                  {analytics.optimization_suggestions && analytics.optimization_suggestions.length > 0 && (
+                    <div className="mt-3">
+                      <strong className="text-sm">Suggestions:</strong>
+                      <ul className="text-xs text-gray-600 mt-1">
+                        {analytics.optimization_suggestions.slice(0, 2).map((suggestion, index) => (
+                          <li key={index}>• {suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No platform analytics data available yet.</p>
+          )}
+        </div>
+      )}
+
+      {/* Event Tracking Tab */}
+      {activeAnalyticsTab === 'tracking' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">📋 Event Tracking</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Content ID *</label>
+              <input
+                type="text"
+                value={eventForm.content_id}
+                onChange={(e) => setEventForm(prev => ({ ...prev, content_id: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Enter content ID"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+              <select
+                value={eventForm.platform}
+                onChange={(e) => setEventForm(prev => ({ ...prev, platform: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="spotify">Spotify</option>
+                <option value="apple_music">Apple Music</option>
+                <option value="youtube">YouTube</option>
+                <option value="instagram">Instagram</option>
+                <option value="tiktok">TikTok</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Metric Type</label>
+              <select
+                value={eventForm.metric_type}
+                onChange={(e) => setEventForm(prev => ({ ...prev, metric_type: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="views">Views</option>
+                <option value="streams">Streams</option>
+                <option value="downloads">Downloads</option>
+                <option value="likes">Likes</option>
+                <option value="shares">Shares</option>
+                <option value="comments">Comments</option>
+                <option value="revenue">Revenue</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Value *</label>
+              <input
+                type="number"
+                value={eventForm.value}
+                onChange={(e) => setEventForm(prev => ({ ...prev, value: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Enter metric value"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={trackEvent}
+            className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700"
+          >
+            Track Event
+          </button>
+        </div>
+      )}
+
+      {/* ROI Tab */}
+      {activeAnalyticsTab === 'roi' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">💰 ROI Analysis</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Content ID *</label>
+              <input
+                type="text"
+                value={roiForm.content_id}
+                onChange={(e) => setRoiForm(prev => ({ ...prev, content_id: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Enter content ID"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Production Cost ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={roiForm.production_cost}
+                onChange={(e) => setRoiForm(prev => ({ ...prev, production_cost: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Marketing Cost ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={roiForm.marketing_cost}
+                onChange={(e) => setRoiForm(prev => ({ ...prev, marketing_cost: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Distribution Cost ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={roiForm.distribution_cost}
+                onChange={(e) => setRoiForm(prev => ({ ...prev, distribution_cost: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Platform Fees ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={roiForm.platform_fees}
+                onChange={(e) => setRoiForm(prev => ({ ...prev, platform_fees: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={calculateROI}
+            className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+          >
+            Calculate ROI
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Lifecycle Tab Component - Function 5: Content Lifecycle Management & Automation
+const LifecycleTab = () => {
+  const [activeLifecycleTab, setActiveLifecycleTab] = useState('overview');
+  const [lifecycles, setLifecycles] = useState([]);
+  const [automationRules, setAutomationRules] = useState([]);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [newLifecycleForm, setNewLifecycleForm] = useState({
+    content_id: '',
+    title: '',
+    file_path: '',
+    file_format: 'mp3',
+    description: ''
+  });
+  const [newRuleForm, setNewRuleForm] = useState({
+    rule_name: '',
+    description: '',
+    trigger_type: 'time_based',
+    action_type: 'send_notification'
+  });
+
+  useEffect(() => {
+    fetchLifecycleData();
+  }, []);
+
+  const fetchLifecycleData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Fetch lifecycles
+      const lifecyclesResponse = await axios.get(`${API}/api/lifecycle/`, { headers });
+      setLifecycles(lifecyclesResponse.data.lifecycles || []);
+
+      // Fetch automation rules
+      const rulesResponse = await axios.get(`${API}/api/lifecycle/automation/rules`, { headers });
+      setAutomationRules(rulesResponse.data.automation_rules || []);
+
+      // Fetch dashboard data
+      try {
+        const dashboardResponse = await axios.get(`${API}/api/lifecycle/dashboard`, { headers });
+        setDashboardData(dashboardResponse.data.dashboard);
+      } catch (dashboardError) {
+        console.log('Dashboard endpoint not available yet');
+      }
+
+    } catch (error) {
+      console.error('Error fetching lifecycle data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createLifecycle = async () => {
+    if (!newLifecycleForm.content_id || !newLifecycleForm.title || !newLifecycleForm.file_path) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/api/lifecycle/create`, {
+        content_id: newLifecycleForm.content_id,
+        initial_version: {
+          title: newLifecycleForm.title,
+          file_path: newLifecycleForm.file_path,
+          file_format: newLifecycleForm.file_format,
+          description: newLifecycleForm.description,
+          file_size: 1024000, // Default 1MB
+          metadata: {
+            content_type: "music",
+            created_date: new Date().toISOString()
+          }
+        }
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Content lifecycle created successfully!');
+        setNewLifecycleForm({
+          content_id: '',
+          title: '',
+          file_path: '',
+          file_format: 'mp3',
+          description: ''
+        });
+        fetchLifecycleData();
+      }
+    } catch (error) {
+      console.error('Error creating lifecycle:', error);
+      alert('Failed to create lifecycle');
+    }
+  };
+
+  const createAutomationRule = async () => {
+    if (!newRuleForm.rule_name) {
+      alert('Please provide a rule name');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/api/lifecycle/automation/rules`, {
+        ...newRuleForm,
+        trigger_conditions: {
+          interval_days: 30
+        },
+        action_parameters: {
+          message: "Automated action triggered"
+        }
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Automation rule created successfully!');
+        setNewRuleForm({
+          rule_name: '',
+          description: '',
+          trigger_type: 'time_based',
+          action_type: 'send_notification'
+        });
+        fetchLifecycleData();
+      }
+    } catch (error) {
+      console.error('Error creating automation rule:', error);
+      alert('Failed to create automation rule');
+    }
+  };
+
+  const updateContentStatus = async (contentId, newStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/api/lifecycle/status/update`, {
+        content_id: contentId,
+        new_status: newStatus,
+        notes: `Status updated to ${newStatus} via UI`
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert(`Content status updated to ${newStatus}!`);
+        fetchLifecycleData();
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Failed to update status');
+    }
+  };
+
+  const lifecycleTabs = [
+    { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'content', name: 'Content Lifecycles', icon: '🔄' },
+    { id: 'automation', name: 'Automation Rules', icon: '⚙️' },
+    { id: 'create', name: 'Create New', icon: '➕' }
+  ];
+
+  const contentStatuses = ['draft', 'pending_review', 'approved', 'published', 'live', 'paused', 'archived'];
+  const triggerTypes = ['time_based', 'performance_based', 'engagement_based', 'user_action'];
+  const actionTypes = ['send_notification', 'archive_content', 'promote_content', 'update_metadata'];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">🔄 Content Lifecycle Management & Automation</h3>
+        <p className="text-gray-600">Manage content lifecycles, automate workflows, and track version history</p>
+      </div>
+
+      {/* Sub-navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {lifecycleTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveLifecycleTab(tab.id)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeLifecycleTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Overview Tab */}
+      {activeLifecycleTab === 'overview' && (
+        <div className="space-y-6">
+          {dashboardData ? (
+            <>
+              {/* Summary Stats */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">📊 Lifecycle Overview</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600">{dashboardData.total_content_pieces || 0}</div>
+                    <div className="text-sm text-gray-600">Total Content</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600">{dashboardData.active_automations || 0}</div>
+                    <div className="text-sm text-gray-600">Active Automations</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-purple-600">{dashboardData.automation_summary?.total_executions || 0}</div>
+                    <div className="text-sm text-gray-600">Total Executions</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-orange-600">{dashboardData.automation_summary?.active_rules || 0}</div>
+                    <div className="text-sm text-gray-600">Active Rules</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Distribution */}
+              {dashboardData.status_distribution && Object.keys(dashboardData.status_distribution).length > 0 && (
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">📋 Status Distribution</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(dashboardData.status_distribution).map(([status, count]) => (
+                      <div key={status} className="text-center p-3 bg-gray-50 rounded">
+                        <div className="text-xl font-bold text-gray-700">{count}</div>
+                        <div className="text-sm text-gray-600 capitalize">{status.replace('_', ' ')}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow text-center">
+              <p className="text-gray-500">No lifecycle data available yet. Create your first content lifecycle to get started.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Content Lifecycles Tab */}
+      {activeLifecycleTab === 'content' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">🔄 Content Lifecycles</h4>
+          
+          {lifecycles.length > 0 ? (
+            <div className="space-y-4">
+              {lifecycles.map((lifecycle) => (
+                <div key={lifecycle.lifecycle_id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h5 className="font-semibold">Content: {lifecycle.content_id}</h5>
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div><strong>Status:</strong> 
+                          <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                            lifecycle.current_status === 'live' ? 'bg-green-100 text-green-800' :
+                            lifecycle.current_status === 'published' ? 'bg-blue-100 text-blue-800' :
+                            lifecycle.current_status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {lifecycle.current_status}
+                          </span>
+                        </div>
+                        <div><strong>Stage:</strong> {lifecycle.current_stage}</div>
+                        <div><strong>Versions:</strong> {lifecycle.version_history?.length || 0}</div>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        <strong>Updated:</strong> {new Date(lifecycle.updated_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <select
+                        onChange={(e) => updateContentStatus(lifecycle.content_id, e.target.value)}
+                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>Change Status</option>
+                        {contentStatuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status.replace('_', ' ').toUpperCase()}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No content lifecycles yet. Create your first lifecycle in the Create New tab.</p>
+          )}
+        </div>
+      )}
+
+      {/* Automation Rules Tab */}
+      {activeLifecycleTab === 'automation' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Automation Rules</h4>
+          
+          {automationRules.length > 0 ? (
+            <div className="space-y-4">
+              {automationRules.map((rule) => (
+                <div key={rule.rule_id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h5 className="font-semibold">{rule.rule_name}</h5>
+                      <p className="text-sm text-gray-600 mt-1">{rule.description}</p>
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div><strong>Trigger:</strong> {rule.trigger_type.replace('_', ' ')}</div>
+                        <div><strong>Action:</strong> {rule.action_type.replace('_', ' ')}</div>
+                        <div><strong>Executions:</strong> {rule.execution_count}</div>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        <strong>Status:</strong> 
+                        <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                          rule.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {rule.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No automation rules yet. Create your first rule in the Create New tab.</p>
+          )}
+        </div>
+      )}
+
+      {/* Create New Tab */}
+      {activeLifecycleTab === 'create' && (
+        <div className="space-y-6">
+          {/* Create Lifecycle */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">➕ Create Content Lifecycle</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content ID *</label>
+                <input
+                  type="text"
+                  value={newLifecycleForm.content_id}
+                  onChange={(e) => setNewLifecycleForm(prev => ({ ...prev, content_id: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter unique content ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <input
+                  type="text"
+                  value={newLifecycleForm.title}
+                  onChange={(e) => setNewLifecycleForm(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter content title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">File Path *</label>
+                <input
+                  type="text"
+                  value={newLifecycleForm.file_path}
+                  onChange={(e) => setNewLifecycleForm(prev => ({ ...prev, file_path: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="/path/to/content/file"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">File Format</label>
+                <select
+                  value={newLifecycleForm.file_format}
+                  onChange={(e) => setNewLifecycleForm(prev => ({ ...prev, file_format: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="mp3">MP3</option>
+                  <option value="mp4">MP4</option>
+                  <option value="wav">WAV</option>
+                  <option value="flac">FLAC</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={newLifecycleForm.description}
+                  onChange={(e) => setNewLifecycleForm(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  rows={3}
+                  placeholder="Enter content description"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={createLifecycle}
+              className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700"
+            >
+              Create Lifecycle
+            </button>
+          </div>
+
+          {/* Create Automation Rule */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Create Automation Rule</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rule Name *</label>
+                <input
+                  type="text"
+                  value={newRuleForm.rule_name}
+                  onChange={(e) => setNewRuleForm(prev => ({ ...prev, rule_name: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter rule name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Type</label>
+                <select
+                  value={newRuleForm.trigger_type}
+                  onChange={(e) => setNewRuleForm(prev => ({ ...prev, trigger_type: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {triggerTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type.replace('_', ' ').toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Action Type</label>
+                <select
+                  value={newRuleForm.action_type}
+                  onChange={(e) => setNewRuleForm(prev => ({ ...prev, action_type: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {actionTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type.replace('_', ' ').toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  value={newRuleForm.description}
+                  onChange={(e) => setNewRuleForm(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter rule description"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={createAutomationRule}
+              className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+            >
+              Create Automation Rule
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default ContentIngestionDashboard;
