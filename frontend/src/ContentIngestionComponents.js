@@ -31,10 +31,11 @@ export const ContentIngestionDashboard = () => {
     { id: 'upload', name: 'Upload & Metadata', icon: '📤' },
     { id: 'transcoding', name: 'Transcoding & Optimization', icon: '🎬' },
     { id: 'distribution', name: 'Distribution & Delivery', icon: '🌐' },
+    { id: 'analytics', name: 'Analytics & Performance', icon: '📊' },
+    { id: 'lifecycle', name: 'Lifecycle Management', icon: '🔄' },
     { id: 'content', name: 'Content Library', icon: '📚' },
     { id: 'compliance', name: 'Compliance', icon: '✅' },
-    { id: 'ddex', name: 'DDEX Management', icon: '🔄' },
-    { id: 'analytics', name: 'Analytics', icon: '📊' }
+    { id: 'ddex', name: 'DDEX Management', icon: '🔄' }
   ];
 
   if (loading) {
