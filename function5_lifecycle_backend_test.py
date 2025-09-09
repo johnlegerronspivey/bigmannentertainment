@@ -499,6 +499,128 @@ class Function5LifecycleBackendTester:
         except Exception as e:
             self.log_test("Delete Automation Rule", False, f"Exception: {e}")
 
+    def test_list_content_lifecycles(self):
+        """Test listing content lifecycles"""
+        try:
+            response = requests.get(
+                f"{self.lifecycle_base}/",
+                headers=self.get_headers(),
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success") and "lifecycles" in result:
+                    lifecycles = result["lifecycles"]
+                    self.log_test(
+                        "List Content Lifecycles",
+                        True,
+                        f"Retrieved {len(lifecycles)} lifecycles"
+                    )
+                else:
+                    self.log_test(
+                        "List Content Lifecycles",
+                        False,
+                        "Response missing required fields",
+                        result
+                    )
+            else:
+                self.log_test(
+                    "List Content Lifecycles",
+                    False,
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_test("List Content Lifecycles", False, f"Exception: {e}")
+
+    def test_get_content_lifecycle(self):
+        """Test getting specific content lifecycle"""
+        try:
+            if not self.test_content_id:
+                self.log_test("Get Content Lifecycle", False, "No test content ID available")
+                return
+            
+            response = requests.get(
+                f"{self.lifecycle_base}/{self.test_content_id}",
+                headers=self.get_headers(),
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success") and "lifecycle" in result:
+                    lifecycle = result["lifecycle"]
+                    self.log_test(
+                        "Get Content Lifecycle",
+                        True,
+                        f"Lifecycle retrieved: Status={lifecycle.get('current_status')}, Stage={lifecycle.get('current_stage')}"
+                    )
+                else:
+                    self.log_test(
+                        "Get Content Lifecycle",
+                        False,
+                        "Response missing required fields",
+                        result
+                    )
+            elif response.status_code == 404:
+                self.log_test(
+                    "Get Content Lifecycle",
+                    False,
+                    "Content lifecycle not found",
+                    response.text
+                )
+            else:
+                self.log_test(
+                    "Get Content Lifecycle",
+                    False,
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_test("Get Content Lifecycle", False, f"Exception: {e}")
+
+    def test_lifecycle_enums(self):
+        """Test lifecycle enums endpoint"""
+        try:
+            response = requests.get(
+                f"{self.lifecycle_base}/enums",
+                headers=self.get_headers(),
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success") and "enums" in result:
+                    enums = result["enums"]
+                    expected_keys = ["content_statuses", "lifecycle_stages", "automation_triggers", "action_types"]
+                    has_all_keys = all(key in enums for key in expected_keys)
+                    
+                    self.log_test(
+                        "Lifecycle Enums",
+                        has_all_keys,
+                        f"Retrieved enums: {list(enums.keys())}"
+                    )
+                else:
+                    self.log_test(
+                        "Lifecycle Enums",
+                        False,
+                        "Response missing required fields",
+                        result
+                    )
+            else:
+                self.log_test(
+                    "Lifecycle Enums",
+                    False,
+                    f"HTTP {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_test("Lifecycle Enums", False, f"Exception: {e}")
+
     def run_all_tests(self):
         """Run all Function 5 lifecycle management tests"""
         print("🎯 FUNCTION 5: CONTENT LIFECYCLE MANAGEMENT & AUTOMATION SYSTEM TESTING")
@@ -524,11 +646,16 @@ class Function5LifecycleBackendTester:
         # Core lifecycle management
         self.test_create_content_lifecycle()
         self.test_version_creation()
+        self.test_get_content_lifecycle()
+        self.test_list_content_lifecycles()
         
         # Automation management (Previously failing endpoints)
         self.test_create_automation_rule()
         self.test_update_automation_rule()  # Previously 404
         self.test_delete_automation_rule()  # Previously 404
+        
+        # Additional endpoints
+        self.test_lifecycle_enums()
         
         # Print summary
         self.print_test_summary()
