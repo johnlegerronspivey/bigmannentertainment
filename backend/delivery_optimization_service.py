@@ -322,7 +322,7 @@ class DeliveryOptimizationService:
             optimal_start_time=today_start,
             optimal_end_time=optimal_end,
             audience_peak_hours=peak_hours,
-            timezone=timezone,
+            timezone=target_timezone,
             engagement_score=engagement_score
         )
     
