@@ -433,16 +433,7 @@ async def health_check():
 
 @router.post("/jobs/create-with-optimization")
 async def create_distribution_job_with_optimization(
-    content_id: str,
-    content_title: str,
-    main_artist: str,
-    content_type: str,
-    target_platforms: List[str],
-    strategy: DeliveryStrategy = DeliveryStrategy.OPTIMIZED_TIMING,
-    optimization_goal: OptimizationGoal = OptimizationGoal.MAX_REACH,
-    scheduled_delivery: Optional[datetime] = None,
-    priority: str = "medium",
-    metadata: Optional[Dict[str, Any]] = None,
+    request: DistributionJobRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Create a distribution job with delivery optimization"""
@@ -450,29 +441,29 @@ async def create_distribution_job_with_optimization(
         # First create an optimized delivery plan
         delivery_plan = await delivery_optimization_service.create_delivery_plan(
             user_id=user_id,
-            content_id=content_id,
-            target_platforms=target_platforms,
-            strategy=strategy,
-            optimization_goal=optimization_goal,
-            content_type=content_type
+            content_id=request.content_id,
+            target_platforms=request.target_platforms,
+            strategy=request.strategy,
+            optimization_goal=request.optimization_goal,
+            content_type=request.content_type
         )
         
         # Use the optimized sequence for distribution
-        optimized_platforms = delivery_plan.recommended_sequence or target_platforms
+        optimized_platforms = delivery_plan.recommended_sequence or request.target_platforms
         
         # Create distribution job data (this would integrate with existing distribution service)
         distribution_job_data = {
             "job_id": str(uuid.uuid4()),
             "user_id": user_id,
-            "content_id": content_id,
-            "content_title": content_title,
-            "main_artist": main_artist,
-            "content_type": content_type,
+            "content_id": request.content_id,
+            "content_title": request.content_title,
+            "main_artist": request.main_artist,
+            "content_type": request.content_type,
             "target_platforms": optimized_platforms,
             "delivery_plan_id": delivery_plan.plan_id,
-            "priority": priority,
-            "scheduled_delivery": scheduled_delivery.isoformat() if scheduled_delivery else None,
-            "metadata": metadata or {},
+            "priority": request.priority,
+            "scheduled_delivery": request.scheduled_delivery.isoformat() if request.scheduled_delivery else None,
+            "metadata": request.metadata or {},
             "estimated_reach": delivery_plan.total_estimated_reach,
             "estimated_revenue": delivery_plan.total_estimated_revenue,
             "created_at": datetime.now(timezone.utc).isoformat()
