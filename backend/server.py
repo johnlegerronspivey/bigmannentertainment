@@ -2000,19 +2000,54 @@ async def get_agency_dashboard(current_user: User = Depends(get_current_user)):
         deployed_contracts = await db.license_contracts.count_documents({"agency_id": agency["id"], "status": "deployed"})
         active_licenses = await db.license_contracts.count_documents({"agency_id": agency["id"], "status": "active"})
         
-        # Get recent activity
-        recent_logs = await db.audit_logs.find(
+        # Get recent activity (convert to JSON serializable format)
+        recent_logs_cursor = db.audit_logs.find(
             {"entity_id": {"$in": [agency["id"]]}}
-        ).sort("timestamp", -1).limit(10).to_list(10)
+        ).sort("timestamp", -1).limit(10)
+        
+        recent_logs = []
+        async for log in recent_logs_cursor:
+            log_data = {
+                "id": log["id"],
+                "entity_type": log["entity_type"],
+                "entity_id": log["entity_id"],
+                "action": log["action"],
+                "actor_id": log["actor_id"],
+                "actor_type": log["actor_type"],
+                "action_data": log.get("action_data", {}),
+                "timestamp": log["timestamp"].isoformat() if isinstance(log["timestamp"], datetime) else str(log["timestamp"])
+            }
+            recent_logs.append(log_data)
         
         # Calculate revenue metrics (mock data for now)
         total_revenue = agency.get("total_revenue", 0.0)
         monthly_revenue = total_revenue * 0.1  # Mock calculation
         
-        # Get licensing activity
-        recent_contracts = await db.license_contracts.find(
+        # Get licensing activity (convert to JSON serializable format)
+        recent_contracts_cursor = db.license_contracts.find(
             {"agency_id": agency["id"]}
-        ).sort("created_at", -1).limit(5).to_list(5)
+        ).sort("created_at", -1).limit(5)
+        
+        recent_contracts = []
+        async for contract in recent_contracts_cursor:
+            contract_data = {
+                "id": contract["id"],
+                "agency_id": contract["agency_id"],
+                "talent_id": contract.get("talent_id"),
+                "asset_id": contract["asset_id"],
+                "blockchain_network": contract["blockchain_network"],
+                "contract_standard": contract["contract_standard"],
+                "license_type": contract["license_type"],
+                "base_price": contract["base_price"],
+                "currency": contract.get("currency", "USD"),
+                "status": contract["status"],
+                "created_at": contract["created_at"].isoformat() if isinstance(contract["created_at"], datetime) else str(contract["created_at"]),
+                "deployed_at": contract["deployed_at"].isoformat() if contract.get("deployed_at") and isinstance(contract["deployed_at"], datetime) else None,
+                "contract_address": contract.get("contract_address"),
+                "token_id": contract.get("token_id"),
+                "transaction_hash": contract.get("transaction_hash")
+            }
+            recent_contracts.append(contract_data)
         
         dashboard_data = {
             "agency_info": {
@@ -2020,7 +2055,7 @@ async def get_agency_dashboard(current_user: User = Depends(get_current_user)):
                 "name": agency["name"],
                 "verification_status": agency["verification_status"],
                 "kyc_completed": agency.get("kyc_completed", False),
-                "created_at": agency["created_at"]
+                "created_at": agency["created_at"].isoformat() if isinstance(agency["created_at"], datetime) else str(agency["created_at"])
             },
             "statistics": {
                 "total_talent": talent_count,
