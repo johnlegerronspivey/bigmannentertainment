@@ -107,9 +107,12 @@ class DistributionPlatformsTest:
                 async with session.get(f"{self.backend_url}/distribution/platforms") as response:
                     if response.status == 200:
                         data = await response.json()
+                        # Extract platforms from the response structure
+                        platforms_data = data.get("platforms", {})
+                        total_count = data.get("total_count", len(platforms_data))
                         self.log_test("Distribution Platforms Endpoint Access", True, 
-                                    f"Status: {response.status}, Response type: {type(data)}")
-                        return data
+                                    f"Status: {response.status}, Total platforms: {total_count}")
+                        return platforms_data
                     else:
                         self.log_test("Distribution Platforms Endpoint Access", False, 
                                     f"Status: {response.status}")
