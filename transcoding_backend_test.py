@@ -374,6 +374,8 @@ class TranscodingSystemTester:
             "frame_rate": 30,
             "content_type": "video",
             "title": "Test Video",
+            "description": "Test video description",
+            "tags": ["test", "video"],
             "artist": "Test Artist"
         }
         
@@ -382,16 +384,10 @@ class TranscodingSystemTester:
         
         for platform in test_platforms:
             try:
-                # Use form data instead of JSON
-                form_data = {
-                    "platform_name": platform,
-                    "content_metadata": json.dumps(test_content)
-                }
-                
                 response = requests.post(
-                    f"{self.transcoding_url}/validate",
-                    headers={"Authorization": "Bearer mock_token_for_testing"},
-                    data=form_data,
+                    f"{self.transcoding_url}/validate?platform_name={platform}",
+                    headers={"Authorization": "Bearer mock_token_for_testing", "Content-Type": "application/json"},
+                    json=test_content,
                     timeout=10
                 )
                 
