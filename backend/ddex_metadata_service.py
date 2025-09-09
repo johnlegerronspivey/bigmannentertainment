@@ -34,7 +34,7 @@ class DDEXMetadataService:
         root = ET.Element(
             'ern:NewReleaseMessage',
             attrib={
-                'MessageSchemaVersionId': self.ddx_version,
+                'MessageSchemaVersionId': self.ddex_version,
                 'BusinessProfileVersionId': 'CommonReleaseTypes/41',
                 'ReleaseProfileVersionId': 'CommonReleaseTypes/41',
                 'xmlns:ern': self.namespace['ern'],
