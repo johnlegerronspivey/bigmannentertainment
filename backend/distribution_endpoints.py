@@ -571,5 +571,3 @@ async def get_platform_performance_insights(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-import uuid
