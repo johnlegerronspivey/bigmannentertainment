@@ -316,7 +316,7 @@ class SocialMediaStrategyTester:
         ]
         
         for test_campaign in test_campaigns:
-            success, response, status = await self.make_request('POST', '/cross-promotion/campaign', test_campaign["data"])
+            success, response, status = await self.make_request('POST', '/cross-promotion/campaign', test_campaign["data"], use_params_for_post=True)
             
             if success and isinstance(response, dict):
                 campaign = response.get('campaign')
