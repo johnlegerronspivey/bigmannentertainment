@@ -9,9 +9,9 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
 import json
 
-from content_intelligence_service import ContentIntelligenceService, ContentType, CampaignObjective
+from content_intelligence_service import ContentIntelligenceService, ContentType
 from social_media_apis import SocialMediaAPIs, UploadRequest, UploadResponse
-from cross_promotion_service import CrossPromotionService, RoutingStrategy, CrossPromotionCampaign
+from cross_promotion_service import CrossPromotionService, RoutingStrategy, CrossPromotionCampaign, CampaignObjective
 from workflow_management_service import WorkflowManagementService, WorkflowProject, WorkflowPhase, ApprovalType
 
 # Initialize services
