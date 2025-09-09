@@ -509,6 +509,12 @@ class LifecycleManagementService:
         result = self.automation_rules_collection.insert_one(rule_dict)
         automation_rule.rule_id = str(result.inserted_id)
         
+        # Update the rule document with the rule_id
+        self.automation_rules_collection.update_one(
+            {"_id": result.inserted_id},
+            {"$set": {"rule_id": automation_rule.rule_id}}
+        )
+        
         return automation_rule
     
     async def get_content_lifecycle(self, content_id: str, user_id: str) -> Optional[ContentLifecycle]:
