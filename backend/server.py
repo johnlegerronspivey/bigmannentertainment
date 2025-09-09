@@ -1855,7 +1855,38 @@ async def upload_talent_assets(
             
             # Insert asset into database
             result = await db.license_assets.insert_one(asset_dict)
-            uploaded_assets.append(asset_dict)
+            
+            # Convert to JSON serializable format for response
+            asset_response = {
+                "id": asset_dict["id"],
+                "agency_id": asset_dict["agency_id"],
+                "talent_id": asset_dict["talent_id"],
+                "filename": asset_dict["filename"],
+                "original_filename": asset_dict["original_filename"],
+                "file_type": asset_dict["file_type"],
+                "mime_type": asset_dict["mime_type"],
+                "file_size": asset_dict["file_size"],
+                "s3_url": asset_dict["s3_url"],
+                "thumbnail_url": asset_dict["thumbnail_url"],
+                "preview_url": asset_dict["preview_url"],
+                "dimensions": asset_dict["dimensions"],
+                "title": asset_dict["title"],
+                "description": asset_dict["description"],
+                "keywords": asset_dict["keywords"],
+                "categories": asset_dict["categories"],
+                "model_released": asset_dict["model_released"],
+                "property_released": asset_dict["property_released"],
+                "available_for_licensing": asset_dict["available_for_licensing"],
+                "base_license_price": asset_dict["base_license_price"],
+                "status": asset_dict["status"],
+                "created_at": asset_dict["created_at"].isoformat(),
+                "updated_at": asset_dict["updated_at"].isoformat(),
+                "view_count": asset_dict["view_count"],
+                "download_count": asset_dict["download_count"],
+                "license_count": asset_dict["license_count"],
+                "total_revenue": asset_dict["total_revenue"]
+            }
+            uploaded_assets.append(asset_response)
         
         # Update agency asset count
         await db.agencies.update_one(
