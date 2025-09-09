@@ -195,6 +195,18 @@ class DistributionTestRunner:
                 "GET",
                 f"{API_BASE}/distribution/delivery-plans/{plan_id}"
             )
+            
+            # Test 4: Update Delivery Performance (if we have a plan_id)
+            performance_data = {
+                "actual_reach": 50000,
+                "actual_revenue": 250.75
+            }
+            await self.test_endpoint(
+                "Update Delivery Performance",
+                "POST",
+                f"{API_BASE}/distribution/delivery-plans/{plan_id}/performance",
+                data=performance_data
+            )
         else:
             await self.test_endpoint(
                 "Get Delivery Plan (Non-existent)",
@@ -210,19 +222,6 @@ class DistributionTestRunner:
             f"{API_BASE}/distribution/delivery-plans",
             params={"limit": 10, "offset": 0}
         )
-        
-        # Test 4: Update Delivery Performance (if we have a plan_id)
-        if plan_id:
-            performance_data = {
-                "actual_reach": 50000,
-                "actual_revenue": 250.75
-            }
-            await self.test_endpoint(
-                "Update Delivery Performance",
-                "POST",
-                f"{API_BASE}/distribution/delivery-plans/{plan_id}/performance",
-                data=performance_data
-            )
     
     async def test_platform_recommendations(self):
         """Test Platform Recommendation endpoints"""
