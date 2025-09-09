@@ -39,6 +39,7 @@ eth-utils>=3.0.0
 reportlab>=4.0.0
 # Image metadata and processing libraries
 pillow>=10.0.0
+solana==0.30.2
 iptcinfo3>=2.1.4
 pyexiv2>=2.8.0
 python-xmp-toolkit>=2.0.1
