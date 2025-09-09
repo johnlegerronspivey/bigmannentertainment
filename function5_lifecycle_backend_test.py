@@ -564,7 +564,9 @@ class Function5LifecycleBackendTester:
         priority_tests = [
             "Version Creation",
             "Lifecycle Health Check", 
-            "Lifecycle Dashboard"
+            "Lifecycle Dashboard",
+            "Update Automation Rule",
+            "Delete Automation Rule"
         ]
         
         priority_results = [r for r in self.test_results if r["test"] in priority_tests]
