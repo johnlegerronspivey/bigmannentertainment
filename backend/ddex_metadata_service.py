@@ -407,7 +407,7 @@ class DDEXMetadataService:
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
     
-    def validate_ddx_xml(self, xml_content: str) -> Dict[str, Any]:
+    def validate_ddex_xml(self, xml_content: str) -> Dict[str, Any]:
         """Validate DDEX XML against basic structure requirements"""
         validation_results = {
             "is_valid": True,
