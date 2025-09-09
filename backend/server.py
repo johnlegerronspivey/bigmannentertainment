@@ -1586,12 +1586,33 @@ async def get_agency_profile(current_user: User = Depends(get_current_user)):
         # Get license count
         license_count = await db.license_contracts.count_documents({"agency_id": agency["id"]})
         
-        # Update counts
-        agency["total_talent"] = talent_count
-        agency["total_assets"] = asset_count
-        agency["total_licenses_sold"] = license_count
+        # Convert MongoDB document to JSON serializable format
+        agency_data = {
+            "id": agency["id"],
+            "name": agency["name"],
+            "business_registration_number": agency.get("business_registration_number"),
+            "contact_info": agency.get("contact_info", {}),
+            "wallet_addresses": agency.get("wallet_addresses", {}),
+            "business_type": agency.get("business_type"),
+            "tax_id": agency.get("tax_id"),
+            "operating_countries": agency.get("operating_countries", []),
+            "verification_status": agency["verification_status"],
+            "verification_documents": agency.get("verification_documents", []),
+            "kyc_completed": agency.get("kyc_completed", False),
+            "created_at": agency["created_at"].isoformat() if isinstance(agency["created_at"], datetime) else str(agency["created_at"]),
+            "updated_at": agency["updated_at"].isoformat() if isinstance(agency["updated_at"], datetime) else str(agency["updated_at"]),
+            "commission_rate": agency.get("commission_rate", 0.15),
+            "auto_approve_licenses": agency.get("auto_approve_licenses", False),
+            "min_license_price": agency.get("min_license_price", 50.0),
+            "total_talent": talent_count,
+            "total_assets": asset_count,
+            "total_licenses_sold": license_count,
+            "total_revenue": agency.get("total_revenue", 0.0),
+            "owner_user_id": agency["owner_user_id"],
+            "owner_email": agency["owner_email"]
+        }
         
-        return {"agency": agency}
+        return {"agency": agency_data}
         
     except HTTPException:
         raise
