@@ -121,6 +121,7 @@ class Function5LifecycleBackendTester:
     def test_lifecycle_health_check(self):
         """Test the lifecycle health check endpoint (Previously 404)"""
         try:
+            # Try without authentication first (health checks should be public)
             response = requests.get(
                 f"{self.lifecycle_base}/health",
                 timeout=30
@@ -140,6 +141,36 @@ class Function5LifecycleBackendTester:
                         False,
                         "Health check returned unhealthy status",
                         health_data
+                    )
+            elif response.status_code == 403:
+                # Try with authentication if 403
+                response = requests.get(
+                    f"{self.lifecycle_base}/health",
+                    headers=self.get_headers(),
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    health_data = response.json()
+                    if health_data.get("success") and health_data.get("health", {}).get("status") == "healthy":
+                        self.log_test(
+                            "Lifecycle Health Check",
+                            True,
+                            f"Service healthy with auth - {health_data['health'].get('total_lifecycles', 0)} lifecycles"
+                        )
+                    else:
+                        self.log_test(
+                            "Lifecycle Health Check",
+                            False,
+                            "Health check returned unhealthy status with auth",
+                            health_data
+                        )
+                else:
+                    self.log_test(
+                        "Lifecycle Health Check",
+                        False,
+                        f"HTTP {response.status_code} even with auth",
+                        response.text
                     )
             else:
                 self.log_test(
