@@ -507,6 +507,51 @@ DISTRIBUTION_PLATFORMS = {
         "credentials_required": ["access_token", "phone_number_id"],
         "description": "Business messaging platform"
     },
+    "threads": {
+        "type": "social_media",
+        "name": "Threads",
+        "api_endpoint": "https://graph.threads.net/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["access_token"],
+        "description": "Meta's text-based conversation platform"
+    },
+    "tumblr": {
+        "type": "social_media",
+        "name": "Tumblr",
+        "api_endpoint": "https://api.tumblr.com/v2",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key", "api_secret", "access_token"],
+        "description": "Microblogging platform for creative expression"
+    },
+    "theshaderoom": {
+        "type": "social_media",
+        "name": "The Shade Room",
+        "api_endpoint": "https://api.theshaderoom.com/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Entertainment and celebrity news platform"
+    },
+    "hollywoodunlocked": {
+        "type": "social_media",
+        "name": "Hollywood Unlocked",
+        "api_endpoint": "https://api.hollywoodunlocked.com/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 150 * 1024 * 1024,
+        "credentials_required": ["api_key"],
+        "description": "Celebrity news and entertainment platform"
+    },
+    "snapchat_enhanced": {
+        "type": "social_media",
+        "name": "Snapchat Enhanced",
+        "api_endpoint": "https://adsapi.snapchat.com/v1",
+        "supported_formats": ["video", "image"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret", "access_token"],
+        "description": "Enhanced multimedia messaging and content sharing"
+    },
 
     # Major Music Streaming Platforms (15 platforms)
     "spotify": {
