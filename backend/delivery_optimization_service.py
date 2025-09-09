@@ -27,6 +27,22 @@ class OptimizationGoal(str, Enum):
     QUALITY_FOCUSED = "quality_focused"
     COST_EFFECTIVE = "cost_effective"
 
+class PlatformType(str, Enum):
+    STREAMING_MUSIC = "streaming_music"
+    STREAMING_VIDEO = "streaming_video"
+    SOCIAL_MEDIA = "social_media"
+    PODCAST = "podcast"
+    RADIO = "radio"
+    BLOCKCHAIN = "blockchain"
+    WEB3_MUSIC = "web3_music"
+    NFT_MARKETPLACE = "nft_marketplace"
+    LIVE_STREAMING = "live_streaming"
+    VIDEO_PLATFORM = "video_platform"
+    AUDIO_SOCIAL = "audio_social"
+    MODEL_AGENCY = "model_agency"
+    MODEL_PLATFORM = "model_platform"
+    RIGHTS_ORGANIZATION = "rights_organization"
+
 class DeliveryWindow(BaseModel):
     platform: str
     optimal_start_time: datetime
