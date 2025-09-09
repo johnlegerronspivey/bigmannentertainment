@@ -87,7 +87,14 @@ async def track_batch_events(
 ):
     """Track multiple analytics events in batch"""
     try:
-        events = await analytics_service.track_batch_events(request.events)
+        # Add user_id to each event
+        events_with_user_id = []
+        for event in request.events:
+            event_with_user = event.copy()
+            event_with_user["user_id"] = user_id
+            events_with_user_id.append(event_with_user)
+        
+        events = await analytics_service.track_batch_events(events_with_user_id)
         
         return {
             "success": True,
