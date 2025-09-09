@@ -215,6 +215,14 @@ backend:
     stuck_count: 0
     priority: "high"
     needs_retesting: false
+
+  - task: "Function 2: Transcoding & Format Optimization System"
+    implemented: false
+    working: false
+    file: "/app/backend/transcoding_service.py, /app/backend/format_optimization_service.py, /app/backend/transcoding_endpoints.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
     status_history:
       - working: true
         agent: "testing"
