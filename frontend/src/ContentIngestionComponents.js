@@ -1590,4 +1590,621 @@ const AnalyticsTab = ({ dashboardData }) => {
   );
 };
 
+// Transcoding Tab Component - Function 2: Transcoding & Format Optimization
+const TranscodingTab = () => {
+  const [activeTranscodingTab, setActiveTranscodingTab] = useState('jobs');
+  const [transcodingJobs, setTranscodingJobs] = useState([]);
+  const [presets, setPresets] = useState([]);
+  const [platforms, setPlatforms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [newJobForm, setNewJobForm] = useState({
+    content_id: '',
+    input_file_path: '',
+    input_format: '',
+    output_format: 'mp4',
+    quality_preset: 'medium',
+    platform_target: '',
+    custom_settings: {}
+  });
+  const [selectedPlatform, setSelectedPlatform] = useState('youtube');
+  const [contentMetadata, setContentMetadata] = useState({
+    format: 'mp4',
+    file_size: 50000000,
+    duration: 180,
+    resolution: '1920x1080',
+    content_type: 'video'
+  });
+  const [optimizationRecommendations, setOptimizationRecommendations] = useState(null);
+
+  useEffect(() => {
+    fetchTranscodingData();
+  }, []);
+
+  const fetchTranscodingData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Fetch transcoding jobs
+      const jobsResponse = await axios.get(`${API}/api/transcoding/jobs`, { headers });
+      setTranscodingJobs(jobsResponse.data.transcoding_jobs || []);
+
+      // Fetch available presets
+      const presetsResponse = await axios.get(`${API}/api/transcoding/presets`, { headers });
+      setPresets(Object.values(presetsResponse.data.presets || {}));
+
+      // Fetch platform requirements
+      const platformsResponse = await axios.get(`${API}/api/transcoding/platforms`, { headers });
+      setPlatforms(Object.values(platformsResponse.data.platforms || {}));
+
+    } catch (error) {
+      console.error('Error fetching transcoding data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createTranscodingJob = async () => {
+    if (!newJobForm.content_id || !newJobForm.input_file_path) {
+      alert('Please provide content ID and input file path');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/api/transcoding/jobs/create`, newJobForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Transcoding job created successfully!');
+        setNewJobForm({
+          content_id: '',
+          input_file_path: '',
+          input_format: '',
+          output_format: 'mp4',
+          quality_preset: 'medium',
+          platform_target: '',
+          custom_settings: {}
+        });
+        fetchTranscodingData();
+      }
+    } catch (error) {
+      console.error('Error creating transcoding job:', error);
+      alert('Failed to create transcoding job');
+    }
+  };
+
+  const startTranscodingJob = async (jobId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/api/transcoding/jobs/${jobId}/start`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Transcoding job started!');
+      fetchTranscodingData();
+    } catch (error) {
+      console.error('Error starting transcoding job:', error);
+      alert('Failed to start transcoding job');
+    }
+  };
+
+  const getOptimizationRecommendations = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/api/transcoding/optimize/recommendations?platform_name=${selectedPlatform}`,
+        contentMetadata,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setOptimizationRecommendations(response.data.recommendations);
+    } catch (error) {
+      console.error('Error getting optimization recommendations:', error);
+      alert('Failed to get optimization recommendations');
+    }
+  };
+
+  const transcodingTabs = [
+    { id: 'jobs', name: 'Transcoding Jobs', icon: '⚙️' },
+    { id: 'presets', name: 'Quality Presets', icon: '🎛️' },
+    { id: 'platforms', name: 'Platform Requirements', icon: '📱' },
+    { id: 'optimization', name: 'Format Optimization', icon: '🚀' }
+  ];
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'pending': 'bg-gray-100 text-gray-800',
+      'processing': 'bg-blue-100 text-blue-800',
+      'completed': 'bg-green-100 text-green-800',
+      'failed': 'bg-red-100 text-red-800',
+      'cancelled': 'bg-yellow-100 text-yellow-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">🎬 Transcoding & Format Optimization</h3>
+        <p className="text-gray-600">Convert media to different formats and optimize for various platforms</p>
+      </div>
+
+      {/* Sub-navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {transcodingTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTranscodingTab(tab.id)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTranscodingTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Jobs Tab */}
+      {activeTranscodingTab === 'jobs' && (
+        <div className="space-y-6">
+          {/* Create New Job */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Create Transcoding Job</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content ID *</label>
+                <input
+                  type="text"
+                  value={newJobForm.content_id}
+                  onChange={(e) => setNewJobForm(prev => ({ ...prev, content_id: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter content ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Input File Path *</label>
+                <input
+                  type="text"
+                  value={newJobForm.input_file_path}
+                  onChange={(e) => setNewJobForm(prev => ({ ...prev, input_file_path: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Path to input file"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Input Format</label>
+                <input
+                  type="text"
+                  value={newJobForm.input_format}
+                  onChange={(e) => setNewJobForm(prev => ({ ...prev, input_format: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="e.g., mp4, avi, mov"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Output Format</label>
+                <select
+                  value={newJobForm.output_format}
+                  onChange={(e) => setNewJobForm(prev => ({ ...prev, output_format: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="mp4">MP4</option>
+                  <option value="webm">WebM</option>
+                  <option value="avi">AVI</option>
+                  <option value="mov">MOV</option>
+                  <option value="mp3">MP3</option>
+                  <option value="aac">AAC</option>
+                  <option value="ogg">OGG</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Quality Preset</label>
+                <select
+                  value={newJobForm.quality_preset}
+                  onChange={(e) => setNewJobForm(prev => ({ ...prev, quality_preset: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="low">Low (480p)</option>
+                  <option value="medium">Medium (720p)</option>
+                  <option value="high">High (1080p)</option>
+                  <option value="ultra">Ultra (4K)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Platform Target</label>
+                <select
+                  value={newJobForm.platform_target}
+                  onChange={(e) => setNewJobForm(prev => ({ ...prev, platform_target: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">No specific platform</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="twitter">Twitter</option>
+                  <option value="spotify">Spotify</option>
+                  <option value="apple_music">Apple Music</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={createTranscodingJob}
+                className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700"
+              >
+                Create Transcoding Job
+              </button>
+            </div>
+          </div>
+
+          {/* Jobs List */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">📋 Transcoding Jobs</h4>
+            
+            {loading ? (
+              <div className="text-center py-8">Loading transcoding jobs...</div>
+            ) : transcodingJobs.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No transcoding jobs yet. Create your first job above!</p>
+            ) : (
+              <div className="space-y-4">
+                {transcodingJobs.map((job) => (
+                  <div key={job.job_id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h5 className="font-semibold">Job ID: {job.job_id}</h5>
+                        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div><strong>Content:</strong> {job.content_id}</div>
+                          <div><strong>Format:</strong> {job.input_format} → {job.output_format}</div>
+                          <div><strong>Quality:</strong> {job.quality_preset}</div>
+                        </div>
+                        {job.platform_target && (
+                          <div className="mt-2 text-sm text-gray-600">
+                            <strong>Platform:</strong> {job.platform_target}
+                          </div>
+                        )}
+                        <div className="mt-2 flex items-center space-x-4">
+                          <span className={`px-2 py-1 rounded text-xs ${getStatusColor(job.status)}`}>
+                            {job.status}
+                          </span>
+                          {job.progress_percentage > 0 && (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-20 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-purple-600 h-2 rounded-full" 
+                                  style={{ width: `${job.progress_percentage}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-gray-600">{job.progress_percentage.toFixed(1)}%</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        {job.status === 'pending' && (
+                          <button
+                            onClick={() => startTranscodingJob(job.job_id)}
+                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                          >
+                            Start Job
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Presets Tab */}
+      {activeTranscodingTab === 'presets' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">🎛️ Quality Presets</h4>
+          
+          {loading ? (
+            <div className="text-center py-8">Loading presets...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {presets.map((preset) => (
+                <div key={preset.preset_id} className="border rounded-lg p-4">
+                  <h5 className="font-semibold text-lg mb-2">{preset.name}</h5>
+                  <p className="text-gray-600 text-sm mb-3">{preset.description}</p>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Format:</strong> {preset.output_format.toUpperCase()}</div>
+                    <div><strong>Quality:</strong> {preset.quality_level}</div>
+                    {preset.resolution && <div><strong>Resolution:</strong> {preset.resolution}</div>}
+                    {preset.video_bitrate && <div><strong>Video Bitrate:</strong> {preset.video_bitrate}</div>}
+                    {preset.audio_bitrate && <div><strong>Audio Bitrate:</strong> {preset.audio_bitrate}</div>}
+                    {preset.frame_rate && <div><strong>Frame Rate:</strong> {preset.frame_rate} fps</div>}
+                  </div>
+
+                  {preset.platform_optimized && preset.platform_optimized.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-sm font-medium text-gray-700 mb-1">Optimized for:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {preset.platform_optimized.map((platform) => (
+                          <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                            {platform}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Platforms Tab */}
+      {activeTranscodingTab === 'platforms' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">📱 Platform Requirements</h4>
+          
+          {loading ? (
+            <div className="text-center py-8">Loading platform requirements...</div>
+          ) : (
+            <div className="space-y-6">
+              {platforms.map((platform) => (
+                <div key={platform.platform_name} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h5 className="font-semibold text-lg">{platform.platform_name.replace('_', ' ').toUpperCase()}</h5>
+                      <span className="text-sm text-gray-600 capitalize">{platform.platform_type.replace('_', ' ')}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <strong>Supported Formats:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {platform.supported_formats?.map((format) => (
+                          <span key={format} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                            {format.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <strong>Preferred Formats:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {platform.preferred_formats?.map((format) => (
+                          <span key={format} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                            {format.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {platform.max_file_size && (
+                      <div>
+                        <strong>Max File Size:</strong>
+                        <span className="ml-2">{(platform.max_file_size / (1024 * 1024)).toFixed(0)} MB</span>
+                      </div>
+                    )}
+
+                    {platform.max_duration && (
+                      <div>
+                        <strong>Max Duration:</strong>
+                        <span className="ml-2">{Math.floor(platform.max_duration / 60)}:{String(platform.max_duration % 60).padStart(2, '0')}</span>
+                      </div>
+                    )}
+
+                    {platform.aspect_ratios && platform.aspect_ratios.length > 0 && (
+                      <div>
+                        <strong>Aspect Ratios:</strong>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {platform.aspect_ratios.map((ratio) => (
+                            <span key={ratio} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
+                              {ratio}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {platform.frame_rates && platform.frame_rates.length > 0 && (
+                      <div>
+                        <strong>Frame Rates:</strong>
+                        <span className="ml-2">{platform.frame_rates.join(', ')} fps</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {platform.special_requirements && Object.keys(platform.special_requirements).length > 0 && (
+                    <div className="mt-4 p-3 bg-yellow-50 rounded">
+                      <strong className="text-yellow-800">Special Requirements:</strong>
+                      <ul className="mt-1 text-sm text-yellow-700">
+                        {Object.entries(platform.special_requirements).map(([key, value]) => (
+                          <li key={key}>• {key.replace('_', ' ')}: {String(value)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Optimization Tab */}
+      {activeTranscodingTab === 'optimization' && (
+        <div className="space-y-6">
+          {/* Content Metadata Input */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">🚀 Format Optimization</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+                <select
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="youtube">YouTube</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="twitter">Twitter</option>
+                  <option value="spotify">Spotify</option>
+                  <option value="apple_music">Apple Music</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content Type</label>
+                <select
+                  value={contentMetadata.content_type}
+                  onChange={(e) => setContentMetadata(prev => ({ ...prev, content_type: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="video">Video</option>
+                  <option value="audio">Audio</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Format</label>
+                <input
+                  type="text"
+                  value={contentMetadata.format}
+                  onChange={(e) => setContentMetadata(prev => ({ ...prev, format: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">File Size (bytes)</label>
+                <input
+                  type="number"
+                  value={contentMetadata.file_size}
+                  onChange={(e) => setContentMetadata(prev => ({ ...prev, file_size: parseInt(e.target.value) || 0 }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (seconds)</label>
+                <input
+                  type="number"
+                  value={contentMetadata.duration}
+                  onChange={(e) => setContentMetadata(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Resolution</label>
+                <input
+                  type="text"
+                  value={contentMetadata.resolution}
+                  onChange={(e) => setContentMetadata(prev => ({ ...prev, resolution: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="1920x1080"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={getOptimizationRecommendations}
+              className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700"
+            >
+              Get Optimization Recommendations
+            </button>
+          </div>
+
+          {/* Optimization Results */}
+          {optimizationRecommendations && (
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">📊 Optimization Recommendations</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Format Changes */}
+                {optimizationRecommendations.format_changes && Object.keys(optimizationRecommendations.format_changes).length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h5 className="font-semibold mb-3">Format Changes</h5>
+                    {Object.entries(optimizationRecommendations.format_changes).map(([key, value]) => (
+                      <div key={key} className="text-sm">
+                        <strong>{key.replace('_', ' ')}:</strong> {value}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Quality Adjustments */}
+                {optimizationRecommendations.quality_adjustments && Object.keys(optimizationRecommendations.quality_adjustments).length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h5 className="font-semibold mb-3">Quality Adjustments</h5>
+                    {Object.entries(optimizationRecommendations.quality_adjustments).map(([key, value]) => (
+                      <div key={key} className="text-sm">
+                        <strong>{key.replace('_', ' ')}:</strong> {value}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Optimizations */}
+                {optimizationRecommendations.optimizations && Object.keys(optimizationRecommendations.optimizations).length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h5 className="font-semibold mb-3">Optimizations</h5>
+                    {Object.entries(optimizationRecommendations.optimizations).map(([key, value]) => (
+                      <div key={key} className="text-sm">
+                        <strong>{key.replace('_', ' ')}:</strong> {value}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Impact Estimation */}
+                <div className="border rounded-lg p-4">
+                  <h5 className="font-semibold mb-3">Impact Estimation</h5>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>File Size Reduction:</strong> {(optimizationRecommendations.estimated_file_size_reduction / (1024*1024)).toFixed(2)} MB</div>
+                    <div><strong>Quality Impact:</strong> {optimizationRecommendations.estimated_quality_impact.replace('_', ' ')}</div>
+                    <div><strong>Processing Time:</strong> {optimizationRecommendations.processing_time_estimate}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Special Requirements */}
+              {optimizationRecommendations.special_requirements && Object.keys(optimizationRecommendations.special_requirements).length > 0 && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <h5 className="font-semibold text-blue-800 mb-3">Special Requirements</h5>
+                  <div className="space-y-1 text-sm text-blue-700">
+                    {Object.entries(optimizationRecommendations.special_requirements).map(([key, value]) => (
+                      <div key={key}>• {key.replace('_', ' ')}: {String(value)}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default ContentIngestionDashboard;
