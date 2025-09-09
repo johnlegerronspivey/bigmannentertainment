@@ -1761,7 +1761,33 @@ async def get_agency_talent(current_user: User = Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="Agency not found")
         
         # Get talent list
-        talent_list = await db.talent.find({"agency_id": agency["id"]}).to_list(100)
+        talent_cursor = db.talent.find({"agency_id": agency["id"]})
+        talent_list = []
+        
+        async for talent in talent_cursor:
+            talent_data = {
+                "id": talent["id"],
+                "agency_id": talent["agency_id"],
+                "name": talent["name"],
+                "stage_name": talent.get("stage_name"),
+                "bio": talent.get("bio", ""),
+                "age_range": talent.get("age_range"),
+                "gender": talent.get("gender"),
+                "ethnicity": talent.get("ethnicity"),
+                "categories": talent.get("categories", []),
+                "skills": talent.get("skills", []),
+                "languages": talent.get("languages", []),
+                "profile_images": talent.get("profile_images", []),
+                "portfolio_images": talent.get("portfolio_images", []),
+                "portfolio_videos": talent.get("portfolio_videos", []),
+                "active": talent.get("active", True),
+                "verified": talent.get("verified", False),
+                "created_at": talent["created_at"].isoformat() if isinstance(talent["created_at"], datetime) else str(talent["created_at"]),
+                "updated_at": talent["updated_at"].isoformat() if isinstance(talent["updated_at"], datetime) else str(talent["updated_at"]),
+                "total_licensed_images": talent.get("total_licensed_images", 0),
+                "total_licensing_revenue": talent.get("total_licensing_revenue", 0.0)
+            }
+            talent_list.append(talent_data)
         
         return {"talent": talent_list, "total": len(talent_list)}
         
