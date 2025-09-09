@@ -376,6 +376,12 @@ class LifecycleManagementService:
         result = self.versions_collection.insert_one(version_dict)
         new_version_obj.version_id = str(result.inserted_id)
         
+        # Update the version document with the version_id
+        self.versions_collection.update_one(
+            {"_id": result.inserted_id},
+            {"$set": {"version_id": new_version_obj.version_id}}
+        )
+        
         # Update lifecycle
         if set_as_current:
             await self._update_lifecycle_current_version(content_id, user_id, new_version_obj.version_id)
