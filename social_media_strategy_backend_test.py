@@ -486,7 +486,9 @@ class SocialMediaStrategyTester:
         ]
         
         for test_project in test_projects:
-            success, response, status = await self.make_request('POST', '/workflow/project', test_project["data"], use_params_for_post=True)
+            # Convert data to query parameters for this endpoint
+            params = test_project["data"].copy()
+            success, response, status = await self.make_request('POST', '/workflow/project', params=params)
             
             if success and isinstance(response, dict):
                 project = response.get('project')
