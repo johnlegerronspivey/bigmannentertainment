@@ -266,6 +266,12 @@ class LifecycleManagementService:
         version_result = self.versions_collection.insert_one(version_dict)
         version_id = str(version_result.inserted_id)
         
+        # Update the version document with the version_id
+        self.versions_collection.update_one(
+            {"_id": version_result.inserted_id},
+            {"$set": {"version_id": version_id}}
+        )
+        
         # Create lifecycle
         lifecycle = ContentLifecycle(
             content_id=content_id,
