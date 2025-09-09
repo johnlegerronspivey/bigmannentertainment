@@ -6349,6 +6349,8 @@ app.include_router(social_strategy_router)
 app.include_router(content_ingestion_router)
 app.include_router(transcoding_router)
 app.include_router(distribution_router)
+app.include_router(analytics_router)
+app.include_router(lifecycle_router)
 
 # CORS configuration for multi-environment setup
 cors_origins = [
