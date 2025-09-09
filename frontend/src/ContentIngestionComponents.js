@@ -2686,8 +2686,8 @@ const DistributionTab = () => {
   );
 };
 
-// Analytics Tab Component - Function 4: Content Analytics & Performance Monitoring
-const AnalyticsTab = () => {
+// Advanced Analytics Tab Component - Function 4: Content Analytics & Performance Monitoring
+const AdvancedAnalyticsTab = () => {
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState('dashboard');
   const [analyticsData, setAnalyticsData] = useState(null);
   const [contentPerformances, setContentPerformances] = useState([]);
