@@ -39,6 +39,22 @@ class DeliveryPlanRequest(BaseModel):
     target_timezone: str = "UTC"
     content_type: str = "music"
 
+class PerformanceUpdateRequest(BaseModel):
+    actual_reach: int
+    actual_revenue: float
+
+class DistributionJobRequest(BaseModel):
+    content_id: str
+    content_title: str
+    main_artist: str
+    content_type: str
+    target_platforms: List[str]
+    strategy: DeliveryStrategy = DeliveryStrategy.OPTIMIZED_TIMING
+    optimization_goal: OptimizationGoal = OptimizationGoal.MAX_REACH
+    scheduled_delivery: Optional[datetime] = None
+    priority: str = "medium"
+    metadata: Optional[Dict[str, Any]] = None
+
 class DistributionJobRequest(BaseModel):
     content_id: str
     content_title: str
