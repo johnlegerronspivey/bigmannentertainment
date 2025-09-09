@@ -172,7 +172,7 @@ class SocialMediaStrategyTester:
         ]
         
         for test_case in test_cases:
-            success, response, status = await self.make_request('POST', '/content-recommendations', test_case["data"])
+            success, response, status = await self.make_request('POST', '/content-recommendations', test_case["data"], use_params_for_post=True)
             
             if success and isinstance(response, dict):
                 recommendations = response.get('recommendations', {})
