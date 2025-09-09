@@ -1456,6 +1456,9 @@ except ImportError:
     async def agency_status():
         return {"status": "Agency onboarding module not available"}
 
+# Import social media strategy endpoints
+from social_media_strategy_endpoints import router as social_strategy_router
+
 # Authentication functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
