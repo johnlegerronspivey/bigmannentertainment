@@ -1465,6 +1465,9 @@ from content_ingestion_endpoints import router as content_ingestion_router
 # Import transcoding endpoints
 from transcoding_endpoints import router as transcoding_router
 
+# Import distribution endpoints (Function 3)
+from distribution_endpoints import router as distribution_router
+
 # Authentication functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
