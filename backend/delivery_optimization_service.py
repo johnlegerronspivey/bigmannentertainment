@@ -874,3 +874,63 @@ class DeliveryOptimizationService:
             reasons.append("balanced performance metrics")
         
         return f"Recommended due to {', '.join(reasons)}."
+    
+    def get_available_platforms(self) -> Dict[str, Any]:
+        """Get all available platforms with metadata"""
+        platforms = {}
+        
+        for platform_id, data in self.platform_audience_data.items():
+            platforms[platform_id] = {
+                "id": platform_id,
+                "name": platform_id.replace("_", " ").title(),
+                "engagement_score": data.get("engagement_score", 75),
+                "success_rate": data.get("success_rate", 90),
+                "global_reach": data.get("global_reach", 1000000),
+                "avg_processing_time": data.get("avg_processing_time", 24),
+                "revenue_multiplier": data.get("revenue_multiplier", 1.0),
+                "peak_hours": data.get("peak_hours", [19, 20, 21]),
+                "audience_demographics": data.get("audience_demographics", {}),
+                "content_preferences": data.get("content_preference", []),
+                "delivery_cost": self.delivery_costs.get(platform_id, 0.05)
+            }
+        
+        return platforms
+    
+    def get_platforms_by_type(self, platform_type: PlatformType) -> List[Dict[str, Any]]:
+        """Get platforms filtered by type"""
+        # Map platform types to actual platforms
+        type_mapping = {
+            PlatformType.STREAMING_MUSIC: ["spotify", "apple_music", "youtube_music", "amazon_music", "tidal", "soundcloud"],
+            PlatformType.SOCIAL_MEDIA: ["instagram", "facebook", "tiktok"],
+            PlatformType.VIDEO_PLATFORM: ["youtube"],
+            PlatformType.PODCAST: [],
+            PlatformType.RADIO: [],
+            PlatformType.BLOCKCHAIN: [],
+            PlatformType.WEB3_MUSIC: [],
+            PlatformType.NFT_MARKETPLACE: [],
+            PlatformType.LIVE_STREAMING: [],
+            PlatformType.AUDIO_SOCIAL: [],
+            PlatformType.MODEL_AGENCY: [],
+            PlatformType.MODEL_PLATFORM: [],
+            PlatformType.RIGHTS_ORGANIZATION: []
+        }
+        
+        platform_ids = type_mapping.get(platform_type, [])
+        platforms = []
+        
+        for platform_id in platform_ids:
+            if platform_id in self.platform_audience_data:
+                data = self.platform_audience_data[platform_id]
+                platforms.append({
+                    "id": platform_id,
+                    "name": platform_id.replace("_", " ").title(),
+                    "type": platform_type.value,
+                    "engagement_score": data.get("engagement_score", 75),
+                    "success_rate": data.get("success_rate", 90),
+                    "global_reach": data.get("global_reach", 1000000),
+                    "avg_processing_time": data.get("avg_processing_time", 24),
+                    "revenue_multiplier": data.get("revenue_multiplier", 1.0),
+                    "delivery_cost": self.delivery_costs.get(platform_id, 0.05)
+                })
+        
+        return platforms
