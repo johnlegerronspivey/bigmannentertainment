@@ -238,7 +238,7 @@ class DDEXMetadataService:
         
         # Commercial Model Type
         commercial_model_type = ET.SubElement(deal_terms, 'ern:CommercialModelType')
-        commercial_model_type.text = ddx_metadata.commercial_model
+        commercial_model_type.text = ddex_metadata.commercial_model
         
         # Usage
         usage = ET.SubElement(deal_terms, 'ern:Usage')
