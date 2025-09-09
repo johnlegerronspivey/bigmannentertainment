@@ -482,7 +482,7 @@ class SocialMediaStrategyTester:
         ]
         
         for test_project in test_projects:
-            success, response, status = await self.make_request('POST', '/workflow/project', test_project["data"])
+            success, response, status = await self.make_request('POST', '/workflow/project', test_project["data"], use_params_for_post=True)
             
             if success and isinstance(response, dict):
                 project = response.get('project')
