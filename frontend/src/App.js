@@ -5,6 +5,8 @@ import axios from "axios";
 import { DDEXERNCreator, DDEXCWRCreator, DDEXMessageList, DDEXIdentifierGenerator, DDEXAdminDashboard } from "./DDEXComponents";
 import { MusicReportsDashboard } from "./MusicReportsComponents";
 import { EnhancedUserDashboard, OnboardingTracker, SuccessCelebration } from "./WorkflowEnhancementComponents";
+import { AgencyRegistrationWizard, AgencyDashboard } from "./AgencyOnboardingComponents";
+import { LicenseBuilder, SmartContractViewer, RoyaltyTracker } from "./LicensingWorkflowComponents";
 import { SponsorshipDashboard, SponsorshipDealCreator, MetricsRecorder, AdminSponsorshipOverview } from "./SponsorshipComponents";
 import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, BusinessLicenseManagement, ComplianceDashboard } from "./TaxComponents";
 import { BusinessIdentifiers, UPCGenerator, ISRCGenerator, ProductManagement } from "./BusinessComponents";
