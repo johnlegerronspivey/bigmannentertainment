@@ -124,8 +124,8 @@ export const ContentIngestionDashboard = () => {
         {activeTab === 'upload' && <UploadMetadataTab onUploadComplete={fetchDashboardData} />}
         {activeTab === 'transcoding' && <TranscodingTab />}
         {activeTab === 'distribution' && <DistributionTab />}
-        {activeTab === 'analytics' && <AnalyticsTab />}
-        {activeTab === 'lifecycle' && <LifecycleTab />}
+        {activeTab === 'analytics' && <AdvancedAnalyticsTab />}
+        {activeTab === 'lifecycle' && <AdvancedLifecycleTab />}
         {activeTab === 'content' && <ContentLibraryTab dashboardData={dashboardData} />}
         {activeTab === 'compliance' && <ComplianceTab />}
         {activeTab === 'ddex' && <DDEXManagementTab />}
