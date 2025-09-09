@@ -3124,8 +3124,8 @@ const AdvancedAnalyticsTab = () => {
   );
 };
 
-// Lifecycle Tab Component - Function 5: Content Lifecycle Management & Automation
-const LifecycleTab = () => {
+// Advanced Lifecycle Tab Component - Function 5: Content Lifecycle Management & Automation
+const AdvancedLifecycleTab = () => {
   const [activeLifecycleTab, setActiveLifecycleTab] = useState('overview');
   const [lifecycles, setLifecycles] = useState([]);
   const [automationRules, setAutomationRules] = useState([]);
