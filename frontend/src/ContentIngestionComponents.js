@@ -2209,4 +2209,479 @@ const TranscodingTab = () => {
   );
 };
 
+// Distribution Tab Component - Function 3: Content Distribution & Delivery Management
+const DistributionTab = () => {
+  const [activeDistributionTab, setActiveDistributionTab] = useState('plans');
+  const [deliveryPlans, setDeliveryPlans] = useState([]);
+  const [platforms, setPlatforms] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [newPlanForm, setNewPlanForm] = useState({
+    content_id: '',
+    target_platforms: [],
+    strategy: 'optimized_timing',
+    optimization_goal: 'max_reach',
+    target_timezone: 'UTC',
+    content_type: 'music'
+  });
+
+  useEffect(() => {
+    fetchDistributionData();
+  }, []);
+
+  const fetchDistributionData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Fetch delivery plans
+      const plansResponse = await axios.get(`${API}/api/distribution/delivery-plans`, { headers });
+      setDeliveryPlans(plansResponse.data.delivery_plans || []);
+
+      // Fetch available platforms
+      const platformsResponse = await axios.get(`${API}/api/distribution/platforms`, { headers });
+      setPlatforms(Object.values(platformsResponse.data.platforms || {}));
+
+      // Fetch analytics
+      const analyticsResponse = await axios.get(`${API}/api/distribution/analytics/delivery-performance`, { headers });
+      setAnalytics(analyticsResponse.data.analytics);
+
+    } catch (error) {
+      console.error('Error fetching distribution data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDeliveryPlan = async () => {
+    if (!newPlanForm.content_id || newPlanForm.target_platforms.length === 0) {
+      alert('Please provide content ID and select at least one platform');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/api/distribution/delivery-plans/create`, newPlanForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Delivery plan created successfully!');
+        setNewPlanForm({
+          content_id: '',
+          target_platforms: [],
+          strategy: 'optimized_timing',
+          optimization_goal: 'max_reach',
+          target_timezone: 'UTC',
+          content_type: 'music'
+        });
+        fetchDistributionData();
+      }
+    } catch (error) {
+      console.error('Error creating delivery plan:', error);
+      alert('Failed to create delivery plan');
+    }
+  };
+
+  const getRecommendations = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/api/distribution/recommendations/platforms?content_type=${newPlanForm.content_type}&target_audience=general&budget_level=medium`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setRecommendations(response.data.recommendations || []);
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+    }
+  };
+
+  const distributionTabs = [
+    { id: 'plans', name: 'Delivery Plans', icon: '📋' },
+    { id: 'platforms', name: 'Platform Management', icon: '🏢' },
+    { id: 'analytics', name: 'Distribution Analytics', icon: '📈' },
+    { id: 'recommendations', name: 'Platform Recommendations', icon: '💡' }
+  ];
+
+  const strategies = {
+    'immediate': { name: 'Immediate', desc: 'All platforms simultaneously' },
+    'optimized_timing': { name: 'Optimized Timing', desc: 'Peak audience hours' },
+    'staggered_release': { name: 'Staggered Release', desc: 'Fastest platforms first' },
+    'regional_rollout': { name: 'Regional Rollout', desc: 'By geographic reach' },
+    'test_and_scale': { name: 'Test & Scale', desc: 'High-success platforms first' }
+  };
+
+  const goals = {
+    'max_reach': { name: 'Maximum Reach', desc: 'Largest audience' },
+    'max_revenue': { name: 'Maximum Revenue', desc: 'Best revenue sharing' },
+    'fastest_delivery': { name: 'Fastest Delivery', desc: 'Quick processing' },
+    'quality_focused': { name: 'Quality Focused', desc: 'High engagement' },
+    'cost_effective': { name: 'Cost Effective', desc: 'Best ROI' }
+  };
+
+  const handlePlatformToggle = (platformId) => {
+    setNewPlanForm(prev => ({
+      ...prev,
+      target_platforms: prev.target_platforms.includes(platformId)
+        ? prev.target_platforms.filter(p => p !== platformId)
+        : [...prev.target_platforms, platformId]
+    }));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">🌐 Content Distribution & Delivery Management</h3>
+        <p className="text-gray-600">Optimize content distribution across multiple platforms with intelligent delivery strategies</p>
+      </div>
+
+      {/* Sub-navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {distributionTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveDistributionTab(tab.id)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeDistributionTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Plans Tab */}
+      {activeDistributionTab === 'plans' && (
+        <div className="space-y-6">
+          {/* Create New Plan */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">📋 Create Delivery Plan</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content ID *</label>
+                <input
+                  type="text"
+                  value={newPlanForm.content_id}
+                  onChange={(e) => setNewPlanForm(prev => ({ ...prev, content_id: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter content ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content Type</label>
+                <select
+                  value={newPlanForm.content_type}
+                  onChange={(e) => setNewPlanForm(prev => ({ ...prev, content_type: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="music">Music</option>
+                  <option value="video">Video</option>
+                  <option value="podcast">Podcast</option>
+                  <option value="audiobook">Audiobook</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Distribution Strategy</label>
+                <select
+                  value={newPlanForm.strategy}
+                  onChange={(e) => setNewPlanForm(prev => ({ ...prev, strategy: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {Object.entries(strategies).map(([key, strategy]) => (
+                    <option key={key} value={key}>{strategy.name} - {strategy.desc}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Optimization Goal</label>
+                <select
+                  value={newPlanForm.optimization_goal}
+                  onChange={(e) => setNewPlanForm(prev => ({ ...prev, optimization_goal: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {Object.entries(goals).map(([key, goal]) => (
+                    <option key={key} value={key}>{goal.name} - {goal.desc}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Platform Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Target Platforms *</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {platforms.slice(0, 12).map((platform) => (
+                  <div key={platform.id} className="flex items-center">
+                    <input
+                      id={platform.id}
+                      type="checkbox"
+                      checked={newPlanForm.target_platforms.includes(platform.id)}
+                      onChange={() => handlePlatformToggle(platform.id)}
+                      className="mr-2"
+                    />
+                    <label htmlFor={platform.id} className="text-sm text-gray-700 cursor-pointer">
+                      {platform.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Selected: {newPlanForm.target_platforms.length} platforms
+              </p>
+            </div>
+
+            <div className="flex space-x-4">
+              <button
+                onClick={createDeliveryPlan}
+                className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700"
+              >
+                Create Delivery Plan
+              </button>
+              <button
+                onClick={getRecommendations}
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+              >
+                Get Platform Recommendations
+              </button>
+            </div>
+          </div>
+
+          {/* Delivery Plans List */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">📋 Your Delivery Plans</h4>
+            
+            {loading ? (
+              <div className="text-center py-8">Loading delivery plans...</div>
+            ) : deliveryPlans.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No delivery plans yet. Create your first plan above!</p>
+            ) : (
+              <div className="space-y-4">
+                {deliveryPlans.map((plan) => (
+                  <div key={plan.plan_id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h5 className="font-semibold">Content: {plan.content_id}</h5>
+                        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div><strong>Strategy:</strong> {strategies[plan.strategy]?.name || plan.strategy}</div>
+                          <div><strong>Goal:</strong> {goals[plan.optimization_goal]?.name || plan.optimization_goal}</div>
+                          <div><strong>Platforms:</strong> {plan.delivery_windows?.length || 0}</div>
+                        </div>
+                        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div><strong>Est. Reach:</strong> {plan.total_estimated_reach?.toLocaleString() || 'N/A'}</div>
+                          <div><strong>Est. Revenue:</strong> ${plan.total_estimated_revenue || 0}</div>
+                          <div><strong>Confidence:</strong> {plan.confidence_score || 0}%</div>
+                        </div>
+                        {plan.recommended_sequence && plan.recommended_sequence.length > 0 && (
+                          <div className="mt-2">
+                            <strong className="text-sm text-gray-700">Platform Sequence:</strong>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {plan.recommended_sequence.map((platform, index) => (
+                                <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                                  {index + 1}. {platform}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {plan.risk_factors && plan.risk_factors.length > 0 && (
+                          <div className="mt-2">
+                            <strong className="text-sm text-red-700">Risk Factors:</strong>
+                            <ul className="text-xs text-red-600 mt-1">
+                              {plan.risk_factors.map((risk, index) => (
+                                <li key={index}>• {risk}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                      <div className="ml-4 text-right">
+                        <div className="text-xs text-gray-500">
+                          Created: {new Date(plan.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Platforms Tab */}
+      {activeDistributionTab === 'platforms' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">🏢 Platform Management</h4>
+          
+          {loading ? (
+            <div className="text-center py-8">Loading platforms...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {platforms.map((platform) => (
+                <div key={platform.id} className="border rounded-lg p-4">
+                  <h5 className="font-semibold text-lg mb-2">{platform.name}</h5>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Engagement Score:</strong> {platform.engagement_score}%</div>
+                    <div><strong>Success Rate:</strong> {platform.success_rate}%</div>
+                    <div><strong>Global Reach:</strong> {(platform.global_reach / 1000000).toFixed(1)}M users</div>
+                    <div><strong>Processing Time:</strong> {platform.avg_processing_time} hours</div>
+                    <div><strong>Revenue Multiplier:</strong> {platform.revenue_multiplier}x</div>
+                    <div><strong>Delivery Cost:</strong> ${platform.delivery_cost}</div>
+                  </div>
+
+                  {platform.peak_hours && platform.peak_hours.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-sm font-medium text-gray-700 mb-1">Peak Hours:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {platform.peak_hours.map((hour) => (
+                          <span key={hour} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                            {hour}:00
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {platform.content_preferences && platform.content_preferences.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-sm font-medium text-gray-700 mb-1">Content Types:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {platform.content_preferences.map((type) => (
+                          <span key={type} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
+                            {type}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Analytics Tab */}
+      {activeDistributionTab === 'analytics' && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">📈 Distribution Analytics</h4>
+            
+            {analytics ? (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">{analytics.total_deliveries}</div>
+                  <div className="text-sm text-gray-600">Total Deliveries</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">{analytics.successful_deliveries}</div>
+                  <div className="text-sm text-gray-600">Successful</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-red-600">{analytics.failed_deliveries}</div>
+                  <div className="text-sm text-gray-600">Failed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600">{analytics.success_rate}%</div>
+                  <div className="text-sm text-gray-600">Success Rate</div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">No analytics data available yet.</p>
+            )}
+          </div>
+
+          {analytics && analytics.total_reach > 0 && (
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h5 className="font-semibold mb-3">Performance Metrics</h5>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{(analytics.total_reach / 1000000).toFixed(1)}M</div>
+                  <div className="text-sm text-gray-600">Total Reach</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">${analytics.total_revenue?.toFixed(2) || '0.00'}</div>
+                  <div className="text-sm text-gray-600">Total Revenue</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">{analytics.average_delivery_time?.toFixed(1) || 'N/A'}</div>
+                  <div className="text-sm text-gray-600">Avg Delivery Time (hrs)</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Recommendations Tab */}
+      {activeDistributionTab === 'recommendations' && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">💡 Platform Recommendations</h4>
+          
+          <div className="mb-4">
+            <button
+              onClick={getRecommendations}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            >
+              Get Recommendations for {newPlanForm.content_type}
+            </button>
+          </div>
+
+          {recommendations.length > 0 ? (
+            <div className="space-y-4">
+              {recommendations.map((rec) => (
+                <div key={rec.platform} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h5 className="font-semibold text-lg">{rec.platform.replace('_', ' ').toUpperCase()}</h5>
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div><strong>Recommendation Score:</strong> {rec.recommendation_score}/100</div>
+                        <div><strong>Engagement:</strong> {rec.engagement_score}%</div>
+                        <div><strong>Success Rate:</strong> {rec.success_rate}%</div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div><strong>Est. Reach:</strong> {(rec.estimated_reach / 1000000).toFixed(1)}M</div>
+                        <div><strong>Cost:</strong> ${rec.cost_per_delivery}</div>
+                        <div><strong>Processing:</strong> {rec.processing_time_hours}h</div>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-600">{rec.reasoning}</p>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <div className={`px-3 py-1 rounded text-sm ${
+                        rec.recommendation_score >= 80 ? 'bg-green-100 text-green-800' :
+                        rec.recommendation_score >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {rec.recommendation_score >= 80 ? 'Highly Recommended' :
+                         rec.recommendation_score >= 60 ? 'Recommended' : 'Consider Carefully'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">Click "Get Recommendations" to see platform suggestions for your content type.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default ContentIngestionDashboard;
