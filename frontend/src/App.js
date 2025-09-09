@@ -325,6 +325,10 @@ const Navigation = () => {
                   <Link to="/tax" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Tax Management</Link>
                   <Link to="/licensing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Licensing</Link>
                   <Link to="/gs1" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">GS1</Link>
+                  <Link to="/social-strategy" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                    <span className="mr-3">🚀</span>
+                    Social Media Strategy
+                  </Link>
                 </div>
               )}
             </div>
