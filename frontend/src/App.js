@@ -3277,6 +3277,7 @@ function App() {
             <Route path="/tax/business" element={<ProtectedRoute><BusinessTaxInfo /></ProtectedRoute>} />
             <Route path="/tax/licenses" element={<ProtectedRoute><BusinessLicenseManagement /></ProtectedRoute>} />
             <Route path="/tax/compliance" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />
+            <Route path="/social-strategy" element={<ProtectedRoute><SocialMediaStrategyDashboard /></ProtectedRoute>} />
 
             {/* Industry routes */}
             <Route path="/industry" element={<ProtectedRoute><IndustryDashboard /></ProtectedRoute>} />
