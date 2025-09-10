@@ -231,7 +231,9 @@ class ContentWorkflowCurlTester:
                 
                 # Analyze profile configurations
                 profile_analysis = []
-                for profile in profiles[:5]:  # Sample first 5 profiles
+                for i, profile in enumerate(profiles):
+                    if i >= 5:  # Sample first 5 profiles
+                        break
                     profile_analysis.append({
                         "name": profile.get("name", "Unknown"),
                         "profile": profile.get("profile", "Unknown"),
