@@ -279,7 +279,8 @@ class ContentWorkflowCurlTester:
             platforms_data = response["data"]
             
             if "platforms" in platforms_data:
-                platforms = platforms_data["platforms"]
+                platforms_dict = platforms_data["platforms"]
+                platforms = list(platforms_dict.values()) if isinstance(platforms_dict, dict) else platforms_dict
                 
                 # Analyze platform capabilities
                 platform_analysis = []
