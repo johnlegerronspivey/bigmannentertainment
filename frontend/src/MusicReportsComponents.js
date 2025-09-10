@@ -5,14 +5,29 @@ const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 // Music Reports Integration Dashboard
 export const MusicReportsDashboard = () => {
+  const [dashboardData, setDashboardData] = useState(null);
   const [integrationData, setIntegrationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [error, setError] = useState('');
+  const [syncStatus, setSyncStatus] = useState('');
 
   useEffect(() => {
+    fetchDashboardData();
     fetchIntegrationData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/api/music-reports/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDashboardData(response.data.music_reports_dashboard);
+    } catch (error) {
+      console.error('Dashboard fetch error:', error);
+    }
+  };
 
   const fetchIntegrationData = async () => {
     try {
@@ -20,7 +35,7 @@ export const MusicReportsDashboard = () => {
       const response = await axios.get(`${API}/api/ddex/music-reports/cwr`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setIntegrationData(response.data.music_reports_cwr);
+      setIntegrationData(response.data.music_reports_integration);
       setError('');
     } catch (error) {
       setError('Failed to load Music Reports integration data');
