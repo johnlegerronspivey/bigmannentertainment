@@ -886,8 +886,12 @@ async def get_music_reports_cwr_integration(current_user: User = Depends(get_cur
             })
         
         return {
-            "music_reports_cwr": {
-                "integration_status": integration_status,
+            "music_reports_integration": {
+                "connected": False,  # Would check actual API connection
+                "last_sync": None,
+                "total_works": len(cwr_works),
+                "pending_sync": len([w for w in cwr_works if w.get("status") == "Registered"]),
+                "sync_errors": 0,
                 "cwr_works": formatted_works,
                 "sync_capabilities": {
                     "automatic_sync": True,
