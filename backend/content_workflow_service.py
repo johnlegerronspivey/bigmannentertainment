@@ -386,6 +386,7 @@ class ContentWorkflowService:
             {
                 "profile_name": "Radio FM Master",
                 "channel": DistributionChannel.RADIO_FM,
+                "container_format": "wav",
                 "audio_specs": {
                     "codec": "wav",
                     "sample_rate": 44100,
