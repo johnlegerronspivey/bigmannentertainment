@@ -36,8 +36,8 @@ class MusicReportsIntegrationTester:
         try:
             # Test user credentials
             login_data = {
-                "email": "john.spivey@bigmannentertainment.com",
-                "password": "BigMann2025!"
+                "email": "musicreports.tester@bigmannentertainment.com",
+                "password": "MusicReports2025!"
             }
             
             async with self.session.post(f"{BACKEND_URL}/auth/login", json=login_data) as response:
@@ -49,8 +49,8 @@ class MusicReportsIntegrationTester:
                 else:
                     # Try alternative credentials
                     login_data = {
-                        "email": "test@bigmannentertainment.com", 
-                        "password": "testpass123"
+                        "email": "john.spivey@bigmannentertainment.com",
+                        "password": "BigMann2025!"
                     }
                     
                     async with self.session.post(f"{BACKEND_URL}/auth/login", json=login_data) as alt_response:
