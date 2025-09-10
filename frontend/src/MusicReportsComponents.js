@@ -216,6 +216,7 @@ export const MusicReportsDashboard = () => {
       </div>
     </div>
   );
+};
             <div className="text-sm text-blue-800">Total Works Registered</div>
           </div>
           <div className="bg-orange-50 p-4 rounded-lg">
