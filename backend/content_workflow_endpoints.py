@@ -4,6 +4,7 @@ Provides REST API for the end-to-end content distribution workflow
 """
 
 import os
+import uuid
 import asyncio
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
