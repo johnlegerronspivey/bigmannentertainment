@@ -659,3 +659,26 @@ async def health_check():
             "error": str(e),
             "status": "unhealthy"
         }
+
+# Content lifecycle detail endpoint - placed at end to avoid path conflicts
+@router.get("/{content_id}")
+async def get_content_lifecycle(
+    content_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """Get content lifecycle details"""
+    try:
+        lifecycle = await lifecycle_service.get_content_lifecycle(content_id, user_id)
+        
+        if not lifecycle:
+            raise HTTPException(status_code=404, detail="Content lifecycle not found")
+        
+        return {
+            "success": True,
+            "lifecycle": lifecycle
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
