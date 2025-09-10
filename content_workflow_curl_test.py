@@ -283,7 +283,9 @@ class ContentWorkflowCurlTester:
                 platform_analysis = []
                 platform_types = {}
                 
-                for platform in platforms[:10]:  # Sample first 10 platforms
+                for i, platform in enumerate(platforms):
+                    if i >= 10:  # Sample first 10 platforms
+                        break
                     platform_type = platform.get("type", "unknown")
                     platform_types[platform_type] = platform_types.get(platform_type, 0) + 1
                     
