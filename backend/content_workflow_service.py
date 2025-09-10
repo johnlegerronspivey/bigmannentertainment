@@ -346,6 +346,7 @@ class ContentWorkflowService:
             {
                 "profile_name": "TikTok Vertical",
                 "channel": DistributionChannel.SOCIAL_TIKTOK,
+                "container_format": "mp4",
                 "video_specs": {
                     "codec": "h264",
                     "resolution": "1080x1920",
