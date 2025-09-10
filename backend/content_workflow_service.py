@@ -277,6 +277,7 @@ class ContentWorkflowService:
             {
                 "profile_name": "Linear TV EU - HD",
                 "channel": DistributionChannel.LINEAR_TV_EU,
+                "container_format": "mov",
                 "video_specs": {
                     "codec": "prores",
                     "resolution": "1920x1080",
