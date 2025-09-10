@@ -300,6 +300,7 @@ class ContentWorkflowService:
             {
                 "profile_name": "OTT SVOD - Multi-bitrate",
                 "channel": DistributionChannel.OTT_SVOD,
+                "container_format": "mp4",
                 "video_specs": {
                     "codec": "h264_hevc",
                     "resolutions": ["3840x2160", "1920x1080", "1280x720", "854x480"],
