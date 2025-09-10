@@ -1469,7 +1469,11 @@ from content_workflow_endpoints import router as content_workflow_router
 from transcoding_endpoints import router as transcoding_router
 
 # Import distribution endpoints (Function 3)
-from distribution_endpoints import router as distribution_router
+try:
+    from distribution_orchestration_endpoints import router as distribution_router
+except ImportError:
+    # Fallback to existing distribution router if orchestration router doesn't exist
+    from distribution_endpoints import router as distribution_router
 
 # Import analytics endpoints (Function 4)
 from analytics_endpoints import router as analytics_router
