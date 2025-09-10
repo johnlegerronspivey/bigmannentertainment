@@ -322,6 +322,7 @@ class ContentWorkflowService:
             {
                 "profile_name": "YouTube Optimized",
                 "channel": DistributionChannel.SOCIAL_YOUTUBE,
+                "container_format": "mp4",
                 "video_specs": {
                     "codec": "h264",
                     "resolution": "1920x1080",
