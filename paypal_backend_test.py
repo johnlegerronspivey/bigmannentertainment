@@ -13,7 +13,7 @@ from datetime import datetime
 from decimal import Decimal
 
 # Backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://mediahub-dashboard.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://pedantic-curie.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class PayPalBackendTester:
