@@ -107,27 +107,7 @@ async def create_content_lifecycle(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{content_id}")
-async def get_content_lifecycle(
-    content_id: str,
-    user_id: str = Depends(get_current_user)
-):
-    """Get content lifecycle details"""
-    try:
-        lifecycle = await lifecycle_service.get_content_lifecycle(content_id, user_id)
-        
-        if not lifecycle:
-            raise HTTPException(status_code=404, detail="Content lifecycle not found")
-        
-        return {
-            "success": True,
-            "lifecycle": lifecycle
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# Moved to end of file to avoid path conflicts
 
 @router.get("/")
 async def list_content_lifecycles(
