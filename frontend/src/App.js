@@ -335,6 +335,10 @@ const Navigation = () => {
                     <span className="mr-3">📤</span>
                     Content Ingestion & Metadata
                   </Link>
+                  <Link to="/comprehensive-workflow" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                    <span className="mr-3">🎯</span>
+                    End-to-End Workflow
+                  </Link>
                 </div>
               )}
             </div>
