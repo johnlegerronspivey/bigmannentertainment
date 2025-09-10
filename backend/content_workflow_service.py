@@ -368,6 +368,7 @@ class ContentWorkflowService:
             {
                 "profile_name": "Spotify Audio Master",
                 "channel": DistributionChannel.DSP_SPOTIFY,
+                "container_format": "wav",
                 "audio_specs": {
                     "codec": "wav",
                     "sample_rate": 44100,
