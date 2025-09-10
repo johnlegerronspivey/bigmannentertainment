@@ -1462,6 +1462,9 @@ from social_media_strategy_endpoints import router as social_strategy_router
 # Import content ingestion endpoints
 from content_ingestion_endpoints import router as content_ingestion_router
 
+# Import content workflow endpoints
+from content_workflow_endpoints import router as content_workflow_router
+
 # Import transcoding endpoints
 from transcoding_endpoints import router as transcoding_router
 
