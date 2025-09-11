@@ -211,16 +211,14 @@ async def get_real_time_metrics(
 
 @router.post("/analytics/generate-report", response_model=Dict[str, Any])
 async def generate_performance_report(
-    start_date: datetime,
-    end_date: datetime,
-    platforms: List[PlatformType],
+    request: PerformanceReportRequest,
     background_tasks: BackgroundTasks,
     user_id: str = Depends(get_current_user)
 ):
     """Generate comprehensive performance report with AI insights"""
     try:
         report = await real_time_analytics_service.generate_performance_report(
-            start_date, end_date, platforms
+            request.start_date, request.end_date, request.platforms
         )
         
         return {
