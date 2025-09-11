@@ -133,7 +133,7 @@ async def optimize_posting_times(
 
 # PHASE 6: Real-time Analytics & Performance Optimization Endpoints
 
-@router.post("/analytics/track-metric", response_model=Dict[str, str])
+@router.post("/analytics/track-metric", response_model=Dict[str, Any])
 async def track_analytics_metric(
     metric: AnalyticsMetric,
     user_id: str = Depends(get_current_user)
