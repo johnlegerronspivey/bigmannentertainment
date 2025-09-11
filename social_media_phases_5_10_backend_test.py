@@ -478,26 +478,26 @@ class SocialMediaPhases510Tester:
             "influencer_id": "influencer_12345",
             "campaign_id": self.campaign_id or "test_campaign_id",
             "partnership_type": "sponsored_post",
-            "compensation": {
-                "type": "monetary",
-                "amount": 1500.0,
-                "currency": "USD"
-            },
             "deliverables": [
                 "1 Instagram post",
                 "3 Instagram stories",
                 "1 TikTok video"
             ],
-            "timeline": {
-                "start_date": datetime.now().isoformat(),
-                "end_date": (datetime.now() + timedelta(days=14)).isoformat()
+            "compensation": {
+                "type": "monetary",
+                "amount": 1500.0,
+                "currency": "USD"
             },
-            "requirements": {
+            "contract_terms": {
                 "hashtags": ["#BigMannEntertainment", "#SummerTour2025"],
                 "mentions": ["@bigmannentertainment"],
-                "content_approval": True
+                "content_approval": True,
+                "exclusivity_period": 30
             },
-            "status": "pending"
+            "status": "pending",
+            "start_date": datetime.now().isoformat(),
+            "end_date": (datetime.now() + timedelta(days=14)).isoformat(),
+            "performance_metrics": {}
         }
         
         response = await self.make_request("POST", "/social-media-advanced/partnerships/create", partnership_data)
