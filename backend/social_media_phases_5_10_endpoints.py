@@ -490,19 +490,19 @@ async def get_brand_ambassadors(
 
 @router.post("/ai/content-recommendations", response_model=Dict[str, Any])
 async def generate_content_recommendations(
-    platforms: List[PlatformType],
+    request: ContentRecommendationRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Generate AI-powered content recommendations"""
     try:
         recommendations = await ai_optimization_service.generate_content_recommendations(
-            user_id, platforms
+            user_id, request.platforms
         )
         
         return {
             "success": True,
             "message": f"Generated {len(recommendations)} content recommendations",
-            "platforms": [p.value for p in platforms],
+            "platforms": [p.value for p in request.platforms],
             "recommendations": [rec.dict() for rec in recommendations]
         }
     except Exception as e:
