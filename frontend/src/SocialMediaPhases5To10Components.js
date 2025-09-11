@@ -3,6 +3,40 @@ import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'https://social-connect-148.preview.emergentagent.com';
 
+// Global error handler utility
+const handleApiError = (error, context) => {
+  console.error(`Error in ${context}:`, error);
+  
+  if (error.response?.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    return;
+  }
+  
+  if (error.response?.status === 403) {
+    console.error('Access forbidden - insufficient permissions');
+    return;
+  }
+  
+  if (error.response?.status >= 500) {
+    console.error('Server error - please try again later');
+    return;
+  }
+  
+  console.error('API Error:', error.response?.data?.message || error.message || 'Unknown error');
+};
+
+// Safe API response handler
+const handleApiResponse = (response, successCallback, errorMessage = 'API call failed') => {
+  if (response?.data?.success) {
+    if (successCallback) successCallback(response.data);
+    return true;
+  } else {
+    console.error(errorMessage, response?.data?.message || 'Unknown error');
+    return false;
+  }
+};
+
 // PHASE 5: Advanced Content Scheduling & Publishing Automation
 const AdvancedSchedulingTab = () => {
   const [schedulingRules, setSchedulingRules] = useState([]);
