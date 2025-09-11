@@ -406,7 +406,7 @@ async def discover_influencers(
         logger.error(f"Failed to discover influencers: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to discover influencers")
 
-@router.post("/partnerships/create", response_model=Dict[str, str])
+@router.post("/partnerships/create", response_model=Dict[str, Any])
 async def create_partnership(
     partnership: Partnership,
     background_tasks: BackgroundTasks,
