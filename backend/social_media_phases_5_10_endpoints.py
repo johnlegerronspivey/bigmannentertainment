@@ -83,6 +83,54 @@ class ContentOptimizationRequest(BaseModel):
     content: str
     target_platform: PlatformType
 
+class ABTestRequest(BaseModel):
+    content_variants: List[str]
+    platforms: List[PlatformType]
+    duration_hours: int = 24
+
+class EngagementRequest(BaseModel):
+    platform: PlatformType
+    engagement_type: EngagementType
+    from_user: str
+    to_user: str
+    content: str
+    post_id: Optional[str] = None
+
+class AutoResponseRuleRequest(BaseModel):
+    name: str
+    triggers: List[str]
+    response_template: str
+    platforms: List[PlatformType]
+    conditions: Dict[str, Any] = {}
+    is_active: bool = True
+
+class CampaignRequest(BaseModel):
+    name: str
+    description: str
+    start_date: datetime
+    end_date: datetime
+    platforms: List[PlatformType]
+    budget_total: float
+    budget_allocation: Dict[str, float]
+    content_templates: List[str]
+    target_audience: Dict[str, Any]
+    goals: Dict[str, float]
+    status: CampaignStatus = CampaignStatus.DRAFT
+
+class PartnershipRequest(BaseModel):
+    influencer_id: str
+    campaign_id: str
+    partnership_type: str
+    deliverables: List[str]
+    compensation: Dict[str, Any]
+    contract_terms: Dict[str, Any]
+    start_date: datetime
+    end_date: datetime
+    status: str = "pending"
+
+class PartnershipMetricsRequest(BaseModel):
+    metrics: Dict[str, float]
+
 @router.post("/scheduling/rules", response_model=Dict[str, Any])
 async def create_scheduling_rule(
     rule: SchedulingRule,
