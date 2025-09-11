@@ -91,13 +91,19 @@ class ContentSchedulingService:
     
     async def schedule_content_batch(self, queue_id: str, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
         """Schedule multiple content items in a queue"""
-        queue = await self.collection_queues.find_one({"id": queue_id})
-        if not queue:
-            raise ValueError("Queue not found")
-        
-        rule = await self.collection_rules.find_one({"id": queue["scheduling_rule_id"]})
-        if not rule:
-            raise ValueError("Scheduling rule not found")
+        try:
+            queue = await self.collection_queues.find_one({"id": queue_id})
+            if not queue:
+                logger.warning(f"Queue not found: {queue_id}")
+                return []
+            
+            rule = await self.collection_rules.find_one({"id": queue["scheduling_rule_id"]})
+            if not rule:
+                logger.warning(f"Scheduling rule not found: {queue['scheduling_rule_id']}")
+                return []
+        except Exception as e:
+            logger.error(f"Error in schedule_content_batch: {str(e)}")
+            return []
         
         scheduled_posts = []
         current_date = start_date
