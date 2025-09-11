@@ -3295,6 +3295,7 @@ function App() {
             <Route path="/social-strategy" element={<ProtectedRoute><SocialMediaStrategyDashboard /></ProtectedRoute>} />
             <Route path="/content-ingestion" element={<ProtectedRoute><ContentIngestionDashboard /></ProtectedRoute>} />
             <Route path="/comprehensive-workflow" element={<ProtectedRoute><ComprehensiveWorkflowDashboard /></ProtectedRoute>} />
+            <Route path="/social-media-phases-5-10" element={<ProtectedRoute><SocialMediaPhases5To10Dashboard /></ProtectedRoute>} />
 
             {/* Industry routes */}
             <Route path="/industry" element={<ProtectedRoute><IndustryDashboard /></ProtectedRoute>} />
