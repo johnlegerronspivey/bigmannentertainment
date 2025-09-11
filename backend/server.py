@@ -1465,6 +1465,9 @@ from social_media_phases_5_10_endpoints import router as social_phases_5_10_rout
 # Import royalty engine endpoints
 from royalty_engine_endpoints import router as royalty_engine_router
 
+# Import social media royalty integration endpoints
+from social_media_royalty_endpoints import router as social_media_royalty_router
+
 # Import content ingestion endpoints
 from content_ingestion_endpoints import router as content_ingestion_router
 
