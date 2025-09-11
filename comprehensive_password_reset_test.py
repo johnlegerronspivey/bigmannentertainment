@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://bme-distribution.preview.emergentagent.com/api"
+BACKEND_URL = "https://social-connect-148.preview.emergentagent.com/api"
 
 class ComprehensivePasswordResetTester:
     def __init__(self):

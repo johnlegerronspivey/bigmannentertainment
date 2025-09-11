@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 # Use the correct backend URL
-BACKEND_URL = "https://bme-distribution.preview.emergentagent.com"
+BACKEND_URL = "https://social-connect-148.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class ComprehensiveBackendTester:

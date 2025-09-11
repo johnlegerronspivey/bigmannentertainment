@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bme-distribution.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://social-connect-148.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class ContentIngestionTester:

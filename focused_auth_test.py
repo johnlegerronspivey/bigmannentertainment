@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 # Use the correct backend URL
-BACKEND_URL = "https://bme-distribution.preview.emergentagent.com"
+BACKEND_URL = "https://social-connect-148.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 async def test_exact_scenario():
