@@ -303,11 +303,21 @@ async def create_ab_test(
 
 @router.post("/engagement/process", response_model=Dict[str, Any])
 async def process_engagement(
-    engagement: EngagementItem,
+    request: EngagementRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Process incoming engagement with sentiment analysis"""
     try:
+        # Create EngagementItem from request
+        engagement = EngagementItem(
+            platform=request.platform,
+            engagement_type=request.engagement_type,
+            from_user=request.from_user,
+            to_user=request.to_user,
+            content=request.content,
+            post_id=request.post_id
+        )
+        
         engagement_id = await community_management_service.process_engagement(engagement)
         return {
             "success": True,
