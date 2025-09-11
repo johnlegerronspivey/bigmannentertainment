@@ -390,15 +390,13 @@ async def optimize_budget_allocation(
 @router.post("/campaigns/{campaign_id}/track-performance", response_model=Dict[str, Any])
 async def track_campaign_performance(
     campaign_id: str,
-    platform: PlatformType,
-    metrics: Dict[str, float],
-    budget_spent: float,
+    request: CampaignPerformanceRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Track campaign performance metrics"""
     try:
         result = await campaign_orchestration_service.track_campaign_performance(
-            campaign_id, platform, metrics, budget_spent
+            campaign_id, request.platform, request.metrics, request.budget_spent
         )
         
         return {
