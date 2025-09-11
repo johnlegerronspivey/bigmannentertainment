@@ -70,7 +70,7 @@ async def create_scheduling_rule(
         logger.error(f"Failed to create scheduling rule: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create scheduling rule")
 
-@router.post("/scheduling/queues", response_model=Dict[str, str])
+@router.post("/scheduling/queues", response_model=Dict[str, Any])
 async def create_content_queue(
     queue: ContentQueue,
     user_id: str = Depends(get_current_user)
