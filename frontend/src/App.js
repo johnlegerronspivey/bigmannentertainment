@@ -345,6 +345,10 @@ const Navigation = () => {
                     <span className="mr-3">🚀</span>
                     Social Media Phases 5-10
                   </Link>
+                  <Link to="/real-time-royalty-engine" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                    <span className="mr-3">💰</span>
+                    Real-Time Royalty Engine
+                  </Link>
                 </div>
               )}
             </div>
