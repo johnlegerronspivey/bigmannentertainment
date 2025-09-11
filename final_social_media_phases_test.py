@@ -106,10 +106,14 @@ class FinalSocialMediaTester:
         
         response = await self.make_request("POST", "/auth/login", login_data)
         
-        if response["status"] == 200 and "access_token" in response["data"]:
-            self.auth_token = response["data"]["access_token"]
-            self.log_test("User Authentication", "PASS", "Login successful", response["data"])
-            return True
+        if response["status"] == 200:
+            if "access_token" in response["data"]:
+                self.auth_token = response["data"]["access_token"]
+                self.log_test("User Authentication", "PASS", "Login successful", response["data"])
+                return True
+            else:
+                self.log_test("User Authentication", "FAIL", "No access token in response", response["data"])
+                return False
         else:
             # Try registration if login fails
             registration_data = {
@@ -126,12 +130,16 @@ class FinalSocialMediaTester:
             
             response = await self.make_request("POST", "/auth/register", registration_data)
             
-            if response["status"] == 201 and "access_token" in response["data"]:
-                self.auth_token = response["data"]["access_token"]
-                self.log_test("User Authentication", "PASS", "Registration successful", response["data"])
-                return True
+            if response["status"] == 201:
+                if "access_token" in response["data"]:
+                    self.auth_token = response["data"]["access_token"]
+                    self.log_test("User Authentication", "PASS", "Registration successful", response["data"])
+                    return True
+                else:
+                    self.log_test("User Authentication", "FAIL", "No access token in registration response", response["data"])
+                    return False
             else:
-                self.log_test("User Authentication", "FAIL", f"Status: {response['status']}", response["data"])
+                self.log_test("User Authentication", "FAIL", f"Registration failed - Status: {response['status']}", response["data"])
                 return False
 
     async def test_recently_fixed_endpoints(self):
