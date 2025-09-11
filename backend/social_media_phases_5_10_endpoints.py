@@ -95,16 +95,14 @@ async def create_content_queue(
 
 @router.post("/scheduling/batch-schedule", response_model=Dict[str, Any])
 async def schedule_content_batch(
-    queue_id: str,
-    start_date: datetime,
-    end_date: datetime,
+    request: BatchScheduleRequest,
     background_tasks: BackgroundTasks,
     user_id: str = Depends(get_current_user)
 ):
     """Schedule multiple content items in a batch with optimal timing"""
     try:
         scheduled_posts = await content_scheduling_service.schedule_content_batch(
-            queue_id, start_date, end_date
+            request.queue_id, request.start_date, request.end_date
         )
         
         return {
@@ -112,8 +110,8 @@ async def schedule_content_batch(
             "message": f"Scheduled {len(scheduled_posts)} posts",
             "scheduled_posts": len(scheduled_posts),
             "date_range": {
-                "start": start_date.isoformat(),
-                "end": end_date.isoformat()
+                "start": request.start_date.isoformat(),
+                "end": request.end_date.isoformat()
             }
         }
     except Exception as e:
