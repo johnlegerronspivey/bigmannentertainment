@@ -375,12 +375,27 @@ class SocialMediaPhases510Tester:
             "platforms": ["instagram", "twitter", "tiktok", "facebook"],
             "start_date": datetime.now().isoformat(),
             "end_date": (datetime.now() + timedelta(days=30)).isoformat(),
-            "budget": 5000.0,
-            "objectives": ["awareness", "engagement", "ticket_sales"],
+            "budget_total": 5000.0,
+            "budget_allocation": {
+                "instagram": 2000.0,
+                "twitter": 1000.0,
+                "tiktok": 1500.0,
+                "facebook": 500.0
+            },
+            "content_templates": [
+                "summer_tour_announcement",
+                "new_album_teaser",
+                "behind_the_scenes"
+            ],
             "target_audience": {
                 "age_range": "18-35",
                 "interests": ["hip-hop", "music", "concerts"],
                 "locations": ["US", "CA"]
+            },
+            "goals": {
+                "reach": 100000,
+                "engagement": 5.0,
+                "ticket_sales": 500
             },
             "status": "active"
         }
