@@ -1710,9 +1710,17 @@ const NotFound = () => {
       <div className="max-w-md w-full text-center">
         <div className="mb-8">
           <img 
-            src="https://customer-assets.bigmannentertainment.com/job_industry-connect-1/artifacts/9vcziqmw_Big%20Mann%20Entertainment%20Logo.png" 
+            src="/logo.png" 
             alt="Big Mann Entertainment Logo" 
             className="w-24 h-24 object-contain mx-auto mb-6"
+            onError={(e) => {
+              // Fallback to text logo if image fails to load
+              e.target.style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'w-24 h-24 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6';
+              fallback.innerHTML = '<span class="text-white font-bold text-xl">BME</span>';
+              e.target.parentNode.appendChild(fallback);
+            }}
           />
         </div>
         <h1 className="text-6xl font-bold text-purple-600 mb-4">404</h1>
