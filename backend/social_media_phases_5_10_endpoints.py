@@ -362,7 +362,7 @@ async def optimize_budget_allocation(
         logger.error(f"Failed to optimize budget: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to optimize budget allocation")
 
-@router.post("/campaigns/{campaign_id}/track-performance", response_model=Dict[str, str])
+@router.post("/campaigns/{campaign_id}/track-performance", response_model=Dict[str, Any])
 async def track_campaign_performance(
     campaign_id: str,
     platform: PlatformType,
