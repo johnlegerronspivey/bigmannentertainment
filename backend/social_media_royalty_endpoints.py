@@ -457,7 +457,7 @@ async def spotify_streams_webhook(
         territory = webhook_data.get("territory", "US")
         
         if not track_id or stream_count <= 0:
-            raise HTTPException(status_code=400, detail("Invalid streaming data"))
+            raise HTTPException(status_code=400, detail="Invalid streaming data")
         
         await streaming_integration.process_streaming_royalties(
             platform="spotify",
