@@ -223,10 +223,14 @@ class SocialMediaPhases510Tester:
             self.log_test("Create Content Queue", "FAIL", f"Status: {response['status']}", response["data"])
             
         # Test 3: Batch Schedule Content
+        queue_id = self.content_queue_id or "test_queue_id"
+        start_date = datetime.now().isoformat()
+        end_date = (datetime.now() + timedelta(days=7)).isoformat()
+        
         batch_schedule_data = {
-            "queue_id": self.content_queue_id or "test_queue_id",
-            "start_date": datetime.now().isoformat(),
-            "end_date": (datetime.now() + timedelta(days=7)).isoformat()
+            "queue_id": queue_id,
+            "start_date": start_date,
+            "end_date": end_date
         }
         
         response = await self.make_request("POST", "/social-media-advanced/scheduling/batch-schedule", batch_schedule_data)
