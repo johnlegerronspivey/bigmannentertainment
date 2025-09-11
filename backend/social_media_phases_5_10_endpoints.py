@@ -544,13 +544,13 @@ async def create_partnership(
 @router.post("/partnerships/{partnership_id}/track-performance", response_model=Dict[str, Any])
 async def track_partnership_performance(
     partnership_id: str,
-    metrics: Dict[str, float],
+    request: PartnershipMetricsRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Track performance metrics for influencer partnership"""
     try:
         performance = await influencer_management_service.track_partnership_performance(
-            partnership_id, metrics
+            partnership_id, request.metrics
         )
         
         return {
