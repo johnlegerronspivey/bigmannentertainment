@@ -53,7 +53,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 # PHASE 5: Advanced Content Scheduling & Publishing Automation Endpoints
 
-@router.post("/scheduling/rules", response_model=Dict[str, str])
+@router.post("/scheduling/rules", response_model=Dict[str, Any])
 async def create_scheduling_rule(
     rule: SchedulingRule,
     user_id: str = Depends(get_current_user)
