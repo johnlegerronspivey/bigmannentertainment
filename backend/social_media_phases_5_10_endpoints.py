@@ -229,7 +229,7 @@ async def create_ab_test(
 
 # PHASE 7: Audience Engagement & Community Management Endpoints
 
-@router.post("/engagement/process", response_model=Dict[str, str])
+@router.post("/engagement/process", response_model=Dict[str, Any])
 async def process_engagement(
     engagement: EngagementItem,
     user_id: str = Depends(get_current_user)
