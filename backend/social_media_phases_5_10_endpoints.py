@@ -284,7 +284,7 @@ async def get_unified_inbox(
         logger.error(f"Failed to get unified inbox: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get unified inbox")
 
-@router.post("/engagement/auto-response-rule", response_model=Dict[str, str])
+@router.post("/engagement/auto-response-rule", response_model=Dict[str, Any])
 async def create_auto_response_rule(
     rule: AutoResponseRule,
     user_id: str = Depends(get_current_user)
