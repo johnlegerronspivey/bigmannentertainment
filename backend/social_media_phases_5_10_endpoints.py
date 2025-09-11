@@ -368,11 +368,21 @@ async def get_unified_inbox(
 
 @router.post("/engagement/auto-response-rule", response_model=Dict[str, Any])
 async def create_auto_response_rule(
-    rule: AutoResponseRule,
+    request: AutoResponseRuleRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Create automated response rule for community management"""
     try:
+        # Create AutoResponseRule from request
+        rule = AutoResponseRule(
+            name=request.name,
+            triggers=request.triggers,
+            response_template=request.response_template,
+            platforms=request.platforms,
+            conditions=request.conditions,
+            is_active=request.is_active
+        )
+        
         rule_id = await community_management_service.create_auto_response_rule(rule)
         return {
             "success": True,
