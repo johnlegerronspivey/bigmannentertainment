@@ -204,7 +204,7 @@ async def generate_performance_report(
         logger.error(f"Failed to generate report: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to generate report")
 
-@router.post("/analytics/ab-test", response_model=Dict[str, str])
+@router.post("/analytics/ab-test", response_model=Dict[str, Any])
 async def create_ab_test(
     content_variants: List[str],
     platforms: List[PlatformType],
