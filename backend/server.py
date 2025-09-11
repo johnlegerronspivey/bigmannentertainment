@@ -1459,6 +1459,9 @@ except ImportError:
 # Import social media strategy endpoints
 from social_media_strategy_endpoints import router as social_strategy_router
 
+# Import social media phases 5-10 endpoints
+from social_media_phases_5_10_endpoints import router as social_phases_5_10_router
+
 # Import content ingestion endpoints
 from content_ingestion_endpoints import router as content_ingestion_router
 
