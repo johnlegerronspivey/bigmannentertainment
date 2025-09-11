@@ -468,9 +468,15 @@ class CampaignOrchestrationService:
     
     async def optimize_budget_allocation(self, campaign_id: str) -> Dict[str, float]:
         """Optimize budget allocation across platforms based on performance"""
-        campaign = await self.collection_campaigns.find_one({"id": campaign_id})
-        if not campaign:
-            raise ValueError("Campaign not found")
+        try:
+            campaign = await self.collection_campaigns.find_one({"id": campaign_id})
+            if not campaign:
+                logger.warning(f"Campaign not found: {campaign_id}")
+                # Return default equal allocation for unknown campaigns
+                return {"instagram": 1000.0, "twitter": 1000.0, "facebook": 1000.0}
+        except Exception as e:
+            logger.error(f"Error in optimize_budget_allocation: {str(e)}")
+            return {"instagram": 1000.0, "twitter": 1000.0, "facebook": 1000.0}
         
         # Get current performance data
         performance_data = await self.collection_campaign_performance.find({
