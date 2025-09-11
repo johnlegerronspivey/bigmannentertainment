@@ -6352,6 +6352,7 @@ async def get_phase2_status():
 
 app.include_router(api_router)
 app.include_router(social_strategy_router)
+app.include_router(social_phases_5_10_router)
 app.include_router(content_ingestion_router)
 app.include_router(content_workflow_router)
 app.include_router(transcoding_router)
