@@ -27,13 +27,18 @@ const AdvancedSchedulingTab = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+      
       const response = await axios.post(
         `${API}/api/social-media-advanced/scheduling/rules`,
         newRule,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      if (response.data.success) {
+      if (response?.data?.success) {
         setSchedulingRules([...schedulingRules, { ...newRule, id: response.data.rule_id }]);
         setNewRule({
           name: '',
@@ -43,9 +48,16 @@ const AdvancedSchedulingTab = () => {
           frequency: 'daily',
           auto_optimize: true
         });
+      } else {
+        console.error('Failed to create scheduling rule:', response?.data?.message || 'Unknown error');
       }
     } catch (error) {
       console.error('Failed to create scheduling rule:', error);
+      if (error.response?.status === 401) {
+        // Handle authentication error
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     } finally {
       setLoading(false);
     }
