@@ -262,17 +262,22 @@ const RealTimeAnalyticsTab = () => {
   const fetchRealTimeMetrics = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        handleApiError({ response: { status: 401 } }, 'fetchRealTimeMetrics');
+        return;
+      }
+      
       const platformParam = selectedPlatform !== 'all' ? `platform=${selectedPlatform}&` : '';
       const response = await axios.get(
         `${API}/api/social-media-advanced/analytics/real-time?${platformParam}time_window=${timeWindow}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      if (response.data.success) {
-        setRealTimeMetrics(response.data);
-      }
+      handleApiResponse(response, (data) => {
+        setRealTimeMetrics(data);
+      }, 'Failed to fetch real-time metrics');
     } catch (error) {
-      console.error('Failed to fetch real-time metrics:', error);
+      handleApiError(error, 'fetchRealTimeMetrics');
     }
   };
 
