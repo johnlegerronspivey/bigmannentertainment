@@ -530,21 +530,20 @@ async def predict_trends(
 
 @router.post("/ai/optimize-content", response_model=Dict[str, Any])
 async def optimize_content_for_platform(
-    content: str,
-    target_platform: PlatformType,
+    request: ContentOptimizationRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Optimize content for specific platform using AI"""
     try:
         optimizations = await ai_optimization_service.optimize_content_for_platform(
-            content, target_platform
+            request.content, request.target_platform
         )
         
         return {
             "success": True,
             "message": "Content optimized successfully",
-            "original_content": content,
-            "target_platform": target_platform.value,
+            "original_content": request.content,
+            "target_platform": request.target_platform.value,
             "optimizations": optimizations
         }
     except Exception as e:
