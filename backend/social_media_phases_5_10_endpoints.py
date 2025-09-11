@@ -349,20 +349,19 @@ async def create_campaign(
 @router.post("/campaigns/{campaign_id}/adapt-content", response_model=Dict[str, Any])
 async def adapt_content_for_platforms(
     campaign_id: str,
-    content_id: str,
-    platforms: List[PlatformType],
+    request: ContentAdaptationRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Adapt content for different platform requirements"""
     try:
         adaptations = await campaign_orchestration_service.adapt_content_for_platforms(
-            content_id, platforms
+            request.content_id, request.platforms
         )
         
         return {
             "success": True,
             "message": "Content adapted for platforms",
-            "content_id": content_id,
+            "content_id": request.content_id,
             "adaptations": adaptations
         }
     except Exception as e:
