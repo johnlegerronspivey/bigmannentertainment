@@ -1,10 +1,10 @@
 {
   "test_summary": {
     "total_tests": 27,
-    "passed_tests": 11,
-    "failed_tests": 14,
-    "success_rate": 40.74074074074074,
-    "timestamp": "2025-09-11T03:08:29.112336",
+    "passed_tests": 12,
+    "failed_tests": 13,
+    "success_rate": 44.44444444444444,
+    "timestamp": "2025-09-11T03:14:55.868547",
     "target_achieved": false
   },
   "detailed_results": [
@@ -130,7 +130,7 @@
                   ]
                 }
               ],
-              "schedule_time": "2025-09-11T04:08:28.629019",
+              "schedule_time": "2025-09-11T04:14:55.368574",
               "optimization": true
             },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
@@ -158,7 +158,7 @@
                   ]
                 }
               ],
-              "schedule_time": "2025-09-11T04:08:28.629019",
+              "schedule_time": "2025-09-11T04:14:55.368574",
               "optimization": true
             },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
@@ -186,7 +186,7 @@
                   ]
                 }
               ],
-              "schedule_time": "2025-09-11T04:08:28.629019",
+              "schedule_time": "2025-09-11T04:14:55.368574",
               "optimization": true
             },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
@@ -264,7 +264,7 @@
               "metric_type": "engagement",
               "value": 150,
               "post_id": "test_post_123",
-              "timestamp": "2025-09-11T03:08:28.687955"
+              "timestamp": "2025-09-11T03:14:55.425867"
             },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
           }
@@ -283,8 +283,8 @@
         "time_window_seconds": 3600,
         "platform": "all",
         "summary": {
-          "total_metrics": 6,
-          "total_engagement": 24.900000000000002,
+          "total_metrics": 7,
+          "total_engagement": 174.9,
           "total_reach": 0,
           "total_impressions": 0
         },
@@ -366,6 +366,18 @@
             "metadata": {
               "workflow": "e2e_test"
             }
+          },
+          {
+            "id": "b6ec7605-3a5c-4ac1-9dc7-9adceacf1897",
+            "platform": "twitter",
+            "content_id": "test_content_123",
+            "metric_type": "engagement",
+            "value": 150.0,
+            "timestamp": "2025-09-11T03:10:23.274000",
+            "metadata": {
+              "post_id": "test_post_123",
+              "user_id": "test_user_456"
+            }
           }
         ]
       }
@@ -389,8 +401,8 @@
             "input": {
               "report_type": "performance",
               "date_range": {
-                "start": "2025-09-04T03:08:28.709697",
-                "end": "2025-09-11T03:08:28.709710"
+                "start": "2025-09-04T03:14:55.449071",
+                "end": "2025-09-11T03:14:55.449083"
               },
               "platforms": [
                 "twitter",
@@ -415,8 +427,8 @@
             "input": {
               "report_type": "performance",
               "date_range": {
-                "start": "2025-09-04T03:08:28.709697",
-                "end": "2025-09-11T03:08:28.709710"
+                "start": "2025-09-04T03:14:55.449071",
+                "end": "2025-09-11T03:14:55.449083"
               },
               "platforms": [
                 "twitter",
@@ -450,7 +462,23 @@
               "content_variants"
             ],
             "msg": "Field required",
-            "input": null,
+            "input": {
+              "name": "Test A/B Campaign",
+              "variant_a": {
+                "content": "Version A content",
+                "platforms": [
+                  "twitter"
+                ]
+              },
+              "variant_b": {
+                "content": "Version B content",
+                "platforms": [
+                  "twitter"
+                ]
+              },
+              "duration_hours": 24,
+              "success_metric": "engagement_rate"
+            },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
           },
           {
@@ -460,7 +488,23 @@
               "platforms"
             ],
             "msg": "Field required",
-            "input": null,
+            "input": {
+              "name": "Test A/B Campaign",
+              "variant_a": {
+                "content": "Version A content",
+                "platforms": [
+                  "twitter"
+                ]
+              },
+              "variant_b": {
+                "content": "Version B content",
+                "platforms": [
+                  "twitter"
+                ]
+              },
+              "duration_hours": 24,
+              "success_metric": "engagement_rate"
+            },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
           }
         ]
@@ -693,8 +737,8 @@
               "name": "Test Marketing Campaign",
               "description": "Test campaign for final verification",
               "budget": 1000.0,
-              "start_date": "2025-09-11T03:08:28.790640",
-              "end_date": "2025-10-11T03:08:28.790648",
+              "start_date": "2025-09-11T03:14:55.540201",
+              "end_date": "2025-10-11T03:14:55.540208",
               "target_platforms": [
                 "twitter",
                 "instagram",
@@ -718,8 +762,8 @@
               "name": "Test Marketing Campaign",
               "description": "Test campaign for final verification",
               "budget": 1000.0,
-              "start_date": "2025-09-11T03:08:28.790640",
-              "end_date": "2025-10-11T03:08:28.790648",
+              "start_date": "2025-09-11T03:14:55.540201",
+              "end_date": "2025-10-11T03:14:55.540208",
               "target_platforms": [
                 "twitter",
                 "instagram",
@@ -743,8 +787,8 @@
               "name": "Test Marketing Campaign",
               "description": "Test campaign for final verification",
               "budget": 1000.0,
-              "start_date": "2025-09-11T03:08:28.790640",
-              "end_date": "2025-10-11T03:08:28.790648",
+              "start_date": "2025-09-11T03:14:55.540201",
+              "end_date": "2025-10-11T03:14:55.540208",
               "target_platforms": [
                 "twitter",
                 "instagram",
@@ -768,8 +812,8 @@
               "name": "Test Marketing Campaign",
               "description": "Test campaign for final verification",
               "budget": 1000.0,
-              "start_date": "2025-09-11T03:08:28.790640",
-              "end_date": "2025-10-11T03:08:28.790648",
+              "start_date": "2025-09-11T03:14:55.540201",
+              "end_date": "2025-10-11T03:14:55.540208",
               "target_platforms": [
                 "twitter",
                 "instagram",
@@ -793,8 +837,8 @@
               "name": "Test Marketing Campaign",
               "description": "Test campaign for final verification",
               "budget": 1000.0,
-              "start_date": "2025-09-11T03:08:28.790640",
-              "end_date": "2025-10-11T03:08:28.790648",
+              "start_date": "2025-09-11T03:14:55.540201",
+              "end_date": "2025-10-11T03:14:55.540208",
               "target_platforms": [
                 "twitter",
                 "instagram",
@@ -818,8 +862,8 @@
               "name": "Test Marketing Campaign",
               "description": "Test campaign for final verification",
               "budget": 1000.0,
-              "start_date": "2025-09-11T03:08:28.790640",
-              "end_date": "2025-10-11T03:08:28.790648",
+              "start_date": "2025-09-11T03:14:55.540201",
+              "end_date": "2025-10-11T03:14:55.540208",
               "target_platforms": [
                 "twitter",
                 "instagram",
@@ -1076,8 +1120,8 @@
                 }
               ],
               "timeline": {
-                "start_date": "2025-09-11T03:08:28.953922",
-                "end_date": "2025-09-25T03:08:28.953931"
+                "start_date": "2025-09-11T03:14:55.662545",
+                "end_date": "2025-09-25T03:14:55.662553"
               }
             },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
@@ -1109,8 +1153,8 @@
                 }
               ],
               "timeline": {
-                "start_date": "2025-09-11T03:08:28.953922",
-                "end_date": "2025-09-25T03:08:28.953931"
+                "start_date": "2025-09-11T03:14:55.662545",
+                "end_date": "2025-09-25T03:14:55.662553"
               }
             },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
@@ -1142,8 +1186,8 @@
                 }
               ],
               "timeline": {
-                "start_date": "2025-09-11T03:08:28.953922",
-                "end_date": "2025-09-25T03:08:28.953931"
+                "start_date": "2025-09-11T03:14:55.662545",
+                "end_date": "2025-09-25T03:14:55.662553"
               }
             },
             "url": "https://errors.pydantic.dev/2.11/v/missing"
@@ -1155,55 +1199,17 @@
       "endpoint": "/api/social-media-advanced/partnerships/test_partnership_123/track-performance",
       "method": "POST",
       "description": "Track Partnership Performance",
-      "status": 422,
+      "status": 200,
       "expected_status": 200,
-      "passed": false,
+      "passed": true,
       "response": {
-        "detail": [
-          {
-            "type": "float_parsing",
-            "loc": [
-              "body",
-              "deliverable_id"
-            ],
-            "msg": "Input should be a valid number, unable to parse string as a number",
-            "input": "test_deliverable_123",
-            "url": "https://errors.pydantic.dev/2.11/v/float_parsing"
-          },
-          {
-            "type": "float_type",
-            "loc": [
-              "body",
-              "metrics"
-            ],
-            "msg": "Input should be a valid number",
-            "input": {
-              "reach": 50000,
-              "impressions": 75000,
-              "engagement": 3750,
-              "clicks": 500,
-              "conversions": 25
-            },
-            "url": "https://errors.pydantic.dev/2.11/v/float_type"
-          },
-          {
-            "type": "float_type",
-            "loc": [
-              "body",
-              "platform_data"
-            ],
-            "msg": "Input should be a valid number",
-            "input": {
-              "instagram": {
-                "post_id": "test_post_789",
-                "likes": 2500,
-                "comments": 150,
-                "shares": 75
-              }
-            },
-            "url": "https://errors.pydantic.dev/2.11/v/float_type"
-          }
-        ]
+        "success": true,
+        "message": "Partnership performance tracked",
+        "partnership_id": "test_partnership_123",
+        "performance": {
+          "performance_score": 25855.0,
+          "roi": 0
+        }
       }
     },
     {
@@ -1302,7 +1308,7 @@
       "response": {
         "success": true,
         "message": "Executive dashboard generated",
-        "generated_at": "2025-09-11T03:08:29.084343",
+        "generated_at": "2025-09-11T03:14:55.758185",
         "dashboard": {
           "summary": {
             "active_campaigns": 5,
@@ -1353,7 +1359,7 @@
           "phase_9_influencers": "healthy",
           "phase_10_ai": "healthy"
         },
-        "timestamp": "2025-09-11T03:08:29.091476"
+        "timestamp": "2025-09-11T03:14:55.805897"
       }
     },
     {
@@ -1366,16 +1372,16 @@
       "response": {
         "success": true,
         "message": "Comprehensive status retrieved",
-        "timestamp": "2025-09-11T03:08:29.109648",
+        "timestamp": "2025-09-11T03:14:55.865426",
         "status": {
           "phase_5_scheduling": {
-            "active_rules": 12,
-            "content_queues": 9,
+            "active_rules": 13,
+            "content_queues": 10,
             "scheduled_posts": 4
           },
           "phase_6_analytics": {
-            "tracked_metrics": 9,
-            "performance_reports": 5,
+            "tracked_metrics": 10,
+            "performance_reports": 6,
             "active_ab_tests": 6
           },
           "phase_7_community": {
@@ -1386,7 +1392,7 @@
           "phase_8_campaigns": {
             "active_campaigns": 5,
             "total_campaigns": 8,
-            "content_adaptations": 4
+            "content_adaptations": 5
           },
           "phase_9_influencers": {
             "total_influencers": 0,
@@ -1394,7 +1400,7 @@
             "completed_partnerships": 0
           },
           "phase_10_ai": {
-            "content_recommendations": 10,
+            "content_recommendations": 12,
             "trend_predictions": 3,
             "optimization_requests": 0
           }
