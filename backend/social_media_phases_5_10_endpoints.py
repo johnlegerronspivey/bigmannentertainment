@@ -280,22 +280,20 @@ async def generate_performance_report(
 
 @router.post("/analytics/ab-test", response_model=Dict[str, Any])
 async def create_ab_test(
-    content_variants: List[str],
-    platforms: List[PlatformType],
-    duration_hours: int = 24,
+    request: ABTestRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Create A/B test for content optimization"""
     try:
         test_id = await real_time_analytics_service.create_ab_test(
-            content_variants, platforms, duration_hours
+            request.content_variants, request.platforms, request.duration_hours
         )
         
         return {
             "success": True,
             "message": "A/B test created successfully",
             "test_id": test_id,
-            "duration_hours": duration_hours
+            "duration_hours": request.duration_hours
         }
     except Exception as e:
         logger.error(f"Failed to create A/B test: {str(e)}")
