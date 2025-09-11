@@ -340,6 +340,10 @@ const Navigation = () => {
                     <span className="mr-3">🎯</span>
                     End-to-End Workflow
                   </Link>
+                  <Link to="/social-media-phases-5-10" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                    <span className="mr-3">🚀</span>
+                    Social Media Phases 5-10
+                  </Link>
                 </div>
               )}
             </div>
