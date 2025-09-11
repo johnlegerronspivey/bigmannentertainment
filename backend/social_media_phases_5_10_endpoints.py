@@ -397,11 +397,26 @@ async def create_auto_response_rule(
 
 @router.post("/campaigns/create", response_model=Dict[str, Any])
 async def create_campaign(
-    campaign: Campaign,
+    request: CampaignRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Create a new cross-platform campaign"""
     try:
+        # Create Campaign from request
+        campaign = Campaign(
+            name=request.name,
+            description=request.description,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            platforms=request.platforms,
+            budget_total=request.budget_total,
+            budget_allocation=request.budget_allocation,
+            content_templates=request.content_templates,
+            target_audience=request.target_audience,
+            goals=request.goals,
+            status=request.status
+        )
+        
         campaign_id = await campaign_orchestration_service.create_campaign(campaign)
         return {
             "success": True,
