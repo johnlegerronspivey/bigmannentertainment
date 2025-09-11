@@ -511,17 +511,17 @@ async def generate_content_recommendations(
 
 @router.post("/ai/predict-trends", response_model=Dict[str, Any])
 async def predict_trends(
-    categories: List[str],
+    request: TrendPredictionRequest,
     user_id: str = Depends(get_current_user)
 ):
     """Predict upcoming trends using AI analysis"""
     try:
-        predictions = await ai_optimization_service.predict_trends(categories)
+        predictions = await ai_optimization_service.predict_trends(request.categories)
         
         return {
             "success": True,
             "message": f"Generated {len(predictions)} trend predictions",
-            "categories": categories,
+            "categories": request.categories,
             "predictions": [pred.dict() for pred in predictions]
         }
     except Exception as e:
