@@ -59,6 +59,30 @@ class BatchScheduleRequest(BaseModel):
     start_date: datetime
     end_date: datetime
 
+class PerformanceReportRequest(BaseModel):
+    start_date: datetime
+    end_date: datetime
+    platforms: List[PlatformType]
+
+class ContentAdaptationRequest(BaseModel):
+    content_id: str
+    platforms: List[PlatformType]
+
+class CampaignPerformanceRequest(BaseModel):
+    platform: PlatformType
+    metrics: Dict[str, float]
+    budget_spent: float
+
+class ContentRecommendationRequest(BaseModel):
+    platforms: List[PlatformType]
+
+class TrendPredictionRequest(BaseModel):
+    categories: List[str]
+
+class ContentOptimizationRequest(BaseModel):
+    content: str
+    target_platform: PlatformType
+
 @router.post("/scheduling/rules", response_model=Dict[str, Any])
 async def create_scheduling_rule(
     rule: SchedulingRule,
