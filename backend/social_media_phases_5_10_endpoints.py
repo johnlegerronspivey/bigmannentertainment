@@ -303,7 +303,7 @@ async def create_auto_response_rule(
 
 # PHASE 8: Cross-platform Campaign Orchestration Endpoints
 
-@router.post("/campaigns/create", response_model=Dict[str, str])
+@router.post("/campaigns/create", response_model=Dict[str, Any])
 async def create_campaign(
     campaign: Campaign,
     user_id: str = Depends(get_current_user)
