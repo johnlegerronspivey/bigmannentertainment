@@ -512,12 +512,25 @@ async def discover_influencers(
 
 @router.post("/partnerships/create", response_model=Dict[str, Any])
 async def create_partnership(
-    partnership: Partnership,
+    request: PartnershipRequest,
     background_tasks: BackgroundTasks,
     user_id: str = Depends(get_current_user)
 ):
     """Create a new influencer partnership"""
     try:
+        # Create Partnership from request
+        partnership = Partnership(
+            influencer_id=request.influencer_id,
+            campaign_id=request.campaign_id,
+            partnership_type=request.partnership_type,
+            deliverables=request.deliverables,
+            compensation=request.compensation,
+            contract_terms=request.contract_terms,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            status=request.status
+        )
+        
         partnership_id = await influencer_management_service.create_partnership(partnership)
         return {
             "success": True,
