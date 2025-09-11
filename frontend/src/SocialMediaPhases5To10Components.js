@@ -66,16 +66,27 @@ const AdvancedSchedulingTab = () => {
   const optimizePostingTimes = async (platform) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+      
       const response = await axios.get(
         `${API}/api/social-media-advanced/scheduling/optimize-times/${platform}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      if (response.data.success) {
+      if (response?.data?.success) {
         alert(`Optimal times for ${platform}: ${JSON.stringify(response.data.optimal_times, null, 2)}`);
+      } else {
+        console.error('Failed to optimize posting times:', response?.data?.message || 'Unknown error');
       }
     } catch (error) {
       console.error('Failed to optimize posting times:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     }
   };
 
