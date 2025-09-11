@@ -29,6 +29,7 @@ import { SocialMediaStrategyDashboard } from './SocialMediaStrategyComponents';
 import { ContentIngestionDashboard } from './ContentIngestionComponents';
 import { ComprehensiveWorkflowDashboard } from './ComprehensiveWorkflowComponents';
 import { SocialMediaPhases5To10Dashboard } from './SocialMediaPhases5To10Components';
+import { RealTimeRoyaltyDashboard } from './RealTimeRoyaltyComponents';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
