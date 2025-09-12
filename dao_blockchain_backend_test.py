@@ -93,8 +93,8 @@ class DAOBlockchainTester:
                 "proposer_address": self.test_wallet_address,
                 "proposer_id": self.test_user_id,
                 "status": "draft",
-                "voting_starts": datetime.now(timezone.utc).isoformat(),
-                "voting_ends": datetime.now(timezone.utc).isoformat(),
+                "voting_starts": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat(),  # Started 1 hour ago
+                "voting_ends": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),  # Ends in 7 days
                 "quorum_required": 10.0,
                 "threshold_required": 50.0,
                 "execution_data": {
