@@ -9,6 +9,7 @@ import {
   MultiCurrencyPayouts,
   PremiumDashboardOverview
 } from './PremiumFeaturesComponents';
+import { MLCIntegration } from './MLCIntegrationComponents';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'https://royaltyhub.preview.emergentagent.com';
 
