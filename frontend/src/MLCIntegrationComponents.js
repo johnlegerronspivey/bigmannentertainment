@@ -312,7 +312,7 @@ export const MLCIntegration = () => {
 };
 
 // Register Work Form Component
-const RegisterWorkForm = ({ onSuccess }) => {
+const RegisterWorkForm = ({ onSuccess, onCancel }) => {
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
   const [formData, setFormData] = useState({
     title: '',
