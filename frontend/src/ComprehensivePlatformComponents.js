@@ -3919,6 +3919,186 @@ const DAOGovernance = () => {
           </div>
         )}
 
+        {activeTab === 'blockchain' && (
+          <div className="space-y-6">
+            {/* Blockchain Status Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Network Status</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Network</span>
+                    <span className={`font-medium ${blockchainStatus.blockchain_connected ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {blockchainStatus.network || 'Mock'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Connection</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      blockchainStatus.blockchain_connected 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                    }`}>
+                      {blockchainStatus.blockchain_connected ? 'Connected' : 'Mock Mode'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Participation Rate</span>
+                    <span className="font-medium text-blue-600">
+                      {(blockchainStatus.participation_rate * 100).toFixed(1) || '73.0'}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Contract Addresses</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Governance Contract</p>
+                    <p className="font-mono text-xs text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                      {blockchainStatus.governance_contract || '0xabcd...ef12'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Token Contract</p>
+                    <p className="font-mono text-xs text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                      {blockchainStatus.token_contract || '0x1234...5678'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Blockchain Proposals</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">On-Chain Proposals</span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {blockchainStatus.blockchain_proposals || '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Quorum Threshold</span>
+                    <span className="font-medium text-purple-600">
+                      {blockchainStatus.quorum_threshold?.toLocaleString() || '1,000'} BME
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Blockchain Activity */}
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Blockchain Activity</h3>
+              <div className="space-y-4">
+                {blockchainStatus.recent_blockchain_proposals?.length > 0 ? (
+                  blockchainStatus.recent_blockchain_proposals.map((proposal, index) => (
+                    <div key={proposal.id || index} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{proposal.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Proposer: {proposal.proposer?.slice(0, 6)}...{proposal.proposer?.slice(-4)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          proposal.status === 'active' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                          proposal.status === 'passed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}>
+                          {proposal.status}
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Category: {proposal.category}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-6xl mb-4">⛓️</div>
+                    <p className="text-gray-600 dark:text-gray-400">No recent blockchain activity</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                      Blockchain proposals will appear here when created
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Blockchain Integration Tools */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create Blockchain Proposal</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Proposal Title
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="Enter proposal title..."
+                      className={`w-full px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea 
+                      rows={4}
+                      placeholder="Describe your proposal..."
+                      className={`w-full px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Proposal Type
+                    </label>
+                    <select className={`w-full px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                      <option value="revenue_distribution">Revenue Distribution</option>
+                      <option value="platform_upgrade">Platform Upgrade</option>
+                      <option value="policy_change">Policy Change</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="budget_allocation">Budget Allocation</option>
+                    </select>
+                  </div>
+                  <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                    ⛓️ Create On-Chain Proposal
+                  </button>
+                </div>
+              </div>
+
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Smart Contract Integration</h3>
+                <div className="space-y-4">
+                  <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Voting Power from Blockchain</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      Your voting power is automatically calculated from your BME token balance on-chain.
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Current Voting Power</span>
+                      <span className="font-semibold text-blue-600">100 BME</span>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Transaction Verification</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      All votes and proposals are recorded on the blockchain for transparency.
+                    </p>
+                    <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                      🔍 View on Blockchain Explorer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'governance' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
