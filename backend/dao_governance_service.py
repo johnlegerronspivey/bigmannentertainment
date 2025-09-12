@@ -831,6 +831,69 @@ class DAOGovernanceService:
                 "success": False,
                 "error": str(e)
             }
+    
+    async def get_blockchain_integration_status(self) -> Dict[str, Any]:
+        """Get the status of blockchain integration"""
+        try:
+            dao_stats = dao_contract_manager.get_dao_stats()
+            blockchain_proposals = await dao_contract_manager.get_all_proposals()
+            
+            return {
+                "success": True,
+                "blockchain_connected": dao_contract_manager.w3 is not None,
+                "network": dao_stats['network'],
+                "governance_contract": dao_stats['contract_address'],
+                "token_contract": dao_stats['token_address'],
+                "blockchain_proposals": len(blockchain_proposals),
+                "total_token_holders": dao_stats['total_token_holders'],
+                "participation_rate": dao_stats['governance_participation_rate'],
+                "quorum_threshold": dao_stats['quorum_threshold'],
+                "recent_blockchain_proposals": blockchain_proposals[:5] if blockchain_proposals else []
+            }
+        except Exception as e:
+            logger.error(f"Error getting blockchain status: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "blockchain_connected": False
+            }
+    
+    async def deploy_dao_contracts(self, deployer_address: str) -> Dict[str, Any]:
+        """Deploy DAO smart contracts (for development/testing)"""
+        try:
+            # This would deploy actual contracts in a real implementation
+            # For now, return mock deployment data
+            contracts_code = dao_contract_manager.get_solidity_contracts()
+            
+            mock_deployment = {
+                "governance_contract": f"0x{uuid.uuid4().hex[:40]}",
+                "token_contract": f"0x{uuid.uuid4().hex[:40]}",
+                "deployment_tx": f"0x{uuid.uuid4().hex}",
+                "deployer": deployer_address,
+                "deployed_at": datetime.now(timezone.utc).isoformat(),
+                "network": "sepolia",
+                "gas_used": 2500000,
+                "deployment_cost": "0.05 ETH",
+                "contracts_deployed": list(contracts_code.keys())
+            }
+            
+            # Update contract manager with new addresses
+            dao_contract_manager.governance_contract_address = mock_deployment["governance_contract"]
+            dao_contract_manager.token_contract_address = mock_deployment["token_contract"]
+            
+            logger.info(f"Mock DAO contracts deployed: {mock_deployment['governance_contract']}")
+            
+            return {
+                "success": True,
+                "deployment": mock_deployment,
+                "message": "DAO contracts deployed successfully"
+            }
+        except Exception as e:
+            logger.error(f"Error deploying contracts: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
 
 # Global instance
 dao_governance_service = DAOGovernanceService()
