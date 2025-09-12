@@ -12,6 +12,9 @@ from enum import Enum
 import json
 import logging
 
+# Import blockchain integration
+from dao_smart_contracts import dao_contract_manager
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
