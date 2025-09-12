@@ -666,6 +666,15 @@ export const ComprehensivePlatform = () => {
             {activeModule === 'royalty-engine' && (
               <RoyaltyEngine />
             )}
+            {activeModule === 'ai-forecasting' && (
+              <AIRoyaltyForecasting />
+            )}
+            {activeModule === 'smart-contracts' && (
+              <SmartContractBuilder />
+            )}
+            {activeModule === 'multi-currency' && (
+              <MultiCurrencyPayouts />
+            )}
             {activeModule === 'compliance-center' && (
               <ComplianceCenter />
             )}
@@ -685,11 +694,7 @@ export const ComprehensivePlatform = () => {
               <DAOGovernance />
             )}
             {activeModule === 'main-dashboard' && (
-              <MainDashboard
-                kpiData={kpiData}
-                recentActivities={recentActivities}
-                systemAlerts={systemAlerts}
-              />
+              <PremiumDashboardOverview />
             )}
           </div>
         </main>
