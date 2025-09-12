@@ -248,8 +248,8 @@ class ContributorHubService:
                 contributors = [c for c in contributors if any(genre in c.genres for genre in genres)]
             if location:
                 contributors = [c for c in contributors if location.lower() in c.location.lower() if c.location]
-            if budget_max and hasattr(c, 'hourly_rate') and c.hourly_rate:
-                contributors = [c for c in contributors if c.hourly_rate <= budget_max]
+            if budget_max:
+                contributors = [c for c in contributors if hasattr(c, 'hourly_rate') and c.hourly_rate and c.hourly_rate <= budget_max]
             if rating_min:
                 contributors = [c for c in contributors if c.rating >= rating_min]
             
