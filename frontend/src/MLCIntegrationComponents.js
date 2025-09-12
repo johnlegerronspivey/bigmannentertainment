@@ -250,7 +250,10 @@ export const MLCIntegration = () => {
 
       {/* Register Work Tab */}
       {activeTab === 'register' && (
-        <RegisterWorkForm onSuccess={() => { fetchMLCData(); setActiveTab('works'); }} />
+        <RegisterWorkForm 
+          onSuccess={() => { fetchMLCData(); setActiveTab('works'); }}
+          onCancel={() => setActiveTab('works')}
+        />
       )}
 
       {/* Compliance Tab */}
