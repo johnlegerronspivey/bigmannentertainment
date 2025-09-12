@@ -508,6 +508,7 @@ const MainDashboard = ({ kpiData, recentActivities, systemAlerts }) => {
 export const ComprehensivePlatform = () => {
   const [activeModule, setActiveModule] = useState('main-dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [kpiData, setKpiData] = useState({});
   const [recentActivities, setRecentActivities] = useState([]);
   const [systemAlerts, setSystemAlerts] = useState([]);
