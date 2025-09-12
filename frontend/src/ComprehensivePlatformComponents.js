@@ -3523,11 +3523,13 @@ const DAOGovernance = () => {
   const [daoMetrics, setDaoMetrics] = useState({});
   const [memberProfile, setMemberProfile] = useState({});
   const [treasury, setTreasury] = useState({});
+  const [blockchainStatus, setBlockchainStatus] = useState({});
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('proposals');
 
   useEffect(() => {
     fetchDaoData();
+    fetchBlockchainStatus();
   }, []);
 
   const fetchDaoData = async () => {
@@ -3548,6 +3550,46 @@ const DAOGovernance = () => {
       handleApiError(error, 'fetchDaoData');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBlockchainStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/api/platform/dao/blockchain/status`);
+      if (response.data.success) {
+        setBlockchainStatus(response.data);
+      }
+    } catch (error) {
+      handleApiError(error, 'fetchBlockchainStatus');
+    }
+  };
+
+  const createBlockchainProposal = async (proposalData) => {
+    try {
+      const response = await axios.post(`${API}/api/platform/dao/proposals?user_id=user_123`, proposalData);
+      if (response.data.success) {
+        fetchDaoData(); // Refresh data
+        return response.data;
+      }
+    } catch (error) {
+      handleApiError(error, 'createBlockchainProposal');
+    }
+  };
+
+  const castBlockchainVote = async (proposalId, choice, reason = '') => {
+    try {
+      const response = await axios.post(`${API}/api/platform/dao/proposals/${proposalId}/vote`, {
+        choice,
+        reason,
+        user_id: 'user_123',
+        wallet_address: memberProfile.wallet_address || '0xmock'
+      });
+      if (response.data.success) {
+        fetchDaoData(); // Refresh data
+        return response.data;
+      }
+    } catch (error) {
+      handleApiError(error, 'castBlockchainVote');
     }
   };
 
