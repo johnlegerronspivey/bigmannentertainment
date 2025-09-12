@@ -830,3 +830,36 @@ async def get_dao_smart_contracts(user_id: str = Query(...)):
     except Exception as e:
         logger.error(f"Error in get_dao_smart_contracts: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/dao/blockchain/status")
+async def get_blockchain_integration_status():
+    """Get blockchain integration status"""
+    try:
+        result = await dao_governance_service.get_blockchain_integration_status()
+        return result
+    except Exception as e:
+        logger.error(f"Error in get_blockchain_integration_status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/dao/blockchain/deploy")
+async def deploy_dao_contracts(deployer_address: str = Query(...)):
+    """Deploy DAO smart contracts (development/testing)"""
+    try:
+        result = await dao_governance_service.deploy_dao_contracts(deployer_address)
+        return result
+    except Exception as e:
+        logger.error(f"Error in deploy_dao_contracts: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/dao/proposals")
+async def create_dao_proposal(
+    proposal: GovernanceProposal,
+    user_id: str = Query(...)
+):
+    """Create a new DAO proposal with blockchain integration"""
+    try:
+        result = await dao_governance_service.create_proposal(proposal, user_id)
+        return result
+    except Exception as e:
+        logger.error(f"Error in create_dao_proposal: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
