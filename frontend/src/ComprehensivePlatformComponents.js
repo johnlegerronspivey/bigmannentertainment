@@ -326,6 +326,8 @@ const LeftSidebar = ({ activeModule, onModuleChange, isCollapsed, onToggleCollap
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                   module.badge === 'NEW' 
                     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    : module.badge === 'PREMIUM'
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold shadow-lg'
                     : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                 }`}>
                   {module.badge}
