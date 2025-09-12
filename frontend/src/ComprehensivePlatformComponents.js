@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import { SocialMediaPhases5To10Dashboard } from './SocialMediaPhases5To10Components';
+import { RealTimeRoyaltyDashboard } from './RealTimeRoyaltyComponents';
+import { 
+  AIRoyaltyForecasting,
+  SmartContractBuilder,
+  MultiCurrencyPayouts,
+  PremiumDashboardOverview
+} from './PremiumFeaturesComponents';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'https://royaltyhub.preview.emergentagent.com';
 
