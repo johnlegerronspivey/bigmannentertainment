@@ -3607,6 +3607,7 @@ const DAOGovernance = () => {
     { id: 'proposals', name: 'Proposals', icon: '🗳️' },
     { id: 'voting', name: 'Voting Power', icon: '⚡' },
     { id: 'treasury', name: 'Treasury', icon: '🏛️' },
+    { id: 'blockchain', name: 'Blockchain', icon: '⛓️' },
     { id: 'governance', name: 'Governance', icon: '🏛️' },
     { id: 'profile', name: 'My Profile', icon: '👤' }
   ];
@@ -3614,15 +3615,28 @@ const DAOGovernance = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">DAO Governance</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Decentralized governance and voting</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Decentralized governance and voting with Ethereum integration</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-          <span>➕</span>
-          <span>Create Proposal</span>
-        </button>
+        <div className="flex space-x-2">
+          {/* Blockchain Connection Status */}
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+            blockchainStatus.blockchain_connected 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+          }`}>
+            {blockchainStatus.blockchain_connected ? '🟢 Blockchain Connected' : '🟡 Mock Mode'}
+          </div>
+          <button 
+            onClick={() => setActiveTab('blockchain')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+          >
+            <span>➕</span>
+            <span>Create Proposal</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -3643,6 +3657,15 @@ const DAOGovernance = () => {
               <p className="text-2xl font-bold text-blue-600">{daoMetrics.active_proposals || '3'}</p>
             </div>
             <span className="text-2xl">🔄</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Token Holders</p>
+              <p className="text-2xl font-bold text-green-600">{blockchainStatus.total_token_holders || '247'}</p>
+            </div>
+            <span className="text-2xl">👥</span>
           </div>
         </div>
         <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
