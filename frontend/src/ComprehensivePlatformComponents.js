@@ -216,7 +216,7 @@ const GlobalHeader = ({ user, notifications, onSearch, onNotificationClick, onUs
 };
 
 // Left Sidebar Navigation Component
-const LeftSidebar = ({ activeModule, onModuleChange, isCollapsed, onToggleCollapse }) => {
+const LeftSidebar = ({ activeModule, onModuleChange, isCollapsed, onToggleCollapse, isMobileMenuOpen, onMobileMenuToggle }) => {
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
 
   const modules = [
@@ -233,56 +233,88 @@ const LeftSidebar = ({ activeModule, onModuleChange, isCollapsed, onToggleCollap
   ];
 
   return (
-    <div className={`${isCollapsed ? 'w-16' : 'w-64'} transition-all duration-300 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} border-r h-screen sticky top-16 overflow-y-auto`}>
-      {/* Collapse Button */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <button
-          onClick={onToggleCollapse}
-          className={`w-full flex items-center justify-center p-2 rounded-lg ${isDarkMode ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-200'}`}
-        >
-          <svg 
-            className={`h-5 w-5 transform transition-transform ${isCollapsed ? 'rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Navigation Modules */}
-      <nav className="p-4 space-y-2">
-        {modules.map((module) => (
+    <>
+      {/* Mobile Sidebar Overlay */}
+      <div className={`fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}
+           onClick={onMobileMenuToggle}></div>
+      
+      {/* Sidebar */}
+      <div className={`
+        ${isCollapsed ? 'w-16' : 'w-64'} 
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        fixed lg:sticky top-16 left-0 z-30 lg:z-auto
+        transition-all duration-300 transform lg:transform-none
+        ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} 
+        border-r h-screen overflow-y-auto
+      `}>
+        {/* Collapse Button - Desktop only */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 hidden lg:block">
           <button
-            key={module.id}
-            onClick={() => onModuleChange(module.id)}
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-3 rounded-lg text-left transition-colors ${
-              activeModule === module.id
-                ? isDarkMode ? 'bg-blue-900 text-blue-100' : 'bg-blue-100 text-blue-900'
-                : isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-700 hover:bg-gray-200'
-            }`}
-            title={isCollapsed ? module.name : ''}
+            onClick={onToggleCollapse}
+            className={`w-full flex items-center justify-center p-2 rounded-lg ${isDarkMode ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-200'}`}
           >
-            <div className="flex items-center space-x-3">
-              <span className="text-lg">{module.icon}</span>
-              {!isCollapsed && (
-                <span className="font-medium">{module.name}</span>
-              )}
-            </div>
-            {!isCollapsed && module.badge && (
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                module.badge === 'NEW' 
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-              }`}>
-                {module.badge}
-              </span>
-            )}
+            <svg 
+              className={`h-5 w-5 transform transition-transform ${isCollapsed ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
           </button>
-        ))}
-      </nav>
-    </div>
+        </div>
+
+        {/* Mobile Close Button */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
+          <button
+            onClick={onMobileMenuToggle}
+            className={`w-full flex items-center justify-between p-2 rounded-lg ${isDarkMode ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-200'}`}
+          >
+            <span className="font-medium">Navigation</span>
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Navigation Modules */}
+        <nav className="p-4 space-y-2">
+          {modules.map((module) => (
+            <button
+              key={module.id}
+              onClick={() => {
+                onModuleChange(module.id);
+                if (window.innerWidth < 1024) {
+                  onMobileMenuToggle();
+                }
+              }}
+              className={`w-full flex items-center ${isCollapsed && window.innerWidth >= 1024 ? 'justify-center' : 'justify-between'} p-3 rounded-lg text-left transition-colors ${
+                activeModule === module.id
+                  ? isDarkMode ? 'bg-blue-900 text-blue-100' : 'bg-blue-100 text-blue-900'
+                  : isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-700 hover:bg-gray-200'
+              }`}
+              title={isCollapsed && window.innerWidth >= 1024 ? module.name : ''}
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-lg">{module.icon}</span>
+                {(!isCollapsed || window.innerWidth < 1024) && (
+                  <span className="font-medium">{module.name}</span>
+                )}
+              </div>
+              {(!isCollapsed || window.innerWidth < 1024) && module.badge && (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  module.badge === 'NEW' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                }`}>
+                  {module.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </>
   );
 };
 
