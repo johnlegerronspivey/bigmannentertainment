@@ -1471,6 +1471,9 @@ from social_media_royalty_endpoints import router as social_media_royalty_router
 # Import content ingestion endpoints
 from content_ingestion_endpoints import router as content_ingestion_router
 
+# Import comprehensive platform endpoints
+from comprehensive_platform_endpoints import router as comprehensive_platform_router
+
 # Import content workflow endpoints
 from content_workflow_endpoints import router as content_workflow_router
 
