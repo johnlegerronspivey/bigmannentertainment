@@ -606,6 +606,10 @@ export const ComprehensivePlatform = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Global Header */}
@@ -614,6 +618,7 @@ export const ComprehensivePlatform = () => {
         notifications={notifications}
         onSearch={handleSearch}
         onNotificationClick={handleNotificationClick}
+        onMobileMenuToggle={toggleMobileMenu}
       />
 
       <div className="flex">
@@ -623,10 +628,12 @@ export const ComprehensivePlatform = () => {
           onModuleChange={handleModuleChange}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebar}
+          isMobileMenuOpen={mobileMenuOpen}
+          onMobileMenuToggle={toggleMobileMenu}
         />
 
         {/* Main Content */}
-        <main className={`flex-1 p-6 ${sidebarCollapsed ? 'ml-0' : 'ml-0'}`}>
+        <main className={`flex-1 p-4 lg:p-6 ${sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'} transition-all duration-300`}>
           <div className="max-w-full">
             {/* Module Title */}
             <div className="mb-6">
