@@ -6378,6 +6378,7 @@ app.include_router(content_workflow_router)
 app.include_router(transcoding_router)
 app.include_router(distribution_router)
 app.include_router(premium_features_router)
+app.include_router(mlc_router)
 app.include_router(analytics_router)
 app.include_router(lifecycle_router)
 
