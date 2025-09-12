@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://content-hub-277.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://royaltyhub.preview.emergentagent.com';
 
 // Global error handler utility
 const handleApiError = (error, context) => {
