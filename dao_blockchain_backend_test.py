@@ -364,13 +364,14 @@ class DAOBlockchainTester:
             invalid_proposal_id = f"invalid_{uuid.uuid4().hex[:8]}"
             url = f"{API_BASE}/dao/proposals/{invalid_proposal_id}/vote"
             
-            vote_data = {"choice": "yes", "reason": "Test vote"}
             params = {
+                "choice": "yes",
+                "reason": "Test vote",
                 "user_id": self.test_user_id,
                 "wallet_address": self.test_wallet_address
             }
             
-            async with self.session.post(url, json=vote_data, params=params) as response:
+            async with self.session.post(url, params=params) as response:
                 data = await response.json()
                 
                 # Should return error for invalid proposal
