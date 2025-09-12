@@ -144,18 +144,15 @@ class DAOBlockchainTester:
         try:
             url = f"{API_BASE}/dao/proposals/{self.test_proposal_id}/vote"
             
-            # Cast a vote with blockchain integration
-            vote_data = {
-                "choice": "yes",
-                "reason": "This proposal will improve the platform's blockchain integration capabilities and enhance user experience."
-            }
-            
+            # Cast a vote with blockchain integration - parameters go in query string
             params = {
+                "choice": "yes",
+                "reason": "This proposal will improve the platform's blockchain integration capabilities and enhance user experience.",
                 "user_id": self.test_user_id,
                 "wallet_address": self.test_wallet_address
             }
             
-            async with self.session.post(url, json=vote_data, params=params) as response:
+            async with self.session.post(url, params=params) as response:
                 data = await response.json()
                 
                 if response.status == 200 and data.get('success'):
