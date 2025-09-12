@@ -220,6 +220,7 @@ const LeftSidebar = ({ activeModule, onModuleChange, isCollapsed, onToggleCollap
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
 
   const modules = [
+    { id: 'main-dashboard', name: 'Main Dashboard', icon: '🏠', badge: null },
     { id: 'content-manager', name: 'Content Manager', icon: '📁', badge: null },
     { id: 'distribution-tracker', name: 'Distribution Tracker', icon: '📡', badge: '32' },
     { id: 'royalty-engine', name: 'Royalty Engine', icon: '💰', badge: 'NEW' },
