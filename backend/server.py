@@ -1483,6 +1483,9 @@ from transcoding_endpoints import router as transcoding_router
 # Import distribution endpoints (Function 3)
 from distribution_endpoints import router as distribution_router
 
+# Import premium features endpoints
+from premium_features_endpoints import router as premium_features_router
+
 # Import analytics endpoints (Function 4)
 from analytics_endpoints import router as analytics_router
 
