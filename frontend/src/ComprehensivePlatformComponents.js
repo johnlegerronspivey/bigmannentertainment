@@ -2600,4 +2600,1320 @@ const SponsorshipCampaigns = () => {
   );
 };
 
+// Contributor Hub Component
+const ContributorHub = () => {
+  const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+  const [contributors, setContributors] = useState([]);
+  const [collaborationRequests, setCollaborationRequests] = useState([]);
+  const [collaborations, setCollaborations] = useState([]);
+  const [contributorStats, setContributorStats] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('discover');
+
+  useEffect(() => {
+    fetchContributorData();
+  }, []);
+
+  const fetchContributorData = async () => {
+    setLoading(true);
+    try {
+      const [contributorsRes, requestsRes, collaborationsRes, statsRes] = await Promise.all([
+        axios.get(`${API}/api/platform/contributors/search?user_id=user_123`),
+        axios.get(`${API}/api/platform/contributors/requests?user_id=user_123`),
+        axios.get(`${API}/api/platform/contributors/collaborations?user_id=user_123`),
+        axios.get(`${API}/api/platform/contributors/stats?user_id=user_123`)
+      ]);
+
+      if (contributorsRes.data.success) setContributors(contributorsRes.data.contributors || []);
+      if (requestsRes.data.success) setCollaborationRequests(requestsRes.data.requests || []);
+      if (collaborationsRes.data.success) setCollaborations(collaborationsRes.data.collaborations || []);
+      if (statsRes.data.success) setContributorStats(statsRes.data.stats || {});
+    } catch (error) {
+      handleApiError(error, 'fetchContributorData');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tabs = [
+    { id: 'discover', name: 'Discover', icon: '🔍' },
+    { id: 'requests', name: 'Requests', icon: '📩' },
+    { id: 'collaborations', name: 'Active Collaborations', icon: '🤝' },
+    { id: 'payments', name: 'Payments', icon: '💳' },
+    { id: 'profile', name: 'My Profile', icon: '👤' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contributor Hub</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Connect and collaborate with creators</p>
+        </div>
+        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+          <span>➕</span>
+          <span>Send Request</span>
+        </button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Collaborations</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contributorStats.profile?.total_collaborations || '15'}</p>
+            </div>
+            <span className="text-2xl">🤝</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
+              <p className="text-2xl font-bold text-green-600">{contributorStats.profile?.success_rate || '93.3'}%</p>
+            </div>
+            <span className="text-2xl">✅</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Earned</p>
+              <p className="text-2xl font-bold text-blue-600">${contributorStats.earnings?.total_earned?.toLocaleString() || '12,450'}</p>
+            </div>
+            <span className="text-2xl">💰</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Average Rating</p>
+              <p className="text-2xl font-bold text-yellow-600">{contributorStats.profile?.average_rating || '4.7'}⭐</p>
+            </div>
+            <span className="text-2xl">⭐</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === tab.id
+                  ? 'border-green-500 text-green-600 dark:text-green-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.name}</span>
+              {tab.id === 'requests' && collaborationRequests.length > 0 && (
+                <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 ml-1">
+                  {collaborationRequests.filter(r => r.status === 'pending').length}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div className="space-y-4">
+        {activeTab === 'discover' && (
+          <div className="space-y-4">
+            {/* Search and Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <input
+                type="text"
+                placeholder="Search contributors..."
+                className={`px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+              />
+              <select className={`px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                <option>All Roles</option>
+                <option>Producer</option>
+                <option>Vocalist</option>
+                <option>Instrumentalist</option>
+                <option>Songwriter</option>
+              </select>
+              <select className={`px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                <option>All Genres</option>
+                <option>Hip-Hop</option>
+                <option>Pop</option>
+                <option>R&B</option>
+                <option>Electronic</option>
+              </select>
+              <select className={`px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                <option>Any Budget</option>
+                <option>Under $500</option>
+                <option>$500 - $1000</option>
+                <option>$1000+</option>
+              </select>
+            </div>
+
+            {/* Contributors Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {contributors.length > 0 ? contributors.map((contributor, index) => (
+                <div key={contributor.id || index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                      {contributor.stage_name ? contributor.stage_name.charAt(0) : 'C'}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{contributor.stage_name || 'Unknown'}</h3>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-yellow-500">⭐</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{contributor.rating || '0.0'}</span>
+                        <span className="text-sm text-gray-500">({contributor.total_collaborations || 0} collaborations)</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{contributor.bio || 'No bio available'}</p>
+                  
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Roles</p>
+                    <div className="flex flex-wrap gap-1">
+                      {contributor.roles?.map((role, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs rounded">
+                          {role}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</p>
+                    <div className="flex flex-wrap gap-1">
+                      {contributor.skills?.slice(0, 3).map((skill, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs rounded">
+                          {skill}
+                        </span>
+                      ))}
+                      {contributor.skills?.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 text-xs rounded">
+                          +{contributor.skills.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div>
+                      {contributor.hourly_rate && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">${contributor.hourly_rate}/hr</p>
+                      )}
+                      <p className="text-xs text-gray-500">{contributor.location || 'Location not specified'}</p>
+                    </div>
+                    <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                      Contact
+                    </button>
+                  </div>
+                </div>
+              )) : (
+                <div className="col-span-full text-center py-8">
+                  <div className="text-4xl mb-4">👥</div>
+                  <p className="text-gray-600 dark:text-gray-400">No contributors found. Try adjusting your search filters.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'requests' && (
+          <div className="space-y-4">
+            {collaborationRequests.length > 0 ? collaborationRequests.map((request, index) => (
+              <div key={request.id || index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{request.project_title}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        request.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                        request.status === 'accepted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                        request.status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                        'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                      }`}>
+                        {request.status}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">{request.project_description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                      <span>Roles: {request.required_roles?.join(', ')}</span>
+                      {request.budget_range && (
+                        <span>Budget: ${request.budget_range.min} - ${request.budget_range.max}</span>
+                      )}
+                      <span>Timeline: {request.timeline || 'Not specified'}</span>
+                    </div>
+                  </div>
+                  {request.status === 'pending' && (
+                    <div className="flex space-x-2 ml-4">
+                      <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                        Accept
+                      </button>
+                      <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                        Decline
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                {request.message && (
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">"{request.message}"</p>
+                  </div>
+                )}
+              </div>
+            )) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">📩</div>
+                <p className="text-gray-600 dark:text-gray-400">No collaboration requests at the moment.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'collaborations' && (
+          <div className="space-y-4">
+            {collaborations.length > 0 ? collaborations.map((collaboration, index) => (
+              <div key={collaboration.id || index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{collaboration.project_title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {collaboration.participants?.length || 0} participants • Started {collaboration.start_date ? new Date(collaboration.start_date).toLocaleDateString() : 'Recently'}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    collaboration.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                    collaboration.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                    'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                  }`}>
+                    {collaboration.status?.replace('_', ' ')}
+                  </span>
+                </div>
+                
+                {collaboration.milestones && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Milestones</h4>
+                    <div className="space-y-2">
+                      {collaboration.milestones.map((milestone, idx) => (
+                        <div key={idx} className="flex items-center space-x-3">
+                          <span className={`w-4 h-4 rounded-full flex-shrink-0 ${
+                            milestone.status === 'completed' ? 'bg-green-500' :
+                            milestone.status === 'in_progress' ? 'bg-blue-500' :
+                            'bg-gray-300 dark:bg-gray-600'
+                          }`}></span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{milestone.title}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
+                            {milestone.due_date || milestone.date}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Budget: ${collaboration.budget_total?.toLocaleString() || '0'}
+                  </div>
+                  <div className="flex space-x-2">
+                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">View Details</button>
+                    <button className="text-green-600 hover:text-green-700 text-sm font-medium">Message</button>
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">🤝</div>
+                <p className="text-gray-600 dark:text-gray-400">No active collaborations. Start your first collaboration!</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'payments' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className={`${isDarkMode ? 'bg-green-800 border-green-700' : 'bg-green-50 border-green-200'} border rounded-lg p-4`}>
+                <h3 className="font-semibold text-green-900 dark:text-green-100">Total Earned</h3>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-2">
+                  ${contributorStats.earnings?.total_earned?.toLocaleString() || '12,450'}
+                </p>
+              </div>
+              <div className={`${isDarkMode ? 'bg-blue-800 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4`}>
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100">This Month</h3>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-2">
+                  ${contributorStats.earnings?.this_month?.toLocaleString() || '1,850'}
+                </p>
+              </div>
+              <div className={`${isDarkMode ? 'bg-yellow-800 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4`}>
+                <h3 className="font-semibold text-yellow-900 dark:text-yellow-100">Pending</h3>
+                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mt-2">
+                  ${contributorStats.earnings?.pending?.toLocaleString() || '650'}
+                </p>
+              </div>
+            </div>
+
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment History</h3>
+              <div className="space-y-4">
+                {[
+                  { project: 'Pop Single Vocals', amount: 480.00, date: '2024-01-15', status: 'Paid', method: 'PayPal' },
+                  { project: 'Hip-Hop Beat Production', amount: 650.00, date: '2024-01-10', status: 'Processing', method: 'Bank Transfer' },
+                  { project: 'Acoustic Guitar Session', amount: 150.00, date: '2024-01-05', status: 'Paid', method: 'Crypto' }
+                ].map((payment, index) => (
+                  <div key={index} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{payment.project}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{payment.date} • {payment.method}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900 dark:text-white">${payment.amount}</p>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        payment.status === 'Paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                      }`}>
+                        {payment.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Statistics</h3>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                  Edit Profile
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Performance Metrics</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Success Rate</span>
+                      <span className="font-medium text-green-600">{contributorStats.profile?.success_rate || '93.3'}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Response Rate</span>
+                      <span className="font-medium text-blue-600">{contributorStats.profile?.response_rate || '98.5'}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Avg Response Time</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{contributorStats.profile?.average_response_time || '2.3 hours'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Total Reviews</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{contributorStats.profile?.total_reviews || '12'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Skills Performance</h4>
+                  <div className="space-y-3">
+                    {contributorStats.skills_performance?.skill_ratings && Object.entries(contributorStats.skills_performance.skill_ratings).map(([skill, rating]) => (
+                      <div key={skill} className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">{skill}</span>
+                        <div className="flex items-center space-x-1">
+                          <span className="text-yellow-500">⭐</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{rating}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Achievements</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { title: 'Early Member', description: 'Joined within first 100 users', icon: '🏆' },
+                  { title: 'Top Collaborator', description: '90%+ success rate', icon: '⭐' },
+                  { title: 'Fast Responder', description: 'Avg response under 4 hours', icon: '⚡' },
+                  { title: 'Highly Rated', description: '4.5+ star average', icon: '🌟' }
+                ].map((achievement, index) => (
+                  <div key={index} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="text-2xl mb-2">{achievement.icon}</div>
+                    <h4 className="font-medium text-gray-900 dark:text-white text-sm">{achievement.title}</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{achievement.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// System Health & Logs Component
+const SystemHealth = () => {
+  const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+  const [systemHealth, setSystemHealth] = useState({});
+  const [systemLogs, setSystemLogs] = useState([]);
+  const [systemStats, setSystemStats] = useState({});
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    fetchSystemData();
+  }, []);
+
+  const fetchSystemData = async () => {
+    setLoading(true);
+    try {
+      const [healthRes, logsRes, statsRes, alertsRes] = await Promise.all([
+        axios.get(`${API}/api/platform/system/health`),
+        axios.get(`${API}/api/platform/system/logs?limit=50`),
+        axios.get(`${API}/api/platform/system/stats`),
+        axios.get(`${API}/api/platform/system/alerts`)
+      ]);
+
+      if (healthRes.data.success) setSystemHealth(healthRes.data || {});
+      if (logsRes.data.success) setSystemLogs(logsRes.data.logs || []);
+      if (statsRes.data.success) setSystemStats(statsRes.data.stats || {});
+      if (alertsRes.data.success) setAlerts(alertsRes.data.alerts || []);
+    } catch (error) {
+      handleApiError(error, 'fetchSystemData');
+    } finally {
+      setLoading(false);  
+    }
+  };
+
+  const getHealthColor = (status) => {
+    switch (status) {
+      case 'healthy': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'warning': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'down': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+  };
+
+  const getLogLevelColor = (level) => {
+    switch (level) {
+      case 'error': return 'text-red-600 dark:text-red-400';
+      case 'warning': return 'text-yellow-600 dark:text-yellow-400';
+      case 'info': return 'text-blue-600 dark:text-blue-400';
+      case 'debug': return 'text-gray-600 dark:text-gray-400';
+      default: return 'text-gray-600 dark:text-gray-400';
+    }
+  };
+
+  const tabs = [
+    { id: 'overview', name: 'System Overview', icon: '🏥' },
+    { id: 'components', name: 'Components', icon: '⚙️' },
+    { id: 'logs', name: 'Logs', icon: '📋' },
+    { id: 'alerts', name: 'Alerts', icon: '🚨' },
+    { id: 'metrics', name: 'Metrics', icon: '📊' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">System Health & Logs</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Monitor system performance and logs</p>
+        </div>
+        <div className="flex space-x-2">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+            <span>🔄</span>
+            <span>Refresh</span>
+          </button>
+          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+            <span>📥</span>
+            <span>Export Logs</span>
+          </button>
+        </div>
+      </div>
+
+      {/* System Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Overall Status</p>
+              <p className="text-2xl font-bold text-green-600">{systemHealth.overall_status || 'Healthy'}</p>
+            </div>
+            <span className="text-2xl">💚</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Uptime</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{systemStats.uptime?.human_readable || '14d 6h'}</p>
+            </div>
+            <span className="text-2xl">⏱️</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Error Rate</p>
+              <p className="text-2xl font-bold text-blue-600">{(systemStats.errors?.error_rate || 0.05).toFixed(2)}%</p>
+            </div>
+            <span className="text-2xl">📊</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Active Alerts</p>
+              <p className="text-2xl font-bold text-yellow-600">{alerts.filter(a => !a.resolved).length}</p>
+            </div>
+            <span className="text-2xl">🚨</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.name}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div className="space-y-4">
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Performance</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">CPU Usage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="bg-blue-600 h-2 rounded-full" style={{width: `${systemStats.resources?.cpu_usage || 34.5}%`}}></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{systemStats.resources?.cpu_usage || 34.5}%</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Memory Usage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="bg-green-600 h-2 rounded-full" style={{width: `${systemStats.resources?.memory_usage || 67.8}%`}}></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{systemStats.resources?.memory_usage || 67.8}%</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Disk Usage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="bg-yellow-600 h-2 rounded-full" style={{width: `${systemStats.resources?.disk_usage || 45.2}%`}}></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{systemStats.resources?.disk_usage || 45.2}%</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Network Usage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="bg-purple-600 h-2 rounded-full" style={{width: `${systemStats.resources?.network_usage || 23.4}%`}}></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{systemStats.resources?.network_usage || 23.4}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Request Statistics</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Total Today</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{systemStats.requests?.total_today?.toLocaleString() || '45,678'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">This Hour</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{systemStats.requests?.total_this_hour?.toLocaleString() || '3,456'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Avg Response Time</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{systemStats.performance?.average_response_time || 245.6}ms</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Error Count</span>
+                    <span className="font-medium text-red-600">{systemStats.errors?.total_today || 23}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'components' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {systemHealth.components?.map((component, index) => (
+              <div key={component.component || index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{component.component?.replace('_', ' ') || 'Unknown Component'}</h3>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getHealthColor(component.status)}`}>
+                    {component.status}
+                  </span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Response Time</span>
+                    <span className="text-gray-900 dark:text-white">{component.response_time?.toFixed(1) || 0}ms</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Last Check</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {component.last_check ? new Date(component.last_check).toLocaleTimeString() : 'Never'}
+                    </span>
+                  </div>
+                  {component.error_message && (
+                    <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-700 dark:text-red-300">
+                      {component.error_message}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )) || (
+              <div className="col-span-full text-center py-8">
+                <div className="text-4xl mb-4">⚙️</div>
+                <p className="text-gray-600 dark:text-gray-400">Loading system components...</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'logs' && (
+          <div className="space-y-4">
+            {/* Log Filters */}
+            <div className="flex flex-wrap gap-4">
+              <select className={`px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                <option>All Levels</option>
+                <option>Error</option>
+                <option>Warning</option>
+                <option>Info</option>
+                <option>Debug</option>
+              </select>
+              <select className={`px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                <option>All Components</option>
+                <option>API Server</option>
+                <option>Database</option>
+                <option>Storage</option>
+                <option>Queue</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Search logs..."
+                className={`px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+              />
+            </div>
+
+            {/* Logs List */}
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg`}>
+              <div className="max-h-96 overflow-y-auto">
+                {systemLogs.length > 0 ? systemLogs.map((log, index) => (
+                  <div key={log.id || index} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <span className={`text-sm font-mono ${getLogLevelColor(log.level)}`}>
+                          {(log.level || 'INFO').toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 dark:text-white">{log.message || 'No message'}</p>
+                        <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          <span>{log.component || 'unknown'}</span>
+                          <span>{log.timestamp ? new Date(log.timestamp).toLocaleString() : 'No timestamp'}</span>
+                          {log.user_id && <span>User: {log.user_id}</span>}
+                          {log.request_id && <span>Request: {log.request_id}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">📋</div>
+                    <p className="text-gray-600 dark:text-gray-400">No logs available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'alerts' && (
+          <div className="space-y-4">
+            {alerts.length > 0 ? alerts.map((alert, index) => (
+              <div key={alert.id || index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{alert.title}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        alert.severity === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                        alert.severity === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                        alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                      }`}>
+                        {alert.severity}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400">{alert.message}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                      Component: {alert.component} • {alert.triggered_at ? new Date(alert.triggered_at).toLocaleString() : 'Recently'}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2 ml-4">
+                    {!alert.acknowledged && (
+                      <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">Acknowledge</button>
+                    )}
+                    {!alert.resolved && (
+                      <button className="text-green-600 hover:text-green-700 text-sm font-medium">Resolve</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">✅</div>
+                <p className="text-gray-600 dark:text-gray-400">No active alerts. System is running smoothly!</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'metrics' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Database Performance</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Active Connections</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{systemStats.database?.active_connections || 15}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Queries/Second</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{systemStats.database?.queries_per_second || 234.5}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Slow Queries</span>
+                  <span className="font-medium text-yellow-600">{systemStats.database?.slow_queries || 3}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Max Connections</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{systemStats.database?.max_connections || 100}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cache Performance</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Hit Rate</span>
+                  <span className="font-medium text-green-600">{systemStats.cache?.hit_rate || 89.4}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Miss Rate</span>
+                  <span className="font-medium text-red-600">{systemStats.cache?.miss_rate || 10.6}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Total Keys</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{systemStats.cache?.total_keys?.toLocaleString() || '12,456'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Memory Usage</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{systemStats.cache?.memory_usage || '45.2 MB'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// DAO Governance Component
+const DAOGovernance = () => {
+  const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+  const [proposals, setProposals] = useState([]);
+  const [daoMetrics, setDaoMetrics] = useState({});
+  const [memberProfile, setMemberProfile] = useState({});
+  const [treasury, setTreasury] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('proposals');
+
+  useEffect(() => {
+    fetchDaoData();
+  }, []);
+
+  const fetchDaoData = async () => {
+    setLoading(true);
+    try {
+      const [proposalsRes, metricsRes, memberRes, treasuryRes] = await Promise.all([
+        axios.get(`${API}/api/platform/dao/proposals?user_id=user_123`),
+        axios.get(`${API}/api/platform/dao/metrics?user_id=user_123`),
+        axios.get(`${API}/api/platform/dao/member?user_id=user_123`),
+        axios.get(`${API}/api/platform/dao/treasury?user_id=user_123`)
+      ]);
+
+      if (proposalsRes.data.success) setProposals(proposalsRes.data.proposals || []);
+      if (metricsRes.data.success) setDaoMetrics(metricsRes.data.metrics || {});
+      if (memberRes.data.success) setMemberProfile(memberRes.data.member || {});
+      if (treasuryRes.data.success) setTreasury(treasuryRes.data.treasury || {});
+    } catch (error) {
+      handleApiError(error, 'fetchDaoData');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProposalStatusColor = (status) => {
+    switch (status) {
+      case 'active': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'passed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'rejected': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'executed': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+  };
+
+  const tabs = [
+    { id: 'proposals', name: 'Proposals', icon: '🗳️' },
+    { id: 'voting', name: 'Voting Power', icon: '⚡' },
+    { id: 'treasury', name: 'Treasury', icon: '🏛️' },
+    { id: 'governance', name: 'Governance', icon: '🏛️' },
+    { id: 'profile', name: 'My Profile', icon: '👤' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">DAO Governance</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Decentralized governance and voting</p>
+        </div>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+          <span>➕</span>
+          <span>Create Proposal</span>
+        </button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Proposals</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{daoMetrics.total_proposals || '15'}</p>
+            </div>
+            <span className="text-2xl">🗳️</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Active Proposals</p>
+              <p className="text-2xl font-bold text-blue-600">{daoMetrics.active_proposals || '3'}</p>
+            </div>
+            <span className="text-2xl">🔄</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">My Voting Power</p>
+              <p className="text-2xl font-bold text-green-600">{memberProfile.voting_power?.toLocaleString() || '15,000'}</p>
+            </div>
+            <span className="text-2xl">⚡</span>
+          </div>
+        </div>
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Treasury Value</p>
+              <p className="text-2xl font-bold text-purple-600">${treasury.total_value_usd?.toLocaleString() || '2,450,000'}</p>
+            </div>
+            <span className="text-2xl">🏛️</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.name}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div className="space-y-4">
+        {activeTab === 'proposals' && (
+          <div className="space-y-4">
+            {proposals.length > 0 ? proposals.map((proposal, index) => (
+              <div key={proposal.id || index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{proposal.title}</h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getProposalStatusColor(proposal.status)}`}>
+                        {proposal.status}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">{proposal.description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                      <span>Type: {proposal.proposal_type?.replace('_', ' ')}</span>
+                      <span>Proposer: {proposal.proposer_id}</span>
+                      <span>Voting ends: {proposal.voting_ends ? new Date(proposal.voting_ends).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                  </div>
+                  {proposal.status === 'active' && (
+                    <div className="flex space-x-2 ml-4">
+                      <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                        Vote Yes
+                      </button>
+                      <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                        Vote No
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                {proposal.status === 'active' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Yes Votes</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-green-600 h-2 rounded-full" 
+                            style={{width: `${((proposal.vote_weight_yes || 0) / ((proposal.vote_weight_yes || 0) + (proposal.vote_weight_no || 0) + 0.01)) * 100}%`}}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{proposal.yes_votes || 0}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">No Votes</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-red-600 h-2 rounded-full" 
+                            style={{width: `${((proposal.vote_weight_no || 0) / ((proposal.vote_weight_yes || 0) + (proposal.vote_weight_no || 0) + 0.01)) * 100}%`}}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{proposal.no_votes || 0}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Quorum</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{width: `${Math.min(((proposal.total_votes || 0) / (proposal.quorum_required || 1)) * 100, 100)}%`}}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{((proposal.total_votes || 0) / (proposal.quorum_required || 1) * 100).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">🗳️</div>
+                <p className="text-gray-600 dark:text-gray-400">No proposals found. Create the first proposal!</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'voting' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className={`${isDarkMode ? 'bg-blue-800 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4`}>
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100">My Voting Power</h3>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-2">
+                  {memberProfile.voting_power?.toLocaleString() || '15,000'} BME
+                </p>
+              </div>
+              <div className={`${isDarkMode ? 'bg-green-800 border-green-700' : 'bg-green-50 border-green-200'} border rounded-lg p-4`}>
+                <h3 className="font-semibold text-green-900 dark:text-green-100">Token Balance</h3>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-2">
+                  {memberProfile.token_balance?.toLocaleString() || '15,000'} BME
+                </p>
+              </div>
+              <div className={`${isDarkMode ? 'bg-purple-800 border-purple-700' : 'bg-purple-50 border-purple-200'} border rounded-lg p-4`}>
+                <h3 className="font-semibold text-purple-900 dark:text-purple-100">Delegated Power</h3>
+                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-2">
+                  {memberProfile.delegated_power?.toLocaleString() || '0'} BME
+                </p>
+              </div>
+            </div>
+
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Delegation Options</h3>
+              <div className="space-y-4">
+                <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Delegate Your Voting Power</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    Allow another member to vote on your behalf while retaining token ownership.
+                  </p>
+                  <div className="flex space-x-4">
+                    <input 
+                      type="text" 
+                      placeholder="Enter wallet address..."
+                      className={`flex-1 px-3 py-2 border rounded-lg ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                      Delegate
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Remove Delegation</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    Reclaim your voting power and vote directly on proposals.
+                  </p>
+                  <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    Remove Delegation  
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'treasury' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Treasury Assets</h3>
+                <div className="space-y-4">
+                  {treasury.assets?.map((asset, index) => (
+                    <div key={asset.symbol || index} className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{asset.symbol}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{asset.balance?.toLocaleString()} tokens</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          ${asset.value_usd?.toLocaleString()}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{asset.percentage}%</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Monthly Flow</h3>
+                <div className="space-y-3">
+                  {treasury.monthly_flow?.slice(-6).map((month, index) => (
+                    <div key={month.month || index} className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">{month.month}</span>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          Net: ${month.net?.toLocaleString()}
+                        </p>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          In: ${month.inflow?.toLocaleString()} | Out: ${month.outflow?.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Transactions</h3>
+              <div className="space-y-4">
+                {treasury.recent_transactions?.map((tx, index) => (
+                  <div key={tx.id || index} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{tx.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {tx.timestamp ? new Date(tx.timestamp).toLocaleDateString() : 'Recent'} • {tx.token_symbol}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-semibold ${
+                        tx.transaction_type === 'deposit' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {tx.transaction_type === 'deposit' ? '+' : '-'}${tx.amount?.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-32">
+                        {tx.transaction_hash}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'governance' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Governance Statistics</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Total Token Holders</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{daoMetrics.total_token_holders?.toLocaleString() || '1,250'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Unique Voters</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{daoMetrics.unique_voters || '234'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Avg Participation</span>
+                    <span className="font-medium text-blue-600">{daoMetrics.average_participation || '67.8'}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Total Votes Cast</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{daoMetrics.total_votes_cast?.toLocaleString() || '1,456'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Smart Contracts</h3>
+                <div className="space-y-3">
+                  <div className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-gray-900 dark:text-white">Governance Contract</span>
+                      <span className="text-green-500">✅</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">0xabcd...ef12</p>
+                  </div>
+                  <div className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-gray-900 dark:text-white">BME Token Contract</span>
+                      <span className="text-green-500">✅</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">0x1234...7890</p>
+                  </div>
+                  <div className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-gray-900 dark:text-white">Treasury Contract</span>
+                      <span className="text-green-500">✅</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">0xfedc...ba09</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">DAO Member Profile</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Participation Stats</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Proposals Created</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{memberProfile.proposals_created || '3'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Votes Cast</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{memberProfile.votes_cast || '12'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Participation Rate</span>
+                      <span className="font-medium text-green-600">{memberProfile.participation_rate || '85.7'}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Reputation Score</span>
+                      <span className="font-medium text-purple-600">{memberProfile.reputation_score || '92.5'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Token Information</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Token Balance</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{memberProfile.token_balance?.toLocaleString() || '15,000'} BME</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Voting Power</span>
+                      <span className="font-medium text-blue-600">{memberProfile.voting_power?.toLocaleString() || '15,000'} BME</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Member Since</span>
+                      <span className="font-medium text-gray-900 dark:text-white">Jan 2024</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Role</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{memberProfile.role || 'Token Holder'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default ComprehensivePlatform;
