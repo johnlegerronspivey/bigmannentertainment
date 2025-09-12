@@ -31,7 +31,7 @@ const handleApiResponse = (response, successCallback, errorMessage = 'API call f
 // PHASE 1: CORE FOUNDATION COMPONENTS
 
 // Global Header Component
-const GlobalHeader = ({ user, notifications, onSearch, onNotificationClick, onUserMenuToggle }) => {
+const GlobalHeader = ({ user, notifications, onSearch, onNotificationClick, onUserMenuToggle, onMobileMenuToggle }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -58,8 +58,18 @@ const GlobalHeader = ({ user, notifications, onSearch, onNotificationClick, onUs
     <header className={`sticky top-0 z-50 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm`}>
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo & Brand */}
+          {/* Mobile Menu Button & Logo */}
           <div className="flex items-center space-x-4">
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={onMobileMenuToggle}
+              className={`lg:hidden p-2 rounded-md ${isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            
             <div className="flex-shrink-0">
               <img 
                 src="/logo.png" 
@@ -78,8 +88,8 @@ const GlobalHeader = ({ user, notifications, onSearch, onNotificationClick, onUs
               </span>
             </div>
             
-            {/* Environment Toggle */}
-            <div className="flex items-center space-x-2">
+            {/* Environment Toggle - Hidden on small screens */}
+            <div className="hidden sm:flex items-center space-x-2">
               <select
                 value={environment}
                 onChange={(e) => setEnvironment(e.target.value)}
