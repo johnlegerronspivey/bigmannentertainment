@@ -670,6 +670,9 @@ export const ComprehensivePlatform = () => {
             {activeModule === 'royalty-engine' && (
               <RoyaltyEngine />
             )}
+            {activeModule === 'mlc-integration' && (
+              <MLCIntegration />
+            )}
             {activeModule === 'ai-forecasting' && (
               <AIRoyaltyForecasting />
             )}
