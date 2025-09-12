@@ -594,25 +594,40 @@ export const ComprehensivePlatform = () => {
               </p>
             </div>
 
-            {/* Module Content - For now showing main dashboard */}
+            {/* Module Content */}
             {activeModule === 'content-manager' && (
+              <ContentManager />
+            )}
+            {activeModule === 'distribution-tracker' && (
+              <DistributionTracker />
+            )}
+            {activeModule === 'royalty-engine' && (
+              <RoyaltyEngine />
+            )}
+            {activeModule === 'compliance-center' && (
+              <ComplianceCenter />
+            )}
+            {activeModule === 'analytics-forecasting' && (
+              <AnalyticsForecasting />
+            )}
+            {activeModule === 'sponsorship-campaigns' && (
+              <SponsorshipCampaigns />
+            )}
+            {activeModule === 'contributor-hub' && (
+              <ContributorHub />
+            )}
+            {activeModule === 'system-health' && (
+              <SystemHealth />
+            )}
+            {activeModule === 'dao-governance' && (
+              <DAOGovernance />
+            )}
+            {activeModule === 'main-dashboard' && (
               <MainDashboard
                 kpiData={kpiData}
                 recentActivities={recentActivities}
                 systemAlerts={systemAlerts}
               />
-            )}
-            {activeModule !== 'content-manager' && (
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 text-center">
-                <div className="text-6xl mb-4">🚧</div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Module Under Development
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  The {activeModule.replace('-', ' ')} module is currently being implemented.
-                  Check back soon for full functionality!
-                </p>
-              </div>
             )}
           </div>
         </main>
