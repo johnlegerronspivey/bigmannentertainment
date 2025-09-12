@@ -183,26 +183,47 @@ class AIRoyaltyForecastingService:
         features = data.copy()
         
         # Encode categorical variables
-        if 'platform' not in self.encoders:
-            self.encoders['platform'] = LabelEncoder()
-            features['platform_encoded'] = self.encoders['platform'].fit_transform(features['platform'])
+        if 'platform' in features.columns:
+            if 'platform' not in self.encoders:
+                self.encoders['platform'] = LabelEncoder()
+                features['platform_encoded'] = self.encoders['platform'].fit_transform(features['platform'])
+            else:
+                try:
+                    features['platform_encoded'] = self.encoders['platform'].transform(features['platform'])
+                except ValueError:
+                    # Handle unseen categories
+                    features['platform_encoded'] = 0
         else:
-            features['platform_encoded'] = self.encoders['platform'].transform(features['platform'])
+            features['platform_encoded'] = 0
         
-        if 'territory' not in self.encoders:
-            self.encoders['territory'] = LabelEncoder()
-            features['territory_encoded'] = self.encoders['territory'].fit_transform(features['territory'])
+        if 'territory' in features.columns:
+            if 'territory' not in self.encoders:
+                self.encoders['territory'] = LabelEncoder()
+                features['territory_encoded'] = self.encoders['territory'].fit_transform(features['territory'])
+            else:
+                try:
+                    features['territory_encoded'] = self.encoders['territory'].transform(features['territory'])
+                except ValueError:
+                    # Handle unseen categories
+                    features['territory_encoded'] = 0
         else:
-            features['territory_encoded'] = self.encoders['territory'].transform(features['territory'])
+            features['territory_encoded'] = 0
         
-        # Create rolling averages
-        features = features.sort_values(['asset_id', 'platform', 'territory', 'date'])
-        features['revenue_7d_avg'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].rolling(7, min_periods=1).mean().reset_index(0, drop=True)
-        features['revenue_30d_avg'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].rolling(30, min_periods=1).mean().reset_index(0, drop=True)
-        
-        # Create lag features
-        features['revenue_lag_1'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].shift(1)
-        features['revenue_lag_7'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].shift(7)
+        # Create rolling averages only if we have enough data
+        if len(features) > 7:
+            features = features.sort_values(['asset_id', 'platform', 'territory', 'date'])
+            features['revenue_7d_avg'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].rolling(7, min_periods=1).mean().reset_index(0, drop=True)
+            features['revenue_30d_avg'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].rolling(30, min_periods=1).mean().reset_index(0, drop=True)
+            
+            # Create lag features
+            features['revenue_lag_1'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].shift(1)
+            features['revenue_lag_7'] = features.groupby(['asset_id', 'platform', 'territory'])['daily_revenue'].shift(7)
+        else:
+            # Use simple averages for small datasets
+            features['revenue_7d_avg'] = features['daily_revenue']
+            features['revenue_30d_avg'] = features['daily_revenue']
+            features['revenue_lag_1'] = features['daily_revenue']
+            features['revenue_lag_7'] = features['daily_revenue']
         
         # Fill NaN values
         features = features.fillna(0)
