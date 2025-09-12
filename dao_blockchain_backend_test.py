@@ -86,6 +86,7 @@ class DAOBlockchainTester:
             
             # Create a comprehensive proposal
             proposal_data = {
+                "proposal_id": 999,  # Required field
                 "title": "Test Blockchain Integration Proposal",
                 "description": "This is a test proposal to verify blockchain integration for DAO governance. It includes smart contract interaction testing and voting mechanism validation.",
                 "proposal_type": "platform_upgrade",
