@@ -675,6 +675,9 @@ export const ComprehensivePlatform = () => {
             {activeModule === 'mlc-integration' && (
               <MLCIntegration />
             )}
+            {activeModule === 'mde-integration' && (
+              <MDEIntegration />
+            )}
             {activeModule === 'ai-forecasting' && (
               <AIRoyaltyForecasting />
             )}
