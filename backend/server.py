@@ -1489,6 +1489,9 @@ from premium_features_endpoints import router as premium_features_router
 # Import MLC endpoints
 from mlc_endpoints import router as mlc_router
 
+# Import MDE endpoints
+from mde_endpoints import router as mde_router
+
 # Import analytics endpoints (Function 4)
 from analytics_endpoints import router as analytics_router
 
