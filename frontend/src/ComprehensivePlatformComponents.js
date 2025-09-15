@@ -1255,7 +1255,7 @@ const DistributionTracker = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Platforms</label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {['Mechanical Licensing Collective (MLC)', 'Spotify', 'Apple Music', 'YouTube', 'Instagram', 'TikTok', 'Facebook', 'Amazon Music', 'Tidal', 'Pandora'].map((platform) => (
+                  {['Music Data Exchange (MDE)', 'Mechanical Licensing Collective (MLC)', 'Spotify', 'Apple Music', 'YouTube', 'Instagram', 'TikTok', 'Facebook', 'Amazon Music', 'Tidal', 'Pandora'].map((platform) => (
                     <label key={platform} className="flex items-center space-x-2">
                       <input type="checkbox" className="rounded" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">{platform}</span>
