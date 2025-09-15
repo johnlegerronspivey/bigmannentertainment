@@ -10,6 +10,7 @@ import {
   PremiumDashboardOverview
 } from './PremiumFeaturesComponents';
 import { MLCIntegration } from './MLCIntegrationComponents';
+import { MDEIntegration } from './MDEIntegrationComponents';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'https://royaltyhub.preview.emergentagent.com';
 
