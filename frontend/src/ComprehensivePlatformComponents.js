@@ -245,6 +245,7 @@ const LeftSidebar = ({ activeModule, onModuleChange, isCollapsed, onToggleCollap
     { id: 'distribution-tracker', name: 'Distribution Tracker', icon: '📡', badge: '32' },
     { id: 'royalty-engine', name: 'Royalty Engine', icon: '💰', badge: 'NEW' },
     { id: 'mlc-integration', name: 'MLC Integration', icon: '🏛️', badge: 'NEW' },
+    { id: 'mde-integration', name: 'MDE Integration', icon: '🎵', badge: 'NEW' },
     { id: 'ai-forecasting', name: 'AI Forecasting', icon: '🤖', badge: 'PREMIUM' },
     { id: 'smart-contracts', name: 'Smart Contracts', icon: '📄', badge: 'PREMIUM' },
     { id: 'multi-currency', name: 'Multi-Currency Payouts', icon: '🌍', badge: 'PREMIUM' },
