@@ -12,7 +12,7 @@ import {
 import { MLCIntegration } from './MLCIntegrationComponents';
 import { MDEIntegration } from './MDEIntegrationComponents';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://royaltyhub.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://creative-ledger.preview.emergentagent.com';
 
 // Global error handler utility
 const handleApiError = (error, context) => {
