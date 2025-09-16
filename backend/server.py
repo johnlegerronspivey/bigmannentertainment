@@ -6412,6 +6412,7 @@ app.include_router(premium_features_router)
 app.include_router(mlc_router)
 app.include_router(mde_router)
 app.include_router(gs1_router)
+app.include_router(pdooh_router)
 app.include_router(analytics_router)
 app.include_router(lifecycle_router)
 
