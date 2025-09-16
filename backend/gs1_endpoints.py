@@ -648,7 +648,14 @@ async def get_business_info(
                 "bulk_operations": True,
                 "analytics": True,
                 "compliance_reporting": True
-            }
+            },
+            # Additional business information fields expected by frontend
+            "business_entity": "Big Mann Entertainment LLC",
+            "business_owner": "Big Mann Entertainment Group",
+            "industry": "Music & Entertainment",
+            "ein": "XX-XXXXXXX",
+            "tin": "XXXXXXXXX", 
+            "business_type": "Limited Liability Company"
         }
     except Exception as e:
         logger.error(f"Error retrieving business info: {e}")
