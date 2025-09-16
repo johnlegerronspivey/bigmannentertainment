@@ -12,6 +12,7 @@ import {
 import { MLCIntegration } from './MLCIntegrationComponents';
 import { MDEIntegration } from './MDEIntegrationComponents';
 import { GS1AssetRegistry } from './GS1AssetRegistryComponents';
+import PDOOHCampaignManager from './PDOOHCampaignManager';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'https://musicdao-platform.preview.emergentagent.com';
 
