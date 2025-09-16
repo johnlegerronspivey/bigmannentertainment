@@ -430,10 +430,29 @@ class AIRoyaltyForecastingService:
                     future_streams = int(row.get('streams', 1000) * trend_factor * seasonal_factor)
                     future_engagement = row.get('engagement_rate', 0.5) * trend_factor * seasonal_factor
                     
-                    # Create feature vector
+                    # Create feature vector with proper encoding
+                    platform_encoded = 0
+                    territory_encoded = 0
+                    
+                    # Safely encode platform
+                    if 'platform' in row and 'platform' in self.encoders:
+                        try:
+                            platform_encoded = self.encoders['platform'].transform([row.get('platform', 'spotify')])[0]
+                        except ValueError:
+                            # Handle unseen categories
+                            platform_encoded = 0
+                    
+                    # Safely encode territory
+                    if 'territory' in row and 'territory' in self.encoders:
+                        try:
+                            territory_encoded = self.encoders['territory'].transform([row.get('territory', 'US')])[0]
+                        except ValueError:
+                            # Handle unseen categories
+                            territory_encoded = 0
+                    
                     features = {
-                        'platform_encoded': self.encoders.get('platform', LabelEncoder()).transform([row.get('platform', 'spotify')])[0] if 'platform' in row else 0,
-                        'territory_encoded': self.encoders.get('territory', LabelEncoder()).transform([row.get('territory', 'US')])[0] if 'territory' in row else 0,
+                        'platform_encoded': platform_encoded,
+                        'territory_encoded': territory_encoded,
                         'day_of_week': future_date.weekday(),
                         'month': future_date.month,
                         'quarter': (future_date.month - 1) // 3 + 1,
