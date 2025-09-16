@@ -617,3 +617,106 @@ async def get_standards_compliance(
             "validated_by": "GS1 Asset Registry Service"
         }
     }
+
+@router.get("/business-info")
+async def get_business_info(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get GS1 business information"""
+    try:
+        # Get business analytics
+        analytics = await service.get_analytics()
+        
+        return {
+            "success": True,
+            "business_info": {
+                "company_name": "Big Mann Entertainment",
+                "company_prefix": service.company_prefix,
+                "base_uri": service.base_uri,
+                "total_assets": analytics.total_assets,
+                "active_identifiers": len(analytics.identifiers_by_type),
+                "digital_links_created": analytics.digital_link_scans,
+                "compliance_status": "Fully Compliant",
+                "certification_level": "GS1 Certified",
+                "registration_date": datetime.now(timezone.utc).isoformat(),
+                "supported_industries": ["Music", "Entertainment", "Media", "Merchandise"]
+            },
+            "capabilities": {
+                "identifier_generation": ["GTIN", "GLN", "GDTI", "ISRC", "ISAN"],
+                "digital_links": True,
+                "qr_codes": True,
+                "bulk_operations": True,
+                "analytics": True,
+                "compliance_reporting": True
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving business info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/products")
+async def get_products(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    asset_type: Optional[str] = None,
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get GS1 products (assets)"""
+    try:
+        # Convert asset_type string to AssetType enum if provided
+        asset_type_filter = None
+        if asset_type:
+            try:
+                from gs1_models import AssetType
+                asset_type_filter = AssetType(asset_type.lower())
+            except ValueError:
+                asset_type_filter = None
+        
+        # Create search filters
+        filters = AssetSearchFilter(asset_type=asset_type_filter)
+        
+        # Get assets
+        assets, total_count = await service.search_assets(filters, page, page_size)
+        
+        # Transform assets to products format
+        products = []
+        for asset in assets:
+            product = {
+                "id": asset.asset_id,
+                "name": asset.metadata.title,
+                "description": asset.metadata.description,
+                "type": asset.asset_type,
+                "status": asset.status,
+                "created_at": asset.created_at.isoformat(),
+                "identifiers": {},
+                "digital_links": len(asset.digital_links)
+            }
+            
+            # Add identifier information
+            for ident_type, identifier in asset.identifiers.items():
+                product["identifiers"][ident_type] = {
+                    "value": identifier.value,
+                    "type": identifier.identifier_type,
+                    "status": identifier.status
+                }
+            
+            products.append(product)
+        
+        has_next = (page * page_size) < total_count
+        has_previous = page > 1
+        
+        return {
+            "success": True,
+            "products": products,
+            "pagination": {
+                "total_count": total_count,
+                "page": page,
+                "page_size": page_size,
+                "has_next": has_next,
+                "has_previous": has_previous,
+                "total_pages": (total_count + page_size - 1) // page_size
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving products: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
