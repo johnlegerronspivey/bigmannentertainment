@@ -192,7 +192,7 @@ class ComprehensivePlatformTester:
         
         success, data, status = await self.make_request(
             'POST',
-            '/comprehensive-platform/dao/proposals',
+            '/platform/dao/proposals',
             data=proposal_data,
             params={'user_id': self.test_user_id}
         )
