@@ -18,8 +18,12 @@ export const GS1BusinessDashboard = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setBusinessInfo(data);
-        setError('');
+        if (data.success) {
+          setBusinessInfo(data);
+          setError('');
+        } else {
+          setError('Failed to load business information');
+        }
       } else {
         setError('Failed to load business information');
       }
