@@ -491,7 +491,7 @@ const PDOOHCampaignManager = () => {
               <Sun className="w-4 h-4 text-orange-500" />
               <span className="font-medium">Hot Weather</span>
             </div>
-            <p className="text-sm text-gray-600">Temperature > 25°C</p>
+            <p className="text-sm text-gray-600">Temperature &gt; 25°C</p>
             <p className="text-xs text-green-600 mt-1">342 triggers this month</p>
           </div>
           <div className="p-4 border border-gray-200 rounded-lg">
