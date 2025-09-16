@@ -141,21 +141,22 @@ class AWSDoohBackendTester:
         try:
             campaign_data = {
                 "name": "Test pDOOH Campaign for AWS Integration",
-                "campaign_type": "brand_awareness",
+                "campaign_type": "artist_promotion",
                 "budget_total": 10000.0,
                 "start_date": "2025-01-10T00:00:00Z",
                 "end_date": "2025-01-20T23:59:59Z",
-                "target_platforms": ["trade_desk", "vistar_media"],
-                "creative_assets": [
+                "platforms": ["trade_desk", "vistar_media"],
+                "geotargeting_rules": [
                     {
-                        "type": "image",
-                        "url": "/assets/test-creative.jpg",
-                        "dimensions": {"width": 1920, "height": 1080}
+                        "latitude": 40.7580,
+                        "longitude": -73.9855,
+                        "radius_km": 50,
+                        "location_name": "New York, NY"
                     }
                 ],
-                "geotargeting": {
-                    "locations": ["New York, NY"],
-                    "radius_km": 50
+                "demographics": {
+                    "age_groups": ["18-34", "35-54"],
+                    "interests": ["music", "entertainment"]
                 }
             }
             
