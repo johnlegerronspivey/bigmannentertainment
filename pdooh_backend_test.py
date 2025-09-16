@@ -23,13 +23,15 @@ sys.path.append('/app/backend')
 class PDOOHBackendTester:
     def __init__(self):
         # Get backend URL from environment
-        with open('/app/frontend/.env', 'r') as f:
-            for line in f:
-                if line.startswith('REACT_APP_BACKEND_URL='):
-                    self.base_url = line.split('=')[1].strip()
-                    break
-        else:
-            self.base_url = "http://localhost:8001"
+        self.base_url = "http://localhost:8001"  # Default
+        try:
+            with open('/app/frontend/.env', 'r') as f:
+                for line in f:
+                    if line.startswith('REACT_APP_BACKEND_URL='):
+                        self.base_url = line.split('=')[1].strip()
+                        break
+        except FileNotFoundError:
+            pass
         
         self.api_base = f"{self.base_url}/api/pdooh"
         self.test_user_id = "test_user_pdooh_integration"
