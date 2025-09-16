@@ -9,14 +9,14 @@ from typing import List, Optional, Dict, Any
 import logging
 from datetime import datetime, timezone
 
-from .gs1_models import (
+from gs1_models import (
     GS1Asset, AssetType, IdentifierType, GS1IdentifierStatus,
     CreateAssetRequest, UpdateAssetRequest, GenerateIdentifierRequest,
     CreateDigitalLinkRequest, AssetSearchFilter, AssetListResponse,
     IdentifierValidationResult, AnalyticsData, BatchOperationRequest,
     BatchOperationResult
 )
-from .gs1_service import GS1Service
+from gs1_service import GS1Service
 
 logger = logging.getLogger(__name__)
 
