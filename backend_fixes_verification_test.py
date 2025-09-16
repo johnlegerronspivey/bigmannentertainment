@@ -548,22 +548,22 @@ class BackendFixesVerificationTester:
             customized_contract = {
                 "name": "Custom Revenue Sharing Contract",
                 "template_id": "revenue_sharing_v2",
-                "blockchain_network": "polygon",
-                "owner_id": self.user_id,
-                "parameters": {
-                    "revenue_split": [
-                        {"party": "artist", "percentage": 70.0},
-                        {"party": "label", "percentage": 20.0},
-                        {"party": "platform", "percentage": 10.0}
-                    ],
-                    "payment_frequency": "monthly",
-                    "minimum_threshold": 100.0
-                },
+                "description": "Advanced revenue sharing contract with custom governance features",
                 "customizations": {
                     "contract_name": "BME Revenue Sharing v2",
+                    "blockchain_network": "polygon",
                     "governance_enabled": True,
                     "upgrade_mechanism": "proxy",
                     "audit_trail": True,
+                    "parameters": {
+                        "revenue_split": [
+                            {"party": "artist", "percentage": 70.0},
+                            {"party": "label", "percentage": 20.0},
+                            {"party": "platform", "percentage": 10.0}
+                        ],
+                        "payment_frequency": "monthly",
+                        "minimum_threshold": 100.0
+                    },
                     "custom_functions": [
                         "emergency_pause",
                         "beneficiary_update",
@@ -572,7 +572,7 @@ class BackendFixesVerificationTester:
                 }
             }
             
-            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template", json=customized_contract)
+            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template?user_id={self.user_id}", json=customized_contract)
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
