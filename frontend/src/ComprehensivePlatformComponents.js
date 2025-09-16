@@ -690,6 +690,9 @@ export const ComprehensivePlatform = () => {
             {activeModule === 'multi-currency' && (
               <MultiCurrencyPayouts />
             )}
+            {activeModule === 'pdooh' && (
+              <PDOOHCampaignManager />
+            )}
             {activeModule === 'compliance-center' && (
               <ComplianceCenter />
             )}
