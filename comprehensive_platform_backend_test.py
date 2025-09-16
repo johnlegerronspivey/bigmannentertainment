@@ -243,10 +243,9 @@ class ComprehensivePlatformTester:
         
         # Test scenario analysis
         scenario_data = {
-            "asset_id": "test_asset_001",
             "period": "monthly",
-            "horizon_months": 6,
-            "model_type": "ensemble"
+            "horizon_months": 3,
+            "model_type": "linear_regression"
         }
         
         scenarios = [
