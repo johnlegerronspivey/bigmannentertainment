@@ -1,0 +1,106 @@
+{
+  "api": {
+    "doohapi": {
+      "service": "API Gateway",
+      "providerPlugin": "@aws-amplify/amplify-provider-awscloudformation",
+      "dependsOn": [
+        {
+          "category": "auth",
+          "resourceName": "bmedoohauth",
+          "attributes": ["UserPoolId"]
+        },
+        {
+          "category": "function",
+          "resourceName": "doohCampaignManager",
+          "attributes": ["Arn", "Name"]
+        },
+        {
+          "category": "function",
+          "resourceName": "doohTriggerEngine",
+          "attributes": ["Arn", "Name"]
+        },
+        {
+          "category": "function",
+          "resourceName": "doohAnalytics",
+          "attributes": ["Arn", "Name"]
+        }
+      ]
+    }
+  },
+  "auth": {
+    "bmedoohauth": {
+      "service": "Cognito",
+      "providerPlugin": "@aws-amplify/amplify-provider-awscloudformation",
+      "customAuth": false,
+      "frontendAuthConfig": {
+        "socialProviders": [],
+        "usernameAttributes": ["EMAIL"],
+        "signupAttributes": ["EMAIL", "GIVEN_NAME", "FAMILY_NAME"],
+        "passwordProtectionSettings": {
+          "passwordPolicyMinLength": 8,
+          "passwordPolicyCharacters": []
+        },
+        "mfaConfiguration": "OFF",
+        "mfaTypes": ["SMS"],
+        "verificationMechanisms": ["EMAIL"]
+      }
+    }
+  },
+  "storage": {
+    "bmecreativeassets": {
+      "service": "S3",
+      "providerPlugin": "@aws-amplify/amplify-provider-awscloudformation",
+      "dependsOn": [
+        {
+          "category": "auth",
+          "resourceName": "bmedoohauth",
+          "attributes": ["UserPoolId"]
+        }
+      ]
+    }
+  },
+  "function": {
+    "doohCampaignManager": {
+      "service": "Lambda",
+      "providerPlugin": "@aws-amplify/amplify-provider-awscloudformation",
+      "build": true,
+      "dependsOn": [
+        {
+          "category": "auth",
+          "resourceName": "bmedoohauth",
+          "attributes": ["UserPoolId"]
+        }
+      ]
+    },
+    "doohTriggerEngine": {
+      "service": "Lambda",
+      "providerPlugin": "@aws-amplify/amplify-provider-awscloudformation",
+      "build": true,
+      "dependsOn": [
+        {
+          "category": "storage",
+          "resourceName": "bmecampaigndata",
+          "attributes": ["BucketName"]
+        }
+      ]
+    },
+    "doohAnalytics": {
+      "service": "Lambda",
+      "providerPlugin": "@aws-amplify/amplify-provider-awscloudformation",
+      "build": true,
+      "dependsOn": [
+        {
+          "category": "analytics",
+          "resourceName": "bmedoohanalytics",
+          "attributes": ["kinesisStreamArn"]
+        }
+      ]
+    }
+  },
+  "analytics": {
+    "bmedoohanalytics": {
+      "service": "Kinesis",
+      "providerPlugin": "@aws-amplify/amplify-provider-awscloudformation"
+    }
+  }
+}

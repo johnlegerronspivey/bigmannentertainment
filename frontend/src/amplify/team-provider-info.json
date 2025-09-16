@@ -1,0 +1,114 @@
+{
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-bmedooh-prod-AuthRole",
+      "UnauthRoleName": "amplify-bmedooh-prod-UnauthRole",
+      "AuthRoleArn": "arn:aws:iam::XXXXXXXXXXXX:role/amplify-bmedooh-prod-AuthRole",
+      "UnauthRoleArn": "arn:aws:iam::XXXXXXXXXXXX:role/amplify-bmedooh-prod-UnauthRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-bmedooh-prod-deployment",
+      "UnauthRolePolicy": "amplify-bmedooh-prod-UnauthRolePolicy",
+      "StackName": "amplify-bmedooh-prod",
+      "StackId": "arn:aws:cloudformation:us-east-1:XXXXXXXXXXXX:stack/amplify-bmedooh-prod/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "AmplifyAppId": "d3xxxxxxxxxxxxxxxx"
+    },
+    "categories": {
+      "auth": {
+        "bmedoohauth": {
+          "userPoolId": "us-east-1_XXXXXXXXX",
+          "userPoolWebClientId": "XXXXXXXXXXXXXXXXXXXXXXXXXX",
+          "identityPoolId": "us-east-1:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        }
+      },
+      "storage": {
+        "bmecreativeassets": {
+          "BucketName": "bme-creative-assets-prod-XXXXXXXXXX",
+          "Region": "us-east-1"
+        }
+      },
+      "function": {
+        "doohCampaignManager": {
+          "deploymentBucketName": "amplify-bmedooh-prod-deployment",
+          "s3Key": "amplify-builds/doohCampaignManager-xxxxxxxxxxxxxxxx-build.zip"
+        },
+        "doohTriggerEngine": {
+          "deploymentBucketName": "amplify-bmedooh-prod-deployment",
+          "s3Key": "amplify-builds/doohTriggerEngine-xxxxxxxxxxxxxxxx-build.zip"
+        },
+        "doohAnalytics": {
+          "deploymentBucketName": "amplify-bmedooh-prod-deployment",
+          "s3Key": "amplify-builds/doohAnalytics-xxxxxxxxxxxxxxxx-build.zip"
+        }
+      },
+      "api": {
+        "doohapi": {
+          "GraphQLAPIIdOutput": "XXXXXXXXXXXXXXXXXXXX",
+          "GraphQLAPIEndpointOutput": "https://XXXXXXXXXXXXXXXXXXXX.appsync-api.us-east-1.amazonaws.com/graphql",
+          "GraphQLAPIKeyOutput": "da2-XXXXXXXXXXXXXXXXXXXX"
+        }
+      },
+      "analytics": {
+        "bmedoohanalytics": {
+          "kinesisStreamArn": "arn:aws:kinesis:us-east-1:XXXXXXXXXXXX:stream/BME-DOOH-Analytics-Stream",
+          "kinesisStreamShardCount": 1
+        }
+      }
+    }
+  },
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-bmedooh-dev-AuthRole",
+      "UnauthRoleName": "amplify-bmedooh-dev-UnauthRole",
+      "AuthRoleArn": "arn:aws:iam::XXXXXXXXXXXX:role/amplify-bmedooh-dev-AuthRole",
+      "UnauthRoleArn": "arn:aws:iam::XXXXXXXXXXXX:role/amplify-bmedooh-dev-UnauthRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-bmedooh-dev-deployment",
+      "UnauthRolePolicy": "amplify-bmedooh-dev-UnauthRolePolicy",
+      "StackName": "amplify-bmedooh-dev",
+      "StackId": "arn:aws:cloudformation:us-east-1:XXXXXXXXXXXX:stack/amplify-bmedooh-dev/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "AmplifyAppId": "d3xxxxxxxxxxxxxxxx"
+    },
+    "categories": {
+      "auth": {
+        "bmedoohauth": {
+          "userPoolId": "us-east-1_XXXXXXXXX",
+          "userPoolWebClientId": "XXXXXXXXXXXXXXXXXXXXXXXXXX",
+          "identityPoolId": "us-east-1:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        }
+      },
+      "storage": {
+        "bmecreativeassets": {
+          "BucketName": "bme-creative-assets-dev-XXXXXXXXXX",
+          "Region": "us-east-1"
+        }
+      },
+      "function": {
+        "doohCampaignManager": {
+          "deploymentBucketName": "amplify-bmedooh-dev-deployment",
+          "s3Key": "amplify-builds/doohCampaignManager-xxxxxxxxxxxxxxxx-build.zip"
+        },
+        "doohTriggerEngine": {
+          "deploymentBucketName": "amplify-bmedooh-dev-deployment",
+          "s3Key": "amplify-builds/doohTriggerEngine-xxxxxxxxxxxxxxxx-build.zip"
+        },
+        "doohAnalytics": {
+          "deploymentBucketName": "amplify-bmedooh-dev-deployment",
+          "s3Key": "amplify-builds/doohAnalytics-xxxxxxxxxxxxxxxx-build.zip"
+        }
+      },
+      "api": {
+        "doohapi": {
+          "GraphQLAPIIdOutput": "XXXXXXXXXXXXXXXXXXXX",
+          "GraphQLAPIEndpointOutput": "https://XXXXXXXXXXXXXXXXXXXX.appsync-api.us-east-1.amazonaws.com/graphql",
+          "GraphQLAPIKeyOutput": "da2-XXXXXXXXXXXXXXXXXXXX"
+        }
+      },
+      "analytics": {
+        "bmedoohanalytics": {
+          "kinesisStreamArn": "arn:aws:kinesis:us-east-1:XXXXXXXXXXXX:stream/BME-DOOH-Analytics-Stream-Dev",
+          "kinesisStreamShardCount": 1
+        }
+      }
+    }
+  }
+}
