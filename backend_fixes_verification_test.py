@@ -386,17 +386,26 @@ class BackendFixesVerificationTester:
 
         # Test 3: Valid Proposal Creation (GovernanceProposal Object Format)
         try:
+            voting_starts = datetime.now(timezone.utc) + timedelta(hours=2)
+            voting_ends = voting_starts + timedelta(days=14)
+            
             governance_proposal_object = {
+                "proposal_id": 2,
                 "title": "Advanced Governance Test Proposal",
                 "description": "Testing GovernanceProposal object input format",
-                "proposal_type": "treasury",
-                "voting_period": 14,
+                "proposal_type": "budget_allocation",
+                "proposer_address": "0x0987654321098765432109876543210987654321",
                 "proposer_id": self.user_id,
-                "required_quorum": 0.15,
-                "options": ["approve", "reject", "abstain"],
-                "treasury_amount": 1000.0,
-                "treasury_recipient": self.user_id,
-                "execution_delay": 2,
+                "status": "pending",
+                "voting_starts": voting_starts.isoformat(),
+                "voting_ends": voting_ends.isoformat(),
+                "quorum_required": 15.0,
+                "threshold_required": 60.0,
+                "execution_data": {
+                    "treasury_amount": 1000.0,
+                    "treasury_recipient": self.user_id,
+                    "execution_delay": 2
+                },
                 "metadata": {
                     "category": "treasury_management",
                     "priority": "high",
@@ -404,7 +413,7 @@ class BackendFixesVerificationTester:
                 }
             }
             
-            response = self.session.post(f"{self.backend_url}/platform/dao/proposals", json=governance_proposal_object)
+            response = self.session.post(f"{self.backend_url}/platform/dao/proposals?user_id={self.user_id}", json=governance_proposal_object)
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
