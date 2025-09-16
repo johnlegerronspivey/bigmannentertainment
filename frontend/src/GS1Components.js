@@ -96,12 +96,12 @@ export const GS1BusinessDashboard = () => {
                     <span className="text-white font-semibold">{businessInfo.business_info.company_prefix}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-purple-200">Total Assets:</span>
-                    <span className="text-white font-semibold">{businessInfo.business_info.total_assets}</span>
+                    <span className="text-purple-200">Legal Entity GLN:</span>
+                    <span className="text-white font-semibold">{businessInfo.business_info.legal_entity_gln || 'Not Available'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-purple-200">Active Identifiers:</span>
-                    <span className="text-white font-semibold">{businessInfo.business_info.active_identifiers}</span>
+                    <span className="text-purple-200">Total Assets:</span>
+                    <span className="text-white font-semibold">{businessInfo.business_info.total_assets}</span>
                   </div>
                 </div>
                 
@@ -115,8 +115,8 @@ export const GS1BusinessDashboard = () => {
                     <span className="text-green-400 font-semibold">{businessInfo.business_info.certification_level}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-purple-200">Digital Links:</span>
-                    <span className="text-white font-semibold">{businessInfo.business_info.digital_links_created}</span>
+                    <span className="text-purple-200">Active Identifiers:</span>
+                    <span className="text-white font-semibold">{businessInfo.business_info.active_identifiers}</span>
                   </div>
                 </div>
               </div>
