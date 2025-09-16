@@ -133,22 +133,28 @@ async def get_contract_templates(
 
 @router.post("/contracts/from-template", response_model=SmartContract)
 async def create_contract_from_template(
-    template_id: str,
-    name: str,
-    description: str,
-    user_id: str = Query(...),
-    customizations: Optional[Dict[str, Any]] = Body(None)
+    request_data: Dict[str, Any] = Body(...),
+    user_id: str = Query(...)
 ):
     """Create a new contract from a template"""
     try:
+        # Validate required fields
+        required_fields = ['template_id', 'name', 'description']
+        missing_fields = [field for field in required_fields if field not in request_data]
+        if missing_fields:
+            raise HTTPException(status_code=422, detail=f"Missing required fields: {', '.join(missing_fields)}")
+        
         contract = await smart_contract_builder_service.create_contract_from_template(
-            template_id=template_id,
-            name=name,
-            description=description,
+            template_id=request_data['template_id'],
+            name=request_data['name'],
+            description=request_data['description'],
             created_by=user_id,
-            customizations=customizations
+            customizations=request_data.get('customizations')
         )
         return contract
+    except ValueError as e:
+        logger.error(f"Validation error creating contract from template: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.error(f"Error creating contract from template: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
