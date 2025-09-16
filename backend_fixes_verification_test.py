@@ -246,7 +246,7 @@ class BackendFixesVerificationTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if "scenarios" in data and "comparison" in data:
+                if "scenarios" in data and "base_forecast" in data:
                     self.log_result(
                         "AI Royalty Forecasting - Scenario Analysis",
                         True,
