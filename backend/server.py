@@ -1492,6 +1492,9 @@ from mlc_endpoints import router as mlc_router
 # Import MDE endpoints
 from mde_endpoints import router as mde_router
 
+# Import GS1 endpoints
+from gs1_endpoints import router as gs1_router
+
 # Import analytics endpoints (Function 4)
 from analytics_endpoints import router as analytics_router
 
