@@ -167,11 +167,11 @@ class BackendFixesVerificationTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if "accuracy_metrics" in data and "model_status" in data:
+                if "model_performance" in data and "last_trained" in data:
                     self.log_result(
                         "AI Royalty Forecasting - Model Performance",
                         True,
-                        f"Model performance retrieved - Status: {data.get('model_status')}"
+                        f"Model performance retrieved - Data points: {data.get('data_points', 0)}"
                     )
                 else:
                     self.log_result(
