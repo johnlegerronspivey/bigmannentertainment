@@ -121,7 +121,10 @@ async def get_licensing_dashboard(current_user: User = Depends(get_current_user)
                 "business_entity": "Big Mann Entertainment",
                 "business_owner": "John LeGerron Spivey",
                 "license_holder": "John LeGerron Spivey",
-                "business_type": "Entertainment/Media Distribution",
+                "business_type": "Sole Proprietorship",
+                "industry": "Media Entertainment",
+                "ein": "270658077",
+                "tin": "12800",
                 "established": "2020"
             },
             "financial_summary": {
