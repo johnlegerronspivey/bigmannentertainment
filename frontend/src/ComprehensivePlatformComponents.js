@@ -251,6 +251,7 @@ const LeftSidebar = ({ activeModule, onModuleChange, isCollapsed, onToggleCollap
     { id: 'ai-forecasting', name: 'AI Forecasting', icon: '🤖', badge: 'PREMIUM' },
     { id: 'smart-contracts', name: 'Smart Contracts', icon: '📄', badge: 'PREMIUM' },
     { id: 'multi-currency', name: 'Multi-Currency Payouts', icon: '🌍', badge: 'PREMIUM' },
+    { id: 'pdooh', name: 'pDOOH Campaigns', icon: '📺', badge: 'PREMIUM' },
     { id: 'compliance-center', name: 'Compliance Center', icon: '🛡️', badge: '2' },
     { id: 'analytics-forecasting', name: 'Analytics & Forecasting', icon: '📊', badge: null },
     { id: 'sponsorship-campaigns', name: 'Sponsorship & Campaigns', icon: '🤝', badge: null },
