@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://creative-ledger.preview.emergentagent.com/api"
+BACKEND_URL = "https://musicdao-platform.preview.emergentagent.com/api"
 
 class MusicReportsBackendTester:
     def __init__(self):

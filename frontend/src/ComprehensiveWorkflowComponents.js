@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://creative-ledger.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://musicdao-platform.preview.emergentagent.com';
 
 // Main Comprehensive Workflow Dashboard
 export const ComprehensiveWorkflowDashboard = () => {

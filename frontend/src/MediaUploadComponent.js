@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ImageUpload.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://creative-ledger.preview.emergentagent.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://musicdao-platform.preview.emergentagent.com';
 
 const MediaUploadComponent = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);

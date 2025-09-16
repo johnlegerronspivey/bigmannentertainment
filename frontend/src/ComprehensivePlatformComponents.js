@@ -13,7 +13,7 @@ import { MLCIntegration } from './MLCIntegrationComponents';
 import { MDEIntegration } from './MDEIntegrationComponents';
 import { GS1AssetRegistry } from './GS1AssetRegistryComponents';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://creative-ledger.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://musicdao-platform.preview.emergentagent.com';
 
 // Global error handler utility
 const handleApiError = (error, context) => {

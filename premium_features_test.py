@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Test Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://creative-ledger.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://musicdao-platform.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class PremiumFeaturesTestSuite:
