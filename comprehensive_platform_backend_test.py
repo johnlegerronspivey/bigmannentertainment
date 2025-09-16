@@ -134,7 +134,7 @@ class ComprehensivePlatformTester:
         # Test DAO member profile
         success, data, status = await self.make_request(
             'GET',
-            '/comprehensive-platform/dao/member',
+            '/platform/dao/member',
             params={'user_id': self.test_user_id}
         )
         self.log_result(
