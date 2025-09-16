@@ -507,7 +507,7 @@ const PDOOHCampaignManager = () => {
               <Snowflake className="w-4 h-4 text-blue-300" />
               <span className="font-medium">Cold Weather</span>
             </div>
-            <p className="text-sm text-gray-600">Temperature < 5°C</p>
+            <p className="text-sm text-gray-600">Temperature &lt; 5°C</p>
             <p className="text-xs text-green-600 mt-1">87 triggers this month</p>
           </div>
         </div>
