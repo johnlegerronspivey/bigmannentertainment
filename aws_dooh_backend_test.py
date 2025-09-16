@@ -277,16 +277,17 @@ class AWSDoohBackendTester:
                 return
             
             # Test trigger evaluation (simulates Lambda function)
-            trigger_data = {
+            params = {
+                "campaign_id": self.test_campaign_id,
                 "location": "New York, NY",
                 "latitude": 40.7580,
-                "longitude": -73.9855
+                "longitude": -73.9855,
+                "user_id": self.user_id
             }
             
             response = self.session.post(
                 f"{self.backend_url}/pdooh/triggers/evaluate",
-                json=trigger_data,
-                params={"campaign_id": self.test_campaign_id, "user_id": self.user_id}
+                params=params
             )
             
             if response.status_code == 200:
