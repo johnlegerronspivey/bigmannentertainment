@@ -163,7 +163,7 @@ class BackendFixesVerificationTester:
 
         # Test 2: Model Performance Endpoint
         try:
-            response = self.session.get(f"{self.backend_url}/premium/forecasting/model-performance")
+            response = self.session.get(f"{self.backend_url}/premium/forecasting/model-performance?user_id={self.user_id}&asset_id=test_asset_123")
             
             if response.status_code == 200:
                 data = response.json()
