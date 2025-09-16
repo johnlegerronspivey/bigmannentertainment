@@ -494,25 +494,24 @@ class BackendFixesVerificationTester:
             valid_contract_template = {
                 "name": "Royalty Distribution Contract",
                 "template_id": "royalty_distribution_v1",
-                "blockchain_network": "ethereum",
-                "owner_id": self.user_id,
-                "parameters": {
-                    "royalty_percentage": 10.0,
-                    "beneficiaries": [
-                        {"address": "0x1234567890123456789012345678901234567890", "percentage": 60.0},
-                        {"address": "0x0987654321098765432109876543210987654321", "percentage": 40.0}
-                    ],
-                    "minimum_payout": 0.01,
-                    "auto_distribute": True
-                },
+                "description": "Automated royalty distribution contract for Big Mann Entertainment",
                 "customizations": {
                     "contract_name": "BME Royalty Distribution",
                     "symbol": "BMEROY",
-                    "description": "Automated royalty distribution for Big Mann Entertainment"
+                    "blockchain_network": "ethereum",
+                    "parameters": {
+                        "royalty_percentage": 10.0,
+                        "beneficiaries": [
+                            {"address": "0x1234567890123456789012345678901234567890", "percentage": 60.0},
+                            {"address": "0x0987654321098765432109876543210987654321", "percentage": 40.0}
+                        ],
+                        "minimum_payout": 0.01,
+                        "auto_distribute": True
+                    }
                 }
             }
             
-            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template", json=valid_contract_template)
+            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template?user_id={self.user_id}", json=valid_contract_template)
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
