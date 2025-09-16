@@ -206,31 +206,43 @@ class BackendFixesVerificationTester:
 
         # Test 3: Scenario Analysis Endpoint
         try:
-            scenario_data = {
-                "user_id": self.user_id,
-                "base_scenario": {
-                    "monthly_streams": 10000,
-                    "stream_rate": 0.004,
-                    "growth_rate": 0.05
-                },
-                "scenarios": [
-                    {
-                        "name": "optimistic",
-                        "monthly_streams": 15000,
-                        "stream_rate": 0.005,
-                        "growth_rate": 0.10
-                    },
-                    {
-                        "name": "pessimistic", 
-                        "monthly_streams": 5000,
-                        "stream_rate": 0.003,
-                        "growth_rate": 0.02
-                    }
+            # Base request for scenario analysis
+            base_request = {
+                "asset_id": "test_asset_123",
+                "historical_data": [
+                    {"period": "2024-01", "revenue": 1000.0, "streams": 5000},
+                    {"period": "2024-02", "revenue": 1200.0, "streams": 6000},
+                    {"period": "2024-03", "revenue": 1100.0, "streams": 5500}
                 ],
-                "forecast_months": 12
+                "forecast_periods": 12,
+                "confidence_level": 0.95
             }
             
-            response = self.session.post(f"{self.backend_url}/premium/forecasting/scenario-analysis", json=scenario_data)
+            scenarios = [
+                {
+                    "scenario_type": "optimistic",
+                    "description": "Optimistic growth scenario with increased marketing",
+                    "parameter_changes": {
+                        "growth_multiplier": 1.5,
+                        "marketing_bonus": 0.25
+                    }
+                },
+                {
+                    "scenario_type": "pessimistic",
+                    "description": "Conservative scenario with market downturn",
+                    "parameter_changes": {
+                        "growth_multiplier": 0.8,
+                        "market_penalty": -0.15
+                    }
+                }
+            ]
+            
+            scenario_data = {
+                "base_request": base_request,
+                "scenarios": scenarios
+            }
+            
+            response = self.session.post(f"{self.backend_url}/premium/forecasting/scenario-analysis?user_id={self.user_id}", json=scenario_data)
             
             if response.status_code == 200:
                 data = response.json()
