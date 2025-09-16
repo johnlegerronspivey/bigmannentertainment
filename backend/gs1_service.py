@@ -38,8 +38,9 @@ class GS1Service:
         self.digital_links_collection: AsyncIOMotorCollection = database.gs1_digital_links
         self.analytics_collection: AsyncIOMotorCollection = database.gs1_analytics
         
-        # GS1 Company Prefix (configurable)
-        self.company_prefix = "123456789"  # Replace with actual company prefix
+        # GS1 Company Prefix (Big Mann Entertainment official prefix)
+        self.company_prefix = "08600043402"  # Official GS1 company prefix
+        self.legal_entity_gln = "0860004340201"  # Legal Entity Global Location Number
         self.base_uri = "https://creative-ledger.preview.emergentagent.com"
         
         # Initialize collections
