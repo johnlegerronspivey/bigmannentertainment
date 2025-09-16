@@ -713,6 +713,14 @@ export const LicensingDashboard = () => {
                       <span className="text-purple-200">Business Owner:</span>
                       <span className="text-white font-semibold">{business_info?.business_owner}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">Industry:</span>
+                      <span className="text-white font-semibold">{business_info?.industry}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">Business Type:</span>
+                      <span className="text-white font-semibold">{business_info?.business_type}</span>
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -724,6 +732,14 @@ export const LicensingDashboard = () => {
                     <div className="flex justify-between">
                       <span className="text-purple-200">TIN:</span>
                       <span className="text-white font-semibold">{business_info?.tin}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">License Holder:</span>
+                      <span className="text-white font-semibold">{business_info?.license_holder}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200">Established:</span>
+                      <span className="text-white font-semibold">{business_info?.established}</span>
                     </div>
                   </div>
                 </div>
