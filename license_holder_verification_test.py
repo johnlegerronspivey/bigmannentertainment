@@ -181,6 +181,29 @@ class LicenseHolderVerificationTester:
             self.log_result("EIN Value Verification", False, f"EIN validation error: {str(e)}")
             return False
     
+    def test_tin_value(self, dashboard_data):
+        """Test that TIN value is correct: 12800"""
+        if not dashboard_data:
+            self.log_result("TIN Value Verification", False, "No dashboard data available")
+            return False
+        
+        try:
+            business_info = dashboard_data.get('business_info', {})
+            tin_value = business_info.get('tin')
+            
+            expected_tin = "12800"
+            
+            if tin_value == expected_tin:
+                self.log_result("TIN Value Verification", True, f"TIN correctly set to {expected_tin}")
+                return True
+            else:
+                self.log_result("TIN Value Verification", False, f"TIN mismatch - Expected: {expected_tin}, Got: {tin_value}")
+                return False
+                
+        except Exception as e:
+            self.log_result("TIN Value Verification", False, f"TIN validation error: {str(e)}")
+            return False
+    
     def test_ein_value_from_business_identifiers(self, business_data):
         """Test that EIN value is correct from business identifiers endpoint: 270658077"""
         if not business_data:
@@ -419,8 +442,8 @@ class LicenseHolderVerificationTester:
             print("🎯 The License Holder Information fix has been successfully implemented.")
         else:
             print("\n🚨 CRITICAL VERIFICATION STATUS:")
-            print(f"❌ EIN: 270658077 - {'VERIFIED' if ein_verified else 'NOT VERIFIED'}")
-            print(f"❌ TIN: 12800 - {'VERIFIED' if tin_verified else 'NOT VERIFIED'}")
+            print(f"{'✅' if ein_verified else '❌'} EIN: 270658077 - {'VERIFIED' if ein_verified else 'NOT VERIFIED'}")
+            print(f"{'✅' if tin_verified else '❌'} TIN: 12800 - {'VERIFIED' if tin_verified else 'NOT VERIFIED'}")
             
         if self.test_results['failed'] > 0:
             print(f"\n⚠️  {self.test_results['failed']} tests failed. Review the details above.")
