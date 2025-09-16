@@ -571,34 +571,68 @@ class BackendFixesVerificationTester:
 
         # Test 3: Template Customization Functionality
         try:
-            customized_contract = {
-                "name": "Custom Revenue Sharing Contract",
-                "template_id": "revenue_sharing_v2",
-                "description": "Advanced revenue sharing contract with custom governance features",
-                "customizations": {
-                    "contract_name": "BME Revenue Sharing v2",
-                    "blockchain_network": "polygon",
-                    "governance_enabled": True,
-                    "upgrade_mechanism": "proxy",
-                    "audit_trail": True,
-                    "parameters": {
-                        "revenue_split": [
-                            {"party": "artist", "percentage": 70.0},
-                            {"party": "label", "percentage": 20.0},
-                            {"party": "platform", "percentage": 10.0}
-                        ],
-                        "payment_frequency": "monthly",
-                        "minimum_threshold": 100.0
-                    },
-                    "custom_functions": [
-                        "emergency_pause",
-                        "beneficiary_update",
-                        "split_modification"
-                    ]
-                }
-            }
+            # Get available templates again for customization test
+            templates_response = self.session.get(f"{self.backend_url}/premium/contracts/templates?user_id={self.user_id}")
             
-            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template?user_id={self.user_id}", json=customized_contract)
+            if templates_response.status_code == 200:
+                templates = templates_response.json()
+                # Look for a revenue sharing template or use any available template
+                revenue_template = None
+                for template in templates:
+                    if "revenue" in template.get('name', '').lower() or template.get('contract_type') == 'revenue_sharing':
+                        revenue_template = template
+                        break
+                
+                if not revenue_template and templates:
+                    revenue_template = templates[-1]  # Use last template if no revenue template found
+                
+                if revenue_template:
+                    template_id = revenue_template.get('id')
+                    
+                    customized_contract = {
+                        "name": "Custom Revenue Sharing Contract",
+                        "template_id": template_id,
+                        "description": "Advanced revenue sharing contract with custom governance features",
+                        "customizations": {
+                            "contract_name": "BME Revenue Sharing v2",
+                            "blockchain_network": "polygon",
+                            "governance_enabled": True,
+                            "upgrade_mechanism": "proxy",
+                            "audit_trail": True,
+                            "parameters": {
+                                "revenue_split": [
+                                    {"party": "artist", "percentage": 70.0},
+                                    {"party": "label", "percentage": 20.0},
+                                    {"party": "platform", "percentage": 10.0}
+                                ],
+                                "payment_frequency": "monthly",
+                                "minimum_threshold": 100.0
+                            },
+                            "custom_functions": [
+                                "emergency_pause",
+                                "beneficiary_update",
+                                "split_modification"
+                            ]
+                        }
+                    }
+                    
+                    response = self.session.post(f"{self.backend_url}/premium/contracts/from-template?user_id={self.user_id}", json=customized_contract)
+                else:
+                    self.log_result(
+                        "Smart Contract Template - Customization Functionality",
+                        False,
+                        "No templates available for customization",
+                        "Templates endpoint returned empty list"
+                    )
+                    return
+            else:
+                self.log_result(
+                    "Smart Contract Template - Customization Functionality",
+                    False,
+                    f"Failed to get templates: {templates_response.status_code}",
+                    templates_response.text
+                )
+                return
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
