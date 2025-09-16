@@ -170,7 +170,7 @@ class ComprehensivePlatformTester:
         # Test blockchain integration status
         success, data, status = await self.make_request(
             'GET',
-            '/comprehensive-platform/dao/blockchain/status'
+            '/platform/dao/blockchain/status'
         )
         self.log_result(
             "Blockchain Integration Status", 
