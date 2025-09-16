@@ -417,11 +417,11 @@ class BackendFixesVerificationTester:
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
-                if "id" in data and "title" in data:
+                if "success" in data and data["success"] and "proposal_id" in data:
                     self.log_result(
                         "DAO Proposal - GovernanceProposal Object Creation",
                         True,
-                        f"Budget allocation proposal created successfully with ID: {data.get('id')}"
+                        f"Budget allocation proposal created successfully with ID: {data.get('proposal_id')}"
                     )
                 else:
                     self.log_result(
