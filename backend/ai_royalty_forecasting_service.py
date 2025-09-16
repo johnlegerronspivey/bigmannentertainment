@@ -478,14 +478,31 @@ class AIRoyaltyForecastingService:
                         features['revenue_30d_avg'], features['revenue_lag_1'], features['revenue_lag_7']
                     ]])
                     
+                    # Ensure models are trained before using scalers
+                    cache_key = request.asset_id if request.asset_id else 'global'
+                    if cache_key not in self.model_cache:
+                        self._train_models(request.asset_id)
+                    
                     for model_type in self.models.keys():
-                        if X_scaled_dict[model_type] is None:
-                            X_scaled_dict[model_type] = self.scalers[model_type].transform(feature_vector)
-                        else:
-                            X_scaled_dict[model_type] = np.vstack([
-                                X_scaled_dict[model_type],
-                                self.scalers[model_type].transform(feature_vector)
-                            ])
+                        try:
+                            scaled_features = self.scalers[model_type].transform(feature_vector)
+                            if X_scaled_dict[model_type] is None:
+                                X_scaled_dict[model_type] = scaled_features
+                            else:
+                                X_scaled_dict[model_type] = np.vstack([
+                                    X_scaled_dict[model_type],
+                                    scaled_features
+                                ])
+                        except Exception as e:
+                            logger.warning(f"Error scaling features for {model_type}: {e}")
+                            # Use zero-filled array as fallback
+                            if X_scaled_dict[model_type] is None:
+                                X_scaled_dict[model_type] = np.zeros((1, feature_vector.shape[1]))
+                            else:
+                                X_scaled_dict[model_type] = np.vstack([
+                                    X_scaled_dict[model_type],
+                                    np.zeros((1, feature_vector.shape[1]))
+                                ])
                 
                 # Get ensemble prediction
                 prediction_result = self._predict_with_ensemble(X_scaled_dict, request.asset_id)
