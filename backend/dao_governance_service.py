@@ -4,12 +4,10 @@ Phase 4: Advanced Features - DAO Governance with Ethereum Integration Backend
 """
 
 import uuid
-import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Union
 from pydantic import BaseModel, Field
 from enum import Enum
-import json
 import logging
 
 # Import blockchain integration
