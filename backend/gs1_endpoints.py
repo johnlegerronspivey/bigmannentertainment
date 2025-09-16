@@ -1,504 +1,619 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+"""
+GS1 Asset Registry API Endpoints
+FastAPI router for GS1 identifier management and Digital Link operations
+"""
+
+from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
+from fastapi.responses import JSONResponse, Response
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
-from datetime import datetime
-import base64
-import os
-import uuid
-from motor.motor_asyncio import AsyncIOMotorClient
-import io
 import logging
-import jwt
+from datetime import datetime, timezone
 
-from gs1_models import (
-    GS1Product, GS1Location, BarcodeRequest, BarcodeResponse, 
-    DistributionPlatform, GS1ValidationResult
+from .gs1_models import (
+    GS1Asset, AssetType, IdentifierType, GS1IdentifierStatus,
+    CreateAssetRequest, UpdateAssetRequest, GenerateIdentifierRequest,
+    CreateDigitalLinkRequest, AssetSearchFilter, AssetListResponse,
+    IdentifierValidationResult, AnalyticsData, BatchOperationRequest,
+    BatchOperationResult
 )
-from gs1_service import GS1USService
+from .gs1_service import GS1Service
 
-# MongoDB connection (using same as main server)
-mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'test_database')]
-
-# Authentication setup (same as main server)
-SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
-ALGORITHM = "HS256"
-security = HTTPBearer()
-
-gs1_router = APIRouter(prefix="/gs1", tags=["GS1 Integration"])
 logger = logging.getLogger(__name__)
 
-# User model for authentication
-class User(BaseModel):
-    id: str
-    email: str
-    full_name: str
-    is_active: bool = True
-    is_admin: bool = False
-    role: str = "user"
+# Create router
+router = APIRouter(prefix="/api/gs1", tags=["GS1 Asset Registry"])
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Get current authenticated user"""
-    try:
-        token = credentials.credentials
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Could not validate credentials")
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
-    
-    user = await db.users.find_one({"id": user_id})
-    if user is None:
-        raise HTTPException(status_code=401, detail="User not found")
-    return User(**user)
+# Global service instance (will be initialized in server.py)
+gs1_service: Optional[GS1Service] = None
 
-# Initialize GS1 service
-def get_gs1_service() -> GS1USService:
-    """Dependency to get GS1 US service instance"""
-    api_key = os.getenv("GS1_API_KEY", "production_gs1_api_key_here")
-    company_prefix = os.getenv("GS1_COMPANY_PREFIX", "8600043402")
-    account_id = os.getenv("GS1_COMPANY_ACCOUNT_ID", "big_mann_entertainment_account_id")
-    
-    return GS1USService(api_key, company_prefix, account_id)
+def get_gs1_service() -> GS1Service:
+    """Dependency to get GS1 service instance"""
+    if gs1_service is None:
+        raise HTTPException(status_code=500, detail="GS1 service not initialized")
+    return gs1_service
 
-# Simple barcode generation using Python-barcode
-def generate_simple_barcode(upc_code: str, format_type: str = "PNG") -> tuple:
-    """Generate a simple barcode using basic drawing"""
-    try:
-        import barcode
-        from barcode.writer import ImageWriter, SVGWriter
-        
-        if format_type.upper() == "SVG":
-            writer = SVGWriter()
-            content_type = "image/svg+xml"
-        else:
-            writer = ImageWriter()
-            if format_type.upper() == "JPEG":
-                content_type = "image/jpeg"
-            else:
-                content_type = "image/png"
-        
-        # Create UPC barcode
-        upc = barcode.get_barcode_class('upc')
-        barcode_instance = upc(upc_code, writer=writer)
-        
-        # Generate barcode to bytes
-        buffer = io.BytesIO()
-        barcode_instance.write(buffer)
-        buffer.seek(0)
-        
-        return buffer.getvalue(), content_type
-        
-    except ImportError:
-        # Fallback: create a simple text-based representation
-        barcode_text = f"||{upc_code}||"
-        content = barcode_text.encode('utf-8')
-        return content, "text/plain"
-    except Exception as e:
-        logger.error(f"Barcode generation error: {e}")
-        # Create minimal barcode representation
-        content = f"UPC: {upc_code}".encode('utf-8')
-        return content, "text/plain"
+def init_gs1_service(database):
+    """Initialize GS1 service with database connection"""
+    global gs1_service
+    gs1_service = GS1Service(database)
+    logger.info("GS1 service initialized successfully")
 
-class MusicReleaseCreate(BaseModel):
-    title: str = Field(..., max_length=200)
-    artist_name: str = Field(..., max_length=255)
-    label_name: str = Field(..., max_length=255)
-    release_date: datetime
-    genre: Optional[str] = Field(None, max_length=100)
-    duration_seconds: Optional[int] = Field(None, ge=1)
-    isrc: Optional[str] = Field(None, pattern=r"^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$")
-    catalog_number: Optional[str] = Field(None, max_length=50)
-    distribution_format: str = Field("Digital", max_length=50)
+# Asset Management Endpoints
 
-class LocationCreate(BaseModel):
-    location_name: str = Field(..., max_length=255)
-    organization_name: str = Field(..., max_length=255)
-    department: Optional[str] = Field(None, max_length=255)
-    street_address: Optional[str] = Field(None, max_length=255)
-    address_locality: Optional[str] = Field(None, max_length=100)
-    address_region: Optional[str] = Field(None, max_length=100)
-    postal_code: Optional[str] = Field(None, max_length=20)
-    country_code: str = Field("US", max_length=2)
-    gln_type: str = Field("Legal Entity", max_length=50)
-    supply_chain_role: Optional[str] = Field(None, max_length=100)
-    industry: str = Field("Entertainment", max_length=100)
-
-@gs1_router.get("/business-info")
-async def get_business_info(
-    gs1_service: GS1USService = Depends(get_gs1_service)
+@router.post("/assets", response_model=GS1Asset)
+async def create_asset(
+    request: CreateAssetRequest,
+    service: GS1Service = Depends(get_gs1_service)
 ):
-    """Get Big Mann Entertainment business information"""
-    return gs1_service.get_big_mann_entertainment_info()
-
-@gs1_router.post("/products", status_code=status.HTTP_201_CREATED)
-async def create_music_product(
-    product_data: MusicReleaseCreate,
-    current_user: User = Depends(get_current_user),
-    gs1_service: GS1USService = Depends(get_gs1_service)
-):
-    """Create new music product with UPC/GTIN and register with GS1"""
+    """Create a new GS1 asset with optional identifier generation"""
     try:
-        # Get last sequence number for UPC generation
-        last_release = await db.gs1_products.find_one({}, sort=[("created_at", -1)])
-        last_sequence = 0
-        if last_release and last_release.get("upc"):
-            try:
-                # Extract sequence from existing UPC
-                prefix_len = len(gs1_service.company_prefix)
-                last_sequence = int(last_release["upc"][prefix_len:-1])
-            except (ValueError, IndexError):
-                last_sequence = 0
-        
-        # Create release data
-        release_data = gs1_service.create_music_release_data(
-            title=product_data.title,
-            artist_name=product_data.artist_name,
-            label_name=product_data.label_name,
-            release_date=product_data.release_date,
-            genre=product_data.genre,
-            duration_seconds=product_data.duration_seconds,
-            isrc=product_data.isrc,
-            catalog_number=product_data.catalog_number,
-            distribution_format=product_data.distribution_format,
-            last_sequence=last_sequence
-        )
-        
-        # Register with GS1 US Data Hub (simulated)
-        try:
-            gs1_response = await gs1_service.register_gtin_with_gs1(release_data)
-        except Exception as e:
-            logger.warning(f"GS1 registration failed (using mock): {e}")
-            gs1_response = {
-                "status": "registered",
-                "gtin": release_data["gtin"],
-                "registration_id": f"GS1-{uuid.uuid4().hex[:8].upper()}",
-                "message": "Product registered with GS1 US Data Hub"
-            }
-        
-        # Create database record
-        db_release = {
-            "id": str(uuid.uuid4()),
-            "gtin": release_data["gtin"],
-            "upc": release_data["upc"],
-            "title": release_data["title"],
-            "artist_name": release_data["artist_name"],
-            "label_name": release_data["label_name"],
-            "release_date": release_data["release_date"],
-            "genre": release_data.get("genre"),
-            "duration_seconds": release_data.get("duration_seconds"),
-            "brand_name": release_data["brand_name"],
-            "product_description": release_data["product_description"],
-            "isrc": release_data.get("isrc"),
-            "catalog_number": release_data.get("catalog_number"),
-            "distribution_format": release_data["distribution_format"],
-            "gtin_status": "ACTIVE",
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
-        }
-        
-        await db.gs1_products.insert_one(db_release)
-        
-        return {
-            "message": "Music product created successfully",
-            "product": {
-                "id": db_release["id"],
-                "gtin": db_release["gtin"],
-                "upc": db_release["upc"],
-                "title": db_release["title"],
-                "artist_name": db_release["artist_name"],
-                "label_name": db_release["label_name"],
-                "created_at": db_release["created_at"].isoformat()
-            },
-            "gs1_registration": gs1_response,
-            "business_entity": "Big Mann Entertainment"
-        }
-        
+        asset = await service.create_asset(request)
+        return asset
     except Exception as e:
-        logger.error(f"Product creation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create music product: {str(e)}"
-        )
+        logger.error(f"Error creating asset: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@gs1_router.post("/locations", status_code=status.HTTP_201_CREATED)
-async def create_location(
-    location_data: LocationCreate,
-    current_user: User = Depends(get_current_user),
-    gs1_service: GS1USService = Depends(get_gs1_service)
+@router.get("/assets/{asset_id}", response_model=GS1Asset)
+async def get_asset(
+    asset_id: str,
+    service: GS1Service = Depends(get_gs1_service)
 ):
-    """Create new location with GLN and register with GS1"""
+    """Get a single asset by ID"""
     try:
-        # Get last sequence number for GLN generation
-        last_location = await db.gs1_locations.find_one({}, sort=[("created_at", -1)])
-        last_sequence = 0
-        if last_location and last_location.get("gln"):
-            try:
-                # Extract sequence from existing GLN
-                prefix_len = len(gs1_service.company_prefix)
-                last_sequence = int(last_location["gln"][prefix_len:-1])
-            except (ValueError, IndexError):
-                last_sequence = 0
-        
-        # Create location data
-        loc_data = gs1_service.create_location_data(
-            location_name=location_data.location_name,
-            organization_name=location_data.organization_name,
-            gln_type=location_data.gln_type,
-            street_address=location_data.street_address,
-            address_locality=location_data.address_locality,
-            address_region=location_data.address_region,
-            postal_code=location_data.postal_code,
-            country_code=location_data.country_code,
-            supply_chain_role=location_data.supply_chain_role,
-            industry=location_data.industry,
-            last_sequence=last_sequence
-        )
-        
-        # Register with GS1 US Data Hub (simulated)
-        try:
-            gs1_response = await gs1_service.register_gln_with_gs1(loc_data)
-        except Exception as e:
-            logger.warning(f"GS1 GLN registration failed (using mock): {e}")
-            gs1_response = {
-                "status": "registered",
-                "gln": loc_data["gln"],
-                "registration_id": f"GLN-{uuid.uuid4().hex[:8].upper()}",
-                "message": "Location registered with GS1 US Data Hub"
-            }
-        
-        # Create database record
-        db_location = {
-            "id": str(uuid.uuid4()),
-            "gln": loc_data["gln"],
-            "location_name": loc_data["location_name"],
-            "organization_name": loc_data["organization_name"],
-            "street_address": loc_data.get("street_address"),
-            "address_locality": loc_data.get("address_locality"),
-            "address_region": loc_data.get("address_region"),
-            "postal_code": loc_data.get("postal_code"),
-            "country_code": loc_data["country_code"],
-            "gln_type": loc_data["gln_type"],
-            "supply_chain_role": loc_data.get("supply_chain_role"),
-            "industry": loc_data["industry"],
-            "gln_status": "ACTIVE",
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
-        }
-        
-        await db.gs1_locations.insert_one(db_location)
-        
-        return {
-            "message": "Location created successfully",
-            "location": {
-                "id": db_location["id"],
-                "gln": db_location["gln"],
-                "location_name": db_location["location_name"],
-                "organization_name": db_location["organization_name"],
-                "created_at": db_location["created_at"].isoformat()
-            },
-            "gs1_registration": gs1_response,
-            "business_entity": "Big Mann Entertainment"
-        }
-        
+        asset = await service.get_asset(asset_id)
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        return asset
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Location creation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create location: {str(e)}"
-        )
+        logger.error(f"Error retrieving asset: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@gs1_router.post("/barcode/generate", response_model=BarcodeResponse)
-async def generate_barcode(
-    request: BarcodeRequest
+@router.put("/assets/{asset_id}", response_model=GS1Asset)
+async def update_asset(
+    asset_id: str,
+    request: UpdateAssetRequest,
+    service: GS1Service = Depends(get_gs1_service)
 ):
-    """Generate barcode for UPC code"""
+    """Update an existing asset"""
     try:
-        barcode_data, content_type = generate_simple_barcode(
-            request.upc_code,
-            request.format_type
-        )
-        
-        encoded_data = base64.b64encode(barcode_data).decode('utf-8')
-        
-        return BarcodeResponse(
-            upc_code=request.upc_code,
-            format_type=request.format_type,
-            content_type=content_type,
-            data=encoded_data,
-            size_bytes=len(barcode_data)
-        )
-        
+        asset = await service.update_asset(asset_id, request)
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        return asset
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Barcode generation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate barcode: {str(e)}"
-        )
+        logger.error(f"Error updating asset: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@gs1_router.post("/validate")
+@router.delete("/assets/{asset_id}")
+async def delete_asset(
+    asset_id: str,
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Delete an asset and its associated data"""
+    try:
+        success = await service.delete_asset(asset_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        return {"message": "Asset deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting asset: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/assets", response_model=AssetListResponse)
+async def search_assets(
+    asset_type: Optional[AssetType] = None,
+    status: Optional[GS1IdentifierStatus] = None,
+    created_after: Optional[datetime] = None,
+    created_before: Optional[datetime] = None,
+    text_search: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Search assets with filters and pagination"""
+    try:
+        filters = AssetSearchFilter(
+            asset_type=asset_type,
+            status=status,
+            created_after=created_after,
+            created_before=created_before,
+            text_search=text_search
+        )
+        
+        assets, total_count = await service.search_assets(filters, page, page_size)
+        
+        has_next = (page * page_size) < total_count
+        has_previous = page > 1
+        
+        return AssetListResponse(
+            assets=assets,
+            total_count=total_count,
+            page=page,
+            page_size=page_size,
+            has_next=has_next,
+            has_previous=has_previous
+        )
+    except Exception as e:
+        logger.error(f"Error searching assets: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Identifier Management Endpoints
+
+@router.post("/identifiers/generate")
+async def generate_identifier(
+    request: GenerateIdentifierRequest,
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Generate a new identifier for an existing asset"""
+    try:
+        # Get the asset
+        asset = await service.get_asset(request.asset_id)
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        
+        # Generate identifier
+        identifier = await service._generate_identifier(
+            request.asset_id, 
+            request.identifier_type, 
+            asset.metadata
+        )
+        
+        # Update asset with new identifier
+        asset.identifiers[request.identifier_type.value] = identifier
+        asset.updated_at = datetime.now(timezone.utc)
+        
+        # Save updated asset
+        await service.assets_collection.update_one(
+            {"asset_id": request.asset_id},
+            {"$set": {"identifiers": {k: v.dict() for k, v in asset.identifiers.items()}, "updated_at": asset.updated_at}}
+        )
+        
+        return {"identifier": identifier, "message": "Identifier generated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating identifier: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/identifiers/validate", response_model=IdentifierValidationResult)
 async def validate_identifier(
-    identifier: str,
-    identifier_type: str,
-    gs1_service: GS1USService = Depends(get_gs1_service)
+    identifier_value: str,
+    identifier_type: IdentifierType,
+    service: GS1Service = Depends(get_gs1_service)
 ):
-    """Validate UPC, GTIN, or GLN identifier"""
+    """Validate a GS1 identifier"""
     try:
-        if identifier_type.upper() == "UPC":
-            if len(identifier) != 12:
-                return GS1ValidationResult(
-                    is_valid=False,
-                    identifier=identifier,
-                    identifier_type="UPC",
-                    validation_message="UPC must be exactly 12 digits",
-                    format_valid=False
-                )
-        elif identifier_type.upper() in ["GTIN", "GLN"]:
-            if len(identifier) != 13:
-                return GS1ValidationResult(
-                    is_valid=False,
-                    identifier=identifier,
-                    identifier_type=identifier_type.upper(),
-                    validation_message=f"{identifier_type.upper()} must be exactly 13 digits",
-                    format_valid=False
-                )
-        
-        # Validate format
-        format_valid = identifier.isdigit()
-        check_digit_valid = gs1_service.validate_check_digit(identifier)
-        
-        is_valid = format_valid and check_digit_valid
-        
-        validation_message = "Valid identifier"
-        if not format_valid:
-            validation_message = f"Invalid format: {identifier_type.upper()} must contain only digits"
-        elif not check_digit_valid:
-            validation_message = "Invalid check digit"
-        
-        return GS1ValidationResult(
-            is_valid=is_valid,
-            identifier=identifier,
-            identifier_type=identifier_type.upper(),
-            validation_message=validation_message,
-            check_digit_valid=check_digit_valid,
-            format_valid=format_valid
-        )
-        
+        result = await service.validate_identifier(identifier_value, identifier_type)
+        return result
     except Exception as e:
-        logger.error(f"Validation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Validation failed: {str(e)}"
-        )
+        logger.error(f"Error validating identifier: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@gs1_router.get("/products")
-async def list_products(
-    skip: int = 0,
-    limit: int = 50,
-    artist_filter: Optional[str] = None,
-    label_filter: Optional[str] = None
+@router.get("/identifiers/lookup/{identifier_value}")
+async def lookup_identifier(
+    identifier_value: str,
+    service: GS1Service = Depends(get_gs1_service)
 ):
-    """List music products with optional filtering"""
+    """Look up an asset by identifier value"""
     try:
-        # Build filter query
-        filter_query = {}
-        if artist_filter:
-            filter_query["artist_name"] = {"$regex": artist_filter, "$options": "i"}
-        if label_filter:
-            filter_query["label_name"] = {"$regex": label_filter, "$options": "i"}
-        
-        # Get products with pagination
-        cursor = db.gs1_products.find(filter_query).skip(skip).limit(limit).sort("created_at", -1)
-        products = await cursor.to_list(length=limit)
-        
-        # Get total count
-        total = await db.gs1_products.count_documents(filter_query)
-        
-        # Format products for response
-        formatted_products = []
-        for product in products:
-            formatted_products.append({
-                "id": product["id"],
-                "gtin": product["gtin"],
-                "upc": product["upc"],
-                "title": product["title"],
-                "artist_name": product["artist_name"],
-                "label_name": product["label_name"],
-                "release_date": product["release_date"].isoformat(),
-                "genre": product.get("genre"),
-                "gtin_status": product.get("gtin_status", "ACTIVE")
-            })
-        
-        return {
-            "products": formatted_products,
-            "pagination": {
-                "skip": skip,
-                "limit": limit,
-                "total": total,
-                "has_more": skip + limit < total
-            },
-            "business_entity": "Big Mann Entertainment"
+        # Search across all identifier types
+        query = {
+            "$or": [
+                {"identifiers.gtin.value": identifier_value},
+                {"identifiers.gln.value": identifier_value},
+                {"identifiers.gdti.value": identifier_value},
+                {"identifiers.isrc.value": identifier_value},
+                {"identifiers.isan.value": identifier_value}
+            ]
         }
         
+        asset_data = await service.assets_collection.find_one(query)
+        if not asset_data:
+            raise HTTPException(status_code=404, detail="No asset found with this identifier")
+        
+        asset = GS1Asset(**asset_data)
+        return asset
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Product listing error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list products: {str(e)}"
-        )
+        logger.error(f"Error looking up identifier: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@gs1_router.get("/locations")
-async def list_locations(
-    skip: int = 0,
-    limit: int = 50,
-    organization_filter: Optional[str] = None
+# Digital Link Endpoints
+
+@router.post("/digital-links")
+async def create_digital_link(
+    request: CreateDigitalLinkRequest,
+    service: GS1Service = Depends(get_gs1_service)
 ):
-    """List locations with optional filtering"""
+    """Create a GS1 Digital Link for an asset"""
     try:
-        # Build filter query
-        filter_query = {}
-        if organization_filter:
-            filter_query["organization_name"] = {"$regex": organization_filter, "$options": "i"}
+        # Get the asset
+        asset = await service.get_asset(request.asset_id)
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
         
-        # Get locations with pagination
-        cursor = db.gs1_locations.find(filter_query).skip(skip).limit(limit).sort("created_at", -1)
-        locations = await cursor.to_list(length=limit)
+        # Find the identifier
+        identifier_obj = None
+        for ident in asset.identifiers.values():
+            if ident.value == request.identifier:
+                identifier_obj = ident
+                break
         
-        # Get total count
-        total = await db.gs1_locations.count_documents(filter_query)
+        if not identifier_obj:
+            raise HTTPException(status_code=404, detail="Identifier not found on asset")
         
-        # Format locations for response
-        formatted_locations = []
-        for location in locations:
-            formatted_locations.append({
-                "id": location["id"],
-                "gln": location["gln"],
-                "location_name": location["location_name"],
-                "organization_name": location["organization_name"],
-                "gln_type": location["gln_type"],
-                "country_code": location["country_code"],
-                "gln_status": location.get("gln_status", "ACTIVE")
-            })
+        # Create Digital Link
+        digital_link = await service._create_digital_link(
+            request.asset_id,
+            identifier_obj,
+            request.config or service.DigitalLinkConfig()
+        )
+        
+        return {"digital_link": digital_link, "message": "Digital Link created successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating Digital Link: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/digital-links/{link_id}")
+async def get_digital_link(
+    link_id: str,
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get a Digital Link by ID"""
+    try:
+        link_data = await service.digital_links_collection.find_one({"link_id": link_id})
+        if not link_data:
+            raise HTTPException(status_code=404, detail="Digital Link not found")
+        return link_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving Digital Link: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/digital-links/{link_id}/qr-code")
+async def get_qr_code(
+    link_id: str,
+    format: str = Query("png", regex="^(png|jpeg|svg)$"),
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get QR code image for a Digital Link"""
+    try:
+        link_data = await service.digital_links_collection.find_one({"link_id": link_id})
+        if not link_data:
+            raise HTTPException(status_code=404, detail="Digital Link not found")
+        
+        qr_code_data = link_data.get("qr_code_data")
+        if not qr_code_data:
+            raise HTTPException(status_code=404, detail="QR code not available")
+        
+        # Return base64 encoded image
+        if format.lower() == "png":
+            media_type = "image/png"
+        elif format.lower() == "jpeg":
+            media_type = "image/jpeg"
+        else:
+            media_type = "image/svg+xml"
+        
+        # Extract base64 data (remove data:image/png;base64, prefix)
+        if "base64," in qr_code_data:
+            base64_data = qr_code_data.split("base64,")[1]
+        else:
+            base64_data = qr_code_data
+        
+        import base64
+        image_data = base64.b64decode(base64_data)
+        
+        return Response(content=image_data, media_type=media_type)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving QR code: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/digital-links/resolve")
+async def resolve_digital_link(
+    uri: str,
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Resolve a GS1 Digital Link URI"""
+    try:
+        # Find Digital Link by URI
+        link_data = await service.digital_links_collection.find_one({"uri": uri})
+        if not link_data:
+            raise HTTPException(status_code=404, detail="Digital Link not found")
+        
+        # Get associated asset
+        asset = await service.get_asset(link_data["asset_id"])
+        if not asset:
+            raise HTTPException(status_code=404, detail="Associated asset not found")
+        
+        # Update analytics (scan count)
+        await service.digital_links_collection.update_one(
+            {"link_id": link_data["link_id"]},
+            {"$inc": {"analytics.scan_count": 1}, "$set": {"analytics.last_scanned": datetime.now(timezone.utc)}}
+        )
         
         return {
-            "locations": formatted_locations,
-            "pagination": {
-                "skip": skip,
-                "limit": limit,
-                "total": total,
-                "has_more": skip + limit < total
-            },
-            "business_entity": "Big Mann Entertainment"
+            "asset": asset,
+            "digital_link": link_data,
+            "message": "Digital Link resolved successfully"
         }
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Location listing error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list locations: {str(e)}"
+        logger.error(f"Error resolving Digital Link: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Analytics Endpoints
+
+@router.get("/analytics", response_model=AnalyticsData)
+async def get_analytics(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get GS1 asset registry analytics"""
+    try:
+        analytics = await service.get_analytics()
+        return analytics
+    except Exception as e:
+        logger.error(f"Error retrieving analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/analytics/assets/by-type")
+async def get_assets_by_type(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get asset count breakdown by type"""
+    try:
+        pipeline = [
+            {"$group": {"_id": "$asset_type", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        
+        results = []
+        async for result in service.assets_collection.aggregate(pipeline):
+            results.append({"asset_type": result["_id"], "count": result["count"]})
+        
+        return {"data": results}
+    except Exception as e:
+        logger.error(f"Error retrieving asset type analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/analytics/identifiers/by-type")
+async def get_identifiers_by_type(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get identifier count breakdown by type"""
+    try:
+        pipeline = [
+            {"$project": {"identifiers": {"$objectToArray": "$identifiers"}}},
+            {"$unwind": "$identifiers"},
+            {"$group": {"_id": "$identifiers.k", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        
+        results = []
+        async for result in service.assets_collection.aggregate(pipeline):
+            results.append({"identifier_type": result["_id"], "count": result["count"]})
+        
+        return {"data": results}
+    except Exception as e:
+        logger.error(f"Error retrieving identifier type analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Batch Operations
+
+@router.post("/batch", response_model=BatchOperationResult)
+async def batch_operation(
+    request: BatchOperationRequest,
+    background_tasks: BackgroundTasks,
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Perform batch operations on assets"""
+    try:
+        # For large batches, run in background
+        if len(request.assets) > 100:
+            background_tasks.add_task(service.batch_operation, request)
+            return JSONResponse(
+                content={"message": "Batch operation started in background", "status": "processing"},
+                status_code=202
+            )
+        else:
+            result = await service.batch_operation(request)
+            return result
+    except Exception as e:
+        logger.error(f"Error in batch operation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Utility Endpoints
+
+@router.get("/health")
+async def health_check(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Health check endpoint"""
+    try:
+        # Test database connectivity
+        await service.assets_collection.find_one({})
+        
+        # Get basic stats
+        total_assets = await service.assets_collection.count_documents({})
+        total_digital_links = await service.digital_links_collection.count_documents({})
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc),
+            "database": "connected",
+            "total_assets": total_assets,
+            "total_digital_links": total_digital_links,
+            "service": "operational"
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JSONResponse(
+            content={
+                "status": "unhealthy",
+                "timestamp": datetime.now(timezone.utc),
+                "error": str(e)
+            },
+            status_code=503
         )
 
-# Export the router
+@router.get("/config")
+async def get_config(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get GS1 service configuration"""
+    return {
+        "company_prefix": service.company_prefix,
+        "base_uri": service.base_uri,
+        "supported_identifiers": [
+            IdentifierType.GTIN,
+            IdentifierType.GLN,
+            IdentifierType.GDTI,
+            IdentifierType.ISRC,
+            IdentifierType.ISAN
+        ],
+        "supported_asset_types": [
+            AssetType.MUSIC,
+            AssetType.VIDEO,
+            AssetType.IMAGE,
+            AssetType.MERCHANDISE
+        ]
+    }
+
+# Export/Import Endpoints
+
+@router.get("/export/assets")
+async def export_assets(
+    format: str = Query("json", regex="^(json|csv|xml)$"),
+    asset_type: Optional[AssetType] = None,
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Export assets in various formats"""
+    try:
+        query = {}
+        if asset_type:
+            query["asset_type"] = asset_type
+        
+        assets = []
+        async for asset_data in service.assets_collection.find(query):
+            # Convert ObjectId to string and clean up data
+            asset_data["_id"] = str(asset_data["_id"])
+            assets.append(asset_data)
+        
+        if format == "json":
+            return {"assets": assets, "count": len(assets)}
+        elif format == "csv":
+            # For CSV, flatten the data structure
+            import csv
+            import io
+            
+            output = io.StringIO()
+            if assets:
+                fieldnames = ["asset_id", "asset_type", "title", "description", "status", "created_at"]
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                for asset in assets:
+                    row = {
+                        "asset_id": asset.get("asset_id"),
+                        "asset_type": asset.get("asset_type"),
+                        "title": asset.get("metadata", {}).get("title"),
+                        "description": asset.get("metadata", {}).get("description"),
+                        "status": asset.get("status"),
+                        "created_at": asset.get("created_at")
+                    }
+                    writer.writerow(row)
+            
+            csv_content = output.getvalue()
+            return Response(content=csv_content, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=gs1_assets.csv"})
+        
+        else:  # XML format
+            import xml.etree.ElementTree as ET
+            
+            root = ET.Element("gs1_assets")
+            root.set("count", str(len(assets)))
+            
+            for asset in assets:
+                asset_elem = ET.SubElement(root, "asset")
+                asset_elem.set("id", asset.get("asset_id", ""))
+                asset_elem.set("type", asset.get("asset_type", ""))
+                
+                metadata = asset.get("metadata", {})
+                if metadata.get("title"):
+                    title_elem = ET.SubElement(asset_elem, "title")
+                    title_elem.text = metadata["title"]
+                
+                if metadata.get("description"):
+                    desc_elem = ET.SubElement(asset_elem, "description")
+                    desc_elem.text = metadata["description"]
+            
+            xml_str = ET.tostring(root, encoding='unicode')
+            return Response(content=xml_str, media_type="application/xml", headers={"Content-Disposition": "attachment; filename=gs1_assets.xml"})
+    
+    except Exception as e:
+        logger.error(f"Error exporting assets: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/standards/compliance")
+async def get_standards_compliance(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Get GS1 standards compliance information"""
+    return {
+        "gs1_standards": {
+            "gtin": {
+                "standard": "GS1-128",
+                "formats": ["GTIN-8", "GTIN-12", "GTIN-13", "GTIN-14"],
+                "check_digit": "Modulo 10",
+                "compliance_level": "Full"
+            },
+            "gln": {
+                "standard": "GS1 GLN",
+                "format": "13 digits",
+                "check_digit": "Modulo 10",
+                "compliance_level": "Full"
+            },
+            "gdti": {
+                "standard": "GS1 GDTI",
+                "format": "Variable length",
+                "check_digit": "Modulo 10",
+                "compliance_level": "Full"
+            },
+            "digital_link": {
+                "standard": "GS1 Digital Link 1.2",
+                "uri_format": "https://domain/AI/value",
+                "qr_code": "ISO/IEC 18004",
+                "compliance_level": "Full"
+            }
+        },
+        "industry_standards": {
+            "isrc": {
+                "standard": "ISO 3901",
+                "format": "CC-XXX-YY-NNNNN",
+                "authority": "International ISRC Agency",
+                "compliance_level": "Full"
+            },
+            "isan": {
+                "standard": "ISO 15706",
+                "format": "XXXX-XXXX-XXXX-XXXX-X",
+                "authority": "ISAN International Agency",
+                "compliance_level": "Full"
+            }
+        },
+        "certification": {
+            "date": datetime.now(timezone.utc),
+            "version": "1.0",
+            "validated_by": "GS1 Asset Registry Service"
+        }
+    }
