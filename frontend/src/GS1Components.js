@@ -45,39 +45,119 @@ export const GS1BusinessDashboard = () => {
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-      <h3 className="text-xl font-bold text-white mb-4">GS1 Business Information</h3>
+      <h3 className="text-xl font-bold text-white mb-6">GS1 Business Information</h3>
       
       {businessInfo && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Business Entity:</span>
-              <span className="text-white font-semibold">{businessInfo.business_entity}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Business Owner:</span>
-              <span className="text-white font-semibold">{businessInfo.business_owner}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Industry:</span>
-              <span className="text-white font-semibold">{businessInfo.industry}</span>
+        <div className="space-y-6">
+          {/* Traditional Business Information */}
+          <div className="bg-white/5 rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-white mb-4">Business Entity Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-purple-200">Business Entity:</span>
+                  <span className="text-white font-semibold">{businessInfo.business_entity}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-purple-200">Business Owner:</span>
+                  <span className="text-white font-semibold">{businessInfo.business_owner}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-purple-200">Industry:</span>
+                  <span className="text-white font-semibold">{businessInfo.industry}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-purple-200">EIN:</span>
+                  <span className="text-white font-semibold">{businessInfo.ein}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-purple-200">TIN:</span>
+                  <span className="text-white font-semibold">{businessInfo.tin}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-purple-200">Business Type:</span>
+                  <span className="text-white font-semibold">{businessInfo.business_type}</span>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">EIN:</span>
-              <span className="text-white font-semibold">{businessInfo.ein}</span>
+
+          {/* GS1 Specific Information */}
+          {businessInfo.business_info && (
+            <div className="bg-white/5 rounded-lg p-4">
+              <h4 className="text-lg font-semibold text-white mb-4">GS1 Registry Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Company Prefix:</span>
+                    <span className="text-white font-semibold">{businessInfo.business_info.company_prefix}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Total Assets:</span>
+                    <span className="text-white font-semibold">{businessInfo.business_info.total_assets}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Active Identifiers:</span>
+                    <span className="text-white font-semibold">{businessInfo.business_info.active_identifiers}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Compliance Status:</span>
+                    <span className="text-green-400 font-semibold">{businessInfo.business_info.compliance_status}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Certification Level:</span>
+                    <span className="text-green-400 font-semibold">{businessInfo.business_info.certification_level}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-200">Digital Links:</span>
+                    <span className="text-white font-semibold">{businessInfo.business_info.digital_links_created}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">TIN:</span>
-              <span className="text-white font-semibold">{businessInfo.tin}</span>
+          )}
+
+          {/* Capabilities */}
+          {businessInfo.capabilities && (
+            <div className="bg-white/5 rounded-lg p-4">
+              <h4 className="text-lg font-semibold text-white mb-4">GS1 Capabilities</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-purple-200 text-sm">Identifier Generation:</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {businessInfo.capabilities.identifier_generation.map((identifier, index) => (
+                      <span key={index} className="bg-purple-500/20 text-purple-200 px-2 py-1 rounded text-xs">
+                        {identifier}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-purple-200 text-sm">Features:</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {businessInfo.capabilities.digital_links && (
+                      <span className="bg-green-500/20 text-green-200 px-2 py-1 rounded text-xs">Digital Links</span>
+                    )}
+                    {businessInfo.capabilities.qr_codes && (
+                      <span className="bg-green-500/20 text-green-200 px-2 py-1 rounded text-xs">QR Codes</span>
+                    )}
+                    {businessInfo.capabilities.analytics && (
+                      <span className="bg-green-500/20 text-green-200 px-2 py-1 rounded text-xs">Analytics</span>
+                    )}
+                    {businessInfo.capabilities.bulk_operations && (
+                      <span className="bg-green-500/20 text-green-200 px-2 py-1 rounded text-xs">Bulk Operations</span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Business Type:</span>
-              <span className="text-white font-semibold">{businessInfo.business_type}</span>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>
