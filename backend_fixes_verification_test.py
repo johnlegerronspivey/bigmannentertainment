@@ -489,29 +489,55 @@ class BackendFixesVerificationTester:
                 str(e)
             )
 
-        # Test 2: Valid Contract Template Creation
+        # Test 2: Valid Contract Template Creation - First get available templates
         try:
-            valid_contract_template = {
-                "name": "Royalty Distribution Contract",
-                "template_id": "royalty_distribution_v1",
-                "description": "Automated royalty distribution contract for Big Mann Entertainment",
-                "customizations": {
-                    "contract_name": "BME Royalty Distribution",
-                    "symbol": "BMEROY",
-                    "blockchain_network": "ethereum",
-                    "parameters": {
-                        "royalty_percentage": 10.0,
-                        "beneficiaries": [
-                            {"address": "0x1234567890123456789012345678901234567890", "percentage": 60.0},
-                            {"address": "0x0987654321098765432109876543210987654321", "percentage": 40.0}
-                        ],
-                        "minimum_payout": 0.01,
-                        "auto_distribute": True
-                    }
-                }
-            }
+            # Get available templates first
+            templates_response = self.session.get(f"{self.backend_url}/premium/contracts/templates?user_id={self.user_id}")
             
-            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template?user_id={self.user_id}", json=valid_contract_template)
+            if templates_response.status_code == 200:
+                templates = templates_response.json()
+                if templates and len(templates) > 0:
+                    # Use the first available template
+                    template = templates[0]
+                    template_id = template.get('id')
+                    
+                    valid_contract_template = {
+                        "name": "Royalty Distribution Contract",
+                        "template_id": template_id,
+                        "description": "Automated royalty distribution contract for Big Mann Entertainment",
+                        "customizations": {
+                            "contract_name": "BME Royalty Distribution",
+                            "symbol": "BMEROY",
+                            "blockchain_network": "ethereum",
+                            "parameters": {
+                                "royalty_percentage": 10.0,
+                                "beneficiaries": [
+                                    {"address": "0x1234567890123456789012345678901234567890", "percentage": 60.0},
+                                    {"address": "0x0987654321098765432109876543210987654321", "percentage": 40.0}
+                                ],
+                                "minimum_payout": 0.01,
+                                "auto_distribute": True
+                            }
+                        }
+                    }
+                    
+                    response = self.session.post(f"{self.backend_url}/premium/contracts/from-template?user_id={self.user_id}", json=valid_contract_template)
+                else:
+                    self.log_result(
+                        "Smart Contract Template - Valid Creation",
+                        False,
+                        "No templates available",
+                        "Templates endpoint returned empty list"
+                    )
+                    return
+            else:
+                self.log_result(
+                    "Smart Contract Template - Valid Creation",
+                    False,
+                    f"Failed to get templates: {templates_response.status_code}",
+                    templates_response.text
+                )
+                return
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
