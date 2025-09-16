@@ -181,27 +181,46 @@ class LicenseHolderVerificationTester:
             self.log_result("EIN Value Verification", False, f"EIN validation error: {str(e)}")
             return False
     
-    def test_tin_value(self, dashboard_data):
-        """Test that TIN value is correct: 12800"""
-        if not dashboard_data:
-            self.log_result("TIN Value Verification", False, "No dashboard data available")
+    def test_ein_value_from_business_identifiers(self, business_data):
+        """Test that EIN value is correct from business identifiers endpoint: 270658077"""
+        if not business_data:
+            self.log_result("EIN Value (Business Identifiers)", False, "No business identifiers data available")
             return False
         
         try:
-            business_info = dashboard_data.get('business_info', {})
-            tin_value = business_info.get('tin')
+            ein_value = business_data.get('business_ein')
+            expected_ein = "270658077"
             
-            expected_tin = "12800"
-            
-            if tin_value == expected_tin:
-                self.log_result("TIN Value Verification", True, f"TIN correctly set to {expected_tin}")
+            if ein_value == expected_ein:
+                self.log_result("EIN Value (Business Identifiers)", True, f"EIN correctly set to {expected_ein}")
                 return True
             else:
-                self.log_result("TIN Value Verification", False, f"TIN mismatch - Expected: {expected_tin}, Got: {tin_value}")
+                self.log_result("EIN Value (Business Identifiers)", False, f"EIN mismatch - Expected: {expected_ein}, Got: {ein_value}")
                 return False
                 
         except Exception as e:
-            self.log_result("TIN Value Verification", False, f"TIN validation error: {str(e)}")
+            self.log_result("EIN Value (Business Identifiers)", False, f"EIN validation error: {str(e)}")
+            return False
+    
+    def test_tin_value_from_business_identifiers(self, business_data):
+        """Test that TIN value is correct from business identifiers endpoint: 12800"""
+        if not business_data:
+            self.log_result("TIN Value (Business Identifiers)", False, "No business identifiers data available")
+            return False
+        
+        try:
+            tin_value = business_data.get('business_tin')
+            expected_tin = "12800"
+            
+            if tin_value == expected_tin:
+                self.log_result("TIN Value (Business Identifiers)", True, f"TIN correctly set to {expected_tin}")
+                return True
+            else:
+                self.log_result("TIN Value (Business Identifiers)", False, f"TIN mismatch - Expected: {expected_tin}, Got: {tin_value}")
+                return False
+                
+        except Exception as e:
+            self.log_result("TIN Value (Business Identifiers)", False, f"TIN validation error: {str(e)}")
             return False
     
     def test_business_entity_values(self, dashboard_data):
