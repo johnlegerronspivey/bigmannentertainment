@@ -16,7 +16,7 @@ import re
 import logging
 import uuid
 
-from .gs1_models import (
+from gs1_models import (
     GS1Asset, AssetType, IdentifierType, GS1IdentifierStatus,
     GTINIdentifier, GLNIdentifier, GDTIIdentifier, ISRCIdentifier, ISANIdentifier,
     GS1DigitalLink, DigitalLinkConfig, AssetMetadata,
