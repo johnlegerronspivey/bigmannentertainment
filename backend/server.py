@@ -6123,7 +6123,7 @@ from label_endpoints import label_router
 # from payment_endpoints import payment_router
 from stripe_endpoints import stripe_router
 from licensing_endpoints import licensing_router
-from gs1_endpoints import gs1_router
+from gs1_endpoints import router as gs1_router
 from metadata_endpoints import router as metadata_router
 from batch_endpoints import router as batch_router
 from reporting_endpoints import router as reporting_router
