@@ -104,7 +104,7 @@ class DOOHCampaign(BaseModel):
     time_targeting: Dict[str, Any] = {}
     
     # Creative and DCO
-    primary_creative: CreativeAsset
+    primary_creative: Optional[CreativeAsset] = None
     trigger_conditions: List[TriggerCondition] = []
     
     # Platform Integration
