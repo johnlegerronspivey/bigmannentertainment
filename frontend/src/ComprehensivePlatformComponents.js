@@ -1219,6 +1219,51 @@ const DistributionTracker = () => {
           </div>
         )}
 
+        {activeTab === 'gs1' && (
+          <div className="space-y-6">
+            <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <span className="mr-2">🔗</span>
+                GS1 Digital Links for Distribution
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Generate GS1 Digital Links and QR codes for your assets to enable direct-to-consumer engagement and licensing integration.
+              </p>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className={`${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} border rounded-lg p-4`}>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Digital Link Benefits</h4>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center"><span className="mr-2">✅</span>Direct consumer engagement</li>
+                    <li className="flex items-center"><span className="mr-2">✅</span>Royalty tracking integration</li>
+                    <li className="flex items-center"><span className="mr-2">✅</span>Global interoperability</li>
+                    <li className="flex items-center"><span className="mr-2">✅</span>Compliance with GS1 standards</li>
+                  </ul>
+                </div>
+                
+                <div className={`${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} border rounded-lg p-4`}>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Distribution Integration</h4>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center"><span className="mr-2">🎵</span>Music metadata with ISRC</li>
+                    <li className="flex items-center"><span className="mr-2">🎬</span>Video content with ISAN</li>
+                    <li className="flex items-center"><span className="mr-2">🖼️</span>Image assets with licensing</li>
+                    <li className="flex items-center"><span className="mr-2">👕</span>Merchandise tracking</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="mt-6 text-center">
+                <button className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors">
+                  🚀 Access Full GS1 Registry
+                </button>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Available in Content Manager → GS1 Registry tab
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'analytics' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
