@@ -1,0 +1,55 @@
+# AWS Amplify and Lambda Dependencies
+boto3==1.34.34
+botocore==1.34.34
+aws-lambda-powertools==2.28.0
+
+# Web3 and Ethereum Integration
+web3==6.15.1
+eth-account==0.10.0
+eth-hash==0.6.0
+eth-typing==4.0.0
+eth-utils==2.3.1
+
+# HTTP and API Dependencies
+requests==2.31.0
+aiohttp==3.9.1
+urllib3==2.1.0
+
+# Data Processing
+pandas==2.1.4
+numpy==1.26.2
+scikit-learn==1.3.2
+
+# JSON and Data Serialization
+pydantic==2.5.2
+marshmallow==3.20.2
+
+# Cryptography and Security
+cryptography==41.0.8
+PyJWT==2.8.0
+
+# Date and Time Handling
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Environment and Configuration
+python-dotenv==1.0.0
+
+# Image and Media Processing
+Pillow==10.1.0
+opencv-python-headless==4.8.1.78
+
+# QR Code Generation (for GS1)
+qrcode==7.4.2
+
+# Testing (for development)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+moto==4.2.14
+
+# Logging and Monitoring
+structlog==23.2.0
+
+# Additional utility libraries
+uuid==1.30
+decimal==1.0.0
