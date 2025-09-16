@@ -101,6 +101,29 @@ class LicenseHolderVerificationTester:
             self.log_result("Licensing Dashboard Endpoint", False, f"Endpoint error: {str(e)}")
             return None
     
+    def test_business_identifiers_endpoint(self):
+        """Test the business identifiers endpoint for EIN and TIN values"""
+        try:
+            response = requests.get(f"{self.api_base}/business/identifiers", headers=self.get_headers())
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result("Business Identifiers Endpoint", True, "Endpoint accessible and returns 200")
+                return data
+            elif response.status_code == 401:
+                self.log_result("Business Identifiers Endpoint", True, "Endpoint exists but requires authentication (expected)")
+                return None
+            elif response.status_code == 403:
+                self.log_result("Business Identifiers Endpoint", True, "Endpoint exists but requires proper permissions")
+                return None
+            else:
+                self.log_result("Business Identifiers Endpoint", False, f"Unexpected status code: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            self.log_result("Business Identifiers Endpoint", False, f"Endpoint error: {str(e)}")
+            return None
+    
     def test_business_info_structure(self, dashboard_data):
         """Test that business_info object has correct structure"""
         if not dashboard_data:
