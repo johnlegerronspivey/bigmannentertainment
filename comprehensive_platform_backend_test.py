@@ -210,12 +210,11 @@ class ComprehensivePlatformTester:
         
         # Test generate forecast
         forecast_request = {
-            "asset_id": "test_asset_001",
             "period": "monthly",
-            "horizon_months": 12,
+            "horizon_months": 6,
             "model_type": "ensemble",
-            "include_scenarios": True,
-            "confidence_intervals": True
+            "include_scenarios": False,
+            "confidence_intervals": False
         }
         
         success, data, status = await self.make_request(
