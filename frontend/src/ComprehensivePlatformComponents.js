@@ -922,6 +922,10 @@ const ContentManager = () => {
           </div>
         )}
 
+        {activeTab === 'gs1' && (
+          <GS1AssetRegistry />
+        )}
+
         {activeTab === 'upload' && (
           <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-8`}>
             <div className="text-center">
