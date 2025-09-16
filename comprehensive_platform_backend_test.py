@@ -158,7 +158,7 @@ class ComprehensivePlatformTester:
         # Test DAO smart contracts
         success, data, status = await self.make_request(
             'GET',
-            '/comprehensive-platform/dao/contracts',
+            '/platform/dao/contracts',
             params={'user_id': self.test_user_id}
         )
         self.log_result(
