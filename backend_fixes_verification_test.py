@@ -291,10 +291,10 @@ class BackendFixesVerificationTester:
         try:
             invalid_proposal = {
                 "title": "Test Proposal",
-                # Missing required fields: description, proposal_type, voting_period
+                # Missing required fields: proposal_id, description, proposal_type, proposer_address, status, voting_starts, voting_ends
             }
             
-            response = self.session.post(f"{self.backend_url}/platform/dao/proposals", json=invalid_proposal)
+            response = self.session.post(f"{self.backend_url}/platform/dao/proposals?user_id={self.user_id}", json=invalid_proposal)
             
             if response.status_code == 422 or response.status_code == 400:
                 error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {"detail": response.text}
