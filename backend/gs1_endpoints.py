@@ -631,7 +631,8 @@ async def get_business_info(
             "success": True,
             "business_info": {
                 "company_name": "Big Mann Entertainment",
-                "company_prefix": service.company_prefix,
+                "company_prefix": "08600043402",
+                "legal_entity_gln": "0860004340201",
                 "base_uri": service.base_uri,
                 "total_assets": analytics.total_assets,
                 "active_identifiers": len(analytics.identifiers_by_type),
@@ -649,13 +650,13 @@ async def get_business_info(
                 "analytics": True,
                 "compliance_reporting": True
             },
-            # Additional business information fields expected by frontend
-            "business_entity": "Big Mann Entertainment LLC",
-            "business_owner": "Big Mann Entertainment Group",
-            "industry": "Music & Entertainment",
-            "ein": "XX-XXXXXXX",
-            "tin": "XXXXXXXXX", 
-            "business_type": "Limited Liability Company"
+            # Business Entity Information
+            "business_entity": "Big Mann Entertainment",
+            "business_owner": "John LeGerron Spivey",
+            "industry": "Media Entertainment",
+            "ein": "270658077",
+            "tin": "12800", 
+            "business_type": "Sole Proprietorship"
         }
     except Exception as e:
         logger.error(f"Error retrieving business info: {e}")
