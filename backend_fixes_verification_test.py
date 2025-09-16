@@ -220,19 +220,19 @@ class BackendFixesVerificationTester:
             
             scenarios = [
                 {
-                    "scenario_type": "optimistic",
-                    "description": "Optimistic growth scenario with increased marketing",
+                    "scenario_type": "platform_expansion",
+                    "description": "Platform expansion scenario with new distribution channels",
                     "parameter_changes": {
                         "growth_multiplier": 1.5,
-                        "marketing_bonus": 0.25
+                        "platform_bonus": 0.25
                     }
                 },
                 {
-                    "scenario_type": "pessimistic",
-                    "description": "Conservative scenario with market downturn",
+                    "scenario_type": "engagement_boost",
+                    "description": "Engagement boost scenario with improved user retention",
                     "parameter_changes": {
-                        "growth_multiplier": 0.8,
-                        "market_penalty": -0.15
+                        "engagement_multiplier": 1.3,
+                        "retention_bonus": 0.20
                     }
                 }
             ]
