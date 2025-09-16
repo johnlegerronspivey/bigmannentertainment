@@ -754,6 +754,7 @@ const ContentManager = () => {
   const tabs = [
     { id: 'assets', name: 'Assets', icon: '📁' },
     { id: 'folders', name: 'Folders', icon: '📂' },
+    { id: 'gs1', name: 'GS1 Registry', icon: '🏷️' },
     { id: 'upload', name: 'Upload', icon: '⬆️' },
     { id: 'analytics', name: 'Analytics', icon: '📊' }
   ];
