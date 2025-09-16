@@ -110,7 +110,7 @@ class BackendFixesVerificationTester:
         # Test 1: Generate Forecasting Endpoint
         try:
             forecast_data = {
-                "user_id": self.user_id,
+                "asset_id": "test_asset_123",
                 "historical_data": [
                     {"period": "2024-01", "revenue": 1000.0, "streams": 5000},
                     {"period": "2024-02", "revenue": 1200.0, "streams": 6000},
@@ -120,7 +120,7 @@ class BackendFixesVerificationTester:
                 "confidence_level": 0.95
             }
             
-            response = self.session.post(f"{self.backend_url}/premium/forecasting/generate", json=forecast_data)
+            response = self.session.post(f"{self.backend_url}/premium/forecasting/generate?user_id={self.user_id}", json=forecast_data)
             
             if response.status_code == 200:
                 data = response.json()
