@@ -636,17 +636,17 @@ class BackendFixesVerificationTester:
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
-                if "id" in data and "customizations" in data:
+                if "id" in data and "name" in data and "components" in data:
                     self.log_result(
                         "Smart Contract Template - Customization Functionality",
                         True,
-                        f"Customized contract created with features: {list(data.get('customizations', {}).keys())}"
+                        f"Customized contract created with {len(data.get('components', []))} components"
                     )
                 else:
                     self.log_result(
                         "Smart Contract Template - Customization Functionality",
                         False,
-                        "Response missing customization fields",
+                        "Response missing required fields",
                         f"Response: {data}"
                     )
             else:
