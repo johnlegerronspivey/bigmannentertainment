@@ -255,11 +255,37 @@ class DAOGovernanceService:
         for member in sample_members:
             self.members_cache[member.id] = member
     
-    async def create_proposal(self, proposal_data: GovernanceProposal, user_id: str) -> Dict[str, Any]:
+    async def create_proposal(self, proposal_data: Union[Dict[str, Any], GovernanceProposal], creator_id: str) -> Dict[str, Any]:
         """Create a new governance proposal with blockchain integration"""
         try:
-            proposal = GovernanceProposal(**proposal_data.dict())
-            proposal.proposer_id = user_id
+            # Handle both dict and GovernanceProposal objects
+            if isinstance(proposal_data, GovernanceProposal):
+                proposal = proposal_data
+                proposal.proposer_id = creator_id
+            else:
+                # Validate proposal data
+                required_fields = ['title', 'description', 'proposal_type']
+                missing_fields = [field for field in required_fields if field not in proposal_data]
+                if missing_fields:
+                    return {
+                        "success": False,
+                        "error": f"Missing required fields: {', '.join(missing_fields)}"
+                    }
+                
+                # Create proposal object from dict
+                proposal = GovernanceProposal(
+                    proposal_id=len(self.proposals_cache) + 1,
+                    title=proposal_data['title'],
+                    description=proposal_data['description'],
+                    proposal_type=ProposalType(proposal_data['proposal_type']),
+                    proposer_address=proposal_data.get('proposer_address', f"0x{uuid.uuid4().hex[:40]}"),
+                    proposer_id=creator_id,
+                    status=ProposalStatus.DRAFT,
+                    voting_starts=datetime.fromisoformat(proposal_data['voting_starts']) if 'voting_starts' in proposal_data else datetime.now(timezone.utc) + timedelta(hours=24),
+                    voting_ends=datetime.fromisoformat(proposal_data['voting_ends']) if 'voting_ends' in proposal_data else datetime.now(timezone.utc) + timedelta(days=7),
+                    metadata=proposal_data.get('metadata', {})
+                )
+            
             proposal.proposal_id = len(self.proposals_cache) + 1
             
             # Set voting period (7 days from now)
