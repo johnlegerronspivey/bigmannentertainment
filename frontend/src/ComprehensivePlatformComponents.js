@@ -1031,6 +1031,7 @@ const DistributionTracker = () => {
   const tabs = [
     { id: 'jobs', name: 'Distribution Jobs', icon: '📤' },
     { id: 'platforms', name: 'Platforms', icon: '🌐' },
+    { id: 'gs1', name: 'GS1 Digital Links', icon: '🔗' },
     { id: 'analytics', name: 'Analytics', icon: '📊' },
     { id: 'create', name: 'Create Job', icon: '➕' }
   ];
