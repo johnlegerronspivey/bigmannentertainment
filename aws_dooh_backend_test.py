@@ -73,8 +73,13 @@ class AWSDoohBackendTester:
             
             response = self.session.post(f"{self.backend_url}/auth/register", json=register_data)
             
-            if response.status_code == 201:
-                self.log_result("User Registration", True, f"Registered user: {TEST_USER_EMAIL}")
+            if response.status_code in [200, 201]:
+                # Check if response contains access_token (auto-login after registration)
+                data = response.json()
+                if "access_token" in data:
+                    self.log_result("User Registration", True, f"Registered and auto-logged in user: {TEST_USER_EMAIL}")
+                else:
+                    self.log_result("User Registration", True, f"Registered user: {TEST_USER_EMAIL}")
             elif response.status_code == 400 and "already exists" in response.text:
                 self.log_result("User Registration", True, f"User already exists: {TEST_USER_EMAIL}")
             else:
