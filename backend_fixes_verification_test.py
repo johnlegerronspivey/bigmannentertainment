@@ -329,21 +329,30 @@ class BackendFixesVerificationTester:
 
         # Test 2: Valid Proposal Creation (Dictionary Input)
         try:
+            from datetime import datetime, timezone, timedelta
+            
+            voting_starts = datetime.now(timezone.utc) + timedelta(hours=1)
+            voting_ends = voting_starts + timedelta(days=7)
+            
             valid_proposal_dict = {
+                "proposal_id": 1,
                 "title": "Test Governance Proposal",
                 "description": "This is a test proposal for governance validation",
-                "proposal_type": "governance",
-                "voting_period": 7,
+                "proposal_type": "platform_upgrade",
+                "proposer_address": "0x1234567890123456789012345678901234567890",
                 "proposer_id": self.user_id,
-                "required_quorum": 0.1,
-                "options": ["approve", "reject"],
+                "status": "pending",
+                "voting_starts": voting_starts.isoformat(),
+                "voting_ends": voting_ends.isoformat(),
+                "quorum_required": 10.0,
+                "threshold_required": 50.0,
                 "metadata": {
                     "category": "platform_improvement",
                     "priority": "medium"
                 }
             }
             
-            response = self.session.post(f"{self.backend_url}/platform/dao/proposals", json=valid_proposal_dict)
+            response = self.session.post(f"{self.backend_url}/platform/dao/proposals?user_id={self.user_id}", json=valid_proposal_dict)
             
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()
