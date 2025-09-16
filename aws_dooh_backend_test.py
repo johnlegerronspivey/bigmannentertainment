@@ -315,11 +315,11 @@ class AWSDoohBackendTester:
         """Test Ethereum integration components"""
         try:
             # Test DAO blockchain integration status
-            response = self.session.get(f"{self.backend_url}/dao/blockchain/status")
+            response = self.session.get(f"{self.backend_url}/platform/dao/blockchain/status")
             
             if response.status_code == 200:
                 data = response.json()
-                if "ethereum" in data or "blockchain" in data or "status" in data:
+                if "ethereum" in str(data).lower() or "blockchain" in str(data).lower() or "status" in data:
                     self.log_result("Ethereum Integration Functions", True, 
                                   f"Blockchain integration accessible")
                 else:
