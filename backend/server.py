@@ -1446,6 +1446,26 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 500 * 1024 * 1024,
         "credentials_required": ["agency_id", "api_key", "photographer_license"],
         "description": "German fashion modeling agency"
+    },
+
+    # Music Data Exchange & Licensing Platforms (2 platforms)
+    "mlc": {
+        "type": "music_licensing",
+        "name": "Mechanical Licensing Collective (MLC)",
+        "api_endpoint": "https://api.themlc.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["mlc_account_id", "api_key"],
+        "description": "Mechanical licensing and royalty collection for digital music"
+    },
+    "mde": {
+        "type": "music_data_exchange",
+        "name": "Music Data Exchange (MDE)",
+        "api_endpoint": "https://api.musicdataexchange.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["mde_publisher_id", "api_key"],
+        "description": "Comprehensive music metadata management and rights information exchange"
     }
 }
 
