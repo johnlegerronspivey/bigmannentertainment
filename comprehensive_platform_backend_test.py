@@ -146,7 +146,7 @@ class ComprehensivePlatformTester:
         # Test DAO treasury information
         success, data, status = await self.make_request(
             'GET',
-            '/comprehensive-platform/dao/treasury',
+            '/platform/dao/treasury',
             params={'user_id': self.test_user_id}
         )
         self.log_result(
