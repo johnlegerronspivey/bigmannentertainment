@@ -122,7 +122,7 @@ class ComprehensivePlatformTester:
         # Test DAO metrics
         success, data, status = await self.make_request(
             'GET',
-            '/comprehensive-platform/dao/metrics',
+            '/platform/dao/metrics',
             params={'user_id': self.test_user_id}
         )
         self.log_result(
