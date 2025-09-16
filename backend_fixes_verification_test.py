@@ -453,10 +453,10 @@ class BackendFixesVerificationTester:
         try:
             invalid_contract = {
                 "name": "Test Contract",
-                # Missing required fields: template_id, blockchain_network, parameters
+                # Missing required fields: template_id, description
             }
             
-            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template", json=invalid_contract)
+            response = self.session.post(f"{self.backend_url}/premium/contracts/from-template?user_id={self.user_id}", json=invalid_contract)
             
             if response.status_code == 422 or response.status_code == 400:
                 error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {"detail": response.text}
