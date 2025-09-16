@@ -398,17 +398,15 @@ class PDOOHBackendTester:
         
         # 4. Test POST /api/pdooh/triggers/evaluate - Evaluate campaign triggers
         if self.test_campaign_id:
-            trigger_data = {
-                "campaign_id": self.test_campaign_id,
-                "location": "New York City",
-                "latitude": 40.7580,
-                "longitude": -73.9855
-            }
-            
             success, response, status = await self.make_request(
                 "POST", "/triggers/evaluate",
-                params={"user_id": self.test_user_id},
-                data=trigger_data
+                params={
+                    "user_id": self.test_user_id,
+                    "campaign_id": self.test_campaign_id,
+                    "location": "New York City",
+                    "latitude": 40.7580,
+                    "longitude": -73.9855
+                }
             )
             
             if success and response.get("success"):
