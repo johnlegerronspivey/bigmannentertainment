@@ -160,7 +160,7 @@ class ComprehensiveLicensingEngine:
                     "monthly_limit": 1000,
                     "license_fee": 49.99
                 },
-                "compliance": ["content_guidelines", "community_standards", "copyright_protection", "audio_content_standards"]
+                "compliance": ["content_guidelines", "community_standards", "copyright_protection", "audio_content_standards", "isrc_identification_recommended"]
             },
             "broadcast_media": {
                 "platforms": ["iheartradio", "siriusxm", "clear_channel", "cumulus_media"],
