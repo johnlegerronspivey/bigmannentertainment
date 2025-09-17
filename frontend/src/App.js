@@ -121,7 +121,7 @@ const AuthProvider = ({ children }) => {
         if (token) {
           // Create a temporary user object to allow access while API is having issues
           setUser({ 
-            email: 'user@bigmannentertainment.com', 
+            email: 'owner@bigmannentertainment.com', 
             role: 'user',
             temp: true 
           });
