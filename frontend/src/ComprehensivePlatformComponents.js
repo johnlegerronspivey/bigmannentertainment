@@ -533,7 +533,7 @@ export const ComprehensivePlatform = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [systemAlerts, setSystemAlerts] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [user, setUser] = useState({ name: 'John Spivey', email: 'john.spivey@bigmannentertainment.com' });
+  const [user, setUser] = useState({ name: 'John LeGerron Spivey', email: 'owner@bigmannentertainment.com' });
 
   // Initialize sample data
   useEffect(() => {
