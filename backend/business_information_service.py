@@ -392,6 +392,7 @@ class BusinessInformationService:
                     "gs1_company_prefix": business_info.company_prefix,
                     "legal_entity_gln": business_info.legal_entity_gln,
                     "isan_prefix": business_info.isan_prefix,
+                    "isrc_prefix": business_info.isrc_prefix,
                     "gtin_range": business_info.gtin_range
                 },
                 "regulatory_compliance": {
