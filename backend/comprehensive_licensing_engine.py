@@ -151,7 +151,7 @@ class ComprehensiveLicensingEngine:
                     "monthly_limit": 500,
                     "license_fee": 99.99
                 },
-                "compliance": ["content_quality", "metadata_standards", "royalty_reporting"]
+                "compliance": ["content_quality", "metadata_standards", "royalty_reporting", "sound_recording_industry_standards"]
             },
             "social_media": {
                 "platforms": ["instagram", "tiktok", "facebook", "twitter", "youtube", "snapchat"],
@@ -160,7 +160,7 @@ class ComprehensiveLicensingEngine:
                     "monthly_limit": 1000,
                     "license_fee": 49.99
                 },
-                "compliance": ["content_guidelines", "community_standards", "copyright_protection"]
+                "compliance": ["content_guidelines", "community_standards", "copyright_protection", "audio_content_standards"]
             },
             "broadcast_media": {
                 "platforms": ["iheartradio", "siriusxm", "clear_channel", "cumulus_media"],
@@ -169,7 +169,7 @@ class ComprehensiveLicensingEngine:
                     "monthly_limit": 200,
                     "license_fee": 199.99
                 },
-                "compliance": ["broadcast_standards", "fcc_compliance", "performance_rights"]
+                "compliance": ["broadcast_standards", "fcc_compliance", "performance_rights", "sound_recording_broadcast_standards"]
             },
             "video_streaming": {
                 "platforms": ["netflix", "hulu", "amazon_prime", "hbo_max", "tubi"],
@@ -178,7 +178,7 @@ class ComprehensiveLicensingEngine:
                     "monthly_limit": 50,
                     "license_fee": 299.99
                 },
-                "compliance": ["content_rating", "sync_licensing", "territorial_restrictions"]
+                "compliance": ["content_rating", "sync_licensing", "territorial_restrictions", "audio_sync_standards"]
             }
         }
         
