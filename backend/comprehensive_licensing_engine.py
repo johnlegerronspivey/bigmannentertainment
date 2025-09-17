@@ -169,7 +169,7 @@ class ComprehensiveLicensingEngine:
                     "monthly_limit": 200,
                     "license_fee": 199.99
                 },
-                "compliance": ["broadcast_standards", "fcc_compliance", "performance_rights", "sound_recording_broadcast_standards"]
+                "compliance": ["broadcast_standards", "fcc_compliance", "performance_rights", "sound_recording_broadcast_standards", "isrc_identification_required"]
             },
             "video_streaming": {
                 "platforms": ["netflix", "hulu", "amazon_prime", "hbo_max", "tubi"],
