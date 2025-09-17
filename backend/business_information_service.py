@@ -48,6 +48,9 @@ class BusinessInformation(BaseModel):
     legal_entity_gln: str  # Global Location Number for legal entity
     gtin_range: Optional[Dict[str, str]] = None
     
+    # ISAN Identifier
+    isan_prefix: str  # International Standard Audiovisual Number prefix
+    
     # Regulatory Information
     operating_countries: List[str] = Field(default_factory=list)
     regulatory_licenses: List[Dict[str, Any]] = Field(default_factory=list)
