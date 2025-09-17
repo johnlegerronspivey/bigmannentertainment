@@ -293,15 +293,23 @@ class BusinessInformationService:
                     "CRB Statutory Rate Compliant",
                     "DMCA Safe Harbor Certified",
                     "GDPR Data Processing Compliant",
-                    "CCPA Privacy Compliant"
+                    "CCPA Privacy Compliant",
+                    "Sound Recording Industry Standards Compliant"
                 ],
                 "regulatory_licenses": [
                     {
                         "license_type": "Business Operating License",
-                        "jurisdiction": "Tennessee",
-                        "license_number": "TN-SOL-270658077",
+                        "jurisdiction": "Alabama",
+                        "license_number": "AL-SOL-270658077",
                         "status": "active",
                         "expiration_date": "2026-12-31"
+                    },
+                    {
+                        "license_type": "Sound Recording Business License",
+                        "jurisdiction": "US",
+                        "license_number": "SRI-BME-001",
+                        "status": "active",
+                        "coverage": "Sound Recording Production & Distribution"
                     },
                     {
                         "license_type": "Music Publishing License",
@@ -315,6 +323,7 @@ class BusinessInformationService:
                     "ein": "270658077",
                     "tin": "12800",
                     "tax_classification": "Sole Proprietorship",
+                    "industry_code": "512210",  # Sound Recording Industries NAICS code
                     "tax_year": "2025",
                     "withholding_requirements": ["24% Federal", "State Varies"]
                 }
