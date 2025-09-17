@@ -98,13 +98,13 @@ class BusinessInformationService:
             "legal_entity_gln": "0860004340201",
             "established_date": datetime(2020, 1, 1),
             "operating_countries": ["US"],
-            "contact_email": "business@bigmannentertainment.com",
+            "contact_email": "owner@bigmannentertainment.com",
             "contact_phone": "(334) 669-8638",
             "business_address": {
-                "street": "123 Music Row",
-                "city": "Nashville",
-                "state": "TN",
-                "zip": "37203",
+                "street": "1314 Lincoln Heights Street",
+                "city": "Alexander City",
+                "state": "Alabama",
+                "zip": "35010",
                 "country": "US"
             }
         }
