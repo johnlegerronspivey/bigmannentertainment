@@ -372,6 +372,8 @@ class BusinessInformationService:
                     "legal_name": business_info.business_entity,
                     "business_owner": business_info.business_owner,
                     "legal_structure": business_info.legal_structure,
+                    "industry_classification": business_info.industry_classification,
+                    "naics_code": business_info.naics_code,
                     "ein": business_info.ein,
                     "tin": business_info.tin,
                     "established_date": business_info.established_date
