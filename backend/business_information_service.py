@@ -30,6 +30,7 @@ class BusinessInformation(BaseModel):
     business_owner: str
     business_type: str
     industry_classification: str
+    naics_code: str = "512200"  # Sound Recording Industries
     
     # Legal Identifiers
     ein: str  # Employer Identification Number
