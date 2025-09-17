@@ -426,7 +426,7 @@ class BusinessInformationService:
             
             required_fields = [
                 "business_entity", "business_owner", "ein", "tin", 
-                "contact_email", "business_address", "company_prefix", "legal_entity_gln"
+                "contact_email", "business_address", "company_prefix", "legal_entity_gln", "isan_prefix"
             ]
             
             # Check required fields
