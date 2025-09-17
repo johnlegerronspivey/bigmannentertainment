@@ -19,6 +19,7 @@ import PaymentComponent from './PaymentComponent';
 import EarningsComponent from './EarningsComponent';
 import { LicensingDashboard, PlatformLicenseManager, LicensingStatus } from './LicensingComponents';
 import GS1Components, { GS1Dashboard } from './GS1Components';
+import ComprehensiveLicensingComponents from './ComprehensiveLicensingComponents';
 import EnhancedUploadComponent from './EnhancedUploadComponent';
 import ImageUploadComponent from './ImageUploadComponent';
 import RightsComplianceComponent from './RightsComplianceComponent';
