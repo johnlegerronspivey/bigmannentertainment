@@ -722,6 +722,7 @@ class ComprehensiveLicensingEngine:
                 "business_information_summary": {
                     "business_entity": business_info.business_entity,
                     "business_owner": business_info.business_owner,
+                    "industry_classification": business_info.industry_classification,
                     "ein": business_info.ein,
                     "tin": business_info.tin,
                     "total_platforms_integrated": len(business_info.distribution_platform_ids),
