@@ -405,9 +405,9 @@ class ComprehensiveLicensingEngine:
     def _generate_legal_framework(self, platform_categories: Dict[str, List[str]]) -> Dict[str, Any]:
         """Generate legal framework based on platform categories"""
         legal_framework = {
-            "applicable_laws": ["US Copyright Law", "DMCA", "Tennessee Business Law"],
+            "applicable_laws": ["US Copyright Law", "DMCA", "Alabama Business Law", "Sound Recording Act"],
             "international_considerations": [],
-            "industry_standards": ["CRB Statutory Rates", "ASCAP/BMI Guidelines"],
+            "industry_standards": ["CRB Statutory Rates", "ASCAP/BMI Guidelines", "Sound Recording Industry Standards", "RIAA Guidelines"],
             "data_protection": ["CCPA", "GDPR (if applicable)"]
         }
         
@@ -415,19 +415,22 @@ class ComprehensiveLicensingEngine:
         if "streaming_music" in platform_categories:
             legal_framework["industry_standards"].extend([
                 "Music Modernization Act (MMA)",
-                "Performance Rights Organization Guidelines"
+                "Performance Rights Organization Guidelines",
+                "Sound Recording Licensing Standards"
             ])
         
         if "social_media" in platform_categories:
             legal_framework["applicable_laws"].extend([
                 "Section 230 Communications Decency Act",
-                "Platform-specific Terms of Service"
+                "Platform-specific Terms of Service",
+                "Audio Content Licensing Requirements"
             ])
         
         if "broadcast_media" in platform_categories:
             legal_framework["applicable_laws"].extend([
                 "FCC Regulations",
-                "Broadcast Music Licensing Requirements"
+                "Broadcast Music Licensing Requirements",
+                "Sound Recording Broadcast Standards"
             ])
         
         return legal_framework
