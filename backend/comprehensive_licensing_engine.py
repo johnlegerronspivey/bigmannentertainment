@@ -567,7 +567,7 @@ class ComprehensiveLicensingEngine:
                     "email_notifications": True,
                     "sms_notifications": False,
                     "dashboard_alerts": True,
-                    "notification_recipients": ["business@bigmannentertainment.com"]
+                    "notification_recipients": ["owner@bigmannentertainment.com"]
                 }
             }
             
