@@ -9,6 +9,7 @@ import logging
 from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorCollection
+from pymongo import IndexModel
 from pydantic import BaseModel, Field
 import uuid
 import os
