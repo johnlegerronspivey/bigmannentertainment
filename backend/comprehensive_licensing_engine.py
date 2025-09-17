@@ -151,7 +151,7 @@ class ComprehensiveLicensingEngine:
                     "monthly_limit": 500,
                     "license_fee": 99.99
                 },
-                "compliance": ["content_quality", "metadata_standards", "royalty_reporting", "sound_recording_industry_standards"]
+                "compliance": ["content_quality", "metadata_standards", "royalty_reporting", "sound_recording_industry_standards", "isrc_identification_required"]
             },
             "social_media": {
                 "platforms": ["instagram", "tiktok", "facebook", "twitter", "youtube", "snapchat"],
