@@ -410,6 +410,10 @@ const ComprehensiveLicensingComponents = () => {
                 <label>ISAN Prefix:</label>
                 <span>{businessInfo.isan_prefix}</span>
               </div>
+              <div className="field">
+                <label>ISRC Prefix:</label>
+                <span>{businessInfo.isrc_prefix}</span>
+              </div>
             </div>
           </div>
 
