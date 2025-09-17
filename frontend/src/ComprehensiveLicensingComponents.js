@@ -238,6 +238,10 @@ const ComprehensiveLicensingComponents = () => {
                 <span className="label">GS1 Company Prefix:</span>
                 <span className="value">{dashboardData.business_information_summary?.gs1_company_prefix}</span>
               </div>
+              <div className="info-item">
+                <span className="label">ISAN Prefix:</span>
+                <span className="value">{dashboardData.business_information_summary?.isan_prefix || 'johnlegerron'}</span>
+              </div>
             </div>
             <button onClick={validateBusinessInfo} className="validate-btn">
               ✅ Validate Business Information
