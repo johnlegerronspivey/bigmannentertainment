@@ -3317,6 +3317,7 @@ function App() {
             <Route path="/social-media-phases-5-10" element={<ProtectedRoute><SocialMediaPhases5To10Dashboard /></ProtectedRoute>} />
             <Route path="/real-time-royalty-engine" element={<ProtectedRoute><RealTimeRoyaltyDashboard /></ProtectedRoute>} />
             <Route path="/comprehensive-platform" element={<ProtectedRoute><ComprehensivePlatform /></ProtectedRoute>} />
+            <Route path="/comprehensive-licensing" element={<ProtectedRoute><ComprehensiveLicensingComponents /></ProtectedRoute>} />
 
             {/* Industry routes */}
             <Route path="/industry" element={<ProtectedRoute><IndustryDashboard /></ProtectedRoute>} />
