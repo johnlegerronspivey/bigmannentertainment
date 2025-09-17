@@ -190,17 +190,17 @@ class ComprehensiveLicensingEngine:
         try:
             # License templates indexes
             await self.license_templates_collection.create_indexes([
-                {"template_id": 1},
-                {"platform_category": 1},
-                {"template_name": 1}
+                IndexModel([("template_id", 1)], unique=True),
+                IndexModel([("platform_category", 1)]),
+                IndexModel([("template_name", 1)])
             ])
             
             # Comprehensive agreements indexes
             await self.comprehensive_agreements_collection.create_indexes([
-                {"agreement_id": 1},
-                {"agreement_status": 1},
-                {"platforms_licensed": 1},
-                {"effective_date": 1}
+                IndexModel([("agreement_id", 1)], unique=True),
+                IndexModel([("agreement_status", 1)]),
+                IndexModel([("platforms_licensed", 1)]),
+                IndexModel([("effective_date", 1)])
             ])
             
             logger.info("Comprehensive licensing engine collections initialized successfully")
