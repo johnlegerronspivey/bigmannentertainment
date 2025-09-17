@@ -6143,6 +6143,7 @@ from label_endpoints import label_router
 # from payment_endpoints import payment_router
 from stripe_endpoints import stripe_router
 from licensing_endpoints import licensing_router
+from comprehensive_licensing_endpoints import comprehensive_licensing_router
 from pdooh_endpoints import router as pdooh_router
 from gs1_endpoints import router as gs1_router
 from metadata_endpoints import router as metadata_router
