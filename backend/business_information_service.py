@@ -323,7 +323,7 @@ class BusinessInformationService:
                     "ein": "270658077",
                     "tin": "12800",
                     "tax_classification": "Sole Proprietorship",
-                    "industry_code": "512210",  # Sound Recording Industries NAICS code
+                    "industry_code": "512200",  # Sound Recording Industries NAICS code
                     "tax_year": "2025",
                     "withholding_requirements": ["24% Federal", "State Varies"]
                 }
