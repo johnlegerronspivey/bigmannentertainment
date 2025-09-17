@@ -1,7 +1,8 @@
 """
 Comprehensive Platform Licensing System API Endpoints
 Complete licensing management system with business information integration,
-automated workflows, and comprehensive compliance documentation
+automated workflows, comprehensive compliance documentation, and ISAN prefix support
+for audiovisual content identification
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
