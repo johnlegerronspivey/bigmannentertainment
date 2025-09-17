@@ -402,7 +402,7 @@ const ComprehensiveLicensingComponents = () => {
               </div>
               <div className="field">
                 <label>Phone:</label>
-                <span>{businessInfo.contact_phone || 'Not provided'}</span>
+                <span>{businessInfo.contact_phone || '(334) 669-8638'}</span>
               </div>
               {businessInfo.business_address && (
                 <div className="field">
