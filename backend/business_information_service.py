@@ -52,6 +52,9 @@ class BusinessInformation(BaseModel):
     # ISAN Identifier
     isan_prefix: str  # International Standard Audiovisual Number prefix
     
+    # ISRC Identifier
+    isrc_prefix: str  # International Standard Recording Code prefix
+    
     # Regulatory Information
     operating_countries: List[str] = Field(default_factory=list)
     regulatory_licenses: List[Dict[str, Any]] = Field(default_factory=list)
