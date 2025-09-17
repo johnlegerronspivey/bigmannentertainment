@@ -96,6 +96,7 @@ class BusinessInformationService:
             "tin": "12800",
             "company_prefix": "08600043402",
             "legal_entity_gln": "0860004340201",
+            "isan_prefix": "johnlegerron",
             "established_date": datetime(2020, 1, 1),
             "operating_countries": ["US"],
             "contact_email": "owner@bigmannentertainment.com",
