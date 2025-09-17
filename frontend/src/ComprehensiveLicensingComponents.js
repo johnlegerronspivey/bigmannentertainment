@@ -250,6 +250,10 @@ const ComprehensiveLicensingComponents = () => {
                 <span className="label">ISAN Prefix:</span>
                 <span className="value">{dashboardData.business_information_summary?.isan_prefix || 'johnlegerron'}</span>
               </div>
+              <div className="info-item">
+                <span className="label">ISRC Prefix:</span>
+                <span className="value">{dashboardData.business_information_summary?.isrc_prefix || 'QZ9H8'}</span>
+              </div>
             </div>
             <button onClick={validateBusinessInfo} className="validate-btn">
               ✅ Validate Business Information
