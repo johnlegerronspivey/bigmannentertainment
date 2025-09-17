@@ -96,6 +96,7 @@ class BusinessInformationService:
             "business_owner": "John LeGerron Spivey",
             "business_type": "Sole Proprietorship",
             "industry_classification": "Sound Recording Industries",
+            "naics_code": "512200",
             "ein": "270658077",
             "tin": "12800",
             "company_prefix": "08600043402",
