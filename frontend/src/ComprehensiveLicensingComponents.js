@@ -376,6 +376,10 @@ const ComprehensiveLicensingComponents = () => {
                 <label>Industry:</label>
                 <span>{businessInfo.industry_classification}</span>
               </div>
+              <div className="field">
+                <label>NAICS Code:</label>
+                <span>{businessInfo.naics_code}</span>
+              </div>
             </div>
           </div>
 
