@@ -235,6 +235,10 @@ const ComprehensiveLicensingComponents = () => {
                 <span className="value">{dashboardData.business_information_summary?.industry_classification || 'Sound Recording Industries'}</span>
               </div>
               <div className="info-item">
+                <span className="label">EIN:</span>
+                <span className="value">{dashboardData.business_information_summary?.ein}</span>
+              </div>
+              <div className="info-item">
                 <span className="label">GS1 Company Prefix:</span>
                 <span className="value">{dashboardData.business_information_summary?.gs1_company_prefix}</span>
               </div>
