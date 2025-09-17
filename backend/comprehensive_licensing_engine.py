@@ -729,7 +729,8 @@ class ComprehensiveLicensingEngine:
                     "total_platforms_integrated": len(business_info.distribution_platform_ids),
                     "gs1_company_prefix": business_info.company_prefix,
                     "legal_entity_gln": business_info.legal_entity_gln,
-                    "isan_prefix": business_info.isan_prefix
+                    "isan_prefix": business_info.isan_prefix,
+                    "isrc_prefix": business_info.isrc_prefix
                 },
                 "licensing_overview": {
                     "total_comprehensive_agreements": total_agreements,
