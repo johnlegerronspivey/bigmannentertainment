@@ -116,11 +116,11 @@ class BusinessInformationService:
         try:
             # Business information indexes
             await self.business_info_collection.create_indexes([
-                {"business_id": 1},
-                {"ein": 1},
-                {"tin": 1},
-                {"legal_entity_gln": 1},
-                {"company_prefix": 1}
+                IndexModel([("business_id", 1)], unique=True),
+                IndexModel([("ein", 1)]),
+                IndexModel([("tin", 1)]),
+                IndexModel([("legal_entity_gln", 1)]),
+                IndexModel([("company_prefix", 1)])
             ])
             
             logger.info("Business information collections initialized successfully")
