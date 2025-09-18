@@ -8,18 +8,21 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Form
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import logging
+import uuid
+import json
 
-from content_workflow_service import ContentWorkflowService, ContentWorkflowModel, MetadataEnrichmentLevel, CampaignObjective
-from social_media_strategy_service import SocialMediaStrategyService, SocialMediaStrategyModel, StrategyPhase
-from server import get_current_user, db
+# Import what actually exists
+from content_workflow_service import ContentWorkflowService, WorkflowStage, ContentType, QualityProfile
+from social_media_strategy_service import SocialMediaStrategyService, CampaignObjective, StrategyPhase
+from server import get_current_user, db, DISTRIBUTION_PLATFORMS
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/workflow-integration", tags=["Workflow Integration"])
+router = APIRouter(prefix="/api/workflow-integration", tags=["Workflow Integration"])
 
 # Initialize services
-content_workflow_service = ContentWorkflowService(db)
-social_strategy_service = SocialMediaStrategyService(db)
+content_workflow_service = ContentWorkflowService()
+social_strategy_service = SocialMediaStrategyService()
 
 # Content Workflow Endpoints (All 117 Platforms)
 
@@ -27,7 +30,7 @@ social_strategy_service = SocialMediaStrategyService(db)
 async def create_content_workflow(
     content_id: str = Form(...),
     target_platforms: Optional[List[str]] = Form(None, description="Platforms for distribution (default: all 117)"),
-    enrichment_level: MetadataEnrichmentLevel = Form(MetadataEnrichmentLevel.STANDARD),
+    quality_profile: QualityProfile = Form(QualityProfile.STREAMING_STANDARD),
     custom_settings: Optional[str] = Form(None, description="JSON string of custom distribution settings"),
     current_user: dict = Depends(get_current_user)
 ):
@@ -39,14 +42,13 @@ async def create_content_workflow(
         # Parse custom settings if provided
         distribution_settings = {}
         if custom_settings:
-            import json
             distribution_settings = json.loads(custom_settings)
         
         # Create workflow
         workflow = await content_workflow_service.create_content_workflow(
             content_id=content_id,
             target_platforms=target_platforms,
-            enrichment_level=enrichment_level,
+            quality_profile=quality_profile,
             distribution_settings=distribution_settings
         )
         
@@ -62,7 +64,7 @@ async def create_content_workflow(
                 "current_phase": workflow.current_phase,
                 "progress_percentage": workflow.progress_percentage,
                 "target_platforms": workflow.target_platforms,
-                "enrichment_level": workflow.enrichment_level,
+                "quality_profile": workflow.quality_profile,
                 "created_at": workflow.created_at
             }
         }
@@ -365,9 +367,6 @@ async def get_cross_platform_insights(
 async def get_platforms_overview():
     """Get overview of all 117 platforms and their workflow capabilities"""
     try:
-        # Get all platforms from server
-        from server import DISTRIBUTION_PLATFORMS
-        
         # Categorize platforms
         platform_categories = {}
         social_media_platforms = []
@@ -521,7 +520,6 @@ async def workflow_integration_health():
         social_service_healthy = social_strategy_service is not None
         
         # Get platform counts
-        from server import DISTRIBUTION_PLATFORMS
         total_platforms = len(DISTRIBUTION_PLATFORMS)
         social_platforms = len([p for p in DISTRIBUTION_PLATFORMS.values() if p.get("type") == "social_media"])
         
