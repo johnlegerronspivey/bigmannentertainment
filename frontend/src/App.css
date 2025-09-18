@@ -18,6 +18,337 @@
   font-weight: 500;
 }
 
+/* Platform Management Styles */
+.platform-management {
+  padding: 1.5rem;
+}
+
+.platform-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.platform-header h2 {
+  color: #1f2937;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.licensing-status-section {
+  background: #f9fafb;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.status-header h3 {
+  color: #1f2937;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.business-owner-highlight {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.business-owner-highlight .label {
+  margin-right: 0.5rem;
+}
+
+.owner-name {
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.status-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.status-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.primary-card {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.status-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.status-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.entity-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.owner-info {
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.coverage-number, .investment-amount, .compliance-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 0.5rem;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.status-indicator.active .indicator-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.platform-categories {
+  margin-bottom: 2rem;
+}
+
+.platform-categories h4 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.category-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.category-status-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.category-header h5 {
+  margin: 0;
+  color: #1f2937;
+}
+
+.platform-count {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.category-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.detail-item .label {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.detail-item .value {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.active-status {
+  color: #059669 !important;
+}
+
+.owner-attribution small {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.owner-contact-section {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e5e7eb;
+}
+
+.owner-contact-section h4 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.contact-card {
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.contact-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.contact-header h5 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.contact-header .title {
+  color: #6366f1;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.contact-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contact-item .icon {
+  font-size: 1rem;
+}
+
+.contact-item .label {
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.contact-item .value {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.management-actions {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.management-actions h4 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.action-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn.primary {
+  background: #6366f1;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #4f46e5;
+}
+
+.action-btn.secondary {
+  background: #10b981;
+  color: white;
+}
+
+.action-btn.secondary:hover {
+  background: #059669;
+}
+
+.action-btn.info {
+  background: #0ea5e9;
+  color: white;
+}
+
+.action-btn.info:hover {
+  background: #0284c7;
+}
+
+.action-btn.warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.action-btn.warning:hover {
+  background: #d97706;
+}
+
 .App {
   min-height: 100vh;
 }
