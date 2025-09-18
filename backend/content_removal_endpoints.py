@@ -40,34 +40,44 @@ def get_removal_service():
     return removal_service
 
 # Authentication dependencies (imported from main server)
-def get_current_user_for_removal():
+async def get_current_user_for_removal(authorization: str = Header(None)):
     """Get current user dependency for removal endpoints"""
     try:
         from server import get_current_user
-        return get_current_user
+        # Call the actual authentication function
+        return await get_current_user(authorization)
     except ImportError:
-        # This should not happen in production
         raise HTTPException(status_code=500, detail="Authentication system not available")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Authentication failed")
 
-def get_current_admin_user_for_removal():
-    """Get current admin user dependency for removal endpoints - requires admin role"""
+async def get_current_admin_user_for_removal(authorization: str = Header(None)):
+    """Get current admin user dependency - requires admin role"""
     try:
         from server import get_current_user
+        # Get the user first
+        user = await get_current_user(authorization)
         
-        async def admin_wrapper(credentials):
-            user = await get_current_user(credentials)
-            # Check if user has admin role
-            if not user.get('is_admin', False) and user.get('role') not in ['admin', 'super_admin']:
-                raise HTTPException(status_code=403, detail="Admin access required")
-            return user
+        # Check if user has admin role
+        user_role = user.get('role', '').lower()
+        is_admin = user.get('is_admin', False)
         
-        return admin_wrapper
+        if not is_admin and user_role not in ['admin', 'super_admin', 'legal']:
+            raise HTTPException(
+                status_code=403, 
+                detail="Admin access required. Current role: " + user_role
+            )
+        return user
+    except HTTPException:
+        raise
     except ImportError:
         raise HTTPException(status_code=500, detail="Authentication system not available")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Authentication failed")
 
 # Set up the dependency functions
-get_current_user = get_current_user_for_removal()
-get_current_admin_user = get_current_admin_user_for_removal()
+get_current_user = get_current_user_for_removal
+get_current_admin_user = get_current_admin_user_for_removal
 
 @router.post("/requests", response_model=RemovalRequest)
 async def create_removal_request(
