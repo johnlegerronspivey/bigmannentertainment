@@ -557,7 +557,7 @@ DISTRIBUTION_PLATFORMS = {
         "description": "Enhanced multimedia messaging and content sharing"
     },
 
-    # Major Music Streaming Platforms (15 platforms)
+    # Major Music Streaming Platforms (16 platforms)
     "spotify": {
         "type": "music_streaming",
         "name": "Spotify",
