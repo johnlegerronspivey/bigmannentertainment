@@ -3,7 +3,7 @@ Content Removal API Endpoints
 RESTful API for content takedown and removal management
 """
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query, Header
 from fastapi.responses import FileResponse, StreamingResponse
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
