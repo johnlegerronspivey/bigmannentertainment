@@ -6822,6 +6822,9 @@ class RekognitionService:
             logging.error(f"Rekognition label detection failed: {e}")
             return {"available": True, "error": str(e)}
 
+# Initialize content removal service
+init_removal_service(db)
+
 # Initialize Phase 2 services
 cloudfront_service = CloudFrontService()
 lambda_service = LambdaProcessingService()
