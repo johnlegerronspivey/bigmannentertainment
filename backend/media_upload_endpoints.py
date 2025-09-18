@@ -24,6 +24,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
 # Database connection
 client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("MONGO_URL", "mongodb://localhost:27017"))
 db = client[os.getenv("DB_NAME", "bigmann_entertainment")]
+media_collection = db.media_uploads
 
 # AWS S3 Configuration
 s3_client = boto3.client(
