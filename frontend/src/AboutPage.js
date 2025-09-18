@@ -78,9 +78,9 @@ const AboutPage = () => {
             </div>
 
             {/* Industry Information */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">🎵 Industry Focus</h3>
-              <div className="space-y-2 text-gray-700">
+            <div className="bg-slate-700 p-6 rounded-lg border border-slate-600">
+              <h3 className="text-xl font-semibold text-slate-100 mb-4">🎵 Industry Focus</h3>
+              <div className="space-y-2 text-slate-300">
                 <p><strong>Industry:</strong> Sound Recording Industries</p>
                 <p><strong>NAICS Code:</strong> 512200</p>
                 <p><strong>Services:</strong> Music Distribution</p>
