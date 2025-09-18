@@ -738,31 +738,46 @@ async def vote_on_dao_proposal(
         if vote not in ["for", "against"]:
             raise HTTPException(status_code=400, detail="Vote must be 'for' or 'against'")
         
+        user_id = current_user.get('id', current_user.get('email', 'unknown'))
+        user_role = current_user.get('role', '').lower()
+        
         # Get proposal
         proposal = await service.db.dao_removal_proposals.find_one({"id": proposal_id})
         if not proposal:
             raise HTTPException(status_code=404, detail="Proposal not found")
         
         # Check if voting is still open
-        if datetime.now(timezone.utc) > proposal["voting_deadline"]:
+        voting_deadline = proposal.get("voting_deadline")
+        if isinstance(voting_deadline, str):
+            voting_deadline = datetime.fromisoformat(voting_deadline.replace('Z', '+00:00'))
+        
+        if datetime.now(timezone.utc) > voting_deadline:
             raise HTTPException(status_code=400, detail="Voting period has ended")
         
         # Check if user already voted
         existing_vote = await service.db.dao_votes.find_one({
             "proposal_id": proposal_id,
-            "voter_id": current_user["id"]
+            "voter_id": user_id
         })
         
         if existing_vote:
             raise HTTPException(status_code=400, detail="You have already voted on this proposal")
         
+        # Determine vote weight based on user role
+        vote_weight = 1
+        if user_role in ['admin', 'super_admin', 'legal']:
+            vote_weight = 3  # Admin votes carry more weight
+        elif user_role == 'creator':
+            vote_weight = 2  # Creator votes carry moderate weight
+        
         # Record vote
         vote_record = {
             "id": str(uuid.uuid4()),
             "proposal_id": proposal_id,
-            "voter_id": current_user["id"],
+            "voter_id": user_id,
+            "voter_role": user_role,
             "vote": vote,
-            "vote_weight": 1,  # Could be based on token holdings
+            "vote_weight": vote_weight,
             "timestamp": datetime.now(timezone.utc)
         }
         
@@ -773,17 +788,22 @@ async def vote_on_dao_proposal(
         await service.db.dao_removal_proposals.update_one(
             {"id": proposal_id},
             {
-                "$inc": {update_field: 1, "total_votes": 1}
+                "$inc": {update_field: vote_weight, "total_votes": vote_weight}
             }
         )
+        
+        logger.info(f"DAO vote recorded: {user_role} user {user_id} voted '{vote}' with weight {vote_weight}")
         
         return {
             "message": "Vote recorded successfully",
             "vote": vote,
+            "vote_weight": vote_weight,
+            "voter_role": user_role,
             "proposal_id": proposal_id
         }
         
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Failed to record vote: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to record vote: {str(e)}")
