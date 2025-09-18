@@ -69,7 +69,7 @@ const AboutPage = () => {
             <div className="bg-gray-50 p-6 rounded-lg">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">📋 Business Details</h3>
               <div className="space-y-2 text-gray-700">
-                <p><strong>Legal Name:</strong> Big Mann Entertainment LLC</p>
+                <p><strong>Legal Name:</strong> Big Mann Entertainment</p>
                 <p><strong>Owner:</strong> John LeGerron Spivey</p>
                 <p><strong>Business Type:</strong> Sole Proprietorship</p>
                 <p><strong>EIN:</strong> 27-0658077</p>
