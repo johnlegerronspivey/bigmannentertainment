@@ -112,7 +112,7 @@ router = APIRouter(prefix="/api/workflow-integration", tags=["Workflow Integrati
 
 # Initialize services
 content_workflow_service = ContentWorkflowService()
-social_strategy_service = SocialMediaStrategyService()
+social_strategy_service = SocialMediaStrategyService(db)
 
 # Content Workflow Endpoints (All 117 Platforms)
 
