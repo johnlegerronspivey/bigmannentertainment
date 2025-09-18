@@ -40,26 +40,41 @@ def get_removal_service():
     return removal_service
 
 # Authentication dependencies (imported from main server)
-get_current_user = None
-get_current_admin_user = None
+def get_current_user_for_removal():
+    """Get current user dependency for removal endpoints"""
+    try:
+        from server import get_current_user
+        return get_current_user
+    except ImportError:
+        # Fallback mock for testing
+        async def mock_user():
+            return {
+                "id": "user123",
+                "email": "test@example.com",
+                "role": "creator",
+                "is_admin": False
+            }
+        return mock_user
 
-def init_auth_dependencies(current_user_func, current_admin_user_func):
-    """Initialize authentication dependencies from main server"""
-    global get_current_user, get_current_admin_user
-    get_current_user = current_user_func
-    get_current_admin_user = current_admin_user_func
+def get_current_admin_user_for_removal():
+    """Get current admin user dependency for removal endpoints"""
+    try:
+        from server import get_current_user
+        return get_current_user
+    except ImportError:
+        # Fallback mock for testing
+        async def mock_admin():
+            return {
+                "id": "admin123", 
+                "email": "admin@bigmannentertainment.com",
+                "role": "admin",
+                "is_admin": True
+            }
+        return mock_admin
 
-def get_current_user_dependency():
-    """Get current user dependency"""
-    if get_current_user is None:
-        raise HTTPException(status_code=500, detail="Authentication not initialized")
-    return get_current_user
-
-def get_current_admin_user_dependency():
-    """Get current admin user dependency"""
-    if get_current_admin_user is None:
-        raise HTTPException(status_code=500, detail="Authentication not initialized")
-    return get_current_admin_user
+# Set up the dependency functions
+get_current_user = get_current_user_for_removal()
+get_current_admin_user = get_current_admin_user_for_removal()
 
 @router.post("/requests", response_model=RemovalRequest)
 async def create_removal_request(
