@@ -1858,8 +1858,8 @@ const Library = () => {
   };
 
   const viewMedia = (item) => {
-    // Open media in a new tab for viewing
-    window.open(`${API}/media/${item.id}/download`, '_blank');
+    // Open media in a new tab for viewing using the view endpoint
+    window.open(`${API}/api/media/${item.id}/view`, '_blank');
   };
 
   const refreshMedia = () => {
