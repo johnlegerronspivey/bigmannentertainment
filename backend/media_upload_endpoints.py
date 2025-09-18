@@ -566,3 +566,108 @@ async def get_user_analytics(current_user: User = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Get analytics error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve analytics: {str(e)}")
+
+@media_router.get("/{media_id}/view")
+async def view_media(
+    media_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """View media content inline (not as download)"""
+    try:
+        # Find media in database
+        media = await media_collection.find_one({"id": media_id})
+        if not media:
+            raise HTTPException(status_code=404, detail="Media not found")
+        
+        # Check if user owns the media or is admin
+        if media["user_id"] != current_user.id and current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Not authorized to view this media")
+        
+        # Check if file exists
+        file_path = Path(media["file_path"])
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found on server")
+        
+        # Update view count
+        await media_collection.update_one(
+            {"id": media_id},
+            {"$inc": {"view_count": 1}}
+        )
+        
+        # Determine if it should be displayed inline
+        content_type = media.get("content_type", "application/octet-stream")
+        
+        # For media that can be displayed inline
+        if content_type.startswith(('image/', 'audio/', 'video/', 'text/')):
+            return FileResponse(
+                path=file_path,
+                media_type=content_type,
+                headers={
+                    "Content-Disposition": "inline",
+                    "Cache-Control": "public, max-age=3600"
+                }
+            )
+        else:
+            # For other files, return file info and a download link
+            return {
+                "success": True,
+                "media": {
+                    "id": media["id"],
+                    "title": media["title"],
+                    "file_type": media["file_type"],
+                    "content_type": content_type,
+                    "file_size": media.get("file_size", 0),
+                    "description": media.get("description", ""),
+                    "download_url": f"/api/media/{media_id}/download"
+                },
+                "message": "File preview not available. Use download link to access content."
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"View media error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to view media: {str(e)}")
+
+@media_router.get("/{media_id}/download")
+async def download_media(
+    media_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """Download media content as attachment"""
+    try:
+        # Find media in database
+        media = await media_collection.find_one({"id": media_id})
+        if not media:
+            raise HTTPException(status_code=404, detail="Media not found")
+        
+        # Check if user owns the media or is admin
+        if media["user_id"] != current_user.id and current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Not authorized to download this media")
+        
+        # Check if file exists
+        file_path = Path(media["file_path"])
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found on server")
+        
+        # Update download count
+        await media_collection.update_one(
+            {"id": media_id},
+            {"$inc": {"download_count": 1}}
+        )
+        
+        # Return file as download
+        return FileResponse(
+            path=file_path,
+            filename=media["title"],
+            media_type=media.get("content_type", "application/octet-stream"),
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{media['title']}\""
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Download media error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to download media: {str(e)}")
