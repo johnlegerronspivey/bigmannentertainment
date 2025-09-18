@@ -13,7 +13,10 @@ import aiofiles
 import io
 import csv
 import json
+import logging
 from motor.motor_asyncio import AsyncIOMotorDatabase
+
+logger = logging.getLogger(__name__)
 
 from content_removal_service import ContentRemovalService
 from content_removal_models import (
