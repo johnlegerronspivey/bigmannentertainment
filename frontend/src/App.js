@@ -21,6 +21,7 @@ import { LicensingDashboard, PlatformLicenseManager, LicensingStatus } from './L
 import GS1Components, { GS1Dashboard } from './GS1Components';
 import ComprehensiveLicensingComponents from './ComprehensiveLicensingComponents';
 import ContentRemovalDashboard from './ContentRemovalComponents';
+import AboutPage from './AboutPage';
 import EnhancedUploadComponent from './EnhancedUploadComponent';
 import ImageUploadComponent from './ImageUploadComponent';
 import RightsComplianceComponent from './RightsComplianceComponent';
