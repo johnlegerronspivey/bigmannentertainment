@@ -1857,6 +1857,11 @@ const Library = () => {
     }
   };
 
+  const viewMedia = (item) => {
+    // Open media in a new tab for viewing
+    window.open(`${API}/media/${item.id}/download`, '_blank');
+  };
+
   const refreshMedia = () => {
     loadMedia();
   };
