@@ -3324,6 +3324,7 @@ function App() {
             <Route path="/comprehensive-platform" element={<ProtectedRoute><ComprehensivePlatform /></ProtectedRoute>} />
             <Route path="/comprehensive-licensing" element={<ProtectedRoute><ComprehensiveLicensingComponents /></ProtectedRoute>} />
             <Route path="/content-removal" element={<ProtectedRoute><ContentRemovalDashboard /></ProtectedRoute>} />
+            <Route path="/about" element={<AboutPage />} />
 
             {/* Industry routes */}
             <Route path="/industry" element={<ProtectedRoute><IndustryDashboard /></ProtectedRoute>} />
