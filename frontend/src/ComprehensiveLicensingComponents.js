@@ -700,6 +700,12 @@ const ComprehensiveLicensingComponents = () => {
         >
           ✅ Compliance
         </button>
+        <button 
+          className={activeTab === 'platform-management' ? 'tab active' : 'tab'}
+          onClick={() => handleTabChange('platform-management')}
+        >
+          🌐 Platform Management
+        </button>
       </div>
 
       <div className="licensing-content">
