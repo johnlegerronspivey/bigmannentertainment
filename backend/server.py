@@ -720,6 +720,15 @@ DISTRIBUTION_PLATFORMS = {
         "credentials_required": ["api_key"],
         "description": "Leading hip-hop content and music platform"
     },
+    "revolt": {
+        "type": "music_streaming",
+        "name": "Revolt",
+        "api_endpoint": "https://api.revolt.tv/v1",
+        "supported_formats": ["audio", "video"],
+        "max_file_size": 300 * 1024 * 1024,
+        "credentials_required": ["api_key", "client_secret"],
+        "description": "Music and culture streaming platform focused on hip-hop and R&B"
+    },
 
     # Podcast Platforms (8 platforms)
     "apple_podcasts": {
