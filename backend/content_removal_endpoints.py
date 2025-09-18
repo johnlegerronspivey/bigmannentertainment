@@ -39,24 +39,15 @@ def get_removal_service():
         raise HTTPException(status_code=500, detail="Removal service not initialized")
     return removal_service
 
-# Mock dependencies (will be replaced with actual auth from main server)
-async def get_current_user():
-    """Mock current user - will be replaced with actual auth"""
-    return {
-        "id": "user123",
-        "email": "test@example.com",
-        "role": "creator",
-        "is_admin": False
-    }
+# Authentication dependencies (imported from main server)
+get_current_user = None
+get_current_admin_user = None
 
-async def get_current_admin_user():
-    """Mock admin user - will be replaced with actual auth"""
-    return {
-        "id": "admin123", 
-        "email": "admin@bigmannentertainment.com",
-        "role": "admin",
-        "is_admin": True
-    }
+def init_auth_dependencies(current_user_func, current_admin_user_func):
+    """Initialize authentication dependencies from main server"""
+    global get_current_user, get_current_admin_user
+    get_current_user = current_user_func
+    get_current_admin_user = current_admin_user_func
 
 @router.post("/requests", response_model=RemovalRequest)
 async def create_removal_request(
