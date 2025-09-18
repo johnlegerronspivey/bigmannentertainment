@@ -1982,14 +1982,12 @@ const Library = () => {
 
                 {/* Actions */}
                 <div className="flex space-x-2">
-                  <a
-                    href={`${API}/media/${item.id}/download`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => viewMedia(item)}
                     className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded text-sm text-center"
                   >
                     View
-                  </a>
+                  </button>
                   <Link
                     to={`/distribute?media=${item.id}&title=${encodeURIComponent(item.title)}`}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm text-center"
