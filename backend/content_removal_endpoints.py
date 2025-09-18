@@ -49,6 +49,18 @@ def init_auth_dependencies(current_user_func, current_admin_user_func):
     get_current_user = current_user_func
     get_current_admin_user = current_admin_user_func
 
+def get_current_user_dependency():
+    """Get current user dependency"""
+    if get_current_user is None:
+        raise HTTPException(status_code=500, detail="Authentication not initialized")
+    return get_current_user
+
+def get_current_admin_user_dependency():
+    """Get current admin user dependency"""
+    if get_current_admin_user is None:
+        raise HTTPException(status_code=500, detail="Authentication not initialized")
+    return get_current_admin_user
+
 @router.post("/requests", response_model=RemovalRequest)
 async def create_removal_request(
     request_data: RemovalRequestCreate,
