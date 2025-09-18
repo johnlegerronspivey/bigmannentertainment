@@ -303,6 +303,7 @@ const Navigation = () => {
               className="w-10 h-10 object-contain"
             />
             <Link to="/" className="text-xl font-bold">Big Mann Entertainment</Link>
+            <span className="text-xs text-gray-500 ml-2">by John LeGerron Spivey</span>
           </div>
 
           {/* Desktop Navigation */}
