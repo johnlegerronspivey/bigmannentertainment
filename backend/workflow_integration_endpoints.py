@@ -13,11 +13,72 @@ import json
 
 # Import what actually exists
 from content_workflow_service import ContentWorkflowService, WorkflowStage, ContentType, QualityProfile
-from social_media_strategy_service import SocialMediaStrategyService, CampaignObjective, StrategyPhase, DISTRIBUTION_PLATFORMS
+from social_media_strategy_service import SocialMediaStrategyService, CampaignObjective, StrategyPhase
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+
+# We'll define DISTRIBUTION_PLATFORMS locally to avoid circular imports
+# This should match the one in server.py
+DISTRIBUTION_PLATFORMS = {
+    # Major Social Media Platforms
+    "instagram": {
+        "type": "social_media",
+        "name": "Instagram",
+        "api_endpoint": "https://graph.facebook.com/v18.0",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["access_token"],
+        "description": "Photo and video sharing social media platform"
+    },
+    "twitter": {
+        "type": "social_media", 
+        "name": "Twitter/X",
+        "api_endpoint": "https://api.twitter.com/2",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["api_key", "api_secret", "access_token", "access_token_secret"],
+        "description": "Microblogging and social networking platform"
+    },
+    "facebook": {
+        "type": "social_media",
+        "name": "Facebook",
+        "api_endpoint": "https://graph.facebook.com/v18.0",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 200 * 1024 * 1024,
+        "credentials_required": ["access_token"],
+        "description": "Social networking platform"
+    },
+    "tiktok": {
+        "type": "social_media",
+        "name": "TikTok",
+        "api_endpoint": "https://open-api.tiktok.com",
+        "supported_formats": ["video"],
+        "max_file_size": 300 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret", "access_token"],
+        "description": "Short-form video sharing platform"
+    },
+    "youtube": {
+        "type": "social_media",
+        "name": "YouTube",
+        "api_endpoint": "https://www.googleapis.com/youtube/v3",
+        "supported_formats": ["video", "audio"],
+        "max_file_size": 2 * 1024 * 1024 * 1024,
+        "credentials_required": ["api_key", "client_id", "client_secret"],
+        "description": "Video sharing and streaming platform"
+    },
+    # Add more platforms as needed - this is a simplified version for testing
+    "spotify": {
+        "type": "music_streaming",
+        "name": "Spotify",
+        "api_endpoint": "https://api.spotify.com/v1",
+        "supported_formats": ["audio"],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["client_id", "client_secret"],
+        "description": "Music streaming platform"
+    }
+}
 
 # Authentication setup
 security = HTTPBearer()
