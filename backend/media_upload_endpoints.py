@@ -7,6 +7,7 @@ import json
 import os
 import uuid
 from datetime import datetime
+from pathlib import Path
 import jwt
 import asyncio
 import motor.motor_asyncio
