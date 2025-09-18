@@ -85,7 +85,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 @router.post("/upload")
 async def upload_content_file(
     file: UploadFile = File(...),
-    user_id: str = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Upload a content file (audio, video, image, document)"""
     try:
@@ -101,58 +101,86 @@ async def upload_content_file(
             file_data=file_data,
             filename=file.filename,
             content_type=file.content_type,
-            user_id=user_id
+            user_id=current_user.id
         )
         
         # Extract technical metadata
         technical_metadata = await content_ingestion.extract_technical_metadata(content_file)
-        content_file.technical_metadata.update(technical_metadata)
+        if technical_metadata:
+            content_file.technical_metadata.update(technical_metadata)
         
         return {
             "success": True,
-            "content_file": content_file,
+            "content_file": content_file.dict() if hasattr(content_file, 'dict') else content_file,
             "message": "File uploaded successfully"
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @router.post("/upload-multiple")
 async def upload_multiple_files(
     files: List[UploadFile] = File(...),
-    user_id: str = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Upload multiple content files"""
     try:
+        if not files:
+            raise HTTPException(status_code=400, detail="No files provided")
+        
         uploaded_files = []
+        errors = []
         
         for file in files:
-            # Read file data
-            file_data = await file.read()
-            
-            # Validate file size
-            if len(file_data) > 100 * 1024 * 1024:
-                continue  # Skip large files
-            
-            # Upload file
-            content_file = await content_ingestion.upload_content_file(
-                file_data=file_data,
-                filename=file.filename,
-                content_type=file.content_type,
-                user_id=user_id
-            )
-            
-            uploaded_files.append(content_file)
+            try:
+                # Read file data
+                file_data = await file.read()
+                
+                # Validate file size (100MB limit per file)
+                if len(file_data) > 100 * 1024 * 1024:
+                    errors.append(f"File {file.filename} too large (max 100MB)")
+                    continue
+                
+                # Validate file type
+                if not file.content_type:
+                    errors.append(f"File {file.filename} has no content type")
+                    continue
+                
+                # Upload file
+                content_file = await content_ingestion.upload_content_file(
+                    file_data=file_data,
+                    filename=file.filename,
+                    content_type=file.content_type,
+                    user_id=current_user.id
+                )
+                
+                # Extract technical metadata
+                technical_metadata = await content_ingestion.extract_technical_metadata(content_file)
+                if technical_metadata:
+                    content_file.technical_metadata.update(technical_metadata)
+                
+                uploaded_files.append({
+                    "file_id": content_file.file_id if hasattr(content_file, 'file_id') else str(uuid.uuid4()),
+                    "filename": file.filename,
+                    "content_type": file.content_type,
+                    "file_size": len(file_data),
+                    "upload_date": datetime.now(timezone.utc).isoformat(),
+                    "technical_metadata": getattr(content_file, 'technical_metadata', {})
+                })
+                
+            except Exception as file_error:
+                errors.append(f"Error uploading {file.filename}: {str(file_error)}")
         
         return {
-            "success": True,
+            "success": len(uploaded_files) > 0,
             "uploaded_files": uploaded_files,
             "total_files": len(uploaded_files),
-            "message": f"Uploaded {len(uploaded_files)} files successfully"
+            "errors": errors,
+            "message": f"Uploaded {len(uploaded_files)} files successfully" + (f" with {len(errors)} errors" if errors else "")
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Multiple file upload failed: {str(e)}")
 
 # Content Ingestion Management
 
