@@ -577,7 +577,7 @@ const Home = () => {
   const { user } = useAuth();
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-800 text-white">
         <div className="max-w-7xl mx-auto px-4 py-16 sm:py-24">
