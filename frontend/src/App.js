@@ -317,6 +317,7 @@ const Navigation = () => {
             <Link to="/audit-trail" className="hover:text-purple-200">Audit Trail</Link>
             <Link to="/distribute" className="hover:text-purple-200">Distribute</Link>
             <Link to="/platforms" className="hover:text-purple-200">Platforms</Link>
+            <Link to="/about" className="hover:text-purple-200">About</Link>
             
             {/* Business Dropdown */}
             <div className="relative">
