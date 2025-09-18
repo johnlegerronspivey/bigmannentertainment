@@ -207,6 +207,7 @@ const ComprehensiveLicensingComponents = () => {
     <div className="licensing-dashboard">
       <div className="dashboard-header">
         <h2>🎯 Comprehensive Platform Licensing Dashboard</h2>
+        <p className="dashboard-subtitle">Business Owner: <strong>John LeGerron Spivey</strong></p>
         <button 
           onClick={generateAllPlatformLicenses}
           className="generate-licenses-btn"
