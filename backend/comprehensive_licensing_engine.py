@@ -145,7 +145,7 @@ class ComprehensiveLicensingEngine:
         # Platform categorization
         self.platform_categories = {
             "streaming_music": {
-                "platforms": ["spotify", "apple_music", "amazon_music", "tidal", "deezer", "pandora"],
+                "platforms": ["spotify", "apple_music", "amazon_music", "tidal", "deezer", "pandora", "revolt"],
                 "default_terms": {
                     "revenue_share": 10.0,
                     "monthly_limit": 500,
