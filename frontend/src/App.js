@@ -1034,7 +1034,7 @@ const Register = () => {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
-          <p className="text-gray-600">Big Mann Entertainment</p>
+          <p className="text-gray-600">Big Mann Entertainment - Founded by John LeGerron Spivey</p>
         </div>
 
         <div className="mt-8 space-y-6">
