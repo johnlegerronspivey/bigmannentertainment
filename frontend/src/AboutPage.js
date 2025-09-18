@@ -209,8 +209,8 @@ const AboutPage = () => {
       {/* Call to Action */}
       <div className="py-20">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Ready to Join Our Family?</h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <h2 className="text-4xl font-bold text-slate-100 mb-6">Ready to Join Our Family?</h2>
+          <p className="text-xl text-slate-300 mb-8">
             Experience the Big Mann Entertainment difference. Join thousands of artists who trust 
             John LeGerron Spivey's vision and our comprehensive distribution platform.
           </p>
