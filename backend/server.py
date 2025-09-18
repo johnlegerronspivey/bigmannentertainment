@@ -54,6 +54,9 @@ db = client[os.environ['DB_NAME']]
 # Import content removal modules
 from content_removal_endpoints import router as content_removal_router, init_removal_service
 
+# Import workflow integration endpoints
+from workflow_integration_endpoints import router as workflow_integration_router
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
