@@ -64,7 +64,7 @@ def get_current_admin_user_dependency():
 @router.post("/requests", response_model=RemovalRequest)
 async def create_removal_request(
     request_data: RemovalRequestCreate,
-    current_user: dict = Depends(get_current_user_dependency),
+    current_user: dict = Depends(get_current_user),
     service: ContentRemovalService = Depends(get_removal_service)
 ):
     """Create a new content removal request"""
