@@ -626,9 +626,26 @@ async def propose_dao_removal(
 ):
     """Create DAO proposal for content removal"""
     try:
+        # Validate user can create DAO proposals
+        user_role = current_user.get('role', '').lower()
+        user_id = current_user.get('id', current_user.get('email', 'unknown'))
+        
+        # Allow creators, admins, and legal users to create DAO proposals
+        allowed_roles = ['creator', 'admin', 'super_admin', 'legal', 'dao_member']
+        if user_role not in allowed_roles:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Role '{user_role}' cannot create DAO proposals. Allowed roles: {allowed_roles}"
+            )
+        
+        # Validate voting duration
+        if voting_duration_hours < 24:
+            voting_duration_hours = 24
+        elif voting_duration_hours > 168:  # 7 days max
+            voting_duration_hours = 168
+        
         # This would integrate with the blockchain DAO system
         # For now, create a mock proposal
-        
         proposal_id = str(uuid.uuid4())
         
         # Create removal request with DAO reason
@@ -639,10 +656,13 @@ async def propose_dao_removal(
             urgency=RemovalUrgency.MEDIUM
         )
         
+        # Set requester role appropriately
+        requester_role = "dao_member" if user_role == "creator" else user_role
+        
         removal_request = await service.create_removal_request(
             request_data=request_data,
-            requester_id=current_user["id"],
-            requester_role="dao_member"
+            requester_id=user_id,
+            requester_role=requester_role
         )
         
         # Store DAO proposal metadata
@@ -650,7 +670,8 @@ async def propose_dao_removal(
             "id": proposal_id,
             "removal_request_id": removal_request.id,
             "content_id": content_id,
-            "proposed_by": current_user["id"],
+            "proposed_by": user_id,
+            "proposer_role": user_role,
             "reason": reason,
             "description": description,
             "voting_duration_hours": voting_duration_hours,
@@ -664,14 +685,21 @@ async def propose_dao_removal(
         
         await service.db.dao_removal_proposals.insert_one(dao_proposal)
         
+        logger.info(f"DAO removal proposal created by {user_role} user {user_id}")
+        
         return {
-            "message": "DAO removal proposal created",
+            "message": "DAO removal proposal created successfully",
             "proposal_id": proposal_id,
             "removal_request_id": removal_request.id,
-            "voting_deadline": dao_proposal["voting_deadline"]
+            "voting_deadline": dao_proposal["voting_deadline"],
+            "proposer_role": user_role,
+            "voting_duration_hours": voting_duration_hours
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Failed to create DAO proposal: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to create DAO proposal: {str(e)}")
 
 @router.get("/dao/proposals")
