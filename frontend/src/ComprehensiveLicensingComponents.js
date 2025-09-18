@@ -659,6 +659,7 @@ const ComprehensiveLicensingComponents = () => {
       <div className="licensing-header">
         <h1>🎯 Comprehensive Platform Licensing System</h1>
         <p>Complete business information integration with automated licensing workflows</p>
+        <p className="owner-attribution">Platform owned and operated by <strong>John LeGerron Spivey</strong> - Big Mann Entertainment</p>
       </div>
 
       {error && (
