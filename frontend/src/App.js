@@ -358,6 +358,10 @@ const Navigation = () => {
                     <span className="mr-3">💰</span>
                     Real-Time Royalty Engine
                   </Link>
+                  <Link to="/workflow-integration" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                    <span className="mr-3">⚡</span>
+                    Workflow Integration Hub
+                  </Link>
                 </div>
               )}
             </div>
