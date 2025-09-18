@@ -46,31 +46,24 @@ def get_current_user_for_removal():
         from server import get_current_user
         return get_current_user
     except ImportError:
-        # Fallback mock for testing
-        async def mock_user():
-            return {
-                "id": "user123",
-                "email": "test@example.com",
-                "role": "creator",
-                "is_admin": False
-            }
-        return mock_user
+        # This should not happen in production
+        raise HTTPException(status_code=500, detail="Authentication system not available")
 
 def get_current_admin_user_for_removal():
-    """Get current admin user dependency for removal endpoints"""
+    """Get current admin user dependency for removal endpoints - requires admin role"""
     try:
         from server import get_current_user
-        return get_current_user
+        
+        async def admin_wrapper(credentials):
+            user = await get_current_user(credentials)
+            # Check if user has admin role
+            if not user.get('is_admin', False) and user.get('role') not in ['admin', 'super_admin']:
+                raise HTTPException(status_code=403, detail="Admin access required")
+            return user
+        
+        return admin_wrapper
     except ImportError:
-        # Fallback mock for testing
-        async def mock_admin():
-            return {
-                "id": "admin123", 
-                "email": "admin@bigmannentertainment.com",
-                "role": "admin",
-                "is_admin": True
-            }
-        return mock_admin
+        raise HTTPException(status_code=500, detail="Authentication system not available")
 
 # Set up the dependency functions
 get_current_user = get_current_user_for_removal()
