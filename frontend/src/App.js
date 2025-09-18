@@ -415,9 +415,9 @@ const Navigation = () => {
                   Admin <span className="ml-1">▼</span>
                 </button>
                 {isAdminDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                    <Link to="/admin/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">User Management</Link>
-                    <Link to="/admin/content" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Content Moderation</Link>
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                    <Link to="/admin/users" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">User Management</Link>
+                    <Link to="/admin/content" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Content Moderation</Link>
                     <Link to="/admin/analytics" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Analytics</Link>
                     <Link to="/admin/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Notifications</Link>
                     <Link to="/admin/ddex" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">DDEX Admin</Link>
