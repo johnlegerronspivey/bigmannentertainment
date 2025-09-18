@@ -52,7 +52,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Import content removal modules
-from content_removal_endpoints import router as content_removal_router, init_removal_service, init_auth_dependencies
+from content_removal_endpoints import router as content_removal_router, init_removal_service
 
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
