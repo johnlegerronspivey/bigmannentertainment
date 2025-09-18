@@ -2889,7 +2889,7 @@ const Platforms = () => {
         />
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Distribution Platforms</h1>
         <p className="text-xl text-gray-600 mb-2">Distribute your content across <span className="font-bold text-purple-600">{totalPlatforms} platforms</span> worldwide</p>
-        <p className="text-gray-500">Complete Media Distribution Empire by Big Mann Entertainment</p>
+        <p className="text-gray-500">Complete Media Distribution Empire by Big Mann Entertainment - John LeGerron Spivey, Founder & CEO</p>
       </div>
       
       {/* Platform Categories Grid */}
