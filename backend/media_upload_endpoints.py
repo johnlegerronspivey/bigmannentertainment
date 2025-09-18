@@ -583,9 +583,18 @@ async def view_media(
         if media["user_id"] != current_user.id and current_user.role != "admin":
             raise HTTPException(status_code=403, detail="Not authorized to view this media")
         
-        # Check if file exists
-        file_path = Path(media["file_path"])
-        if not file_path.exists():
+        # Check if file exists (handle both local paths and S3 keys)
+        file_path = media.get("file_path", "")
+        
+        # If it's an S3 key format, convert to local path
+        if "/" in file_path and not file_path.startswith("/"):
+            # S3 key format: category/user_id/filename
+            local_file_path = Path(f"/app/uploads/{file_path}")
+        else:
+            # Already a local path
+            local_file_path = Path(file_path)
+        
+        if not local_file_path.exists():
             raise HTTPException(status_code=404, detail="File not found on server")
         
         # Update view count
