@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://music-rights-hub-2.preview.emergentagent.com"
+BACKEND_URL = "https://content-license-1.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 def test_gs1_business_info_verification():

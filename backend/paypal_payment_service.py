@@ -58,9 +58,9 @@ class PayPalPaymentService:
             
             # Set default URLs if not provided
             if not return_url:
-                return_url = "https://music-rights-hub-2.preview.emergentagent.com/payment/success"
+                return_url = "https://content-license-1.preview.emergentagent.com/payment/success"
             if not cancel_url:
-                cancel_url = "https://music-rights-hub-2.preview.emergentagent.com/payment/cancel"
+                cancel_url = "https://content-license-1.preview.emergentagent.com/payment/cancel"
             
             # Create payment object
             payment = Payment({

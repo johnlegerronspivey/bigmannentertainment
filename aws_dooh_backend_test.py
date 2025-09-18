@@ -21,7 +21,7 @@ import sys
 import os
 
 # Configuration
-BACKEND_URL = "https://music-rights-hub-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-license-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"test_user_aws_integration_{int(time.time())}@bigmannentertainment.com"
 TEST_PASSWORD = "SecureTestPass123!"
 
