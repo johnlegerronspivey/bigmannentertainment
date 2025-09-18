@@ -194,139 +194,70 @@ async def create_content_ingestion(
     file_ids: str = Form(...),  # JSON string of file IDs
     licensing_terms: Optional[str] = Form(None),  # JSON string of licensing terms
     additional_metadata: Optional[str] = Form(None),  # JSON string of additional metadata
-    user_id: str = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Create a content ingestion record with DDEX metadata"""
     try:
-        # Parse JSON fields
+        # Parse JSON strings
         genre_list = json.loads(genre) if genre else []
-        contributors_data = json.loads(contributors) if contributors else []
+        contributors_list = json.loads(contributors) if contributors else []
         file_ids_list = json.loads(file_ids) if file_ids else []
-        licensing_data = json.loads(licensing_terms) if licensing_terms else None
-        metadata_dict = json.loads(additional_metadata) if additional_metadata else {}
+        licensing_terms_dict = json.loads(licensing_terms) if licensing_terms else None
+        additional_metadata_dict = json.loads(additional_metadata) if additional_metadata else {}
         
-        # Parse release date
-        release_date_obj = datetime.fromisoformat(release_date.replace('Z', '+00:00'))
-        
-        # Create contributors
-        contributor_objects = []
-        for contrib_data in contributors_data:
-            contributor = Contributor(
-                name=contrib_data.get("name", ""),
-                role=ContributorRole(contrib_data.get("role", "artist")),
-                percentage=float(contrib_data.get("percentage", 0)),
-                email=contrib_data.get("email"),
-                phone=contrib_data.get("phone"),
-                address=contrib_data.get("address"),
-                tax_id=contrib_data.get("tax_id"),
-                payment_info=contrib_data.get("payment_info"),
-                metadata=contrib_data.get("metadata", {})
-            )
-            contributor_objects.append(contributor)
-        
-        # Create licensing terms if provided
-        licensing_terms_obj = None
-        if licensing_data:
-            licensing_terms_obj = LicensingTerms(
-                license_type=LicenseType(licensing_data.get("license_type", "non_exclusive")),
-                start_date=datetime.fromisoformat(licensing_data.get("start_date", release_date).replace('Z', '+00:00')),
-                end_date=datetime.fromisoformat(licensing_data["end_date"].replace('Z', '+00:00')) if licensing_data.get("end_date") else None,
-                territories=licensing_data.get("territories", ["worldwide"]),
-                geo_restrictions=GeoRestriction(licensing_data.get("geo_restrictions", "worldwide")),
-                excluded_territories=licensing_data.get("excluded_territories", []),
-                usage_rights=licensing_data.get("usage_rights", []),
-                sync_rights=licensing_data.get("sync_rights", False),
-                remix_rights=licensing_data.get("remix_rights", False),
-                sampling_rights=licensing_data.get("sampling_rights", False),
-                master_use_rights=licensing_data.get("master_use_rights", False),
-                performance_rights=licensing_data.get("performance_rights", True),
-                mechanical_rights=licensing_data.get("mechanical_rights", True),
-                digital_rights=licensing_data.get("digital_rights", True),
-                streaming_rights=licensing_data.get("streaming_rights", True),
-                broadcast_rights=licensing_data.get("broadcast_rights", False),
-                metadata=licensing_data.get("metadata", {})
-            )
-        
-        # Generate ISRC and ISWC if not provided
-        isrc = metadata_dict.get("isrc") or await content_ingestion.generate_isrc()
-        iswc = metadata_dict.get("iswc") or await content_ingestion.generate_iswc()
+        # Validate required data
+        if not file_ids_list:
+            raise HTTPException(status_code=400, detail="At least one file ID is required")
         
         # Create DDEX metadata
         ddex_metadata = DDEXMetadata(
             title=title,
-            subtitle=metadata_dict.get("subtitle"),
-            display_title=metadata_dict.get("display_title"),
-            original_title=metadata_dict.get("original_title"),
-            release_type=metadata_dict.get("release_type", "Single"),
-            genre=genre_list,
-            subgenre=metadata_dict.get("subgenre", []),
-            language=metadata_dict.get("language", "en"),
-            original_language=metadata_dict.get("original_language"),
             main_artist=main_artist,
-            featured_artists=metadata_dict.get("featured_artists", []),
-            all_artists=metadata_dict.get("all_artists", [main_artist]),
-            contributors=contributor_objects,
-            release_date=release_date_obj,
-            original_release_date=datetime.fromisoformat(metadata_dict["original_release_date"].replace('Z', '+00:00')) if metadata_dict.get("original_release_date") else None,
-            p_line=metadata_dict.get("p_line"),
-            c_line=metadata_dict.get("c_line"),
-            label_name=metadata_dict.get("label_name", "Big Mann Entertainment"),
-            label_code=metadata_dict.get("label_code"),
-            distributor=metadata_dict.get("distributor", "Big Mann Entertainment"),
-            price_category=metadata_dict.get("price_category"),
-            commercial_model=metadata_dict.get("commercial_model", "SubscriptionModel"),
-            duration=metadata_dict.get("duration"),
-            explicit_content=metadata_dict.get("explicit_content", False),
-            parental_warning=metadata_dict.get("parental_warning", False),
-            licensing_terms=licensing_terms_obj,
-            publishing_rights_owner=metadata_dict.get("publishing_rights_owner"),
-            master_rights_owner=metadata_dict.get("master_rights_owner", "Big Mann Entertainment"),
-            keywords=metadata_dict.get("keywords", []),
-            description=metadata_dict.get("description"),
-            producer_notes=metadata_dict.get("producer_notes"),
-            liner_notes=metadata_dict.get("liner_notes"),
-            message_recipient=metadata_dict.get("message_recipient", []),
-            isrc=isrc,
-            iswc=iswc,
-            grid=metadata_dict.get("grid"),
-            icpn=metadata_dict.get("icpn"),
-            upc=metadata_dict.get("upc"),
-            ean=metadata_dict.get("ean")
+            release_date=datetime.fromisoformat(release_date.replace('Z', '+00:00')) if release_date else datetime.now(timezone.utc),
+            genre=genre_list,
+            contributors=[
+                Contributor(**contributor) for contributor in contributors_list
+            ],
+            licensing_terms=LicensingTerms(**licensing_terms_dict) if licensing_terms_dict else None,
+            additional_metadata=additional_metadata_dict
         )
         
-        # Get content files (mock for now - would retrieve from storage)
-        content_files = []
-        for file_id in file_ids_list:
-            # This would retrieve actual ContentFile objects
-            # For now, creating mock objects
-            content_file = ContentFile(
-                file_id=file_id,
-                original_filename=f"file_{file_id}.mp3",
-                content_type="audio",
-                mime_type="audio/mpeg",
-                file_size=5000000,
-                file_hash="mock_hash",
-                s3_key=f"content/{user_id}/{file_id}",
-                s3_bucket="bigmann-content",
-                s3_url=f"https://bigmann-content.s3.amazonaws.com/content/{user_id}/{file_id}"
-            )
-            content_files.append(content_file)
+        # Create content ingestion record
+        content_record = await content_ingestion.create_content_record(
+            ddex_metadata=ddex_metadata,
+            file_ids=file_ids_list,
+            user_id=current_user.id
+        )
         
-        # Create ingestion record
-        ingestion_record = await content_ingestion.create_content_ingestion_record(
-            user_id=user_id,
-            content_files=content_files,
-            ddex_metadata=ddex_metadata
+        # Run compliance validation in background
+        background_tasks = BackgroundTasks()
+        background_tasks.add_task(
+            _run_compliance_validation,
+            content_record.record_id if hasattr(content_record, 'record_id') else str(uuid.uuid4())
         )
         
         return {
             "success": True,
-            "content_record": ingestion_record,
+            "content_record": content_record.dict() if hasattr(content_record, 'dict') else content_record,
             "message": "Content ingestion record created successfully"
         }
         
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid date format: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Content creation failed: {str(e)}")
+
+# Background task for compliance validation
+async def _run_compliance_validation(record_id: str):
+    """Run compliance validation in background"""
+    try:
+        validation_result = await compliance_service.validate_content_record(record_id)
+        # Store validation result or update record status
+        print(f"Compliance validation completed for record {record_id}: {validation_result}")
+    except Exception as e:
+        print(f"Background compliance validation failed for record {record_id}: {str(e)}")
 
 @router.get("/content/{content_id}")
 async def get_content_ingestion(
