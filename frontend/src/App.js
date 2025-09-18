@@ -3386,7 +3386,9 @@ function App() {
                   className="w-16 h-16 object-contain mx-auto mb-4"
                 />
                 <h3 className="text-xl font-bold mb-2">Big Mann Entertainment</h3>
-                <p className="text-gray-400 mb-4">Complete Media Distribution Empire</p>
+                <p className="text-gray-400 mb-4">
+                  Founded and owned by John LeGerron Spivey, Big Mann Entertainment is your complete media distribution empire, connecting artists with over 114 global platforms.
+                </p>
                 <div className="border-t border-gray-700 pt-4">
                   <p className="text-sm text-gray-500">
                     © 2025 Big Mann Entertainment. All rights reserved. Owned and operated by John LeGerron Spivey.
