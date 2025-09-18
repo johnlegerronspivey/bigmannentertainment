@@ -675,6 +675,13 @@ class ComprehensiveLicensingEngine:
                 "metadata_requirements": "Complete track, artist, album metadata",
                 "content_restrictions": "No explicit content without proper labeling"
             },
+            "revolt": {
+                "audio_quality": "Minimum 320kbps MP3 or FLAC recommended",
+                "video_quality": "Minimum 1080p HD for video content",
+                "content_focus": "Hip-hop, R&B, and urban culture content preferred",
+                "metadata_requirements": "Complete track, artist, album metadata with ISRC",
+                "content_restrictions": "Must align with urban culture and music focus"
+            },
             "youtube": {
                 "video_quality": "Minimum 1080p HD",
                 "thumbnail_requirements": "Custom thumbnail recommended",
