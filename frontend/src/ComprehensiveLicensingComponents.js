@@ -655,6 +655,173 @@ const ComprehensiveLicensingComponents = () => {
     </div>
   );
 
+  // Platform Management Component
+  const PlatformManagement = () => (
+    <div className="platform-management">
+      <div className="platform-header">
+        <h2>🌐 Platform Management</h2>
+        <p>Comprehensive platform licensing and management overview</p>
+      </div>
+
+      {/* Overall Licensing Status */}
+      <div className="licensing-status-section">
+        <div className="status-header">
+          <h3>📊 Overall Licensing Status</h3>
+          <div className="business-owner-highlight">
+            <span className="label">Business Owner:</span>
+            <span className="owner-name">John LeGerron Spivey</span>
+          </div>
+        </div>
+
+        {dashboardData && (
+          <div className="status-grid">
+            {/* Business Entity Status */}
+            <div className="status-card primary-card">
+              <div className="status-icon">🏢</div>
+              <div className="status-content">
+                <h4>Business Entity</h4>
+                <p className="entity-name">{dashboardData.business_information_summary?.business_entity || 'Big Mann Entertainment'}</p>
+                <p className="owner-info">Owned by: <strong>John LeGerron Spivey</strong></p>
+                <div className="status-details">
+                  <span>EIN: {dashboardData.business_information_summary?.ein || '27-0658077'}</span>
+                  <span>Industry: {dashboardData.business_information_summary?.industry_classification || 'Sound Recording Industries'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Platform Coverage Status */}
+            <div className="status-card">
+              <div className="status-icon">🌐</div>
+              <div className="status-content">
+                <h4>Platform Coverage</h4>
+                <p className="coverage-number">{dashboardData.licensing_overview?.total_platforms_licensed || 114}+ Platforms</p>
+                <p className="coverage-description">Licensed under John LeGerron Spivey's ownership</p>
+                <div className="status-indicator active">
+                  <span className="indicator-dot"></span>
+                  <span>All Platforms Active</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Licensing Investment Status */}
+            <div className="status-card">
+              <div className="status-icon">💰</div>
+              <div className="status-content">
+                <h4>Licensing Investment</h4>
+                <p className="investment-amount">${(dashboardData.licensing_overview?.total_licensing_fees || 0).toLocaleString()}</p>
+                <p className="investment-description">Total platform licensing investment</p>
+                <div className="status-indicator active">
+                  <span className="indicator-dot"></span>
+                  <span>All Payments Current</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Compliance Status */}
+            <div className="status-card">
+              <div className="status-icon">✅</div>
+              <div className="status-content">
+                <h4>Compliance Status</h4>
+                <p className="compliance-score">100%</p>
+                <p className="compliance-description">DDEX, ISRC, and industry standards compliant</p>
+                <div className="status-indicator active">
+                  <span className="indicator-dot"></span>
+                  <span>Fully Compliant</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Platform Category Breakdown */}
+        <div className="platform-categories">
+          <h4>📋 Platform Category Breakdown</h4>
+          {dashboardData?.platform_category_breakdown && (
+            <div className="category-overview">
+              {Object.entries(dashboardData.platform_category_breakdown).map(([category, stats]) => (
+                <div key={category} className="category-status-card">
+                  <div className="category-header">
+                    <h5>{category.replace('_', ' ').toUpperCase()}</h5>
+                    <span className="platform-count">{stats.platform_count} platforms</span>
+                  </div>
+                  <div className="category-details">
+                    <div className="detail-item">
+                      <span className="label">Agreements:</span>
+                      <span className="value">{stats.agreement_count}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Investment:</span>
+                      <span className="value">${stats.total_fees?.toLocaleString() || 0}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Status:</span>
+                      <span className="value active-status">Active</span>
+                    </div>
+                  </div>
+                  <div className="owner-attribution">
+                    <small>Licensed under John LeGerron Spivey - Big Mann Entertainment</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Owner Contact Information */}
+        <div className="owner-contact-section">
+          <h4>📞 Business Owner Contact Information</h4>
+          <div className="contact-card">
+            <div className="contact-header">
+              <h5>John LeGerron Spivey</h5>
+              <span className="title">Founder & CEO, Big Mann Entertainment</span>
+            </div>
+            <div className="contact-details">
+              <div className="contact-item">
+                <span className="icon">📧</span>
+                <span className="label">Email:</span>
+                <span className="value">owner@bigmannentertainment.com</span>
+              </div>
+              <div className="contact-item">
+                <span className="icon">📞</span>
+                <span className="label">Phone:</span>
+                <span className="value">(334) 669-8638</span>
+              </div>
+              <div className="contact-item">
+                <span className="icon">📍</span>
+                <span className="label">Address:</span>
+                <span className="value">1314 Lincoln Heights Street, Alexander City, AL 35010</span>
+              </div>
+              <div className="contact-item">
+                <span className="icon">🏢</span>
+                <span className="label">Business:</span>
+                <span className="value">Big Mann Entertainment LLC</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Platform Management Actions */}
+        <div className="management-actions">
+          <h4>⚙️ Platform Management Actions</h4>
+          <div className="action-buttons">
+            <button className="action-btn primary" onClick={generateAllPlatformLicenses}>
+              🚀 Generate All Platform Licenses
+            </button>
+            <button className="action-btn secondary" onClick={validateBusinessInfo}>
+              ✅ Validate Business Information
+            </button>
+            <button className="action-btn info" onClick={() => alert('Platform sync functionality coming soon!')}>
+              🔄 Sync All Platforms
+            </button>
+            <button className="action-btn warning" onClick={() => alert('Compliance audit functionality coming soon!')}>
+              📋 Run Compliance Audit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="comprehensive-licensing-container">
       <div className="licensing-header">
