@@ -676,7 +676,7 @@ async def download_media(
         
         # Return file as download
         return FileResponse(
-            path=file_path,
+            path=local_file_path,
             filename=media["title"],
             media_type=media.get("content_type", "application/octet-stream"),
             headers={
