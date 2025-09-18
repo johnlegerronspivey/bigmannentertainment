@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ern:NewReleaseMessage 
+    xmlns:ern="http://ddex.net/xml/ern/382"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://ddex.net/xml/ern/382 http://ddex.net/xml/ern/382/ern-main.xsd"
+    MessageSchemaVersionId="ern/382">
+    
+    <MessageHeader>
+        <MessageThreadId>BME_THREAD_033abe43-2126-49fd-a1fc-1bdc61f477a2</MessageThreadId>
+        <MessageId>BME_TAKEDOWN_033abe43-2126-49fd-a1fc-1bdc61f477a2_1758224653</MessageId>
+        <MessageFileName>BME_TAKEDOWN_033abe43-2126-49fd-a1fc-1bdc61f477a2_1758224653.xml</MessageFileName>
+        <MessageSender>
+            <PartyId>BME001</PartyId>
+            <PartyName>
+                <FullName>Big Mann Entertainment</FullName>
+            </PartyName>
+        </MessageSender>
+        <MessageRecipient>
+            <PartyId>APPLE_MUSIC</PartyId>
+            <PartyName>
+                <FullName>Apple Music</FullName>
+            </PartyName>
+        </MessageRecipient>
+        <MessageCreatedDateTime>2025-09-18T19:44:13.520308+00:00</MessageCreatedDateTime>
+        <MessageAuditTrail>
+            <AuditTrailEntry>Removal requested by creator: artist_request</AuditTrailEntry>
+        </MessageAuditTrail>
+    </MessageHeader>
+
+    <UpdateIndicator>OriginalMessage</UpdateIndicator>
+    
+    <Deal>
+        <DealReference>
+            <DealId>BME_DEAL_45f191f9-a2b5-4901-b5d6-1ec0142d7a88</DealId>
+        </DealReference>
+        <DealTerms>
+            <TerritoryCode>worldwide</TerritoryCode>
+            <ValidityPeriod>
+                <StartDate>2020-01-01</StartDate>
+                <EndDate>2025-09-18</EndDate>
+            </ValidityPeriod>
+            <CarrierType>All</CarrierType>
+        </DealTerms>
+    </Deal>
+    
+    <ReleaseTakedown>
+        <ReleaseId>
+            <ProprietaryId Namespace="BigMannEntertainment">REL_45f191f9-a2b5-4901-b5d6-1ec0142d7a88</ProprietaryId>
+            
+            <ISRC>QZ9H82d7a88</ISRC>
+            
+            
+            <UPC>8600043407a88</UPC>
+            
+        </ReleaseId>
+        <ReleaseTitle>Content 45f191f9-a2b5-4901-b5d6-1ec0142d7a88</ReleaseTitle>
+        <TakedownReason>Test removal request for content takedown</TakedownReason>
+        <TakedownEffectiveDate>2025-09-18</TakedownEffectiveDate>
+        <TerritoryCode>worldwide</TerritoryCode>
+        
+    </ReleaseTakedown>
+    
+</ern:NewReleaseMessage>
