@@ -3330,6 +3330,7 @@ function App() {
             <Route path="/comprehensive-workflow" element={<ProtectedRoute><ComprehensiveWorkflowDashboard /></ProtectedRoute>} />
             <Route path="/social-media-phases-5-10" element={<ProtectedRoute><SocialMediaPhases5To10Dashboard /></ProtectedRoute>} />
             <Route path="/real-time-royalty-engine" element={<ProtectedRoute><RealTimeRoyaltyDashboard /></ProtectedRoute>} />
+            <Route path="/workflow-integration" element={<ProtectedRoute><WorkflowIntegrationDashboard /></ProtectedRoute>} />
             <Route path="/comprehensive-platform" element={<ProtectedRoute><ComprehensivePlatform /></ProtectedRoute>} />
             <Route path="/comprehensive-licensing" element={<ProtectedRoute><ComprehensiveLicensingComponents /></ProtectedRoute>} />
             <Route path="/content-removal" element={<ProtectedRoute><ContentRemovalDashboard /></ProtectedRoute>} />
