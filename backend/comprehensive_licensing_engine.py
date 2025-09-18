@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 import uuid
 import json
 from decimal import Decimal
+from fastapi import HTTPException
 
 # Import existing services
 from business_information_service import BusinessInformationService, BusinessInformation
