@@ -168,8 +168,8 @@ const AboutPage = () => {
       <div className="bg-slate-800 py-20 border-t border-slate-700">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Technology & Innovation</h2>
-            <p className="text-xl text-gray-600">
+            <h2 className="text-4xl font-bold text-slate-100 mb-6">Technology & Innovation</h2>
+            <p className="text-xl text-slate-300">
               Built with cutting-edge technology to ensure the best experience for our artists
             </p>
           </div>
