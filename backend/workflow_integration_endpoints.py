@@ -13,8 +13,37 @@ import json
 
 # Import what actually exists
 from content_workflow_service import ContentWorkflowService, WorkflowStage, ContentType, QualityProfile
-from social_media_strategy_service import SocialMediaStrategyService, CampaignObjective, StrategyPhase
-from server import get_current_user, db, DISTRIBUTION_PLATFORMS
+from social_media_strategy_service import SocialMediaStrategyService, CampaignObjective, StrategyPhase, DISTRIBUTION_PLATFORMS
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
+
+# Authentication setup
+security = HTTPBearer()
+SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
+ALGORITHM = "HS256"
+
+# MongoDB connection
+mongo_url = os.environ.get('MONGO_URL')
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ.get('DB_NAME', 'bigmann_entertainment')]
+
+# Authentication dependency
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    
+    user = await db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return {"id": user_id, "username": user.get("username", ""), "is_admin": user.get("is_admin", False)}
 
 logger = logging.getLogger(__name__)
 
