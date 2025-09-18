@@ -794,7 +794,7 @@ const ComprehensiveLicensingComponents = () => {
               <div className="contact-item">
                 <span className="icon">🏢</span>
                 <span className="label">Business:</span>
-                <span className="value">Big Mann Entertainment LLC</span>
+                <span className="value">Big Mann Entertainment</span>
               </div>
             </div>
           </div>
