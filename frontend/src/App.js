@@ -395,9 +395,9 @@ const Navigation = () => {
                 Label <span className="ml-1">▼</span>
               </button>
               {isLabelDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                  <Link to="/label/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Label Dashboard</Link>
-                  <Link to="/label/projects" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Project Management</Link>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/label/dashboard" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Label Dashboard</Link>
+                  <Link to="/label/projects" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Project Management</Link>
                   <Link to="/label/marketing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marketing</Link>
                   <Link to="/label/financial" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Financial Management</Link>
                   <Link to="/label/royalties" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Royalty Splits</Link>
