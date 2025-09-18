@@ -2,7 +2,7 @@ import React from 'react';
 
 const AboutPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4">
