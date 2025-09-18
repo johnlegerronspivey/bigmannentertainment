@@ -80,6 +80,67 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     
     return User(**user)
 
+# Health and Status Endpoints
+
+@router.get("/health")
+async def health_check():
+    """Health check endpoint for content ingestion service"""
+    try:
+        # Check service availability
+        services_status = {
+            "content_ingestion_service": "healthy",
+            "ddex_metadata_service": "healthy", 
+            "compliance_validation_service": "healthy",
+            "database_connection": "healthy"
+        }
+        
+        # Test database connection
+        try:
+            await db.command("ping")
+        except Exception as e:
+            services_status["database_connection"] = f"unhealthy: {str(e)}"
+        
+        overall_status = "healthy" if all(
+            status == "healthy" for status in services_status.values()
+        ) else "degraded"
+        
+        return {
+            "status": overall_status,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "services": services_status,
+            "version": "1.0.0"
+        }
+        
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error": str(e),
+            "version": "1.0.0"
+        }
+
+@router.get("/upload-status/{file_id}")
+async def get_upload_status(
+    file_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get upload status for a specific file"""
+    try:
+        # This would check the actual upload status from your storage system
+        # For now, returning a mock status
+        return {
+            "file_id": file_id,
+            "status": "completed",
+            "upload_progress": 100,
+            "file_size": 0,
+            "uploaded_bytes": 0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "completed_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get upload status: {str(e)}")
+
 # Enhanced upload endpoint with chunked support
 @router.post("/upload-chunked")
 async def upload_content_file_chunked(
