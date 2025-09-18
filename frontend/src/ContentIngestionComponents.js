@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://music-rights-hub-2.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 // Main Content Ingestion Dashboard
 export const ContentIngestionDashboard = () => {
