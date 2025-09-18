@@ -475,7 +475,7 @@ class ContentRemovalService:
             "message_id": message_id,
             "message_filename": f"{message_id}.xml",
             "sender_party_id": "BME001",
-            "sender_name": "Big Mann Entertainment",
+            "sender_name": "Big Mann Entertainment (John LeGerron Spivey)",
             "recipient_party_id": platform_id.upper(),
             "recipient_name": self.distribution_platforms[platform_id]["name"],
             "created_datetime": now.isoformat(),
