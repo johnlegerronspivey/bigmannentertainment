@@ -564,28 +564,31 @@ async def generate_comprehensive_platform_licenses(
     generate_workflows: bool = True,
     current_user: User = Depends(require_admin)
 ):
-    """Generate comprehensive licenses for all 114+ platforms with business information"""
+    """Generate comprehensive licenses for all 115+ platforms with business information"""
     try:
-        # Get all distribution platforms from the system
-        from server import DISTRIBUTION_PLATFORMS
+        # Import with error handling
+        try:
+            from server import DISTRIBUTION_PLATFORMS
+        except ImportError as e:
+            logger.error(f"Failed to import DISTRIBUTION_PLATFORMS: {e}")
+            raise HTTPException(status_code=500, detail="Failed to load distribution platforms configuration")
         
         all_platform_ids = list(DISTRIBUTION_PLATFORMS.keys())
+        logger.info(f"Generating comprehensive licenses for {len(all_platform_ids)} platforms")
         
-        # Create comprehensive licensing request
-        licensing_request = ComprehensiveLicensingRequest(
-            platform_ids=all_platform_ids,
-            license_type="master_comprehensive_agreement",
-            license_duration_months=12,
-            auto_renewal=True,
-            include_compliance_docs=include_compliance_docs,
-            generate_workflows=generate_workflows
-        )
+        # Validate platform IDs
+        if not all_platform_ids:
+            raise HTTPException(status_code=400, detail="No distribution platforms found")
         
-        # Create comprehensive license agreement
-        agreement = await comprehensive_licensing_engine.create_comprehensive_license_agreement(
-            platform_ids=all_platform_ids,
-            license_type="master_comprehensive_agreement"
-        )
+        # Create comprehensive license agreement with error handling
+        try:
+            agreement = await comprehensive_licensing_engine.create_comprehensive_license_agreement(
+                platform_ids=all_platform_ids,
+                license_type="master_comprehensive_agreement"
+            )
+        except Exception as e:
+            logger.error(f"Failed to create comprehensive license agreement: {e}")
+            raise HTTPException(status_code=500, detail=f"License agreement creation failed: {str(e)}")
         
         # Generate background tasks
         if generate_workflows:
@@ -602,14 +605,23 @@ async def generate_comprehensive_platform_licenses(
                 agreement.agreement_id
             )
         
+        # Safely access agreement data
+        try:
+            business_entity_name = agreement.business_information.get("business_entity", {}).get("legal_name", "Big Mann Entertainment")
+            annual_investment = sum(float(fee) for fee in agreement.licensing_fees.values()) * 12 if agreement.licensing_fees else 0
+        except Exception as e:
+            logger.warning(f"Error accessing agreement data: {e}")
+            business_entity_name = "Big Mann Entertainment"
+            annual_investment = 0
+        
         return {
             "message": f"Comprehensive platform licensing initiated for all {len(all_platform_ids)} platforms",
             "master_agreement": agreement.dict(),
             "agreement_id": agreement.agreement_id,
-            "business_entity": agreement.business_information["business_entity"]["legal_name"],
+            "business_entity": business_entity_name,
             "platforms_licensed": len(all_platform_ids),
             "platform_categories": agreement.platform_categories,
-            "estimated_annual_investment": sum(agreement.licensing_fees.values()) * 12,
+            "estimated_annual_investment": annual_investment,
             "compliance_documentation": include_compliance_docs,
             "automated_workflows": generate_workflows,
             "created_by": current_user.email,
@@ -623,6 +635,12 @@ async def generate_comprehensive_platform_licenses(
                 "Regulatory compliance coverage"
             ]
         }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Comprehensive error in generate_comprehensive_platform_licenses: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate comprehensive platform licenses: {str(e)}")
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate comprehensive platform licenses: {str(e)}")
