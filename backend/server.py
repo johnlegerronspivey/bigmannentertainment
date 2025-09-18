@@ -6825,6 +6825,7 @@ class RekognitionService:
 
 # Initialize content removal service
 init_removal_service(db)
+init_auth_dependencies(get_current_user, get_current_user)  # Use same function for both
 
 # Initialize Phase 2 services
 cloudfront_service = CloudFrontService()
