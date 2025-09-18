@@ -94,6 +94,8 @@ class ContentRemovalService:
             "default": {
                 "message_sender": "BigMannEntertainment",
                 "sender_party_id": "BME001",
+                "sender_name": "Big Mann Entertainment",
+                "sender_owner": "John LeGerron Spivey",
                 "namespace": "http://ddex.net/xml/ern/382",
                 "schema_version": "3.8.2"
             },
