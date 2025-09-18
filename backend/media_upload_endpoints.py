@@ -609,7 +609,7 @@ async def view_media(
         # For media that can be displayed inline
         if content_type.startswith(('image/', 'audio/', 'video/', 'text/')):
             return FileResponse(
-                path=file_path,
+                path=local_file_path,
                 media_type=content_type,
                 headers={
                     "Content-Disposition": "inline",
