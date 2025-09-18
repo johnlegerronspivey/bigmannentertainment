@@ -438,14 +438,30 @@ async def get_ddex_messages(
 ):
     """Get DDEX messages for removal request (admin only)"""
     try:
+        # Validate request exists
+        request_doc = await service.collection.find_one({"id": request_id})
+        if not request_doc:
+            raise HTTPException(status_code=404, detail="Removal request not found")
+
+        # Get DDEX messages
         cursor = service.ddex_messages_collection.find({"removal_request_id": request_id})
         messages = await cursor.to_list(length=None)
         
+        # Convert ObjectId to string and clean up the data
+        cleaned_messages = []
+        for msg in messages:
+            if '_id' in msg:
+                del msg['_id']  # Remove MongoDB ObjectId
+            cleaned_messages.append(msg)
+        
         return {
-            "messages": messages,
-            "total_count": len(messages)
+            "messages": cleaned_messages,
+            "total_count": len(cleaned_messages)
         }
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Failed to fetch DDEX messages: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch DDEX messages: {str(e)}")
 
 @router.get("/ddex-messages/{request_id}/{message_id}/xml")
@@ -457,6 +473,12 @@ async def download_ddex_xml(
 ):
     """Download DDEX XML message (admin only)"""
     try:
+        # Validate request exists
+        request_doc = await service.collection.find_one({"id": request_id})
+        if not request_doc:
+            raise HTTPException(status_code=404, detail="Removal request not found")
+
+        # Get DDEX message
         message_doc = await service.ddex_messages_collection.find_one({
             "id": message_id,
             "removal_request_id": request_id
@@ -465,10 +487,15 @@ async def download_ddex_xml(
         if not message_doc:
             raise HTTPException(status_code=404, detail="DDEX message not found")
         
-        # Return XML content as downloadable file
-        xml_content = message_doc["xml_content"]
+        # Get XML content
+        xml_content = message_doc.get("xml_content", "")
+        if not xml_content:
+            raise HTTPException(status_code=404, detail="XML content not found")
+        
+        # Create filename
         filename = f"ddex_takedown_{message_id}.xml"
         
+        # Return XML content as downloadable file
         return StreamingResponse(
             io.StringIO(xml_content),
             media_type="application/xml",
@@ -478,6 +505,7 @@ async def download_ddex_xml(
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Failed to download DDEX XML: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to download DDEX XML: {str(e)}")
 
 @router.get("/reports/compliance")
