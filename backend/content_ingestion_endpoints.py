@@ -9,6 +9,14 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
 import json
 import uuid
+import jwt
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 from content_ingestion_service import (
     ContentIngestionService, 
@@ -24,6 +32,24 @@ from content_ingestion_service import (
 from ddex_metadata_service import DDEXMetadataService
 from compliance_validation_service import ComplianceValidationService
 
+# Import proper authentication
+from motor.motor_asyncio import AsyncIOMotorClient
+
+# Database connection
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+# User model
+from pydantic import BaseModel, Field
+
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    username: str = ""
+    is_admin: bool = False
+    role: str = "user"
+
 # Initialize services
 content_ingestion = ContentIngestionService()
 ddex_service = DDEXMetadataService()
@@ -33,11 +59,26 @@ compliance_service = ComplianceValidationService()
 router = APIRouter(prefix="/api/content-ingestion", tags=["Content Ingestion"])
 security = HTTPBearer()
 
-# Dependency for authentication
+# Authentication setup
+SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
+ALGORITHM = "HS256"
+
+# Proper authentication dependency
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    # This would integrate with your authentication system
-    # For now, returning a mock user ID
-    return "user_123"
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    
+    user = await db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return User(**user)
 
 # File Upload Endpoints
 
