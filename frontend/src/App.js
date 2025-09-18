@@ -3389,7 +3389,7 @@ function App() {
                 <p className="text-gray-400 mb-4">Complete Media Distribution Empire</p>
                 <div className="border-t border-gray-700 pt-4">
                   <p className="text-sm text-gray-500">
-                    © 2025 Big Mann Entertainment. All rights reserved. Logo owned by John LeGerron Spivey.
+                    © 2025 Big Mann Entertainment. All rights reserved. Owned and operated by John LeGerron Spivey.
                   </p>
                 </div>
               </div>
