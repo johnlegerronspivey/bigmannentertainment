@@ -1706,7 +1706,7 @@ const AdminNotifications = () => {
           All notifications are sent from: <strong>no-reply@bigmannentertainment.com</strong>
         </p>
         <p className="text-blue-700 text-sm">
-          Emails include professional Big Mann Entertainment branding and are sent using secure SMTP protocols.
+          Emails include professional Big Mann Entertainment branding (owned by John LeGerron Spivey) and are sent using secure SMTP protocols.
           If email service is unavailable, users will receive fallback notifications through the platform.
         </p>
       </div>
