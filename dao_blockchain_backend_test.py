@@ -16,7 +16,7 @@ import os
 import sys
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://content-license-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://content-workflow-1.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api/platform"
 
 class DAOBlockchainTester:

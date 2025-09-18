@@ -18,7 +18,7 @@ import sys
 import os
 
 # Configuration
-BACKEND_URL = "https://content-license-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-workflow-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"mde_test_{int(time.time())}@bigmannentertainment.com"
 TEST_PASSWORD = "SecureTestPass123!"
 

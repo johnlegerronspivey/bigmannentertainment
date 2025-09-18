@@ -19,7 +19,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://content-license-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-workflow-1.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://content-license-1.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://content-workflow-1.preview.emergentagent.com';
 
 // Global error handler utility
 const handleApiError = (error, context) => {
