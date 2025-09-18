@@ -51,9 +51,8 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Initialize GS1 service
-from gs1_endpoints import init_gs1_service
-init_gs1_service(db)
+# Import content removal modules
+from content_removal_endpoints import router as content_removal_router, init_removal_service
 
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
