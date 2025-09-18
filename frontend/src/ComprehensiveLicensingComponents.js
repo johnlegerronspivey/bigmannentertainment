@@ -716,6 +716,7 @@ const ComprehensiveLicensingComponents = () => {
         {activeTab === 'agreements' && <LicenseAgreements />}
         {activeTab === 'workflows' && <AutomatedWorkflows />}
         {activeTab === 'compliance' && <ComplianceDocuments />}
+        {activeTab === 'platform-management' && <PlatformManagement />}
       </div>
     </div>
   );
