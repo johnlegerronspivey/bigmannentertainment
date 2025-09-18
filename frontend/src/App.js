@@ -1013,7 +1013,7 @@ const Register = () => {
     const result = await register(registrationData);
     
     if (result.success) {
-      setSuccess('Account created successfully! Welcome to Big Mann Entertainment!');
+      setSuccess('Account created successfully! Welcome to Big Mann Entertainment - Founded by John LeGerron Spivey!');
       setTimeout(() => {
         navigate('/');
       }, 2000);
