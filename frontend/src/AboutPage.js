@@ -113,8 +113,8 @@ const AboutPage = () => {
               <div className="bg-purple-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl">🎯</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
-              <p className="text-gray-700">
+              <h3 className="text-2xl font-bold text-slate-100 mb-4">Our Mission</h3>
+              <p className="text-slate-300">
                 To empower independent artists and creators with comprehensive distribution solutions, 
                 ensuring their music reaches every corner of the digital world while maximizing their 
                 revenue potential through innovative technology and industry expertise.
