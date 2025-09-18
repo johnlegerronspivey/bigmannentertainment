@@ -59,7 +59,7 @@ const AboutPage = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">Company Information</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Big Mann Entertainment LLC is a legally registered entertainment company specializing in 
+              Big Mann Entertainment is a legally registered entertainment company specializing in 
               comprehensive media distribution and rights management.
             </p>
           </div>
