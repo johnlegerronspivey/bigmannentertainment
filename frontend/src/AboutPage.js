@@ -90,9 +90,9 @@ const AboutPage = () => {
             </div>
 
             {/* Contact Information */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">📍 Contact Information</h3>
-              <div className="space-y-2 text-gray-700">
+            <div className="bg-slate-700 p-6 rounded-lg border border-slate-600">
+              <h3 className="text-xl font-semibold text-slate-100 mb-4">📍 Contact Information</h3>
+              <div className="space-y-2 text-slate-300">
                 <p><strong>Address:</strong></p>
                 <p>1314 Lincoln Heights Street</p>
                 <p>Alexander City, AL 35010</p>
