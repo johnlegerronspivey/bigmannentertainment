@@ -370,9 +370,9 @@ const Navigation = () => {
                 Industry <span className="ml-1">▼</span>
               </button>
               {isIndustryDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                  <Link to="/industry" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</Link>
-                  <Link to="/industry/partners" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Partners</Link>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/industry" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Dashboard</Link>
+                  <Link to="/industry/partners" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Partners</Link>
                   <Link to="/industry/coverage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Coverage</Link>
                   <Link to="/industry/identifiers" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Identifiers</Link>
                   <Link to="/music-reports" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Music Reports</Link>
