@@ -5,6 +5,7 @@ Core business logic for content takedown and removal management
 
 import os
 import logging
+import uuid
 from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime, timezone, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
