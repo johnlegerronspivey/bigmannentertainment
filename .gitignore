@@ -83,6 +83,13 @@ frontend/node_modules/.cache/default-development/0.pack
 # Environment files
 *.env
 *.env.*
+
+# Test files with hardcoded secrets
+*_test.py
+*_backend_test.py
+stripe_live_key_*
+aws_*_test.py
+setup_aws_*.py
 -e 
 # Environment files
 *.env
