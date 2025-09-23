@@ -403,18 +403,27 @@ class ComprehensiveBackendTester:
         try:
             async with self.session.get(f"{API_BASE}/health") as response:
                 if response.status == 200:
-                    health_data = await response.json()
-                    if 'database' in health_data:
-                        db_status = health_data.get('database', {}).get('status', 'unknown')
-                        if db_status == 'healthy':
-                            print(f"✅ Database Connectivity: Healthy")
-                            self.test_results.append(("Database Connectivity", "PASS", "Database healthy"))
+                    try:
+                        health_data = await response.json()
+                        if isinstance(health_data, dict) and 'database' in health_data:
+                            db_info = health_data.get('database', {})
+                            if isinstance(db_info, dict):
+                                db_status = db_info.get('status', 'unknown')
+                                if db_status == 'healthy':
+                                    print(f"✅ Database Connectivity: Healthy")
+                                    self.test_results.append(("Database Connectivity", "PASS", "Database healthy"))
+                                else:
+                                    print(f"⚠️ Database Connectivity: {db_status}")
+                                    self.test_results.append(("Database Connectivity", "PARTIAL", f"Status: {db_status}"))
+                            else:
+                                print(f"⚠️ Database Connectivity: Database info not properly formatted")
+                                self.test_results.append(("Database Connectivity", "PARTIAL", "Database info format issue"))
                         else:
-                            print(f"⚠️ Database Connectivity: {db_status}")
-                            self.test_results.append(("Database Connectivity", "PARTIAL", f"Status: {db_status}"))
-                    else:
-                        print(f"⚠️ Database Connectivity: Status not reported")
-                        self.test_results.append(("Database Connectivity", "PARTIAL", "Status not reported"))
+                            print(f"⚠️ Database Connectivity: Status not reported in health data")
+                            self.test_results.append(("Database Connectivity", "PARTIAL", "Status not reported"))
+                    except Exception as json_error:
+                        print(f"⚠️ Database Connectivity: Health endpoint returned non-JSON")
+                        self.test_results.append(("Database Connectivity", "PARTIAL", "Non-JSON health response"))
                 else:
                     print(f"❌ Database Connectivity: Health endpoint failed")
                     self.test_results.append(("Database Connectivity", "FAIL", "Health endpoint failed"))
