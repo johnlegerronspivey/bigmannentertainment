@@ -4268,6 +4268,10 @@ async def forgot_password(request_data: ForgotPasswordRequest, request: Request)
         # Don't reveal if email exists or not
         return {"message": "If the email exists, a reset link has been sent"}
     
+    # Remove MongoDB _id field to prevent ObjectId serialization issues
+    if "_id" in user_doc:
+        del user_doc["_id"]
+    
     user = User(**user_doc)
     
     # Generate reset token
