@@ -70,9 +70,9 @@ class SupportService:
             if ai_analysis.get("confidence", 0) > 0.8:
                 await self.add_ticket_response(
                     ticket_id=ticket_id,
-                    user_id="ai_assistant",
+                    sender_id="ai_assistant",
                     message=ai_analysis.get("suggested_response", ""),
-                    user_type="agent"
+                    sender_type="agent"
                 )
             
             # Trigger comprehensive AI analysis in background
