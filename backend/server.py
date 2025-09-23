@@ -1690,7 +1690,7 @@ async def generate_license(request: dict):
             raise Exception("Failed to store license in database")
             
     except Exception as e:
-        logger.error(f"License generation error: {str(e)}")
+        print(f"License generation error: {str(e)}")
         return {
             "success": False,
             "error": str(e),
