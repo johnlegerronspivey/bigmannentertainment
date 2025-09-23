@@ -510,39 +510,63 @@ const TicketingTab = () => {
         </div>
       </div>
 
-      {/* Create Ticket Modal */}
+      {/* Enhanced Create Ticket Modal with AI */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Create Support Ticket</h3>
-            <form onSubmit={handleCreateTicket} className="space-y-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newTicket.title}
-                  onChange={(e) => setNewTicket({...newTicket, title: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief description of your issue"
-                />
+                <h3 className="text-lg font-semibold text-gray-900">Create Support Ticket</h3>
+                <p className="text-sm text-gray-600">AI will help categorize and suggest solutions</p>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setAiSuggestions(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Ticket Form */}
+              <div className="lg:col-span-2">
+                <form onSubmit={handleCreateTicket} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Title * 
+                      {analyzingTicket && (
+                        <span className="ml-2 text-xs text-blue-600">
+                          🤖 AI analyzing...
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newTicket.title}
+                      onChange={(e) => setNewTicket({...newTicket, title: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Brief description of your issue"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description *
-                </label>
-                <textarea
-                  required
-                  rows="4"
-                  value={newTicket.description}
-                  onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Detailed description of your issue"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description *
+                    </label>
+                    <textarea
+                      required
+                      rows="6"
+                      value={newTicket.description}
+                      onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Provide detailed information about your issue..."
+                    />
+                  </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
