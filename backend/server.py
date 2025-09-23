@@ -1522,7 +1522,7 @@ from transcoding_endpoints import router as transcoding_router
 from distribution_endpoints import router as distribution_router
 
 # Import premium features endpoints
-from premium_features_endpoints import router as premium_features_router
+from premium_features_endpoints import router as premium_router
 
 # Import MLC endpoints
 from mlc_endpoints import router as mlc_router
