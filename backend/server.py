@@ -6394,6 +6394,10 @@ api_router.include_router(contracts_router)
 api_router.include_router(audit_router)
 api_router.include_router(media_router)
 api_router.include_router(paypal_router)
+api_router.include_router(premium_router, prefix="/premium")
+api_router.include_router(mlc_router, prefix="/mlc")
+api_router.include_router(mde_router, prefix="/mde")  
+api_router.include_router(pdooh_router, prefix="/pdooh")
 
 # Include the main api_router in the app
 
