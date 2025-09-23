@@ -1405,13 +1405,20 @@ const LiveChatTab = () => {
   );
 };
 
-// Knowledge Base Tab
+// Enhanced Knowledge Base Tab with AI Features
 const KnowledgeBaseTab = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
+  const [popularTopics] = useState([
+    'Music Distribution', 'Royalty Payments', 'Licensing Issues', 'Platform Integration',
+    'Content Upload', 'Copyright Protection', 'DAO Governance', 'Account Management'
+  ]);
 
   const fetchArticles = async () => {
     try {
@@ -1420,16 +1427,51 @@ const KnowledgeBaseTab = () => {
       if (searchQuery) params.append('query', searchQuery);
       
       const response = await axios.get(`${API}/support/knowledge-base/articles?${params}`);
-      setArticles(response.data.articles || []);
+      const articlesData = response.data.articles || [];
+      setArticles(articlesData);
+      
+      setSearchResults({
+        query: searchQuery,
+        total: response.data.pagination?.total_count || articlesData.length,
+        hasResults: articlesData.length > 0
+      });
+      
+      // Get AI suggestions if no results found
+      if (searchQuery && articlesData.length === 0) {
+        await fetchAISuggestions(searchQuery);
+      }
+      
     } catch (error) {
       console.error('Error fetching articles:', error);
+      setSearchResults({ query: searchQuery, total: 0, hasResults: false, error: true });
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchAISuggestions = async (query) => {
+    try {
+      setLoadingSuggestions(true);
+      const response = await axios.get(`${API}/support/ai/faq-suggestions`, {
+        params: { query, limit: 5 }
+      });
+      
+      if (response.data.suggestions) {
+        setAiSuggestions(response.data.suggestions);
+      }
+    } catch (error) {
+      console.error('Error fetching AI suggestions:', error);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
   useEffect(() => {
-    fetchArticles();
+    const delayedSearch = setTimeout(() => {
+      fetchArticles();
+    }, searchQuery ? 500 : 0);
+    
+    return () => clearTimeout(delayedSearch);
   }, [searchQuery]);
 
   const viewArticle = async (articleId) => {
@@ -1439,6 +1481,16 @@ const KnowledgeBaseTab = () => {
     } catch (error) {
       console.error('Error fetching article:', error);
     }
+  };
+
+  const handleTopicClick = (topic) => {
+    setSearchQuery(topic.toLowerCase());
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setAiSuggestions([]);
+    setSearchResults(null);
   };
 
   return (
