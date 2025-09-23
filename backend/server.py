@@ -6633,6 +6633,9 @@ async def get_all_users(
     users = []
     
     async for user_doc in cursor:
+        # Remove MongoDB _id field to prevent ObjectId serialization issues
+        if "_id" in user_doc:
+            del user_doc["_id"]
         users.append(User(**user_doc))
     
     total_count = await db.users.count_documents({})
