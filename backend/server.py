@@ -57,6 +57,9 @@ from content_removal_endpoints import router as content_removal_router, init_rem
 # Import workflow integration endpoints (simplified version)
 from workflow_integration_endpoints_simple import router as workflow_integration_router
 
+# Import comprehensive support system
+from support_endpoints import router as support_router
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
