@@ -542,6 +542,290 @@ async def get_ticket_ai_analysis(
         logger.error(f"Failed to get ticket AI analysis: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get analysis: {str(e)}")
 
+# =========== WEBSOCKET ENDPOINTS ===========
+
+@router.websocket("/ws/chat/{session_id}")
+async def websocket_chat_endpoint(
+    websocket: WebSocket,
+    session_id: str,
+    user_id: str = Query(...),
+    user_type: str = Query(...),
+    db: AsyncIOMotorClient = Depends(lambda: client)
+):
+    """WebSocket endpoint for real-time chat communication"""
+    support_service_instance = SupportService(db[os.environ.get('DB_NAME', 'bigmann_entertainment')])
+    
+    try:
+        # Connect to WebSocket manager
+        success = await websocket_manager.connect(websocket, user_id, user_type, session_id)
+        if not success:
+            return
+        
+        # Send initial session info
+        await _send_session_info(websocket, session_id, support_service_instance)
+        
+        # Send recent message history
+        messages = await support_service_instance.get_chat_messages(session_id, user_id)
+        for message in messages[-20:]:  # Last 20 messages
+            await websocket.send_text(json.dumps({
+                "type": "message_history",
+                "message": {
+                    "message_id": message.message_id,
+                    "sender_id": message.sender_id,
+                    "sender_type": message.sender_type,
+                    "content": message.content,
+                    "timestamp": message.timestamp
+                }
+            }))
+        
+        # Main message handling loop
+        while True:
+            try:
+                data = await websocket.receive_text()
+                message_data = json.loads(data)
+                await _handle_websocket_message(
+                    websocket, session_id, user_id, user_type, message_data, support_service_instance
+                )
+                
+            except WebSocketDisconnect:
+                break
+            except Exception as e:
+                logger.error(f"WebSocket message handling error: {e}")
+                await websocket.send_text(json.dumps({
+                    "type": "error",
+                    "message": "Message processing failed",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }))
+    
+    except Exception as e:
+        logger.error(f"WebSocket connection error: {e}")
+    finally:
+        await websocket_manager.disconnect(websocket)
+
+@router.websocket("/ws/agent/{agent_id}")
+async def websocket_agent_endpoint(
+    websocket: WebSocket,
+    agent_id: str,
+    db: AsyncIOMotorClient = Depends(lambda: client)
+):
+    """WebSocket endpoint for agent dashboard and notifications"""
+    try:
+        # Connect agent to WebSocket manager
+        success = await websocket_manager.connect(websocket, agent_id, "agent")
+        if not success:
+            return
+        
+        # Send agent dashboard info
+        await websocket.send_text(json.dumps({
+            "type": "agent_connected",
+            "agent_id": agent_id,
+            "available_sessions": len(websocket_manager.session_connections),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }))
+        
+        # Handle agent-specific messages
+        while True:
+            try:
+                data = await websocket.receive_text()
+                message_data = json.loads(data)
+                await _handle_agent_message(websocket, agent_id, message_data)
+                
+            except WebSocketDisconnect:
+                break
+            except Exception as e:
+                logger.error(f"Agent WebSocket error: {e}")
+    
+    except Exception as e:
+        logger.error(f"Agent WebSocket connection error: {e}")
+    finally:
+        await websocket_manager.disconnect(websocket)
+
+async def _send_session_info(websocket: WebSocket, session_id: str, support_service: SupportService):
+    """Send session information to newly connected client"""
+    try:
+        session = await support_service.get_chat_session(session_id, "system")
+        participants = websocket_manager.get_session_participants(session_id)
+        
+        await websocket.send_text(json.dumps({
+            "type": "session_info",
+            "session_id": session_id,
+            "status": session.status if session else "active",
+            "participants": participants,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }))
+    except Exception as e:
+        logger.error(f"Failed to send session info: {e}")
+
+async def _handle_websocket_message(
+    websocket: WebSocket,
+    session_id: str, 
+    user_id: str,
+    user_type: str,
+    message_data: Dict[str, Any],
+    support_service: SupportService
+):
+    """Handle incoming WebSocket messages"""
+    message_type = message_data.get("type")
+    
+    if message_type == "chat_message":
+        await _handle_chat_message(websocket, session_id, user_id, user_type, message_data, support_service)
+    
+    elif message_type == "typing_indicator":
+        is_typing = message_data.get("is_typing", False)
+        await websocket_manager.handle_typing_indicator(session_id, user_id, user_type, is_typing)
+    
+    elif message_type == "agent_availability":
+        if user_type == "agent":
+            is_available = message_data.get("is_available", True)
+            await websocket_manager.update_agent_availability(user_id, is_available)
+    
+    elif message_type == "ping":
+        await websocket.send_text(json.dumps({
+            "type": "pong",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }))
+    
+    else:
+        logger.warning(f"Unknown message type: {message_type}")
+
+async def _handle_chat_message(
+    websocket: WebSocket,
+    session_id: str,
+    user_id: str, 
+    user_type: str,
+    message_data: Dict[str, Any],
+    support_service: SupportService
+):
+    """Handle chat messages with AI analysis and broadcasting"""
+    try:
+        content = message_data.get("content", "").strip()
+        if not content:
+            return
+        
+        # Determine message type based on user type
+        msg_type = ChatMessageType.AGENT_MESSAGE if user_type == "agent" else ChatMessageType.USER_MESSAGE
+        
+        # Save message with AI analysis
+        message = await support_service.add_chat_message(
+            session_id=session_id,
+            sender_id=user_id,
+            message_type=msg_type,
+            content=content
+        )
+        
+        # Broadcast message to all session participants
+        broadcast_data = {
+            "type": "new_message",
+            "message": {
+                "message_id": message.message_id,
+                "session_id": session_id,
+                "sender_id": user_id,
+                "sender_type": user_type,
+                "content": content,
+                "timestamp": message.timestamp,
+                "ai_sentiment": getattr(message, "ai_sentiment", None),
+                "ai_urgency": getattr(message, "ai_urgency", None)
+            }
+        }
+        
+        await websocket_manager.broadcast_to_session(session_id, broadcast_data)
+        
+        # Handle escalation if needed
+        if hasattr(message, "ai_escalation_recommended") and message.ai_escalation_recommended:
+            await websocket_manager.broadcast_to_agents({
+                "type": "escalation_alert",
+                "session_id": session_id,
+                "user_id": user_id,
+                "sentiment": getattr(message, "ai_sentiment", "unknown"),
+                "urgency": getattr(message, "ai_urgency", "medium"),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+        
+    except Exception as e:
+        logger.error(f"Error handling chat message: {e}")
+        await websocket.send_text(json.dumps({
+            "type": "error",
+            "message": "Failed to send message",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }))
+
+async def _handle_agent_message(websocket: WebSocket, agent_id: str, message_data: Dict[str, Any]):
+    """Handle agent-specific messages"""
+    message_type = message_data.get("type")
+    
+    if message_type == "set_availability":
+        is_available = message_data.get("is_available", True)
+        await websocket_manager.update_agent_availability(agent_id, is_available)
+        
+        await websocket.send_text(json.dumps({
+            "type": "availability_updated",
+            "agent_id": agent_id,
+            "is_available": is_available,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }))
+    
+    elif message_type == "request_stats":
+        stats = websocket_manager.get_connection_stats()
+        await websocket.send_text(json.dumps({
+            "type": "connection_stats",
+            "stats": stats,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }))
+
+# =========== AI ENDPOINTS ===========
+
+@router.get("/ai/faq-suggestions")
+async def get_ai_faq_suggestions(
+    query: str = Query(..., min_length=3),
+    context: Optional[str] = Query(None),
+    limit: int = Query(5, ge=1, le=10)
+):
+    """Get AI-powered FAQ suggestions for a user query"""
+    try:
+        suggestions = await ai_support_service.generate_faq_suggestions(query, context)
+        return {
+            "query": query,
+            "suggestions": suggestions[:limit],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Failed to get FAQ suggestions: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate suggestions")
+
+@router.post("/ai/analyze-message")
+async def analyze_message_sentiment(
+    content: str = Form(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Analyze message sentiment and urgency"""
+    try:
+        analysis = await ai_support_service.analyze_chat_sentiment(content)
+        return analysis
+    except Exception as e:
+        logger.error(f"Failed to analyze message: {e}")
+        raise HTTPException(status_code=500, detail="Analysis failed")
+
+# =========== WEBSOCKET STATUS ENDPOINTS ===========
+
+@router.get("/websocket/stats")
+async def get_websocket_stats():
+    """Get WebSocket connection statistics"""
+    stats = websocket_manager.get_connection_stats()
+    return {
+        "stats": stats,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@router.get("/websocket/sessions/{session_id}/participants")
+async def get_session_participants(session_id: str):
+    """Get participants in a specific session"""
+    participants = websocket_manager.get_session_participants(session_id)
+    return {
+        "session_id": session_id,
+        "participants": participants,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 # =========== ADMIN ENDPOINTS (FOR AGENTS) ===========
 
 @router.get("/admin/tickets/queue", response_model=List[SupportTicket])
