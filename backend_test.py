@@ -223,9 +223,9 @@ class ComprehensiveBackendTester:
         premium_endpoints = [
             ("Premium Dashboard", f"/api/premium/dashboard/overview?user_id=test123"),
             ("AI Forecasting", f"/api/premium/revenue-intelligence/dashboard?user_id=test123&time_period=30d"),
-            ("Smart Contract Templates", f"/api/premium/contracts/templates?user_id=test123"),
+            ("Smart Contract Templates", f"/api/premium/contracts/templates"),
             ("Revenue Intelligence", f"/api/premium/revenue-intelligence/optimization-suggestions?user_id=test123"),
-            ("Payout Currencies", f"/api/premium/payouts/currencies?user_id=test123")
+            ("Payout Currencies", f"/api/premium/payouts/currencies")
         ]
         
         for name, endpoint in premium_endpoints:
