@@ -6,7 +6,7 @@ Core business logic for multi-tiered support system with AI automation
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import uuid
 
