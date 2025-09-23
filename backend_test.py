@@ -277,9 +277,9 @@ class ComprehensiveBackendTester:
         print("\n🔗 Testing Integration Services...")
         
         integration_endpoints = [
-            ("MLC Integration", "/api/mlc/health"),
-            ("MDE Integration", "/api/mde/health"),
-            ("pDOOH Integration", "/api/pdooh/health")
+            ("MLC Integration", "/api/mlc/integration/status"),
+            ("MDE Integration", "/api/mde/integration/status"),
+            ("pDOOH Integration", "/api/pdooh/campaigns")
         ]
         
         for name, endpoint in integration_endpoints:
