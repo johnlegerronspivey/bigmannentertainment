@@ -36,6 +36,7 @@ class ComprehensiveBackendTester:
     async def setup_session(self):
         """Setup HTTP session"""
         self.session = aiohttp.ClientSession()
+        self.start_time = time.time()
 
     async def cleanup_session(self):
         """Cleanup HTTP session"""
