@@ -1793,6 +1793,15 @@ const DAOArbitrationTab = () => {
     evidence_summary: ''
   });
 
+  const disputeTypes = [
+    { value: 'content_licensing', label: 'Content Licensing', icon: '⚖️', description: 'Issues related to content licensing agreements' },
+    { value: 'royalty_distribution', label: 'Royalty Distribution', icon: '💰', description: 'Disputes over royalty payments and distribution' },
+    { value: 'copyright_infringement', label: 'Copyright Infringement', icon: '🚫', description: 'Claims of unauthorized content usage' },
+    { value: 'platform_violation', label: 'Platform Violation', icon: '🔒', description: 'Violations of platform terms and policies' },
+    { value: 'contract_dispute', label: 'Contract Dispute', icon: '📄', description: 'Disagreements over contract terms' },
+    { value: 'revenue_sharing', label: 'Revenue Sharing', icon: '📊', description: 'Issues with revenue sharing agreements' }
+  ];
+
   const fetchDisputes = async () => {
     try {
       setLoading(true);
