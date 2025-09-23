@@ -7221,11 +7221,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Root endpoint
-@app.get("/")
-async def root():
-    return {"message": "Big Mann Entertainment API", "version": "1.0.0", "status": "operational"}
-
 # API root endpoint
 @api_router.get("/")
 async def api_root():
