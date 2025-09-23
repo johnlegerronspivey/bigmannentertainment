@@ -1581,83 +1581,190 @@ const KnowledgeBaseTab = () => {
         )}
       </div>
 
-      {/* Article View or List */}
-      {selectedArticle ? (
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex justify-between items-start mb-4">
+      {/* AI Suggestions Panel (when no articles found) */}
+      {aiSuggestions.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
+          <div className="flex items-center mb-4">
+            <span className="text-2xl mr-3">🤖</span>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">{selectedArticle.title}</h3>
-              <div className="flex items-center space-x-4 mt-2">
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                  {selectedArticle.article_type?.replace('_', ' ').toUpperCase()}
-                </span>
-                <span className="text-sm text-gray-500">
-                  Views: {selectedArticle.view_count}
-                </span>
-                <span className="text-sm text-gray-500">
-                  👍 {selectedArticle.helpful_votes}
-                </span>
-              </div>
+              <h3 className="text-lg font-semibold text-purple-900">AI Suggestions</h3>
+              <p className="text-sm text-purple-700">Based on your search, here are some relevant topics:</p>
             </div>
-            <button
-              onClick={() => setSelectedArticle(null)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
           </div>
-          
-          <div className="prose max-w-none">
-            <div className="whitespace-pre-wrap">{selectedArticle.content}</div>
-          </div>
-          
-          {selectedArticle.tags?.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600 mb-2">Tags:</p>
-              <div className="flex flex-wrap gap-2">
-                {selectedArticle.tags.map((tag, index) => (
-                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
-                    {tag}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {aiSuggestions.map((suggestion, index) => (
+              <div key={index} className="bg-white p-4 rounded-lg border border-purple-100 hover:shadow-md transition-shadow">
+                <h4 className="font-medium text-gray-900 mb-2">{suggestion.title}</h4>
+                <p className="text-sm text-gray-600 mb-3 line-clamp-3">{suggestion.answer}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                    {suggestion.category}
                   </span>
-                ))}
+                  <span className="text-xs text-purple-600 font-medium">
+                    {Math.round(suggestion.relevance * 100)}% match
+                  </span>
+                </div>
               </div>
+            ))}
+          </div>
+          <div className="mt-4 p-3 bg-white bg-opacity-60 rounded-lg">
+            <p className="text-sm text-purple-800">
+              💡 <strong>Tip:</strong> These AI-generated suggestions can help resolve your issue without creating a support ticket. 
+              If you need more specific help, consider creating a ticket with detailed information.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Article View or Enhanced List */}
+      {selectedArticle ? (
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          {/* Article Header */}
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">{selectedArticle.title}</h3>
+                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                  <span className="flex items-center">
+                    📁 {selectedArticle.category?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </span>
+                  <span className="flex items-center">
+                    📅 {selectedArticle.created_at ? new Date(selectedArticle.created_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                  {selectedArticle.view_count && (
+                    <span className="flex items-center">
+                      👁️ {selectedArticle.view_count} views
+                    </span>
+                  )}
+                  {selectedArticle.is_featured && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                      ⭐ Featured
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedArticle(null)}
+                className="text-gray-500 hover:text-gray-700 font-medium"
+              >
+                ← Back to Articles
+              </button>
             </div>
-          )}
+          </div>
+          
+          {/* Article Content */}
+          <div className="p-6">
+            {selectedArticle.summary && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h4 className="font-medium text-blue-900 mb-2">Summary</h4>
+                <p className="text-blue-800">{selectedArticle.summary}</p>
+              </div>
+            )}
+            
+            <div className="prose max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: selectedArticle.content }} />
+            </div>
+            
+            {selectedArticle.tags && selectedArticle.tags.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <h4 className="font-medium text-gray-900 mb-3">Tags</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedArticle.tags.map((tag, index) => (
+                    <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Articles</h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Articles & Guides</h3>
+            {searchResults && searchResults.hasResults && (
+              <p className="text-sm text-gray-600">
+                Showing {articles.length} of {searchResults.total} results
+              </p>
+            )}
+          </div>
+          
           {loading ? (
-            <div className="text-center py-8">
+            <div className="text-center py-12">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading articles...</p>
             </div>
           ) : articles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {articles.map((article, index) => (
-                <div
-                  key={index}
-                  onClick={() => viewArticle(article.article_id)}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
-                >
-                  <h4 className="font-medium text-gray-900 mb-2">{article.title}</h4>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                    {article.ai_summary || article.content?.substring(0, 150) + '...'}
-                  </p>
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>{article.article_type?.replace('_', ' ')}</span>
-                    <span>👍 {article.helpful_votes}</span>
+                <div key={article.article_id || index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <h4 className="font-medium text-gray-900 mr-2">{article.title}</h4>
+                        {article.is_featured && (
+                          <span className="text-yellow-500 text-sm">⭐</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-3 mb-3">
+                        {article.summary || article.content?.substring(0, 150) + '...'}
+                      </p>
+                      
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-2">
+                        <span className="flex items-center">
+                          📁 {article.category?.replace('_', ' ')}
+                        </span>
+                        <span className="flex items-center">
+                          📅 {article.created_at ? new Date(article.created_at).toLocaleDateString() : 'N/A'}
+                        </span>
+                        {article.view_count && (
+                          <span className="flex items-center">
+                            👁️ {article.view_count} views
+                          </span>
+                        )}
+                      </div>
+                      
+                      {article.tags && article.tags.slice(0, 3).map((tag, tagIndex) => (
+                        <span key={tagIndex} className="inline-block text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded mr-1 mb-1">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => viewArticle(article.article_id)}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium ml-4"
+                    >
+                      Read More
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-4">📚</div>
-              <p className="text-gray-500 mb-4">No articles found</p>
-              <p className="text-sm text-gray-400">
-                Try searching with different keywords
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📚</div>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">No articles found</h4>
+              <p className="text-gray-600 mb-4">
+                {searchQuery ? `No results for "${searchQuery}"` : 'The knowledge base is being updated'}
               </p>
+              <p className="text-sm text-gray-500 mb-6">
+                {searchQuery ? 'Try different keywords, check AI suggestions above, or create a support ticket for personalized help.' : 'Check back later for new content and guides.'}
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium mr-3"
+                >
+                  Clear Search
+                </button>
+              )}
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium"
+              >
+                Create Support Ticket
+              </button>
             </div>
           )}
         </div>
