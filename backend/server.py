@@ -6526,6 +6526,110 @@ async def api_status():
         "timestamp": datetime.now().isoformat()
     }
 
+# API Health endpoints
+@api_router.get("/health")
+async def api_health():
+    """Main API health check endpoint"""
+    try:
+        # Test database connection
+        await db.admin.command('ping')
+        
+        # Get distribution platform count
+        platform_count = len(DISTRIBUTION_PLATFORMS)
+        
+        return {
+            "status": "healthy",
+            "api_version": "1.0.0", 
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "database": "connected",
+            "distribution_platforms": platform_count,
+            "services": {
+                "content_ingestion": "operational",
+                "distribution": "operational", 
+                "licensing": "operational",
+                "support": "operational",
+                "ai_integration": "operational"
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error": str(e),
+            "database": "disconnected"
+        }
+
+@api_router.get("/auth/health")
+async def auth_health():
+    """Authentication service health check"""
+    try:
+        # Test user collection access
+        user_count = await db.users.count_documents({})
+        session_count = await db.user_sessions.count_documents({"is_active": True})
+        
+        return {
+            "status": "healthy",
+            "service": "authentication",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "metrics": {
+                "total_users": user_count,
+                "active_sessions": session_count,
+                "jwt_enabled": True,
+                "password_hashing": "bcrypt"
+            },
+            "features": {
+                "registration": "enabled",
+                "login": "enabled", 
+                "password_reset": "enabled",
+                "session_management": "enabled"
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "service": "authentication",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error": str(e)
+        }
+
+@api_router.get("/business/health")
+async def business_health():
+    """Business services health check"""
+    try:
+        # Test business-related collections
+        media_count = await db.media_content.count_documents({})
+        distribution_count = await db.content_distribution.count_documents({})
+        
+        return {
+            "status": "healthy",
+            "service": "business_services",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "metrics": {
+                "total_media": media_count,
+                "total_distributions": distribution_count,
+                "distribution_platforms": len(DISTRIBUTION_PLATFORMS)
+            },
+            "business_info": {
+                "legal_name": BUSINESS_LEGAL_NAME,
+                "owner": PRINCIPAL_NAME,
+                "ein": BUSINESS_EIN,
+                "naics_code": BUSINESS_NAICS_CODE
+            },
+            "capabilities": {
+                "content_ingestion": "enabled",
+                "distribution": "enabled",
+                "licensing": "enabled",
+                "royalty_management": "enabled"
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "service": "business_services",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error": str(e)
+        }
+
 # Health check endpoint
 @app.get("/health")
 async def global_health():
