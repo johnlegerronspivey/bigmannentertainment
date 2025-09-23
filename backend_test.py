@@ -25,16 +25,13 @@ from typing import Dict, Any, List
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://support-desk-30.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
-class SupportSystemTester:
+class ComprehensiveBackendTester:
     def __init__(self):
         self.session = None
         self.auth_token = None
         self.user_id = None
         self.test_results = []
-        self.created_ticket_id = None
-        self.created_chat_session_id = None
-        self.created_article_id = None
-        self.created_dispute_id = None
+        self.start_time = None
 
     async def setup_session(self):
         """Setup HTTP session"""
