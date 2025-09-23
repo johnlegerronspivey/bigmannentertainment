@@ -724,7 +724,7 @@ const TicketingTab = () => {
         </div>
       )}
 
-      {/* Tickets List */}
+      {/* Enhanced Tickets List with AI Insights */}
       <div className="bg-white shadow rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Tickets</h3>
         {loading ? (
@@ -735,11 +735,30 @@ const TicketingTab = () => {
         ) : tickets.length > 0 ? (
           <div className="space-y-4">
             {tickets.map((ticket, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={ticket.ticket_id || index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{ticket.title}</h4>
-                    <p className="text-sm text-gray-600 mt-1">{ticket.description}</p>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h4 className="font-medium text-gray-900">{ticket.title}</h4>
+                      {ticket.ai_tags && ticket.ai_tags.length > 0 && (
+                        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                          🤖 AI Tagged
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{ticket.description}</p>
+                    
+                    {/* AI Tags */}
+                    {ticket.ai_tags && ticket.ai_tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {ticket.ai_tags.slice(0, 3).map((tag, tagIndex) => (
+                          <span key={tagIndex} className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
                     <div className="flex items-center space-x-4 mt-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         ticket.status === 'open' ? 'bg-green-100 text-green-800' :
@@ -749,24 +768,35 @@ const TicketingTab = () => {
                       }`}>
                         {ticket.status?.replace('_', ' ').toUpperCase()}
                       </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        ticket.priority === 'critical' ? 'bg-red-100 text-red-800' :
-                        ticket.priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                        ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {ticket.priority?.toUpperCase()}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {ticket.category?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </span>
+                      
+                      {ticketPriorities.map(p => p.value === ticket.priority && (
+                        <span key={p.value} className={`px-2 py-1 rounded-full text-xs font-medium ${p.color}`}>
+                          {p.label.toUpperCase()}
+                        </span>
+                      ))}
+                      
+                      {ticketCategories.map(c => c.value === ticket.category && (
+                        <span key={c.value} className="text-xs text-gray-500 flex items-center">
+                          <span className="mr-1">{c.icon}</span>
+                          {c.label}
+                        </span>
+                      ))}
+                      
+                      {ticket.ai_suggested_category && ticket.ai_suggested_category !== ticket.category && (
+                        <span className="text-xs text-purple-600">
+                          🤖 Suggested: {ticket.ai_suggested_category.replace('_', ' ')}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right ml-4">
                     <p className="text-sm text-gray-500">
                       {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : 'N/A'}
                     </p>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm mt-1">
+                    <button 
+                      onClick={() => viewTicketDetails(ticket)}
+                      className="text-blue-600 hover:text-blue-800 text-sm mt-1 font-medium"
+                    >
                       View Details
                     </button>
                   </div>
@@ -778,12 +808,156 @@ const TicketingTab = () => {
           <div className="text-center py-8">
             <div className="text-4xl mb-4">🎫</div>
             <p className="text-gray-500 mb-4">No support tickets yet</p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 mb-4">
               Create your first ticket to get help from our support team
             </p>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium"
+            >
+              Create Your First Ticket
+            </button>
           </div>
         )}
       </div>
+
+      {/* Ticket Details Modal */}
+      {showTicketDetails && selectedTicket && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">{selectedTicket.title}</h3>
+                <p className="text-sm text-gray-600">Ticket ID: {selectedTicket.ticket_id}</p>
+              </div>
+              <button
+                onClick={() => setShowTicketDetails(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Ticket Info */}
+              <div className="lg:col-span-2 space-y-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Description</h4>
+                  <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{selectedTicket.description}</p>
+                </div>
+
+                {selectedTicket.ai_summary && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <span className="mr-2">🤖</span>
+                      AI Summary
+                    </h4>
+                    <p className="text-gray-700 bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      {selectedTicket.ai_summary}
+                    </p>
+                  </div>
+                )}
+
+                {selectedTicket.ai_analysis && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <span className="mr-2">🧠</span>
+                      AI Analysis
+                    </h4>
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      {selectedTicket.ai_analysis.suggested_actions && (
+                        <div className="mb-3">
+                          <h5 className="font-medium text-blue-900 mb-1">Suggested Actions:</h5>
+                          <ul className="text-sm text-blue-800 list-disc list-inside">
+                            {selectedTicket.ai_analysis.suggested_actions.map((action, index) => (
+                              <li key={index}>{action}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {selectedTicket.ai_analysis.confidence && (
+                        <p className="text-xs text-blue-600">
+                          Confidence: {Math.round(selectedTicket.ai_analysis.confidence * 100)}%
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sidebar Info */}
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-3">Ticket Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Status:</span>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        selectedTicket.status === 'open' ? 'bg-green-100 text-green-800' :
+                        selectedTicket.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {selectedTicket.status?.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Priority:</span>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        selectedTicket.priority === 'critical' ? 'bg-red-100 text-red-800' :
+                        selectedTicket.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                        selectedTicket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {selectedTicket.priority?.toUpperCase()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Category:</span>
+                      <span className="text-gray-900">
+                        {selectedTicket.category?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Created:</span>
+                      <span className="text-gray-900">
+                        {selectedTicket.created_at ? new Date(selectedTicket.created_at).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {selectedTicket.ai_tags && selectedTicket.ai_tags.length > 0 && (
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-purple-900 mb-3 flex items-center">
+                      <span className="mr-2">🤖</span>
+                      AI Tags
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTicket.ai_tags.map((tag, index) => (
+                        <span key={index} className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowTicketDetails(false)}
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
