@@ -363,6 +363,10 @@ const Navigation = () => {
                     <span className="mr-3">⚡</span>
                     Workflow Integration Hub
                   </Link>
+                  <Link to="/support-center" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                    <span className="mr-3">🎧</span>
+                    Support Center
+                  </Link>
                 </div>
               )}
             </div>
