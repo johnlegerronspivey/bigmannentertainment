@@ -1539,6 +1539,9 @@ from analytics_endpoints import router as analytics_router
 # Import lifecycle endpoints (Function 5)
 from lifecycle_endpoints import router as lifecycle_router
 
+# Import DAO smart contracts service
+from dao_smart_contracts import dao_contract_manager
+
 # Authentication functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
