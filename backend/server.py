@@ -6363,6 +6363,14 @@ except ImportError as e:
 except Exception as e:
     print(f"⚠️ Metadata services initialization error: {str(e)}")
 
+# Initialize GS1 service
+try:
+    from gs1_endpoints import init_gs1_service
+    init_gs1_service(db)
+    print("✅ GS1 Asset Registry service initialized successfully")
+except ImportError as e:
+    print(f"⚠️ GS1 service not available: {e}")
+
 # Include all routers in the api_router to get /api prefix
 api_router.include_router(ddex_router)
 api_router.include_router(music_reports_router)
