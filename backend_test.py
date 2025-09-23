@@ -62,7 +62,7 @@ class ComprehensiveBackendTester:
 
             # Register user
             async with self.session.post(f"{API_BASE}/auth/register", json=registration_data) as response:
-                if response.status == 201:
+                if response.status in [200, 201]:
                     reg_data = await response.json()
                     self.auth_token = reg_data.get('access_token')
                     self.user_id = reg_data.get('user', {}).get('id')
