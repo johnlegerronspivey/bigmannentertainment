@@ -1495,28 +1495,90 @@ const KnowledgeBaseTab = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Knowledge Base</h2>
-        <p className="text-gray-600">Self-service documentation, guides, and tutorials</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Knowledge Base</h2>
+          <p className="text-gray-600">Find answers with AI-powered search and suggestions</p>
+        </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium"
+        >
+          + New Article
+        </button>
       </div>
 
-      {/* Search */}
-      <div className="bg-white shadow rounded-lg p-4">
-        <div className="flex space-x-4">
+      {/* Enhanced Search with AI */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="relative">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search knowledge base..."
+            className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search articles, ask questions, or describe your issue..."
           />
-          <button
-            onClick={fetchArticles}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
-          >
-            Search
-          </button>
+          <svg className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
+          {loading && (
+            <div className="absolute right-10 top-3.5">
+              <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+            </div>
+          )}
         </div>
+
+        {/* Search Results Info */}
+        {searchResults && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            {searchResults.hasResults ? (
+              <p className="text-sm text-gray-700">
+                Found <strong>{searchResults.total}</strong> article(s) for "{searchResults.query}"
+              </p>
+            ) : searchResults.error ? (
+              <p className="text-sm text-red-600">
+                ❌ Search error occurred. Please try again.
+              </p>
+            ) : (
+              <p className="text-sm text-gray-700">
+                No articles found for "{searchResults.query}". 
+                {loadingSuggestions ? (
+                  <span className="ml-1">🤖 AI is generating suggestions...</span>
+                ) : aiSuggestions.length > 0 ? (
+                  <span className="ml-1">🤖 Check AI suggestions below.</span>
+                ) : (
+                  <span className="ml-1">Try different keywords or create a support ticket.</span>
+                )}
+              </p>
+            )}
+          </div>
+        )}
+        
+        {/* Popular Topics */}
+        {!searchQuery && (
+          <div className="mt-4">
+            <h4 className="text-sm font-medium text-gray-900 mb-3">Popular Topics</h4>
+            <div className="flex flex-wrap gap-2">
+              {popularTopics.map((topic, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleTopicClick(topic)}
+                  className="px-3 py-1 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full transition-colors"
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Article View or List */}
