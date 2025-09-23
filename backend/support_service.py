@@ -733,22 +733,32 @@ class SupportService:
         except Exception as e:
             logger.error(f"Failed to generate AI auto-response: {str(e)}")
     
-    async def initialize_dao_voting(self, dispute_id: str):
-        """Initialize DAO voting process for dispute"""
+    async def initialize_dao_voting(self, dispute_id: str, ai_analysis: Dict = None):
+        """Initialize DAO voting process for dispute with AI insights"""
         try:
             # Update dispute with voting details
             voting_starts = datetime.now(timezone.utc)
             voting_ends = voting_starts + timedelta(days=7)
             
+            update_data = {
+                "voting_started_at": voting_starts.isoformat(),
+                "voting_ends_at": voting_ends.isoformat()
+            }
+            
+            # Include AI insights in voting initialization if available
+            if ai_analysis:
+                update_data.update({
+                    "ai_voting_recommendation": ai_analysis.get("voting_recommendation", {}),
+                    "ai_complexity_score": ai_analysis.get("complexity_score", 0.5),
+                    "ai_estimated_resolution_time": ai_analysis.get("estimated_resolution_time", "7 days")
+                })
+            
             await self.dao_disputes_collection.update_one(
                 {"dispute_id": dispute_id},
-                {"$set": {
-                    "voting_started_at": voting_starts.isoformat(),
-                    "voting_ends_at": voting_ends.isoformat()
-                }}
+                {"$set": update_data}
             )
             
-            logger.info(f"Initialized DAO voting for dispute {dispute_id}")
+            logger.info(f"Initialized DAO voting for dispute {dispute_id} with AI insights")
             
         except Exception as e:
             logger.error(f"Failed to initialize DAO voting: {str(e)}")
