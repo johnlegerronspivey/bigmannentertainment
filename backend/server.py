@@ -1780,6 +1780,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user = await db.users.find_one({"id": user_id})
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
+    
+    # Remove MongoDB _id field to prevent ObjectId serialization issues
+    if "_id" in user:
+        del user["_id"]
+    
     return User(**user)
 
 async def get_current_admin_user(current_user: User = Depends(get_current_user)):
