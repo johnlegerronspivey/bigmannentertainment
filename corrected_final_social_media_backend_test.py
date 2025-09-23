@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/backend/.env')
 
 # Configuration
-BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://content-workflow-1.preview.emergentagent.com')
+BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://support-desk-30.preview.emergentagent.com')
 if not BASE_URL.startswith('http'):
     BASE_URL = f"https://{BASE_URL}"
 

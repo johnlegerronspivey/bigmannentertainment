@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://content-workflow-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://support-desk-30.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test user credentials for authentication
