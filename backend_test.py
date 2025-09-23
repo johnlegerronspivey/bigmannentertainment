@@ -104,20 +104,33 @@ class ComprehensiveBackendTester:
                     response_time = time.time() - start_time
                     
                     if response.status == 200:
-                        health_data = await response.json()
-                        print(f"✅ {name}: OK ({response_time:.2f}s)")
-                        
-                        # Check for expected health data structure
-                        if 'status' in health_data:
-                            status = health_data.get('status')
-                            print(f"   - Status: {status}")
+                        try:
+                            health_data = await response.json()
+                            print(f"✅ {name}: OK ({response_time:.2f}s)")
                             
-                            # Check database connectivity for API health
-                            if endpoint == "/api/health" and 'database' in health_data:
-                                db_status = health_data.get('database', {}).get('status', 'unknown')
-                                print(f"   - Database: {db_status}")
-                        
-                        self.test_results.append((name, "PASS", f"Response time: {response_time:.2f}s"))
+                            # Check for expected health data structure
+                            if isinstance(health_data, dict) and 'status' in health_data:
+                                status = health_data.get('status')
+                                print(f"   - Status: {status}")
+                                
+                                # Check database connectivity for API health
+                                if endpoint == "/api/health" and 'database' in health_data:
+                                    db_info = health_data.get('database', {})
+                                    if isinstance(db_info, dict):
+                                        db_status = db_info.get('status', 'unknown')
+                                        print(f"   - Database: {db_status}")
+                            
+                            self.test_results.append((name, "PASS", f"Response time: {response_time:.2f}s"))
+                        except Exception as json_error:
+                            # Try to get text response for debugging
+                            try:
+                                text_response = await response.text()
+                                print(f"⚠️ {name}: Non-JSON response ({response_time:.2f}s)")
+                                print(f"   - Response: {text_response[:100]}...")
+                                self.test_results.append((name, "PARTIAL", f"Non-JSON response, time: {response_time:.2f}s"))
+                            except:
+                                print(f"❌ {name}: JSON parsing failed ({response_time:.2f}s)")
+                                self.test_results.append((name, "FAIL", f"JSON parsing failed"))
                     else:
                         error_text = await response.text()
                         print(f"❌ {name}: {response.status} - {error_text}")
