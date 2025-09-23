@@ -1773,11 +1773,25 @@ const KnowledgeBaseTab = () => {
   );
 };
 
-// DAO Arbitration Tab
+// Enhanced DAO Arbitration Tab with AI Analysis
 const DAOArbitrationTab = () => {
   const [disputes, setDisputes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedDispute, setSelectedDispute] = useState(null);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [analyzingDispute, setAnalyzingDispute] = useState(false);
+  const [votingStats, setVotingStats] = useState(null);
+  const [evidenceFiles, setEvidenceFiles] = useState([]);
+  const [newDispute, setNewDispute] = useState({
+    title: '',
+    description: '',
+    dispute_type: 'content_licensing',
+    related_content_id: '',
+    involved_parties: [],
+    evidence_files: [],
+    evidence_summary: ''
+  });
 
   const fetchDisputes = async () => {
     try {
