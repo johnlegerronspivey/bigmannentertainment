@@ -63,12 +63,12 @@ googleapis-common-protos==1.70.0
 greenlet==3.2.4
 grpcio==1.74.0
 grpcio-status==1.71.2
-h11==0.14.0
+h11==0.16.0
 hexbytes==1.3.1
 hf-xet==1.1.7
-httpcore==0.16.3
+httpcore==1.0.9
 httplib2==0.22.0
-httpx==0.23.3
+httpx==0.28.1
 huggingface-hub==0.34.4
 idna==3.10
 imageio-ffmpeg==0.6.0
@@ -139,6 +139,7 @@ python-xmp-toolkit==2.0.2
 pytz==2025.2
 pyunormalize==16.0.0
 PyYAML==6.0.2
+qrcode==8.2
 referencing==0.36.2
 regex==2025.7.34
 reportlab==4.4.3
@@ -181,8 +182,7 @@ uvicorn==0.25.0
 watchfiles==1.1.0
 web3==7.13.0
 webauthn==1.11.1
-websockets==11.0.3
+websockets==15.0.1
 xmlschema==4.1.0
 yarl==1.20.1
 zipp==3.23.0
-qrcode==8.2
