@@ -36,21 +36,49 @@ class SupportService:
     # =========== TICKETING SYSTEM ===========
     
     async def create_ticket(self, ticket_data: dict, user_id: str) -> SupportTicket:
-        """Create a new support ticket with AI analysis"""
+        """Create a new support ticket with AI-powered enhancements"""
         try:
-            # Create ticket
+            ticket_id = str(uuid.uuid4())
+            
+            # Use AI to auto-categorize the ticket
+            ai_analysis = await ai_support_service.auto_categorize_ticket(
+                title=ticket_data["title"],
+                description=ticket_data["description"]
+            )
+            
+            # Create ticket with AI-enhanced information
             ticket = SupportTicket(
+                ticket_id=ticket_id,
                 user_id=user_id,
-                **ticket_data
+                title=ticket_data["title"],
+                description=ticket_data["description"],
+                category=TicketCategory(ai_analysis.get("category", ticket_data.get("category", "general_inquiry"))),
+                priority=TicketPriority(ai_analysis.get("priority", ticket_data.get("priority", "medium"))),
+                asset_id=ticket_data.get("asset_id"),
+                user_contact_email=ticket_data.get("user_contact_email"),
+                ai_tags=ai_analysis.get("tags", []),
+                ai_suggested_category=ai_analysis.get("category"),
+                ai_sentiment_score=0.0,  # Will be updated when first message is analyzed
+                ai_summary=ai_analysis.get("suggested_response", ""),
+                created_at=datetime.now(timezone.utc).isoformat(),
+                updated_at=datetime.now(timezone.utc).isoformat()
             )
             
             # Store in database
             await self.tickets_collection.insert_one(ticket.dict())
             
-            # Trigger AI analysis asynchronously
-            asyncio.create_task(self.analyze_ticket_with_ai(ticket.ticket_id))
+            # Add initial AI-generated response if confidence is high
+            if ai_analysis.get("confidence", 0) > 0.8:
+                await self.add_ticket_response(
+                    ticket_id=ticket_id,
+                    user_id="ai_assistant",
+                    message=ai_analysis.get("suggested_response", ""),
+                    user_type="agent"
+                )
             
-            logger.info(f"Created ticket {ticket.ticket_id} for user {user_id}")
+            # Trigger comprehensive AI analysis in background
+            asyncio.create_task(self.analyze_ticket_with_ai(ticket_id))
+            
             return ticket
             
         except Exception as e:
