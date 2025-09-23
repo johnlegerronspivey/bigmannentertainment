@@ -364,24 +364,44 @@ class SupportService:
     # =========== DAO ARBITRATION SYSTEM ===========
     
     async def create_dao_dispute(self, dispute_data: dict, user_id: str) -> DAODispute:
-        """Create DAO dispute for arbitration"""
+        """Create new DAO dispute with advanced AI analysis"""
         try:
-            dispute = DAODispute(
-                created_by_user_id=user_id,
-                **dispute_data
+            dispute_id = str(uuid.uuid4())
+            
+            # Perform comprehensive AI analysis using Claude
+            evidence_summary = dispute_data.get("evidence_summary", "No evidence summary provided")
+            involved_parties = dispute_data.get("involved_parties", [])
+            
+            ai_analysis = await ai_support_service.analyze_dispute_evidence(
+                dispute_description=dispute_data["description"],
+                evidence_summary=evidence_summary,
+                involved_parties=involved_parties
             )
             
-            # Store in database
+            dispute = DAODispute(
+                dispute_id=dispute_id,
+                created_by_user_id=user_id,
+                title=dispute_data["title"],
+                description=dispute_data["description"],
+                dispute_type=DisputeType(dispute_data.get("dispute_type", "content_licensing")),
+                related_content_id=dispute_data.get("related_content_id"),
+                involved_parties=involved_parties,
+                evidence_files=dispute_data.get("evidence_files", []),
+                evidence_summary=evidence_summary,
+                ai_analysis_summary=ai_analysis.get("dispute_classification", {}),
+                ai_recommended_actions=ai_analysis.get("recommended_actions", {}),
+                ai_risk_assessment=ai_analysis.get("risk_assessment", {}),
+                created_at=datetime.now(timezone.utc).isoformat()
+            )
+            
             await self.dao_disputes_collection.insert_one(dispute.dict())
             
-            # Trigger AI evidence analysis
-            if dispute.evidence_files:
-                asyncio.create_task(self.analyze_dispute_evidence(dispute.dispute_id))
+            # Trigger DAO voting initialization with AI insights
+            await self.initialize_dao_voting(dispute_id, ai_analysis)
             
-            # Initialize DAO voting process
-            await self.initialize_dao_voting(dispute.dispute_id)
+            # Continue detailed evidence analysis in background
+            asyncio.create_task(self.analyze_dispute_evidence(dispute_id))
             
-            logger.info(f"Created DAO dispute {dispute.dispute_id} by user {user_id}")
             return dispute
             
         except Exception as e:
