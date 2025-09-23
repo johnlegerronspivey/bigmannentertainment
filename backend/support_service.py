@@ -236,26 +236,66 @@ class SupportService:
             raise
     
     async def add_chat_message(self, session_id: str, sender_id: str, message_type: ChatMessageType, content: str) -> ChatMessage:
-        """Add message to chat session"""
+        """Add message to chat session with AI sentiment analysis"""
         try:
+            message_id = str(uuid.uuid4())
+            
+            # Analyze sentiment for user messages
+            sentiment_data = {}
+            if message_type == ChatMessageType.USER_MESSAGE:
+                sentiment_analysis = await ai_support_service.analyze_chat_sentiment(content)
+                sentiment_data = {
+                    "ai_sentiment": sentiment_analysis.get("sentiment", "neutral"),
+                    "ai_urgency": sentiment_analysis.get("urgency", "low"),
+                    "ai_escalation_recommended": sentiment_analysis.get("escalation_recommended", False)
+                }
+            
             message = ChatMessage(
+                message_id=message_id,
                 session_id=session_id,
                 sender_id=sender_id,
                 message_type=message_type,
-                content=content
+                content=content,
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                **sentiment_data
             )
             
             await self.chat_messages_collection.insert_one(message.dict())
             
-            # If user message, trigger AI auto-response if no agent available
+            # Handle escalation if AI recommends it
+            if sentiment_data.get("ai_escalation_recommended", False):
+                await self._handle_escalation_alert(session_id, sentiment_analysis)
+            
+            # Auto-respond with AI if no agent available
             if message_type == ChatMessageType.USER_MESSAGE:
-                asyncio.create_task(self.try_ai_auto_response(session_id, content))
+                await self.try_ai_auto_response(session_id, content)
             
             return message
             
         except Exception as e:
             logger.error(f"Failed to add chat message: {str(e)}")
             raise
+    
+    async def _handle_escalation_alert(self, session_id: str, sentiment_analysis: Dict):
+        """Handle escalation alerts for urgent or negative sentiment"""
+        try:
+            # Notify available agents about escalation need
+            escalation_alert = {
+                "type": "escalation_alert",
+                "session_id": session_id,
+                "sentiment": sentiment_analysis.get("sentiment"),
+                "urgency": sentiment_analysis.get("urgency"),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": f"Customer message shows {sentiment_analysis.get('sentiment')} sentiment with {sentiment_analysis.get('urgency')} urgency"
+            }
+            
+            # Store alert for agent dashboard
+            await self.db.escalation_alerts.insert_one(escalation_alert)
+            
+            logger.warning(f"Escalation alert created for session {session_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to handle escalation alert: {str(e)}")
     
     async def get_chat_session(self, session_id: str, user_id: str) -> Optional[ChatSession]:
         """Get chat session by ID"""
