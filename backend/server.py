@@ -4330,6 +4330,10 @@ async def reset_password(reset_data: ResetPasswordRequest, request: Request):
     if not user_doc:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
     
+    # Remove MongoDB _id field to prevent ObjectId serialization issues
+    if "_id" in user_doc:
+        del user_doc["_id"]
+    
     user = User(**user_doc)
     
     # Hash new password
