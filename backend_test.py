@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Comprehensive Support System Backend Testing
-Testing all 5 support tiers: Health, Ticketing, Live Chat, Knowledge Base, DAO Arbitration, AI Automation
+Comprehensive Support System API Testing
+Testing the new comprehensive Support System API endpoints with AI integration
+Focus: Health, AI FAQ Suggestions, Ticket Creation with AI, WebSocket Stats
 """
 
 import asyncio
