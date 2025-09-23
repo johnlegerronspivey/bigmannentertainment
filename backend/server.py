@@ -1644,35 +1644,53 @@ async def generate_license(request: dict):
     try:
         license_id = str(uuid.uuid4())
         
-        # Create license record
+        # Create license record (ensure all values are JSON serializable)
         license_data = {
             "license_id": license_id,
-            "asset_id": request.get("asset_id"),
-            "license_type": request.get("license_type", "mechanical"),
-            "territory": request.get("territory", "US"),
-            "usage_type": request.get("usage_type", "streaming"),
-            "duration": request.get("duration", "perpetual"),
-            "royalty_rate": request.get("royalty_rate", 0.091),
+            "asset_id": str(request.get("asset_id", "")),
+            "license_type": str(request.get("license_type", "mechanical")),
+            "territory": str(request.get("territory", "US")),
+            "usage_type": str(request.get("usage_type", "streaming")),
+            "duration": str(request.get("duration", "perpetual")),
+            "royalty_rate": float(request.get("royalty_rate", 0.091)),
             "status": "active",
             "generated_at": datetime.now(timezone.utc).isoformat(),
-            "expires_at": None if request.get("duration") == "perpetual" else (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
+            "expires_at": None if str(request.get("duration", "perpetual")) == "perpetual" else (datetime.now(timezone.utc) + timedelta(days=365)).isoformat(),
+            "created_by": "system",
+            "version": "1.0"
         }
         
         # Store in database
         result = await db.comprehensive_licenses.insert_one(license_data)
         
         if result.inserted_id:
+            # Create response without MongoDB ObjectId
+            response_license = {
+                "license_id": license_data["license_id"],
+                "asset_id": license_data["asset_id"],
+                "license_type": license_data["license_type"],
+                "territory": license_data["territory"],
+                "usage_type": license_data["usage_type"],
+                "duration": license_data["duration"],
+                "royalty_rate": license_data["royalty_rate"],
+                "status": license_data["status"],
+                "generated_at": license_data["generated_at"],
+                "expires_at": license_data["expires_at"]
+            }
+            
             return {
                 "success": True,
-                "license": license_data,
+                "license": response_license,
                 "license_id": license_id,
                 "message": "License generated successfully",
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "database_id": str(result.inserted_id)  # Convert ObjectId to string
             }
         else:
             raise Exception("Failed to store license in database")
             
     except Exception as e:
+        logger.error(f"License generation error: {str(e)}")
         return {
             "success": False,
             "error": str(e),
