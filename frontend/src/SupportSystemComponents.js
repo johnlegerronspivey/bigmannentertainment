@@ -602,50 +602,124 @@ const TicketingTab = () => {
                     </div>
                   </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Asset ID (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={newTicket.asset_id}
-                    onChange={(e) => setNewTicket({...newTicket, asset_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Related asset or content ID"
-                  />
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Asset ID (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={newTicket.asset_id}
+                        onChange={(e) => setNewTicket({...newTicket, asset_id: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Related asset or content ID"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contact Email (Optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={newTicket.user_contact_email}
-                    onChange={(e) => setNewTicket({...newTicket, user_contact_email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Alternative contact email"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Contact Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        value={newTicket.user_contact_email}
+                        onChange={(e) => setNewTicket({...newTicket, user_contact_email: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Alternative contact email"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCreateForm(false);
+                        setAiSuggestions(null);
+                      }}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading || analyzingTicket}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center justify-center"
+                    >
+                      {loading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Creating...
+                        </>
+                      ) : (
+                        'Create Ticket'
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
 
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateForm(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Create Ticket
-                </button>
+              {/* AI Suggestions Panel */}
+              <div className="lg:col-span-1">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center mb-3">
+                    <span className="text-lg mr-2">🤖</span>
+                    <h4 className="font-medium text-gray-900">AI Assistant</h4>
+                  </div>
+                  
+                  {analyzingTicket ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                        <p className="text-sm text-gray-600 mt-2">Analyzing your issue...</p>
+                      </div>
+                    </div>
+                  ) : aiSuggestions && aiSuggestions.length > 0 ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600">
+                        Found {aiSuggestions.length} relevant articles that might help:
+                      </p>
+                      {aiSuggestions.map((suggestion, index) => (
+                        <div key={index} className="bg-white p-3 rounded border border-gray-200">
+                          <h5 className="font-medium text-sm text-gray-900 mb-1">
+                            {suggestion.title}
+                          </h5>
+                          <p className="text-xs text-gray-600 mb-2">
+                            {suggestion.answer}
+                          </p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-blue-600">
+                              {Math.round(suggestion.relevance * 100)}% relevant
+                            </span>
+                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                              {suggestion.category}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      <p className="text-xs text-gray-500">
+                        💡 These suggestions might resolve your issue without creating a ticket.
+                      </p>
+                    </div>
+                  ) : (newTicket.title || newTicket.description) ? (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-gray-600">
+                        No relevant articles found. Your ticket will be processed by our support team.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-gray-600">
+                        Start typing your issue title and description to get AI-powered suggestions.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
