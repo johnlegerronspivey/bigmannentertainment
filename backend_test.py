@@ -83,51 +83,49 @@ class ComprehensiveBackendTester:
             return {"Authorization": f"Bearer {self.auth_token}"}
         return {}
 
-    async def test_support_health(self):
-        """Test Support System Health endpoint"""
-        print("\n🔍 Testing Support System Health...")
+    async def test_health_endpoints(self):
+        """Test all health endpoints"""
+        print("\n🏥 Testing Health Endpoints...")
         
-        try:
-            async with self.session.get(f"{API_BASE}/support/health") as response:
-                if response.status == 200:
-                    health_data = await response.json()
+        health_endpoints = [
+            ("Global Health Check", "/health"),
+            ("API Health Check", "/api/health"),
+            ("Auth Health Check", "/api/auth/health"),
+            ("Business Health Check", "/api/business/health"),
+            ("DAO Health Check", "/api/dao/health")
+        ]
+        
+        for name, endpoint in health_endpoints:
+            try:
+                url = f"{BACKEND_URL}{endpoint}" if endpoint.startswith("/health") else f"{BACKEND_URL}{endpoint}"
+                
+                start_time = time.time()
+                async with self.session.get(url) as response:
+                    response_time = time.time() - start_time
                     
-                    # Verify health data structure
-                    required_fields = ['total_active_tickets', 'total_active_chats', 'total_kb_articles', 'total_active_disputes']
-                    missing_fields = [field for field in required_fields if field not in health_data]
-                    
-                    if not missing_fields:
-                        print(f"✅ Support system health check passed")
-                        print(f"   - Active tickets: {health_data.get('total_active_tickets', 0)}")
-                        print(f"   - Active chats: {health_data.get('total_active_chats', 0)}")
-                        print(f"   - KB articles: {health_data.get('total_kb_articles', 0)}")
-                        print(f"   - Active disputes: {health_data.get('total_active_disputes', 0)}")
+                    if response.status == 200:
+                        health_data = await response.json()
+                        print(f"✅ {name}: OK ({response_time:.2f}s)")
                         
-                        # Check if all 5 support components are operational
-                        components_active = (
-                            health_data.get('total_active_tickets', 0) >= 0 and
-                            health_data.get('total_active_chats', 0) >= 0 and
-                            health_data.get('total_kb_articles', 0) >= 0 and
-                            health_data.get('total_active_disputes', 0) >= 0
-                        )
+                        # Check for expected health data structure
+                        if 'status' in health_data:
+                            status = health_data.get('status')
+                            print(f"   - Status: {status}")
+                            
+                            # Check database connectivity for API health
+                            if endpoint == "/api/health" and 'database' in health_data:
+                                db_status = health_data.get('database', {}).get('status', 'unknown')
+                                print(f"   - Database: {db_status}")
                         
-                        if components_active:
-                            print("✅ All 5 support components are operational")
-                            self.test_results.append(("Support Health Check", "PASS", "All components active"))
-                        else:
-                            print("⚠️ Some support components may not be fully operational")
-                            self.test_results.append(("Support Health Check", "PARTIAL", "Some components inactive"))
+                        self.test_results.append((name, "PASS", f"Response time: {response_time:.2f}s"))
                     else:
-                        print(f"❌ Missing health data fields: {missing_fields}")
-                        self.test_results.append(("Support Health Check", "FAIL", f"Missing fields: {missing_fields}"))
-                else:
-                    error_text = await response.text()
-                    print(f"❌ Health check failed: {response.status} - {error_text}")
-                    self.test_results.append(("Support Health Check", "FAIL", f"HTTP {response.status}"))
+                        error_text = await response.text()
+                        print(f"❌ {name}: {response.status} - {error_text}")
+                        self.test_results.append((name, "FAIL", f"HTTP {response.status}"))
 
-        except Exception as e:
-            print(f"❌ Health check error: {str(e)}")
-            self.test_results.append(("Support Health Check", "ERROR", str(e)))
+            except Exception as e:
+                print(f"❌ {name} error: {str(e)}")
+                self.test_results.append((name, "ERROR", str(e)))
 
     async def test_ticketing_system(self):
         """Test Ticketing System APIs"""
