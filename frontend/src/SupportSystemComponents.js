@@ -372,12 +372,47 @@ const TicketingTab = () => {
     fetchTickets();
   }, [searchQuery, filterStatus]);
 
+  // AI-powered ticket analysis
+  const analyzeTicketContent = async () => {
+    if (!newTicket.title || !newTicket.description) return;
+    
+    setAnalyzingTicket(true);
+    try {
+      const response = await axios.get(`${API}/support/ai/faq-suggestions`, {
+        params: {
+          query: `${newTicket.title} ${newTicket.description}`,
+          context: `Category: ${newTicket.category}, Priority: ${newTicket.priority}`,
+          limit: 3
+        }
+      });
+      
+      if (response.data.suggestions) {
+        setAiSuggestions(response.data.suggestions);
+      }
+    } catch (error) {
+      console.error('Error analyzing ticket:', error);
+    } finally {
+      setAnalyzingTicket(false);
+    }
+  };
+
+  // Debounced analysis trigger
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (newTicket.title || newTicket.description) {
+        analyzeTicketContent();
+      }
+    }, 2000);
+    
+    return () => clearTimeout(timeoutId);
+  }, [newTicket.title, newTicket.description]);
+
   const handleCreateTicket = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const response = await axios.post(`${API}/support/tickets`, newTicket);
       if (response.data) {
-        alert('Support ticket created successfully!');
         setShowCreateForm(false);
         setNewTicket({
           title: '',
@@ -387,11 +422,35 @@ const TicketingTab = () => {
           asset_id: '',
           user_contact_email: ''
         });
+        setAiSuggestions(null);
         fetchTickets();
+        
+        // Show success with AI insights
+        const ticket = response.data;
+        alert(`Support ticket created successfully! ${
+          ticket.ai_tags ? `AI detected topics: ${ticket.ai_tags.join(', ')}` : ''
+        }`);
       }
     } catch (error) {
       console.error('Error creating ticket:', error);
       alert('Failed to create ticket: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const viewTicketDetails = async (ticket) => {
+    setSelectedTicket(ticket);
+    setShowTicketDetails(true);
+    
+    // Fetch AI analysis for the ticket if available
+    if (ticket.ticket_id) {
+      try {
+        const response = await axios.get(`${API}/support/ai/analysis/ticket/${ticket.ticket_id}`);
+        setSelectedTicket(prev => ({...prev, ai_analysis: response.data}));
+      } catch (error) {
+        console.log('No AI analysis available for this ticket');
+      }
     }
   };
 
