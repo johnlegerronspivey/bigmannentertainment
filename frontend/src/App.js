@@ -35,6 +35,7 @@ import { SocialMediaPhases5To10Dashboard } from './SocialMediaPhases5To10Compone
 import { RealTimeRoyaltyDashboard } from './RealTimeRoyaltyComponents';
 import { ComprehensivePlatform } from './ComprehensivePlatformComponents';
 import { WorkflowIntegrationDashboard } from './WorkflowIntegrationComponents';
+import { SupportSystemDashboard } from './SupportSystemComponents';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
