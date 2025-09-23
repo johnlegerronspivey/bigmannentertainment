@@ -48,12 +48,12 @@ class ComprehensiveBackendTester:
         try:
             # Registration data
             registration_data = {
-                "email": f"support_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}@bigmannentertainment.com",
-                "password": "SupportTest123!",
-                "full_name": "Support System Tester",
-                "business_name": "Support Testing LLC",
+                "email": f"backend_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}@bigmannentertainment.com",
+                "password": "BackendTest123!",
+                "full_name": "Backend Comprehensive Tester",
+                "business_name": "Backend Testing LLC",
                 "date_of_birth": "1990-01-01T00:00:00Z",
-                "address_line1": "123 Support Test St",
+                "address_line1": "123 Backend Test St",
                 "city": "Test City",
                 "state_province": "Test State",
                 "postal_code": "12345",
