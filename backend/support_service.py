@@ -421,7 +421,7 @@ class SupportService:
             raise
     
     async def search_knowledge_base(self, search_query: KnowledgeBaseSearchQuery) -> Tuple[List[KnowledgeBaseArticle], int]:
-        """Search knowledge base articles"""
+        """Search knowledge base articles with AI-enhanced suggestions"""
         try:
             # Build query
             query = {"is_public": True, "approved": True}  # Only show public, approved articles
@@ -458,11 +458,42 @@ class SupportService:
                     del doc["_id"]
                 articles.append(KnowledgeBaseArticle(**doc))
             
+            # If no results found and we have a search query, generate AI suggestions
+            if total_count == 0 and search_query.query:
+                asyncio.create_task(self._log_failed_search(search_query.query))
+            
             return articles, total_count
             
         except Exception as e:
             logger.error(f"Failed to search knowledge base: {str(e)}")
             return [], 0
+    
+    async def get_ai_faq_suggestions(self, query: str, context: str = None) -> List[Dict]:
+        """Get AI-powered FAQ suggestions for a user query"""
+        try:
+            suggestions = await ai_support_service.generate_faq_suggestions(query, context)
+            return suggestions
+        except Exception as e:
+            logger.error(f"Failed to get AI FAQ suggestions: {str(e)}")
+            return []
+    
+    async def _log_failed_search(self, query: str):
+        """Log failed searches for knowledge base improvement"""
+        try:
+            # Store failed search for analysis
+            failed_search = {
+                "query": query,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "type": "no_results"
+            }
+            
+            # You could store this in a separate collection for analysis
+            # await self.db.failed_searches.insert_one(failed_search)
+            
+            logger.info(f"Logged failed KB search: {query}")
+            
+        except Exception as e:
+            logger.error(f"Failed to log search: {str(e)}")
     
     async def get_knowledge_base_article(self, article_id: str) -> Optional[KnowledgeBaseArticle]:
         """Get knowledge base article and increment view count"""
