@@ -625,13 +625,119 @@ const TicketingTab = () => {
   );
 };
 
-// Live Chat Tab (Simplified version - WebSocket integration would be more complex)
+// Enhanced Live Chat Tab with WebSocket integration
 const LiveChatTab = () => {
   const [chatSessions, setChatSessions] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [websocket, setWebsocket] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [isTyping, setIsTyping] = useState(false);
+  const [otherTyping, setOtherTyping] = useState(new Set());
+  const [agentStatus, setAgentStatus] = useState('offline');
+  const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (websocket) {
+        websocket.close();
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [websocket]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const connectWebSocket = (sessionId, userId = 'user123', userType = 'customer') => {
+    try {
+      const wsUrl = `${BACKEND_URL.replace('http', 'ws')}/api/support/ws/chat/${sessionId}?user_id=${userId}&user_type=${userType}`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        setConnectionStatus('connected');
+        console.log('WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleWebSocketMessage(data);
+      };
+
+      ws.onclose = () => {
+        setConnectionStatus('disconnected');
+        console.log('WebSocket disconnected');
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setConnectionStatus('error');
+      };
+
+      setWebsocket(ws);
+    } catch (error) {
+      console.error('Failed to connect WebSocket:', error);
+    }
+  };
+
+  const handleWebSocketMessage = (data) => {
+    switch (data.type) {
+      case 'new_message':
+        setMessages(prev => [...prev, data.message]);
+        break;
+      case 'message_history':
+        setMessages(prev => [...prev, data.message]);
+        break;
+      case 'typing_indicator':
+        if (data.is_typing) {
+          setOtherTyping(prev => new Set([...prev, data.user_id]));
+        } else {
+          setOtherTyping(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(data.user_id);
+            return newSet;
+          });
+        }
+        break;
+      case 'agent_assigned':
+        setAgentStatus('online');
+        setMessages(prev => [...prev, {
+          message_id: 'system_' + Date.now(),
+          sender_type: 'system',
+          content: `${data.agent_name || 'An agent'} has joined the chat`,
+          timestamp: data.timestamp
+        }]);
+        break;
+      case 'agent_unavailable':
+        setAgentStatus('offline');
+        setMessages(prev => [...prev, {
+          message_id: 'system_' + Date.now(),
+          sender_type: 'system', 
+          content: data.message,
+          timestamp: data.timestamp
+        }]);
+        break;
+      case 'escalation_alert':
+        // Handle escalation notifications
+        break;
+      case 'heartbeat':
+        // Respond to heartbeat
+        if (websocket) {
+          websocket.send(JSON.stringify({ type: 'pong' }));
+        }
+        break;
+    }
+  };
 
   const startNewChat = async () => {
     try {
@@ -644,10 +750,13 @@ const LiveChatTab = () => {
       
       const response = await axios.post(`${API}/support/chat/sessions`, chatRequest);
       if (response.data) {
-        setChatSessions([response.data, ...chatSessions]);
-        setActiveChatId(response.data.session_id);
-        // Load messages for new session
-        await fetchChatMessages(response.data.session_id);
+        const newSession = response.data;
+        setChatSessions([newSession, ...chatSessions]);
+        setActiveChatId(newSession.session_id);
+        setMessages([]);
+        
+        // Connect WebSocket for real-time chat
+        connectWebSocket(newSession.session_id);
       }
     } catch (error) {
       console.error('Error starting chat:', error);
@@ -657,24 +766,95 @@ const LiveChatTab = () => {
     }
   };
 
-  const fetchChatMessages = async (sessionId) => {
-    try {
-      const response = await axios.get(`${API}/support/chat/sessions/${sessionId}/messages`);
-      setMessages(response.data || []);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
+  const sendMessage = () => {
+    if (!newMessage.trim() || !websocket || connectionStatus !== 'connected') {
+      return;
     }
+
+    // Stop typing indicator
+    if (isTyping) {
+      websocket.send(JSON.stringify({
+        type: 'typing_indicator',
+        is_typing: false
+      }));
+      setIsTyping(false);
+    }
+
+    // Send message
+    websocket.send(JSON.stringify({
+      type: 'chat_message',
+      content: newMessage.trim()
+    }));
+
+    setNewMessage('');
+  };
+
+  const handleTyping = () => {
+    if (!websocket || connectionStatus !== 'connected') return;
+
+    if (!isTyping) {
+      setIsTyping(true);
+      websocket.send(JSON.stringify({
+        type: 'typing_indicator',
+        is_typing: true
+      }));
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      if (websocket && isTyping) {
+        websocket.send(JSON.stringify({
+          type: 'typing_indicator',
+          is_typing: false
+        }));
+        setIsTyping(false);
+      }
+    }, 2000);
+  };
+
+  const switchToSession = (sessionId) => {
+    // Close current WebSocket
+    if (websocket) {
+      websocket.close();
+    }
+
+    setActiveChatId(sessionId);
+    setMessages([]);
+    setOtherTyping(new Set());
+
+    // Connect to new session
+    connectWebSocket(sessionId);
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Live Chat Support</h2>
-        <p className="text-gray-600">Get instant help from our support team</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Live Chat Support</h2>
+          <p className="text-gray-600">Get instant help from our support team with real-time messaging</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${
+              connectionStatus === 'connected' ? 'bg-green-500' : 
+              connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
+            }`}></div>
+            <span className="text-sm text-gray-600 capitalize">{connectionStatus}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${agentStatus === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+            <span className="text-sm text-gray-600">Agent {agentStatus}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Chat Interface */}
-      <div className="bg-white shadow rounded-lg overflow-hidden" style={{height: '600px'}}>
+      {/* Enhanced Chat Interface */}
+      <div className="bg-white shadow rounded-lg overflow-hidden" style={{height: '700px'}}>
         <div className="flex h-full">
           {/* Chat Sessions Sidebar */}
           <div className="w-1/3 border-r border-gray-200 bg-gray-50">
@@ -682,108 +862,202 @@ const LiveChatTab = () => {
               <button
                 onClick={startNewChat}
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md font-medium"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md font-medium flex items-center justify-center"
               >
-                {loading ? 'Starting...' : 'Start New Chat'}
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">💬</span>
+                    Start New Chat
+                  </>
+                )}
               </button>
             </div>
             
-            <div className="p-4">
+            <div className="p-4 max-h-full overflow-y-auto">
               {chatSessions.length > 0 ? (
                 <div className="space-y-2">
                   {chatSessions.map((session, index) => (
                     <div
-                      key={index}
-                      onClick={() => {
-                        setActiveChatId(session.session_id);
-                        fetchChatMessages(session.session_id);
-                      }}
-                      className={`p-3 rounded-lg cursor-pointer ${
+                      key={session.session_id || index}
+                      onClick={() => switchToSession(session.session_id)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all ${
                         activeChatId === session.session_id 
-                          ? 'bg-blue-100 border-blue-500 border' 
-                          : 'bg-white hover:bg-gray-100'
+                          ? 'bg-blue-100 border-blue-500 border shadow-sm' 
+                          : 'bg-white hover:bg-gray-100 hover:shadow-sm'
                       }`}
                     >
-                      <p className="font-medium text-sm">Chat Session</p>
-                      <p className="text-xs text-gray-600">
-                        Status: {session.status} • {session.started_at ? new Date(session.started_at).toLocaleTimeString() : 'N/A'}
-                      </p>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">Chat Session</p>
+                          <p className="text-xs text-gray-600">
+                            {session.status ? `Status: ${session.status}` : 'Active'} •{' '}
+                            {session.started_at ? new Date(session.started_at).toLocaleTimeString() : 'Now'}
+                          </p>
+                        </div>
+                        {activeChatId === session.session_id && connectionStatus === 'connected' && (
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="text-2xl mb-2">💬</div>
+                  <div className="text-4xl mb-4">💬</div>
                   <p className="text-gray-500 text-sm">No active chats</p>
+                  <p className="text-gray-400 text-xs mt-2">Click "Start New Chat" to begin</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Chat Messages Area */}
+          {/* Enhanced Chat Messages Area */}
           <div className="flex-1 flex flex-col">
             {activeChatId ? (
               <>
+                {/* Chat Header */}
+                <div className="border-b border-gray-200 p-4 bg-white">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Chat Session</h3>
+                      <p className="text-sm text-gray-500">
+                        {agentStatus === 'online' ? 'Agent available' : 'Waiting for agent...'}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <span className={connectionStatus === 'connected' ? 'text-green-600' : 'text-red-600'}>
+                        ● {connectionStatus}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Messages */}
-                <div className="flex-1 p-4 overflow-y-auto">
+                <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
                   {messages.length > 0 ? (
                     <div className="space-y-4">
                       {messages.map((msg, index) => (
                         <div
-                          key={index}
-                          className={`flex ${msg.message_type === 'user_message' ? 'justify-end' : 'justify-start'}`}
+                          key={msg.message_id || index}
+                          className={`flex ${
+                            msg.sender_type === 'customer' || msg.sender_type === 'user_message' 
+                              ? 'justify-end' 
+                              : 'justify-start'
+                          }`}
                         >
                           <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              msg.message_type === 'user_message'
+                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${
+                              msg.sender_type === 'customer' || msg.sender_type === 'user_message'
                                 ? 'bg-blue-600 text-white'
-                                : msg.message_type === 'ai_message'
-                                ? 'bg-purple-100 text-purple-800'
-                                : 'bg-gray-100 text-gray-800'
+                                : msg.sender_type === 'agent' || msg.sender_type === 'agent_message'
+                                ? 'bg-white text-gray-800 border border-gray-200'
+                                : msg.sender_type === 'system'
+                                ? 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+                                : 'bg-purple-50 text-purple-800 border border-purple-200'
                             }`}
                           >
                             <p className="text-sm">{msg.content}</p>
-                            <p className="text-xs mt-1 opacity-75">
-                              {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'N/A'}
-                            </p>
+                            <div className="flex justify-between items-center mt-1">
+                              <p className="text-xs opacity-75">
+                                {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'Now'}
+                              </p>
+                              {msg.ai_sentiment && (
+                                <span className={`text-xs px-1 py-0.5 rounded ${
+                                  msg.ai_sentiment === 'positive' ? 'bg-green-100 text-green-600' :
+                                  msg.ai_sentiment === 'negative' ? 'bg-red-100 text-red-600' :
+                                  'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {msg.ai_sentiment}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Typing Indicators */}
+                      {otherTyping.size > 0 && (
+                        <div className="flex justify-start">
+                          <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex space-x-1">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                              </div>
+                              <span className="text-xs text-gray-500">Agent is typing...</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div ref={messagesEndRef} />
                     </div>
                   ) : (
                     <div className="text-center py-8">
+                      <div className="text-4xl mb-4">👋</div>
                       <p className="text-gray-500">Start the conversation...</p>
+                      <p className="text-gray-400 text-sm mt-2">Your messages will appear here</p>
                     </div>
                   )}
                 </div>
 
-                {/* Message Input */}
-                <div className="border-t border-gray-200 p-4">
+                {/* Enhanced Message Input */}
+                <div className="border-t border-gray-200 p-4 bg-white">
                   <div className="flex space-x-2">
                     <input
                       type="text"
                       value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Type your message..."
+                      onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        handleTyping();
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={connectionStatus === 'connected' ? "Type your message..." : "Connecting..."}
+                      disabled={connectionStatus !== 'connected'}
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
-                          // Handle send message
-                          setNewMessage('');
+                          e.preventDefault();
+                          sendMessage();
                         }
                       }}
                     />
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                    <button 
+                      onClick={sendMessage}
+                      disabled={!newMessage.trim() || connectionStatus !== 'connected'}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-md font-medium transition-colors"
+                    >
                       Send
                     </button>
                   </div>
+                  {connectionStatus !== 'connected' && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      {connectionStatus === 'connecting' ? 'Connecting to chat...' : 'Chat disconnected. Please refresh to reconnect.'}
+                    </p>
+                  )}
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex-1 flex items-center justify-center bg-gray-50">
                 <div className="text-center">
-                  <div className="text-4xl mb-4">💬</div>
-                  <p className="text-gray-500">Select a chat or start a new conversation</p>
+                  <div className="text-6xl mb-4">💬</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Live Chat</h3>
+                  <p className="text-gray-500 mb-4">Select a chat or start a new conversation to begin</p>
+                  <button
+                    onClick={startNewChat}
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-md font-medium"
+                  >
+                    {loading ? 'Starting...' : 'Start New Chat'}
+                  </button>
                 </div>
               </div>
             )}
