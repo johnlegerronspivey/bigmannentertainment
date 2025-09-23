@@ -11,6 +11,7 @@ from typing import List, Optional, Dict, Any, Tuple
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import uuid
 
+from ai_support_service import ai_support_service
 from support_models import (
     SupportTicket, TicketResponse, ChatSession, ChatMessage, DAODispute, 
     KnowledgeBaseArticle, AITicketAnalysis, SupportDashboardData, 
