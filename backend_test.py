@@ -253,7 +253,7 @@ class ComprehensiveBackendTester:
         gs1_endpoints = [
             ("GS1 Health", "/api/gs1/health"),
             ("GS1 Assets", "/api/gs1/assets"),
-            ("GS1 Identifiers", "/api/gs1/identifiers"),
+            ("GS1 Identifiers", "/api/gs1/identifiers/lookup/test123"),
             ("GS1 Analytics", "/api/gs1/analytics")
         ]
         
