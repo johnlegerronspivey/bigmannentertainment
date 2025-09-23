@@ -4,10 +4,9 @@ Core business logic for multi-tiered support system with AI automation
 """
 
 import asyncio
-import json
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Tuple
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import uuid
 
@@ -17,7 +16,7 @@ from support_models import (
     KnowledgeBaseArticle, AITicketAnalysis, SupportDashboardData, 
     SupportSystemHealth, TicketSearchQuery, KnowledgeBaseSearchQuery,
     TicketStatus, TicketPriority, TicketCategory, ChatStatus, DisputeType,
-    ChatMessageType, KnowledgeBaseType
+    ChatMessageType
 )
 
 logger = logging.getLogger(__name__)
