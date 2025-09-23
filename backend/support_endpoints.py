@@ -22,6 +22,8 @@ from support_models import (
     TicketCategory, ChatStatus, ChatMessageType, DisputeType, KnowledgeBaseType
 )
 from support_service import SupportService
+from websocket_manager import websocket_manager
+from ai_support_service import ai_support_service
 
 logger = logging.getLogger(__name__)
 
