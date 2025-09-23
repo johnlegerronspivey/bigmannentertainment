@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_BACKEND_URL || 'https://support-desk-30.preview.emergentagent.com';
+const API_BASE = process.env.REACT_APP_BACKEND_URL || 'https://mediaflow-98.preview.emergentagent.com';
 
 // GS1 Asset Registry Components
 export const GS1AssetRegistry = () => {

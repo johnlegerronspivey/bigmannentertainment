@@ -13,7 +13,7 @@ import os
 import sys
 
 # Backend URL from environment
-BACKEND_URL = "https://support-desk-30.preview.emergentagent.com/api"
+BACKEND_URL = "https://mediaflow-98.preview.emergentagent.com/api"
 
 class AgencyOnboardingTester:
     def __init__(self):
