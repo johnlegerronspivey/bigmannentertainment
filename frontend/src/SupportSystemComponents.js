@@ -310,13 +310,17 @@ const SupportDashboardTab = ({ systemHealth, userDashboard, onRefresh }) => {
   );
 };
 
-// Ticketing System Tab
+// Enhanced Ticketing System Tab with AI Features
 const TicketingTab = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [aiSuggestions, setAiSuggestions] = useState(null);
+  const [analyzingTicket, setAnalyzingTicket] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showTicketDetails, setShowTicketDetails] = useState(false);
   const [newTicket, setNewTicket] = useState({
     title: '',
     description: '',
@@ -327,21 +331,21 @@ const TicketingTab = () => {
   });
 
   const ticketCategories = [
-    { value: 'technical_support', label: 'Technical Support' },
-    { value: 'licensing_dispute', label: 'Licensing Dispute' },
-    { value: 'royalty_issue', label: 'Royalty Issue' },
-    { value: 'platform_bug', label: 'Platform Bug' },
-    { value: 'content_removal', label: 'Content Removal' },
-    { value: 'payment_issue', label: 'Payment Issue' },
-    { value: 'account_access', label: 'Account Access' },
-    { value: 'general_inquiry', label: 'General Inquiry' }
+    { value: 'technical_support', label: 'Technical Support', icon: '🔧' },
+    { value: 'licensing_dispute', label: 'Licensing Dispute', icon: '⚖️' },
+    { value: 'royalty_issue', label: 'Royalty Issue', icon: '💰' },
+    { value: 'platform_bug', label: 'Platform Bug', icon: '🐛' },
+    { value: 'content_removal', label: 'Content Removal', icon: '🗑️' },
+    { value: 'payment_issue', label: 'Payment Issue', icon: '💳' },
+    { value: 'account_access', label: 'Account Access', icon: '🔐' },
+    { value: 'general_inquiry', label: 'General Inquiry', icon: '❓' }
   ];
 
   const ticketPriorities = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
-    { value: 'critical', label: 'Critical' }
+    { value: 'low', label: 'Low', color: 'bg-gray-100 text-gray-800' },
+    { value: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'high', label: 'High', color: 'bg-orange-100 text-orange-800' },
+    { value: 'critical', label: 'Critical', color: 'bg-red-100 text-red-800' }
   ];
 
   const fetchTickets = async () => {
