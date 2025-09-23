@@ -6665,6 +6665,11 @@ async def update_user(
     
     # Get updated user
     updated_user_doc = await db.users.find_one({"id": user_id}, {"password_hash": 0})
+    
+    # Remove MongoDB _id field to prevent ObjectId serialization issues
+    if "_id" in updated_user_doc:
+        del updated_user_doc["_id"]
+    
     return User(**updated_user_doc)
 
 @api_router.get("/admin/media")
