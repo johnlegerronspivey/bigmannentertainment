@@ -6456,13 +6456,7 @@ app.add_middleware(
 # Root endpoint
 @app.get("/")
 async def root():
-    """Root endpoint for health check"""
-    return {
-        "message": "Big Mann Entertainment API - Backend Server Running",
-        "version": "1.0.0",
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat()
-    }
+    return {"message": "Big Mann Entertainment API", "version": "1.0.0", "status": "operational"}
 
 # API root endpoint
 @api_router.get("/")
