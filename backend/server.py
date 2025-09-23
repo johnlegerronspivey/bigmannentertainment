@@ -6385,7 +6385,6 @@ api_router.include_router(stripe_router)
 api_router.include_router(licensing_router)
 api_router.include_router(comprehensive_licensing_router)
 api_router.include_router(content_removal_router)
-api_router.include_router(gs1_router)
 api_router.include_router(metadata_router)
 api_router.include_router(batch_router)
 api_router.include_router(reporting_router)
@@ -6394,10 +6393,13 @@ api_router.include_router(contracts_router)
 api_router.include_router(audit_router)
 api_router.include_router(media_router)
 api_router.include_router(paypal_router)
-api_router.include_router(premium_router, prefix="/premium")
-api_router.include_router(mlc_router, prefix="/mlc")
-api_router.include_router(mde_router, prefix="/mde")  
-api_router.include_router(pdooh_router, prefix="/pdooh")
+
+# Include routers that already have full /api/prefix paths directly in app
+app.include_router(gs1_router)
+app.include_router(premium_router)
+app.include_router(mlc_router)
+app.include_router(mde_router)  
+app.include_router(pdooh_router)
 
 # Include the main api_router in the app
 
