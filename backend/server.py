@@ -7393,43 +7393,8 @@ async def business_health():
             "error": str(e)
         }
 
-# Health check endpoint
-@app.get("/health")
-async def global_health():
-    """Global platform health check"""
-    try:
-        # Test database connection
-        await db.admin.command('ping')
-        
-        # Get basic platform stats
-        users_count = await db.users.count_documents({})
-        media_count = await db.media_content.count_documents({})
-        
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "database": "connected",
-            "services": {
-                "authentication": "operational",
-                "media_upload": "operational", 
-                "distribution": "operational",
-                "support_system": "operational",
-                "ai_integration": "operational"
-            },
-            "metrics": {
-                "total_users": users_count,
-                "total_media": media_count,
-                "distribution_platforms": len(DISTRIBUTION_PLATFORMS),
-                "uptime": "99.9%"
-            }
-        }
-    except Exception as e:
-        return {
-            "status": "unhealthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "error": str(e),
-            "database": "disconnected"
-        }
+# Global Health Check Endpoints (outside /api prefix) - Moved to end to avoid frontend routing conflicts
+# These endpoints are added after all other routes to prevent conflicts
 
 # Stripe webhook endpoint (must be on root app, not under /api prefix)
 @app.post("/api/webhook/stripe")
