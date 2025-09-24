@@ -770,7 +770,7 @@ const Home = () => {
               to="/platforms" 
               className="text-purple-600 hover:text-purple-700 font-semibold"
             >
-              View all 106+ platforms →
+              View all 117+ platforms →
             </Link>
           </div>
         </div>
