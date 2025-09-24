@@ -293,7 +293,98 @@ const Navigation = () => {
     await logout();
   };
 
-  if (!user) return null;
+  if (!user) {
+    // Public Navigation for non-authenticated users
+    return (
+      <nav className="bg-purple-800 text-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-4">
+              <img 
+                src="/big-mann-logo.png" 
+                alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
+                className="w-10 h-10 object-contain"
+              />
+              <Link to="/" className="text-xl font-bold">Big Mann Entertainment</Link>
+              <span className="text-xs text-gray-500 ml-2">by John LeGerron Spivey</span>
+            </div>
+
+            {/* Desktop Public Navigation */}
+            <div className="hidden md:flex items-center space-x-6">
+              <Link to="/" className="hover:text-purple-200">Home</Link>
+              <Link to="/platforms" className="hover:text-purple-200">Platforms</Link>
+              <Link to="/pricing" className="hover:text-purple-200">Pricing</Link>
+              <Link to="/about" className="hover:text-purple-200">About</Link>
+              <Link to="/login" className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg">Login</Link>
+              <Link to="/register" className="bg-white text-purple-800 hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold">Sign Up</Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-white hover:text-purple-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation for Public */}
+          {isMenuOpen && (
+            <div className="md:hidden pb-4 border-t border-purple-600 mt-4">
+              <div className="flex flex-col space-y-2">
+                <Link 
+                  to="/" 
+                  className="hover:text-purple-200 py-2 px-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                <Link 
+                  to="/platforms" 
+                  className="hover:text-purple-200 py-2 px-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Platforms
+                </Link>
+                <Link 
+                  to="/pricing" 
+                  className="hover:text-purple-200 py-2 px-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+                <Link 
+                  to="/about" 
+                  className="hover:text-purple-200 py-2 px-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link 
+                  to="/login" 
+                  className="hover:text-purple-200 py-2 px-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="bg-white text-purple-800 hover:bg-gray-100 py-2 px-2 rounded-lg font-semibold mt-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-purple-800 text-white shadow-lg">
