@@ -726,7 +726,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-purple-700 mb-2">106+</div>
+              <div className="text-3xl md:text-4xl font-bold text-purple-700 mb-2">117+</div>
               <div className="text-gray-600">Distribution Platforms</div>
             </div>
             <div>
