@@ -599,6 +599,7 @@ class ComprehensiveBackendTester:
             "Integration Services": ["MLC Integration", "MDE Integration", "pDOOH Integration"],
             "Authentication": ["Valid Token Authentication", "Invalid Token Rejection", "No Token Rejection"],
             "Performance": [name for name, _, _ in self.test_results if "Performance" in name],
+            "Record Labels": ["Record Labels Endpoint"],  # Add record labels category
             "Database": ["Database Connectivity", "Data Persistence"]
         }
         
