@@ -3450,6 +3450,7 @@ function App() {
 
             {/* Label routes */}
             <Route path="/label/dashboard" element={<ProtectedRoute><LabelDashboard /></ProtectedRoute>} />
+            <Route path="/label/directory" element={<ProtectedRoute><LabelDirectory /></ProtectedRoute>} />
             <Route path="/label/projects" element={<ProtectedRoute><ProjectManagement /></ProtectedRoute>} />
             <Route path="/label/marketing" element={<ProtectedRoute><MarketingManagement /></ProtectedRoute>} />
             <Route path="/label/financial" element={<ProtectedRoute><FinancialManagement /></ProtectedRoute>} />
