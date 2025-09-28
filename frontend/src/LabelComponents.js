@@ -754,6 +754,335 @@ const AddArtistModal = ({ onClose, onSave }) => {
   );
 };
 
+// ===== LABEL DIRECTORY COMPONENT =====
+
+export const LabelDirectory = () => {
+  const [labels, setLabels] = useState({ major_labels: [], independent_labels: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedTerritory, setSelectedTerritory] = useState('');
+  const [activeTab, setActiveTab] = useState('major');
+
+  useEffect(() => {
+    fetchLabels();
+  }, []);
+
+  const fetchLabels = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API}/api/industry/record-labels`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLabels(data);
+        setError('');
+      } else if (response.status === 401) {
+        setError('Session expired. Please log in again.');
+        localStorage.removeItem('accessToken');
+      } else {
+        setError('Failed to load record labels');
+      }
+    } catch (error) {
+      console.error('Error fetching labels:', error);
+      setError('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterLabels = (labelsList) => {
+    return labelsList.filter(label => {
+      const matchesSearch = label.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesGenre = !selectedGenre || (label.genre_focus && label.genre_focus.toLowerCase().includes(selectedGenre.toLowerCase()));
+      const matchesTerritory = !selectedTerritory || label.territories.includes(selectedTerritory);
+      return matchesSearch && matchesGenre && matchesTerritory;
+    });
+  };
+
+  const getUniqueGenres = (labelsList) => {
+    const genres = new Set();
+    labelsList.forEach(label => {
+      if (label.genre_focus) {
+        genres.add(label.genre_focus);
+      }
+    });
+    return Array.from(genres).sort();
+  };
+
+  const getUniqueTerritories = (labelsList) => {
+    const territories = new Set();
+    labelsList.forEach(label => {
+      if (label.territories) {
+        label.territories.forEach(territory => territories.add(territory));
+      }
+    });
+    return Array.from(territories).sort();
+  };
+
+  const allLabels = [...labels.major_labels, ...labels.independent_labels];
+  const uniqueGenres = getUniqueGenres(allLabels);
+  const uniqueTerritories = getUniqueTerritories(allLabels);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-700 to-blue-800 rounded-lg p-6 text-white">
+        <h2 className="text-3xl font-bold mb-2">🏢 Global Record Labels Directory</h2>
+        <p className="text-lg opacity-90">
+          Connected to {labels.major_labels?.length || 0} major labels and {labels.independent_labels?.length || 0} independent labels worldwide
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      {/* Search and Filters */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div>
+            <input
+              type="text"
+              placeholder="Search labels..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">All Genres</option>
+              {uniqueGenres.map(genre => (
+                <option key={genre} value={genre}>{genre}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <select
+              value={selectedTerritory}
+              onChange={(e) => setSelectedTerritory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">All Territories</option>
+              {uniqueTerritories.map(territory => (
+                <option key={territory} value={territory}>{territory}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedGenre('');
+                setSelectedTerritory('');
+              }}
+              className="w-full bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex space-x-4 mb-6">
+          <button
+            onClick={() => setActiveTab('major')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === 'major'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Major Labels ({filterLabels(labels.major_labels || []).length})
+          </button>
+          <button
+            onClick={() => setActiveTab('independent')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === 'independent'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Independent Labels ({filterLabels(labels.independent_labels || []).length})
+          </button>
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === 'all'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            All Labels ({filterLabels([...labels.major_labels || [], ...labels.independent_labels || []]).length})
+          </button>
+        </div>
+      </div>
+
+      {/* Labels Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {(() => {
+          let labelsToShow = [];
+          if (activeTab === 'major') {
+            labelsToShow = filterLabels(labels.major_labels || []);
+          } else if (activeTab === 'independent') {
+            labelsToShow = filterLabels(labels.independent_labels || []);
+          } else {
+            labelsToShow = filterLabels([...labels.major_labels || [], ...labels.independent_labels || []]);
+          }
+
+          return labelsToShow.map((label, index) => (
+            <LabelCard key={`${label.name}-${index}`} label={label} />
+          ));
+        })()}
+      </div>
+
+      {/* Summary Stats */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-bold mb-4">📊 Directory Statistics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-purple-600">{labels.major_labels?.length || 0}</div>
+            <div className="text-gray-600">Major Labels</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600">{labels.independent_labels?.length || 0}</div>
+            <div className="text-gray-600">Independent Labels</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600">{uniqueGenres.length}</div>
+            <div className="text-gray-600">Genres Covered</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600">{uniqueTerritories.length}</div>
+            <div className="text-gray-600">Territories</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===== LABEL CARD COMPONENT =====
+
+const LabelCard = ({ label }) => {
+  const isMajor = !label.genre_focus; // Major labels typically don't have specific genre focus
+  const labelType = isMajor ? 'Major' : 'Independent';
+  
+  return (
+    <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6 border-l-4 border-purple-500">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">{label.name}</h3>
+          <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+            isMajor ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+          }`}>
+            {labelType}
+          </span>
+        </div>
+        <div className="text-2xl">
+          {isMajor ? '🏢' : '🎵'}
+        </div>
+      </div>
+
+      <div className="space-y-2 text-sm text-gray-600">
+        {label.founded && (
+          <div className="flex items-center">
+            <span className="font-medium">Founded:</span>
+            <span className="ml-1">{label.founded}</span>
+          </div>
+        )}
+        
+        {label.headquarters && (
+          <div className="flex items-center">
+            <span className="font-medium">HQ:</span>
+            <span className="ml-1">{label.headquarters}</span>
+          </div>
+        )}
+
+        {label.parent && (
+          <div className="flex items-center">
+            <span className="font-medium">Parent:</span>
+            <span className="ml-1">{label.parent}</span>
+          </div>
+        )}
+
+        {label.genre_focus && (
+          <div className="flex items-center">
+            <span className="font-medium">Genre:</span>
+            <span className="ml-1 bg-gray-100 px-2 py-1 rounded">{label.genre_focus}</span>
+          </div>
+        )}
+
+        {label.territories && (
+          <div className="flex items-start">
+            <span className="font-medium">Territories:</span>
+            <div className="ml-1 flex flex-wrap gap-1">
+              {label.territories.map(territory => (
+                <span key={territory} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                  {territory}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {label.supported_formats && (
+          <div className="flex items-start">
+            <span className="font-medium">Formats:</span>
+            <div className="ml-1 flex flex-wrap gap-1">
+              {label.supported_formats.map(format => (
+                <span key={format} className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">
+                  {format.toUpperCase()}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 flex space-x-2">
+        <button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+          Connect
+        </button>
+        <button className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+          Details
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Export all components
 export { 
   ArtistManagement, 
@@ -761,5 +1090,7 @@ export {
   LabelOverview,
   MetricCard,
   ArtistCard,
-  AddArtistModal
+  AddArtistModal,
+  LabelDirectory,
+  LabelCard
 };
