@@ -395,6 +395,131 @@ class ComprehensiveBackendTester:
                 print(f"❌ {name} performance test error: {str(e)}")
                 self.test_results.append((f"{name} Performance", "ERROR", str(e)))
 
+    async def test_record_labels_endpoint(self):
+        """Test record labels endpoint as requested in review"""
+        print("\n🎵 Testing Record Labels Endpoint...")
+        
+        try:
+            # Test GET /api/industry/record-labels endpoint
+            async with self.session.get(f"{API_BASE}/industry/partners/labels", headers=self.get_auth_headers()) as response:
+                if response.status == 200:
+                    labels_data = await response.json()
+                    print(f"✅ Record Labels Endpoint: Successfully retrieved data")
+                    
+                    # Verify response structure
+                    if isinstance(labels_data, dict):
+                        major_labels = labels_data.get('major_labels', [])
+                        independent_labels = labels_data.get('independent_labels', [])
+                        total_labels = labels_data.get('total_labels', 0)
+                        
+                        print(f"   - Major Labels: {len(major_labels)}")
+                        print(f"   - Independent Labels: {len(independent_labels)}")
+                        print(f"   - Total Labels: {total_labels}")
+                        
+                        # Test Major Labels - verify key labels are present
+                        major_label_names = [label.get('name', '') for label in major_labels]
+                        required_major_labels = [
+                            "Universal Music Group", "Sony Music Entertainment", "Warner Music Group",
+                            "Interscope Records", "Republic Records", "Def Jam Recordings", 
+                            "Capitol Records", "Columbia Records", "RCA Records", "Epic Records", 
+                            "Atlantic Records"
+                        ]
+                        
+                        found_major_labels = []
+                        missing_major_labels = []
+                        for required_label in required_major_labels:
+                            if required_label in major_label_names:
+                                found_major_labels.append(required_label)
+                            else:
+                                missing_major_labels.append(required_label)
+                        
+                        print(f"   - Found Major Labels: {len(found_major_labels)}/{len(required_major_labels)}")
+                        if missing_major_labels:
+                            print(f"   - Missing Major Labels: {missing_major_labels}")
+                        
+                        # Test Independent Labels - verify key labels are present
+                        independent_label_names = [label.get('name', '') for label in independent_labels]
+                        required_independent_labels = [
+                            "Big Mann Entertainment", "Sub Pop Records", "XL Recordings", 
+                            "Warp Records", "Merge Records", "Matador Records", "4AD"
+                        ]
+                        
+                        found_independent_labels = []
+                        missing_independent_labels = []
+                        for required_label in required_independent_labels:
+                            if required_label in independent_label_names:
+                                found_independent_labels.append(required_label)
+                            else:
+                                missing_independent_labels.append(required_label)
+                        
+                        print(f"   - Found Independent Labels: {len(found_independent_labels)}/{len(required_independent_labels)}")
+                        if missing_independent_labels:
+                            print(f"   - Missing Independent Labels: {missing_independent_labels}")
+                        
+                        # Test Label Categories
+                        major_tier_correct = all(label.get('tier') == 'major' for label in major_labels)
+                        independent_tier_correct = all(label.get('tier') == 'independent' for label in independent_labels)
+                        
+                        print(f"   - Major Labels Tier Correct: {major_tier_correct}")
+                        print(f"   - Independent Labels Tier Correct: {independent_tier_correct}")
+                        
+                        # Test Label Metadata - check for required fields
+                        metadata_fields = ['name', 'founded', 'headquarters', 'supported_formats', 'content_types', 'territories']
+                        sample_major_label = major_labels[0] if major_labels else {}
+                        sample_independent_label = independent_labels[0] if independent_labels else {}
+                        
+                        major_metadata_complete = all(field in sample_major_label for field in metadata_fields[:3])  # name, founded, headquarters
+                        independent_metadata_complete = all(field in sample_independent_label for field in metadata_fields[:3])
+                        
+                        print(f"   - Major Label Metadata Complete: {major_metadata_complete}")
+                        print(f"   - Independent Label Metadata Complete: {independent_metadata_complete}")
+                        
+                        # Verify Big Mann Entertainment is present with correct metadata
+                        big_mann_found = False
+                        big_mann_metadata_correct = False
+                        for label in independent_labels:
+                            if label.get('name') == 'Big Mann Entertainment':
+                                big_mann_found = True
+                                big_mann_metadata_correct = (
+                                    label.get('founded') == '2024' and
+                                    label.get('headquarters') == 'Alexander City, AL' and
+                                    label.get('territories') == ['US']
+                                )
+                                break
+                        
+                        print(f"   - Big Mann Entertainment Found: {big_mann_found}")
+                        print(f"   - Big Mann Entertainment Metadata Correct: {big_mann_metadata_correct}")
+                        
+                        # Overall assessment
+                        major_labels_success = len(found_major_labels) >= 8  # At least 8 out of 11 major labels
+                        independent_labels_success = len(found_independent_labels) >= 5  # At least 5 out of 7 independent labels
+                        categories_success = major_tier_correct and independent_tier_correct
+                        metadata_success = major_metadata_complete and independent_metadata_complete
+                        big_mann_success = big_mann_found and big_mann_metadata_correct
+                        
+                        if all([major_labels_success, independent_labels_success, categories_success, metadata_success, big_mann_success]):
+                            self.test_results.append(("Record Labels Endpoint", "PASS", f"All tests passed: {total_labels} labels"))
+                        elif major_labels_success and independent_labels_success and categories_success:
+                            self.test_results.append(("Record Labels Endpoint", "PARTIAL", f"Core functionality working: {total_labels} labels"))
+                        else:
+                            self.test_results.append(("Record Labels Endpoint", "FAIL", f"Missing required labels or metadata"))
+                    
+                    else:
+                        print(f"❌ Record Labels Endpoint: Invalid response structure")
+                        self.test_results.append(("Record Labels Endpoint", "FAIL", "Invalid response structure"))
+                
+                elif response.status == 401:
+                    print(f"❌ Record Labels Endpoint: Authentication required")
+                    self.test_results.append(("Record Labels Endpoint", "FAIL", "Authentication required"))
+                else:
+                    error_text = await response.text()
+                    print(f"❌ Record Labels Endpoint failed: {response.status} - {error_text}")
+                    self.test_results.append(("Record Labels Endpoint", "FAIL", f"HTTP {response.status}"))
+        
+        except Exception as e:
+            print(f"❌ Record Labels Endpoint error: {str(e)}")
+            self.test_results.append(("Record Labels Endpoint", "ERROR", str(e)))
+
     async def test_database_connectivity(self):
         """Test database connectivity"""
         print("\n🗄️ Testing Database Connectivity...")
