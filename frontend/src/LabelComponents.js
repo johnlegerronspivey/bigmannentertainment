@@ -756,7 +756,7 @@ const AddArtistModal = ({ onClose, onSave }) => {
 
 // ===== LABEL DIRECTORY COMPONENT =====
 
-export const LabelDirectory = () => {
+const LabelDirectory = () => {
   const [labels, setLabels] = useState({ major_labels: [], independent_labels: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
