@@ -889,9 +889,96 @@ ENTERTAINMENT_INDUSTRY_PARTNERS = {
     # Existing categories (abbreviated for space)
     "record_labels": {
         "major": [
-            {"name": "Universal Music Group", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["global"]},
-            {"name": "Sony Music Entertainment", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["global"]},
-            {"name": "Warner Music Group", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["global"]}
+            # The Big Three Major Labels
+            {"name": "Universal Music Group", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1934", "headquarters": "Santa Monica, CA"},
+            {"name": "Sony Music Entertainment", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1929", "headquarters": "New York, NY"},
+            {"name": "Warner Music Group", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1958", "headquarters": "New York, NY"},
+            
+            # Universal Music Group Subsidiaries
+            {"name": "Interscope Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1990", "parent": "Universal Music Group"},
+            {"name": "Republic Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1995", "parent": "Universal Music Group"},
+            {"name": "Def Jam Recordings", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1984", "parent": "Universal Music Group"},
+            {"name": "Capitol Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1942", "parent": "Universal Music Group"},
+            {"name": "Geffen Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1980", "parent": "Universal Music Group"},
+            {"name": "Island Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1959", "parent": "Universal Music Group"},
+            {"name": "Motown Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1959", "parent": "Universal Music Group"},
+            {"name": "Polydor Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1913", "parent": "Universal Music Group"},
+            
+            # Sony Music Entertainment Subsidiaries
+            {"name": "Columbia Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1887", "parent": "Sony Music Entertainment"},
+            {"name": "RCA Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1901", "parent": "Sony Music Entertainment"},
+            {"name": "Epic Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1953", "parent": "Sony Music Entertainment"},
+            {"name": "Arista Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1974", "parent": "Sony Music Entertainment"},
+            {"name": "J Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "2000", "parent": "Sony Music Entertainment"},
+            
+            # Warner Music Group Subsidiaries
+            {"name": "Atlantic Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1947", "parent": "Warner Music Group"},
+            {"name": "Warner Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1958", "parent": "Warner Music Group"},
+            {"name": "Elektra Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1950", "parent": "Warner Music Group"},
+            {"name": "Roadrunner Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["global"], "founded": "1980", "parent": "Warner Music Group"}
+        ],
+        "independent": [
+            # Major Independent Labels
+            {"name": "Big Mann Entertainment", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl", "cd"], "content_types": ["audio"], "territories": ["US"], "founded": "2024", "headquarters": "Alexander City, AL"},
+            {"name": "Sub Pop Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1986", "genre_focus": "Alternative Rock"},
+            {"name": "XL Recordings", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["UK"], "founded": "1989", "genre_focus": "Electronic/Alternative"},
+            {"name": "Warp Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["UK"], "founded": "1989", "genre_focus": "Electronic"},
+            {"name": "Merge Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1989", "genre_focus": "Indie Rock"},
+            {"name": "Matador Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1989", "genre_focus": "Indie Rock"},
+            {"name": "4AD", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["UK"], "founded": "1979", "genre_focus": "Alternative/Dream Pop"},
+            {"name": "Domino Recording Company", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["UK"], "founded": "1993", "genre_focus": "Indie Rock"},
+            {"name": "Rough Trade Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["UK"], "founded": "1978", "genre_focus": "Indie/Alternative"},
+            {"name": "Secretly Canadian", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1996", "genre_focus": "Indie Rock"},
+            
+            # Hip-Hop/Rap Independent Labels
+            {"name": "Top Dawg Entertainment", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2004", "genre_focus": "Hip-Hop"},
+            {"name": "Dreamville Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2007", "genre_focus": "Hip-Hop"},
+            {"name": "Odd Future Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2011", "genre_focus": "Hip-Hop"},
+            {"name": "Strange Music", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "1999", "genre_focus": "Hip-Hop"},
+            {"name": "Rhymesayers Entertainment", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "1995", "genre_focus": "Hip-Hop"},
+            
+            # Electronic/Dance Independent Labels
+            {"name": "Ninja Tune", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["UK"], "founded": "1990", "genre_focus": "Electronic"},
+            {"name": "Brainfeeder", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2008", "genre_focus": "Electronic/Hip-Hop"},
+            {"name": "Ghostly International", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "1999", "genre_focus": "Electronic"},
+            {"name": "Kompakt", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["Germany"], "founded": "1993", "genre_focus": "Electronic"},
+            {"name": "Mau5trap", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["Canada"], "founded": "2007", "genre_focus": "Electronic"},
+            
+            # Country Independent Labels
+            {"name": "Big Loud Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2015", "genre_focus": "Country"},
+            {"name": "BMLG Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2005", "genre_focus": "Country"},
+            {"name": "Broken Bow Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "1999", "genre_focus": "Country"},
+            
+            # Rock/Metal Independent Labels
+            {"name": "Epitaph Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1980", "genre_focus": "Punk/Rock"},
+            {"name": "Fat Wreck Chords", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1990", "genre_focus": "Punk Rock"},
+            {"name": "Victory Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "1989", "genre_focus": "Hardcore/Metal"},
+            {"name": "Nuclear Blast", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["Germany"], "founded": "1987", "genre_focus": "Metal"},
+            {"name": "Century Media Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["Germany"], "founded": "1988", "genre_focus": "Metal"},
+            
+            # R&B/Soul Independent Labels
+            {"name": "Stones Throw Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1996", "genre_focus": "Hip-Hop/Soul"},
+            {"name": "Soulection", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2011", "genre_focus": "R&B/Electronic"},
+            {"name": "HW&W Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2012", "genre_focus": "R&B"},
+            
+            # Jazz Independent Labels
+            {"name": "Blue Note Records", "api_endpoint": None, "supported_formats": ["mp3", "flac", "vinyl"], "content_types": ["audio"], "territories": ["US"], "founded": "1939", "genre_focus": "Jazz"},
+            {"name": "ECM Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["Germany"], "founded": "1969", "genre_focus": "Jazz"},
+            {"name": "Impulse! Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "1960", "genre_focus": "Jazz"},
+            
+            # Regional/International Independent Labels
+            {"name": "Beggars Banquet", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["UK"], "founded": "1977", "genre_focus": "Alternative"},
+            {"name": "Mute Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["UK"], "founded": "1978", "genre_focus": "Electronic"},
+            {"name": "Because Music", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["France"], "founded": "2005", "genre_focus": "Alternative"},
+            {"name": "Ed Banger Records", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["France"], "founded": "2003", "genre_focus": "Electronic"},
+            {"name": "Modular Recordings", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["Australia"], "founded": "1998", "genre_focus": "Electronic/Rock"},
+            
+            # Emerging/Digital-First Labels
+            {"name": "EMPIRE", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2010", "genre_focus": "Hip-Hop/R&B"},
+            {"name": "AWAL", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["UK"], "founded": "1997", "genre_focus": "Digital Distribution"},
+            {"name": "DistroKid", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2013", "genre_focus": "Digital Distribution"},
+            {"name": "CD Baby", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "1998", "genre_focus": "Digital Distribution"},
+            {"name": "TuneCore", "api_endpoint": None, "supported_formats": ["mp3", "flac"], "content_types": ["audio"], "territories": ["US"], "founded": "2005", "genre_focus": "Digital Distribution"}
         ]
     }
 }
