@@ -11,7 +11,7 @@ import { SponsorshipDashboard, SponsorshipDealCreator, MetricsRecorder, AdminSpo
 import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, BusinessLicenseManagement, ComplianceDashboard } from "./TaxComponents";
 import { BusinessIdentifiers, UPCGenerator, ISRCGenerator, ProductManagement } from "./BusinessComponents";
 import { IndustryDashboard, IndustryPartners, GlobalDistribution, IndustryCoverage, IPIManagement, IndustryIdentifiersManagement, EnhancedEntertainmentDashboard, PhotographyServices, VideoProductionServices, MonetizationOpportunities, MusicDataExchange, MechanicalLicensingCollective } from "./IndustryComponents";
-import { LabelDashboard } from "./LabelComponents";
+import { LabelDashboard, LabelDirectory } from "./LabelComponents";
 import { ProjectManagement, MarketingManagement, FinancialManagement } from "./LabelExtendedComponents";
 import { PaymentPackages, PaymentCheckout, PaymentStatus, BankAccountManager, DigitalWalletManager } from "./PaymentComponents";
 import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
