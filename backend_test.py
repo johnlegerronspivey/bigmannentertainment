@@ -662,6 +662,7 @@ class ComprehensiveBackendTester:
             await self.test_integration_services()
             await self.test_auth_token_parsing()
             await self.test_performance_and_response_validation()
+            await self.test_record_labels_endpoint()  # Add record labels test
             await self.test_database_connectivity()
             
             # Print comprehensive summary
