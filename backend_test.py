@@ -91,7 +91,7 @@ class ComprehensiveBackendTester:
         try:
             login_data = {
                 "email": "admin@test.com",
-                "password": "admin123"
+                "password": "Admin123!"  # Updated to match registration
             }
             
             print("🔑 Testing admin login...")
