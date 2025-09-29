@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """
-Record Labels Endpoint Testing
-Testing the record labels endpoint to verify comprehensive list of major and independent labels:
-- GET /api/industry/record-labels endpoint functionality
-- Major Labels verification (Universal Music Group, Sony Music Entertainment, Warner Music Group, etc.)
-- Independent Labels verification (Big Mann Entertainment, Sub Pop Records, XL Recordings, etc.)
-- Label Categories testing (major vs independent tiers)
-- Label Metadata verification (founded dates, headquarters, parent companies, etc.)
-- Authentication integration testing
-- Response structure validation
+Blockchain Verification Testing with Admin User Creation
+Testing blockchain integration endpoints with admin authentication:
+- POST /api/auth/register (to create test admin user with email 'admin@test.com' and password 'admin123')
+- POST /api/auth/login (to verify login works)
+- GET /api/blockchain/status (to verify blockchain integration is working)
+- Admin privileges verification for blockchain endpoints
+- Alternative admin user creation methods if registration fails
 """
 
 import asyncio
