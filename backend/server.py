@@ -62,6 +62,7 @@ from support_endpoints import router as support_router
 
 # Import ULN (Unified Label Network) endpoints
 from uln_endpoints import uln_router
+from uln_blockchain_endpoints import router as blockchain_router
 
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
