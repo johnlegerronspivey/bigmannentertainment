@@ -222,7 +222,8 @@ class ULNService:
             
             return {
                 "success": True,
-                "label_hub_entries": label_hub_entries,
+                "labels": label_hub_entries,  # Changed from label_hub_entries to labels for consistency
+                "label_hub_entries": label_hub_entries,  # Keep both for backward compatibility
                 "statistics": stats,
                 "total_labels": len(label_hub_entries)
             }
