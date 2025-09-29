@@ -828,16 +828,32 @@ class ComprehensiveBackendTester:
         else:
             print(f"   🎉 No critical issues found!")
         
-        print(f"\n🚀 PRODUCTION READINESS ASSESSMENT:")
+        print(f"\n🚀 BLOCKCHAIN INTEGRATION ASSESSMENT:")
+        
+        # Check blockchain-specific results
+        blockchain_tests = [r for r in self.test_results if any(keyword in r[0] for keyword in ["Blockchain", "Admin", "ULN"])]
+        blockchain_passed = len([r for r in blockchain_tests if r[1] == "PASS"])
+        blockchain_total = len(blockchain_tests)
+        blockchain_rate = (blockchain_passed / blockchain_total * 100) if blockchain_total > 0 else 0
+        
+        print(f"   ⛓️ Blockchain Tests: {blockchain_passed}/{blockchain_total} ({blockchain_rate:.1f}%)")
+        
         if success_rate >= 90:
-            print(f"   🎉 EXCELLENT: Backend fixes are working perfectly with {success_rate:.1f}% success rate")
-            print(f"   🏆 All major systems are operational and healthy")
+            print(f"   🎉 EXCELLENT: Blockchain verification successful with {success_rate:.1f}% success rate")
+            print(f"   🏆 Admin user creation and blockchain endpoints are operational")
         elif success_rate >= 75:
-            print(f"   ✅ GOOD: Backend fixes are mostly working with {success_rate:.1f}% success rate")
-            print(f"   🔧 Minor issues may need attention")
+            print(f"   ✅ GOOD: Blockchain integration mostly working with {success_rate:.1f}% success rate")
+            print(f"   🔧 Minor blockchain issues may need attention")
         else:
-            print(f"   ⚠️ NEEDS WORK: Backend has significant issues with {success_rate:.1f}% success rate")
-            print(f"   🛠️ Major fixes still required")
+            print(f"   ⚠️ NEEDS WORK: Blockchain integration has issues with {success_rate:.1f}% success rate")
+            print(f"   🛠️ Major blockchain fixes still required")
+            
+        # Specific blockchain status
+        admin_created = any(r[1] == "PASS" for r in self.test_results if "Admin" in r[0])
+        blockchain_status_ok = any(r[1] == "PASS" for r in self.test_results if "Blockchain Status" in r[0])
+        
+        print(f"\n🔐 ADMIN USER STATUS: {'✅ Created Successfully' if admin_created else '❌ Creation Failed'}")
+        print(f"⛓️ BLOCKCHAIN STATUS: {'✅ Integration Working' if blockchain_status_ok else '❌ Integration Issues'}")
         
         print("="*80)
 
