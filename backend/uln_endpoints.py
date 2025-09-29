@@ -19,8 +19,15 @@ import json
 import os
 
 # Import authentication from server
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 try:
-    from server import get_current_user, get_current_admin_user, User, db
+    # Try to import from main server module
+    from server import get_current_user, get_current_admin_user, User
+    # Use the same database instance from server
+    from server import db
     print("✅ Successfully imported authentication from server for ULN")
 except ImportError:
     # Fallback authentication (for development)
