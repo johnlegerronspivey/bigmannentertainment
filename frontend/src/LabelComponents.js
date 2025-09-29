@@ -24,7 +24,7 @@ export const LabelDashboard = () => {
       setLoading(true);
       setError('');
       
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
@@ -254,7 +254,7 @@ const ArtistManagement = () => {
 
   const fetchArtists = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       if (!token) return;
 
       const params = new URLSearchParams();
@@ -281,7 +281,7 @@ const ArtistManagement = () => {
 
   const handleAddArtist = async (artistData) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API}/api/label/artists`, {
         method: 'POST',
         headers: {
@@ -443,7 +443,7 @@ const ARManagement = () => {
   const fetchDemos = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API}/api/label/ar/demos`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -465,7 +465,7 @@ const ARManagement = () => {
   const fetchIndustryTrends = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API}/api/label/ar/industry-trends`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -487,7 +487,7 @@ const ARManagement = () => {
   const searchIndustryContacts = async (query, category = 'all') => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       const params = new URLSearchParams({ query, category });
       const response = await fetch(`${API}/api/label/ar/industry-contacts?${params}`, {
         headers: {
@@ -565,7 +565,7 @@ const DemoManagement = ({ demos, onUpdate }) => {
 
   const evaluateDemo = async (demoId, score, notes, status) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API}/api/label/ar/demos/${demoId}/evaluate`, {
         method: 'PUT',
         headers: {
@@ -774,7 +774,7 @@ const LabelDirectory = () => {
       setLoading(true);
       setError('');
       
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
