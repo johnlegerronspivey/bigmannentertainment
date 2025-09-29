@@ -224,6 +224,120 @@ class ComprehensiveBackendTester:
                 print(f"❌ {name} error: {str(e)}")
                 self.test_results.append((name, "ERROR", str(e)))
 
+    async def test_blockchain_integration_endpoints(self):
+        """Test blockchain integration endpoints with admin authentication"""
+        print("\n⛓️ Testing Blockchain Integration Endpoints...")
+        
+        # Test 1: GET /api/blockchain/status - Main blockchain status endpoint
+        try:
+            print("🔍 Testing GET /api/blockchain/status...")
+            async with self.session.get(f"{API_BASE}/blockchain/status", headers=self.get_auth_headers()) as response:
+                if response.status == 200:
+                    blockchain_status = await response.json()
+                    print(f"✅ Blockchain Status: Retrieved successfully")
+                    
+                    # Check for expected blockchain status fields
+                    if isinstance(blockchain_status, dict):
+                        status = blockchain_status.get('status', 'unknown')
+                        network = blockchain_status.get('blockchain_network', 'unknown')
+                        integration_status = blockchain_status.get('integration_status', 'unknown')
+                        
+                        print(f"   - Status: {status}")
+                        print(f"   - Network: {network}")
+                        print(f"   - Integration Status: {integration_status}")
+                        
+                        # Check for blockchain features
+                        if 'features' in blockchain_status:
+                            features = blockchain_status.get('features', {})
+                            print(f"   - Features Available: {len(features)}")
+                        
+                        # Check for smart contracts
+                        if 'smart_contracts' in blockchain_status:
+                            contracts = blockchain_status.get('smart_contracts', {})
+                            print(f"   - Smart Contracts: {contracts.get('deployed', 0)} deployed")
+                    
+                    self.test_results.append(("Blockchain Status Endpoint", "PASS", f"Status: {status}, Network: {network}"))
+                    
+                elif response.status == 403:
+                    print(f"⚠️ Blockchain Status: Admin access required (403)")
+                    self.test_results.append(("Blockchain Status Endpoint", "PARTIAL", "Admin access required"))
+                else:
+                    error_text = await response.text()
+                    print(f"❌ Blockchain Status failed: {response.status} - {error_text}")
+                    self.test_results.append(("Blockchain Status Endpoint", "FAIL", f"HTTP {response.status}"))
+                    
+        except Exception as e:
+            print(f"❌ Blockchain Status error: {str(e)}")
+            self.test_results.append(("Blockchain Status Endpoint", "ERROR", str(e)))
+
+        # Test 2: Additional blockchain endpoints
+        blockchain_endpoints = [
+            ("Blockchain Integration Complete", "/api/blockchain/integrate/complete"),
+            ("Blockchain Contracts", "/api/blockchain/contracts/BM-LBL-ATLANTIC"),
+            ("Blockchain Audit Trail", "/api/blockchain/audit-trail"),
+            ("ULN Blockchain Status", "/api/uln/blockchain/status")
+        ]
+        
+        for name, endpoint in blockchain_endpoints:
+            try:
+                print(f"🔍 Testing {endpoint}...")
+                async with self.session.get(f"{BACKEND_URL}{endpoint}", headers=self.get_auth_headers()) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        print(f"✅ {name}: Retrieved successfully")
+                        
+                        # Log some key information if available
+                        if isinstance(data, dict):
+                            if 'status' in data:
+                                print(f"   - Status: {data.get('status')}")
+                            if 'integration_id' in data:
+                                print(f"   - Integration ID: {data.get('integration_id')}")
+                            if 'contracts' in data:
+                                contracts = data.get('contracts', [])
+                                print(f"   - Contracts: {len(contracts)} found")
+                        
+                        self.test_results.append((name, "PASS", "Data retrieved successfully"))
+                        
+                    elif response.status == 403:
+                        print(f"⚠️ {name}: Admin access required (403)")
+                        self.test_results.append((name, "PARTIAL", "Admin access required"))
+                    elif response.status == 404:
+                        print(f"⚠️ {name}: Endpoint not found (404)")
+                        self.test_results.append((name, "PARTIAL", "Endpoint not available"))
+                    else:
+                        error_text = await response.text()
+                        print(f"❌ {name} failed: {response.status} - {error_text}")
+                        self.test_results.append((name, "FAIL", f"HTTP {response.status}"))
+                        
+            except Exception as e:
+                print(f"❌ {name} error: {str(e)}")
+                self.test_results.append((name, "ERROR", str(e)))
+
+        # Test 3: Blockchain integration steps (if available)
+        print("🔍 Testing blockchain integration steps...")
+        for step in range(1, 7):  # Test steps 1-6
+            try:
+                endpoint = f"/api/blockchain/integrate/step-{step}"
+                async with self.session.post(f"{BACKEND_URL}{endpoint}", headers=self.get_auth_headers()) as response:
+                    if response.status in [200, 201]:
+                        step_result = await response.json()
+                        print(f"✅ Blockchain Step {step}: Executed successfully")
+                        self.test_results.append((f"Blockchain Step {step}", "PASS", "Step executed"))
+                    elif response.status == 403:
+                        print(f"⚠️ Blockchain Step {step}: Admin access required")
+                        self.test_results.append((f"Blockchain Step {step}", "PARTIAL", "Admin access required"))
+                    elif response.status == 404:
+                        # Step endpoints might not be available, this is acceptable
+                        break
+                    else:
+                        error_text = await response.text()
+                        print(f"❌ Blockchain Step {step} failed: {response.status}")
+                        self.test_results.append((f"Blockchain Step {step}", "FAIL", f"HTTP {response.status}"))
+                        
+            except Exception as e:
+                print(f"❌ Blockchain Step {step} error: {str(e)}")
+                self.test_results.append((f"Blockchain Step {step}", "ERROR", str(e)))
+
     async def test_dao_governance_endpoints(self):
         """Test DAO governance endpoints"""
         print("\n⚖️ Testing DAO Governance Endpoints...")
