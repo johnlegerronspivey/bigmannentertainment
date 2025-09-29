@@ -60,6 +60,9 @@ from workflow_integration_endpoints_simple import router as workflow_integration
 # Import comprehensive support system
 from support_endpoints import router as support_router
 
+# Import ULN (Unified Label Network) endpoints
+from uln_endpoints import router as uln_router
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
