@@ -21,11 +21,8 @@ import json
 import logging
 from uln_models import *
 
-# Database connection
-MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-DB_NAME = os.environ.get('DB_NAME', 'bigmann_entertainment_production')
-client = AsyncIOMotorClient(MONGO_URL)
-db = client[DB_NAME]
+# Use shared database connection from auth module
+from uln_auth import db
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
