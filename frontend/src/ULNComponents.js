@@ -122,6 +122,15 @@ export const ULNDashboard = () => {
             {activeTab === 'dao' && (
               <DAOGovernance />
             )}
+            {activeTab === 'blockchain' && (
+              <div className="space-y-8">
+                <BlockchainIntegrationDashboard />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <BlockchainContractsViewer />
+                  <BlockchainAuditTrail />
+                </div>
+              </div>
+            )}
             {activeTab === 'analytics' && (
               <ULNAnalytics stats={dashboardStats} />
             )}
