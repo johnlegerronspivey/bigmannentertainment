@@ -148,8 +148,9 @@ class LabelMigrationService:
             return self._get_mock_labels()
     
     def _get_mock_labels(self) -> List[Dict[str, Any]]:
-        """Generate mock labels for testing migration"""
+        """Generate comprehensive sample labels for ULN migration"""
         return [
+            # Major Labels
             {
                 "id": "atlantic_records",
                 "name": "Atlantic Records",
@@ -158,8 +159,9 @@ class LabelMigrationService:
                 "founded": "1947",
                 "headquarters": "New York, NY, USA",
                 "parent": "Warner Music Group",
-                "territories": ["US", "UK", "EU"],
-                "source": "mock_data"
+                "territories": ["US", "UK", "EU", "CA", "AU"],
+                "genre_focus": "Pop, Rock, Hip-Hop",
+                "source": "uln_migration"
             },
             {
                 "id": "def_jam_recordings",
@@ -169,19 +171,217 @@ class LabelMigrationService:
                 "founded": "1984",
                 "headquarters": "New York, NY, USA",
                 "parent": "Universal Music Group",
-                "territories": ["US", "UK", "EU"],
-                "source": "mock_data"
+                "territories": ["US", "UK", "EU", "CA"],
+                "genre_focus": "Hip-Hop, R&B",
+                "source": "uln_migration"
             },
             {
-                "id": "indie_collective",
+                "id": "columbia_records",
+                "name": "Columbia Records",
+                "label_type": "major",
+                "integration_type": "full_integration",
+                "founded": "1888",
+                "headquarters": "New York, NY, USA",
+                "parent": "Sony Music Entertainment",
+                "territories": ["US", "UK", "EU", "CA", "AU", "JP"],
+                "genre_focus": "Pop, Rock, Classical",
+                "source": "uln_migration"
+            },
+            {
+                "id": "interscope_records",
+                "name": "Interscope Records",
+                "label_type": "major",
+                "integration_type": "full_integration",
+                "founded": "1990",
+                "headquarters": "Santa Monica, CA, USA",
+                "parent": "Universal Music Group",
+                "territories": ["US", "UK", "EU"],
+                "genre_focus": "Hip-Hop, Electronic, Alternative",
+                "source": "uln_migration"
+            },
+            {
+                "id": "capitol_records",
+                "name": "Capitol Records",
+                "label_type": "major",
+                "integration_type": "full_integration",
+                "founded": "1942",
+                "headquarters": "Hollywood, CA, USA",
+                "parent": "Universal Music Group",
+                "territories": ["US", "UK", "EU", "CA"],
+                "genre_focus": "Pop, Rock, Country",
+                "source": "uln_migration"
+            },
+            
+            # Independent Labels
+            {
+                "id": "domino_recording",
+                "name": "Domino Recording Company",
+                "label_type": "independent",
+                "integration_type": "api_partner",
+                "founded": "1993",
+                "headquarters": "London, UK",
+                "territories": ["UK", "EU", "US"],
+                "genre_focus": "Indie Rock, Alternative",
+                "source": "uln_migration"
+            },
+            {
+                "id": "sub_pop_records",
+                "name": "Sub Pop Records",
+                "label_type": "independent",  
+                "integration_type": "full_integration",
+                "founded": "1988",
+                "headquarters": "Seattle, WA, USA",
+                "territories": ["US", "UK", "EU", "CA"],
+                "genre_focus": "Grunge, Indie Rock",
+                "source": "uln_migration"
+            },
+            {
+                "id": "stones_throw",
+                "name": "Stones Throw Records",
+                "label_type": "independent",
+                "integration_type": "api_partner",
+                "founded": "1996",
+                "headquarters": "Los Angeles, CA, USA",
+                "territories": ["US", "UK", "EU", "CA", "AU", "JP"],
+                "genre_focus": "Hip-Hop, Electronic, Funk",
+                "source": "uln_migration"
+            },
+            {
+                "id": "matador_records",
+                "name": "Matador Records",
+                "label_type": "independent",
+                "integration_type": "full_integration",
+                "founded": "1989",
+                "headquarters": "New York, NY, USA",
+                "territories": ["US", "UK", "EU"],
+                "genre_focus": "Indie Rock, Alternative",
+                "source": "uln_migration"
+            },
+            {
+                "id": "ninja_tune",
+                "name": "Ninja Tune",
+                "label_type": "independent",
+                "integration_type": "api_partner", 
+                "founded": "1990",
+                "headquarters": "London, UK",
+                "territories": ["UK", "EU", "US", "CA", "AU", "JP"],
+                "genre_focus": "Electronic, Trip-Hop, Experimental",
+                "source": "uln_migration"
+            },
+            {
+                "id": "rough_trade",
+                "name": "Rough Trade Records",
+                "label_type": "independent",
+                "integration_type": "content_sharing",
+                "founded": "1978",
+                "headquarters": "London, UK",
+                "territories": ["UK", "EU", "US"],
+                "genre_focus": "Indie Rock, Post-Punk",
+                "source": "uln_migration"
+            },
+            {
+                "id": "merge_records",
+                "name": "Merge Records",
+                "label_type": "independent",
+                "integration_type": "distribution_only",
+                "founded": "1989",
+                "headquarters": "Durham, NC, USA",
+                "territories": ["US", "UK", "EU", "CA"],
+                "genre_focus": "Indie Rock, Folk",
+                "source": "uln_migration"
+            },
+            {
+                "id": "ghostly_international",
+                "name": "Ghostly International",
+                "label_type": "independent",
+                "integration_type": "api_partner",
+                "founded": "1999",
+                "headquarters": "Ann Arbor, MI, USA",
+                "territories": ["US", "UK", "EU", "CA", "AU", "JP"],
+                "genre_focus": "Electronic, Ambient, Techno",
+                "source": "uln_migration"
+            },
+            {
+                "id": "hyperdub",
+                "name": "Hyperdub",
+                "label_type": "independent",
+                "integration_type": "content_sharing",
+                "founded": "2004",
+                "headquarters": "London, UK",
+                "territories": ["UK", "EU", "US", "CA", "AU", "JP"],
+                "genre_focus": "Dubstep, Electronic, Experimental",
+                "source": "uln_migration"
+            },
+            {
+                "id": "warp_records",
+                "name": "Warp Records",
+                "label_type": "independent",
+                "integration_type": "full_integration",
+                "founded": "1989",
+                "headquarters": "Sheffield, UK",
+                "territories": ["UK", "EU", "US", "CA", "AU", "JP"],
+                "genre_focus": "Electronic, IDM, Experimental",
+                "source": "uln_migration"
+            },
+            
+            # Specialized Labels
+            {
+                "id": "rhino_entertainment",
+                "name": "Rhino Entertainment",
+                "label_type": "major",
+                "integration_type": "metadata_sync",
+                "founded": "1978",
+                "headquarters": "Los Angeles, CA, USA",
+                "parent": "Warner Music Group",
+                "territories": ["US", "UK", "EU", "CA", "AU"],
+                "genre_focus": "Reissues, Catalog Management",
+                "source": "uln_migration"
+            },
+            {
+                "id": "blue_note_records",
+                "name": "Blue Note Records",
+                "label_type": "major",
+                "integration_type": "full_integration",
+                "founded": "1939",
+                "headquarters": "New York, NY, USA",
+                "parent": "Universal Music Group",
+                "territories": ["US", "UK", "EU", "CA", "AU", "JP"],
+                "genre_focus": "Jazz, Blues",
+                "source": "uln_migration"
+            },
+            {
+                "id": "nonesuch_records",
+                "name": "Nonesuch Records",
+                "label_type": "major",
+                "integration_type": "full_integration",
+                "founded": "1964",
+                "headquarters": "New York, NY, USA",
+                "parent": "Warner Music Group",
+                "territories": ["US", "UK", "EU", "CA", "AU"],
+                "genre_focus": "Classical, World Music, Alternative",
+                "source": "uln_migration"
+            },
+            {
+                "id": "indie_artist_collective",
                 "name": "Independent Artist Collective",
                 "label_type": "independent",
                 "integration_type": "api_partner",
                 "founded": "2020",
                 "headquarters": "Los Angeles, CA, USA",
-                "genre_focus": "Alternative Rock",
                 "territories": ["US", "CA"],
-                "source": "mock_data"
+                "genre_focus": "Multi-Genre, Artist Development",
+                "source": "uln_migration"
+            },
+            {
+                "id": "future_beats_collective",
+                "name": "Future Beats Collective", 
+                "label_type": "independent",
+                "integration_type": "content_sharing",
+                "founded": "2021",
+                "headquarters": "Berlin, Germany",
+                "territories": ["EU", "UK", "US"],
+                "genre_focus": "Electronic, Future Bass, Trap",
+                "source": "uln_migration"
             }
         ]
     
