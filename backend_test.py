@@ -117,15 +117,15 @@ class ComprehensiveBackendTester:
         # If all attempts failed, try alternative methods
         return await self.try_alternative_admin_creation()
 
-    async def test_admin_login(self):
-        """Test login with admin credentials"""
+    async def test_admin_login_with_credentials(self, email, password):
+        """Test login with specific admin credentials"""
         try:
             login_data = {
-                "email": "admin@test.com",
-                "password": "Admin123!"  # Updated to match registration
+                "email": email,
+                "password": password
             }
             
-            print("🔑 Testing admin login...")
+            print(f"🔑 Testing admin login with {email}...")
             async with self.session.post(f"{API_BASE}/auth/login", json=login_data) as response:
                 if response.status == 200:
                     login_result = await response.json()
@@ -136,22 +136,26 @@ class ComprehensiveBackendTester:
                     
                     print(f"✅ Admin login successful!")
                     print(f"   - User ID: {self.user_id}")
+                    print(f"   - Email: {email}")
                     print(f"   - Role: {user_role}")
                     print(f"   - Is Admin: {is_admin}")
                     
-                    self.test_results.append(("Admin User Creation", "PASS", "Admin user created and authenticated"))
                     self.test_results.append(("Admin Login Test", "PASS", f"Login successful with role: {user_role}"))
                     return True
                 else:
                     error_text = await response.text()
                     print(f"❌ Admin login failed: {response.status} - {error_text}")
-                    self.test_results.append(("Admin Login Test", "FAIL", f"HTTP {response.status}"))
+                    self.test_results.append(("Admin Login Test", "FAIL", f"HTTP {response.status} for {email}"))
                     return False
                     
         except Exception as e:
             print(f"❌ Admin login error: {str(e)}")
             self.test_results.append(("Admin Login Test", "ERROR", str(e)))
             return False
+
+    async def test_admin_login(self):
+        """Test login with default admin credentials"""
+        return await self.test_admin_login_with_credentials("admin@test.com", "Admin123!")
 
     async def try_alternative_admin_creation(self):
         """Try alternative methods to create admin user"""
