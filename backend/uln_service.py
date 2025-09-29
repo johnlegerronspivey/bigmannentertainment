@@ -47,8 +47,8 @@ class ULNService:
         self.jurisdiction_rules = db.jurisdiction_rules
         self.smart_contracts = db.uln_smart_contracts
         
-        # Initialize jurisdiction rules
-        asyncio.create_task(self._initialize_jurisdiction_rules())
+        # Initialize jurisdiction rules (will be called lazily when needed)
+        self._jurisdiction_rules_initialized = False
     
     # ===== LABEL REGISTRY SERVICE (FOUNDATIONAL) =====
     
