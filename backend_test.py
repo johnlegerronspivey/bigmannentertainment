@@ -790,6 +790,8 @@ class ComprehensiveBackendTester:
         print(f"\n📋 DETAILED RESULTS BY CATEGORY:")
         
         categories = {
+            "Admin User Creation": ["Admin User Creation", "Admin Login Test", "Alternative Admin Creation"],
+            "Blockchain Integration": ["Blockchain Status Endpoint", "Blockchain Integration Complete", "Blockchain Contracts", "Blockchain Audit Trail", "ULN Blockchain Status"] + [f"Blockchain Step {i}" for i in range(1, 7)],
             "Health Endpoints": ["Global Health Check", "API Health Check", "Auth Health Check", "Business Health Check", "DAO Health Check"],
             "DAO Governance": ["DAO Contracts", "DAO Stats", "DAO Disputes", "DAO Governance Action"],
             "Premium Features": ["Premium Dashboard", "AI Forecasting", "Smart Contract Templates", "Revenue Intelligence", "Payout Currencies"],
@@ -797,7 +799,6 @@ class ComprehensiveBackendTester:
             "Integration Services": ["MLC Integration", "MDE Integration", "pDOOH Integration"],
             "Authentication": ["Valid Token Authentication", "Invalid Token Rejection", "No Token Rejection"],
             "Performance": [name for name, _, _ in self.test_results if "Performance" in name],
-            "Record Labels": ["Record Labels Endpoint"],  # Add record labels category
             "Database": ["Database Connectivity", "Data Persistence"]
         }
         
