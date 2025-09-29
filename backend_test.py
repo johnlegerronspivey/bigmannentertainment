@@ -225,6 +225,42 @@ class ComprehensiveBackendTester:
         """Wrapper method for backward compatibility"""
         return await self.create_admin_user_and_login()
 
+    async def create_regular_test_user(self):
+        """Create a regular test user for blockchain endpoint testing"""
+        try:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            regular_user_data = {
+                "email": f"test_user_{timestamp}@bigmannentertainment.com",
+                "password": "TestUser123!",
+                "full_name": "Test User for Blockchain",
+                "business_name": "Test Business LLC",
+                "date_of_birth": "1990-01-01T00:00:00Z",
+                "address_line1": "123 Test Street",
+                "city": "Test City",
+                "state_province": "Test State",
+                "postal_code": "12345",
+                "country": "US"
+            }
+            
+            async with self.session.post(f"{API_BASE}/auth/register", json=regular_user_data) as response:
+                if response.status in [200, 201]:
+                    reg_data = await response.json()
+                    self.auth_token = reg_data.get('access_token')
+                    self.user_id = reg_data.get('user', {}).get('id')
+                    print(f"✅ Regular test user created: {self.user_id}")
+                    self.test_results.append(("Regular User Creation", "PASS", "Test user created for blockchain testing"))
+                    return True
+                else:
+                    error_text = await response.text()
+                    print(f"❌ Regular user creation failed: {response.status} - {error_text}")
+                    self.test_results.append(("Regular User Creation", "FAIL", f"HTTP {response.status}"))
+                    return False
+                    
+        except Exception as e:
+            print(f"❌ Regular user creation error: {str(e)}")
+            self.test_results.append(("Regular User Creation", "ERROR", str(e)))
+            return False
+
     def get_auth_headers(self) -> Dict[str, str]:
         """Get authorization headers"""
         if self.auth_token:
