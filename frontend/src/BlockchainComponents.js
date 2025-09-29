@@ -563,7 +563,7 @@ export const BlockchainAuditTrail = () => {
       setError('');
       
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API}/api/uln/blockchain/audit-trail`, {
+      const response = await fetch(`${API}/api/blockchain/audit-trail`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
