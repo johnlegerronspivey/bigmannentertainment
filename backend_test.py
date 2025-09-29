@@ -43,10 +43,10 @@ class ComprehensiveBackendTester:
     async def create_admin_user_and_login(self):
         """Create admin test user with email 'admin@test.com' and password 'admin123' and login"""
         try:
-            # Admin registration data as requested
+            # Admin registration data as requested - using stronger password
             admin_registration_data = {
                 "email": "admin@test.com",
-                "password": "admin123",
+                "password": "Admin123!",  # Updated to meet password requirements
                 "full_name": "Admin Test User",
                 "business_name": "Big Mann Entertainment Admin",
                 "date_of_birth": "1990-01-01T00:00:00Z",
