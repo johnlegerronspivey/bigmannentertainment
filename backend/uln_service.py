@@ -721,9 +721,13 @@ class ULNService:
     async def _initialize_jurisdiction_rules(self):
         """Initialize default jurisdiction rules"""
         try:
+            if self._jurisdiction_rules_initialized:
+                return
+                
             # Check if rules already exist
             existing_rules = await self.jurisdiction_rules.count_documents({})
             if existing_rules > 0:
+                self._jurisdiction_rules_initialized = True
                 return
             
             # Default jurisdiction rules
