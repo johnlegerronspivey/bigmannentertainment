@@ -18,63 +18,8 @@ from uln_service import ULNService
 import json
 import os
 
-# Import authentication from server
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-try:
-    # Try to import from main server module
-    from server import get_current_user, get_current_admin_user, User
-    # Use the same database instance from server
-    from server import db
-    print("✅ Successfully imported authentication from server for ULN")
-except ImportError:
-    # Fallback authentication (for development)
-    from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-    from motor.motor_asyncio import AsyncIOMotorClient
-    import jwt
-    
-    # Database connection
-    MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-    DB_NAME = os.environ.get('DB_NAME', 'bigmann_entertainment_production')
-    client = AsyncIOMotorClient(MONGO_URL)
-    db = client[DB_NAME]
-    
-    # JWT Configuration
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
-    ALGORITHM = "HS256"
-    
-    security = HTTPBearer()
-    
-    class User:
-        def __init__(self, **data):
-            self.id = data.get('id')
-            self.email = data.get('email')
-            self.is_admin = data.get('is_admin', False)
-            self.role = data.get('role', 'user')
-    
-    async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-        token = credentials.credentials
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            user_id: str = payload.get("sub")
-            if user_id is None:
-                raise HTTPException(status_code=401, detail="Could not validate credentials")
-        except jwt.PyJWTError:
-            raise HTTPException(status_code=401, detail="Could not validate credentials")
-        
-        user = await db.users.find_one({"id": user_id})
-        if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
-        return User(**user)
-    
-    async def get_current_admin_user(current_user: User = Depends(get_current_user)):
-        if not current_user.is_admin and current_user.role not in ["admin", "moderator", "super_admin"]:
-            raise HTTPException(status_code=403, detail="Not enough permissions")
-        return current_user
-    
-    print("⚠️ Using fallback authentication for ULN endpoints")
+# Import authentication utilities
+from uln_auth import get_current_user, get_current_admin_user, User, db
 
 # Create router for ULN endpoints
 uln_router = APIRouter(prefix="/uln", tags=["Unified Label Network"])
