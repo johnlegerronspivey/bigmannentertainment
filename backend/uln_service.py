@@ -770,6 +770,7 @@ class ULNService:
             for rule in default_rules:
                 await self.jurisdiction_rules.insert_one(rule)
             
+            self._jurisdiction_rules_initialized = True
             logger.info("Initialized default jurisdiction rules")
             
         except Exception as e:
