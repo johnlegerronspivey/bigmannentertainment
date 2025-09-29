@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://media-distro-2.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://unified-labels.preview.emergentagent.com';
 
 // Global error handler utility
 const handleApiError = (error, context) => {

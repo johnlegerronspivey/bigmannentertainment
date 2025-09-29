@@ -12,7 +12,7 @@ from datetime import datetime
 class LicenseHolderVerificationTester:
     def __init__(self):
         # Get backend URL from environment
-        self.backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://media-distro-2.preview.emergentagent.com')
+        self.backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://unified-labels.preview.emergentagent.com')
         self.api_base = f"{self.backend_url}/api"
         self.token = None
         self.test_results = {

@@ -62,7 +62,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/backend/.env')
 
 # Configuration
-BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://media-distro-2.preview.emergentagent.com')
+BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://unified-labels.preview.emergentagent.com')
 if not BASE_URL.startswith('http'):
     BASE_URL = f"https://{BASE_URL}"
 

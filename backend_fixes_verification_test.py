@@ -20,7 +20,7 @@ import sys
 import os
 
 # Configuration
-BACKEND_URL = "https://media-distro-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://unified-labels.preview.emergentagent.com/api"
 TEST_USER_ID = "test_user_comprehensive_platform"
 TEST_USER_EMAIL = f"test_user_comprehensive_platform@bigmannentertainment.com"
 TEST_PASSWORD = "SecureTestPass123!"

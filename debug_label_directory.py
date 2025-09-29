@@ -13,7 +13,7 @@ import os
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://media-distro-2.preview.emergentagent.com')
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://unified-labels.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 async def debug_label_directory():

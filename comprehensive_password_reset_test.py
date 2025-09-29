@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://media-distro-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://unified-labels.preview.emergentagent.com/api"
 
 class ComprehensivePasswordResetTester:
     def __init__(self):
