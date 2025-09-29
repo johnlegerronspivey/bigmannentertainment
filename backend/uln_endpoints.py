@@ -43,6 +43,32 @@ async def register_label(
     
     return result
 
+@uln_router.get("/labels/directory", response_model=Dict[str, Any])
+async def get_label_directory(
+    label_type: Optional[str] = None,
+    territory: Optional[str] = None,
+    genre: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get comprehensive label directory for Label Hub UI
+    Shows connected labels with filtering options
+    """
+    filters = {}
+    if label_type:
+        filters["label_type"] = label_type
+    if territory:
+        filters["territory"] = territory
+    if genre:
+        filters["genre"] = genre
+    
+    result = await uln_service.get_label_directory(filters)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return result
+
 @uln_router.get("/labels/{global_id}", response_model=Dict[str, Any])
 async def get_label_by_id(
     global_id: str,
@@ -72,32 +98,6 @@ async def update_label_metadata(
     
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
-    
-    return result
-
-@uln_router.get("/labels/directory", response_model=Dict[str, Any])
-async def get_label_directory(
-    label_type: Optional[str] = None,
-    territory: Optional[str] = None,
-    genre: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Get comprehensive label directory for Label Hub UI
-    Shows connected labels with filtering options
-    """
-    filters = {}
-    if label_type:
-        filters["label_type"] = label_type
-    if territory:
-        filters["territory"] = territory
-    if genre:
-        filters["genre"] = genre
-    
-    result = await uln_service.get_label_directory(filters)
-    
-    if not result["success"]:
-        raise HTTPException(status_code=500, detail=result["error"])
     
     return result
 
