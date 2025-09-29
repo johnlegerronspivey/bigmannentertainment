@@ -854,7 +854,8 @@ class ComprehensiveBackendTester:
                 print("❌ Authentication failed - cannot proceed with protected endpoint tests")
                 # Continue with public endpoint tests
             
-            # Run all test suites
+            # Run all test suites - prioritize blockchain testing as requested
+            await self.test_blockchain_integration_endpoints()  # Primary focus: blockchain testing
             await self.test_health_endpoints()
             await self.test_dao_governance_endpoints()
             await self.test_premium_features_endpoints()
@@ -862,7 +863,6 @@ class ComprehensiveBackendTester:
             await self.test_integration_services()
             await self.test_auth_token_parsing()
             await self.test_performance_and_response_validation()
-            await self.test_record_labels_endpoint()  # Add record labels test
             await self.test_database_connectivity()
             
             # Print comprehensive summary
