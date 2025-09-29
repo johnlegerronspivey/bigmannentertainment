@@ -123,7 +123,7 @@ class LabelMigrationService:
             print(f"⚠️ Error getting existing labels: {str(e)}")
             return []
     
-    async def _get_labels_from_industry_models(self) -> List[Dict[str, Any]]:
+    def _get_labels_from_industry_models(self) -> List[Dict[str, Any]]:
         """Fallback method to get labels from industry_models.py"""
         try:
             from industry_models import ENTERTAINMENT_INDUSTRY_PARTNERS
