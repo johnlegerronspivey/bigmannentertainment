@@ -88,7 +88,7 @@ export const ULNDashboard = () => {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow mb-8">
           <nav className="flex space-x-8 px-6 py-4">
-            {['overview', 'labels', 'content', 'royalties', 'dao', 'analytics'].map((tab) => (
+            {['overview', 'labels', 'content', 'royalties', 'dao', 'blockchain', 'analytics'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
