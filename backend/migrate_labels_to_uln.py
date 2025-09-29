@@ -108,7 +108,12 @@ class LabelMigrationService:
                 print("⚠️ Industry service not available, using fallback data")
             
             # Fallback: get from industry_models directly
-            return await self._get_labels_from_industry_models()
+            fallback_labels = await self._get_labels_from_industry_models()
+            if fallback_labels:
+                return fallback_labels
+                
+            # Final fallback: use mock data
+            return self._get_mock_labels()
             
         except Exception as e:
             print(f"⚠️ Error getting existing labels: {str(e)}")
