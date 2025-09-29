@@ -632,6 +632,8 @@ class ULNService:
     async def get_uln_dashboard_stats(self) -> Dict[str, Any]:
         """Get comprehensive ULN dashboard statistics"""
         try:
+            # Ensure jurisdiction rules are initialized
+            await self._initialize_jurisdiction_rules()
             # Count labels by status and type
             total_labels = await self.uln_labels.count_documents({})
             active_labels = await self.uln_labels.count_documents({"status": "active"})
