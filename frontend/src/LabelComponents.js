@@ -45,7 +45,7 @@ export const LabelDashboard = () => {
         setError('');
       } else if (response.status === 401) {
         setError('Session expired. Please log in again.');
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem('token');
       } else {
         setError('Failed to load label dashboard data');
       }
@@ -795,7 +795,7 @@ const LabelDirectory = () => {
         setError('');
       } else if (response.status === 401) {
         setError('Session expired. Please log in again.');
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem('token');
       } else {
         setError('Failed to load record labels');
       }
