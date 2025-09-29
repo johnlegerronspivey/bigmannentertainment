@@ -37,7 +37,7 @@ from typing import Dict, List, Any, Optional
 import uuid
 
 # Configuration
-BASE_URL = "https://mediaflow-98.preview.emergentagent.com"
+BASE_URL = "https://media-distro-2.preview.emergentagent.com"
 TEST_USER_EMAIL = "testuser@bigmannentertainment.com"
 TEST_USER_PASSWORD = "TestPassword123!"
 

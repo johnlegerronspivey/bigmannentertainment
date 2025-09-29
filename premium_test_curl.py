@@ -18,7 +18,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 # Test Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://mediaflow-98.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://media-distro-2.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class PremiumFeaturesTestSuite:

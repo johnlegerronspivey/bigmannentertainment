@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://mediaflow-98.preview.emergentagent.com"
+BACKEND_URL = "https://media-distro-2.preview.emergentagent.com"
 
 class GS1BusinessInfoTester:
     def __init__(self):
