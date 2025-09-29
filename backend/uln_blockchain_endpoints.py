@@ -13,7 +13,7 @@ from datetime import datetime
 from uln_auth import get_current_admin_user, User
 
 # Create router
-blockchain_router = APIRouter(prefix="/blockchain", tags=["ULN Blockchain Integration"])
+blockchain_router = APIRouter(prefix="/uln/blockchain", tags=["ULN Blockchain Integration"])
 
 # Placeholder for blockchain service
 class ULNBlockchainService:
