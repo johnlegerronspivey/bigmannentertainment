@@ -12,6 +12,7 @@ import { TaxDashboard, Form1099Management, TaxReports, BusinessTaxInfo, Business
 import { BusinessIdentifiers, UPCGenerator, ISRCGenerator, ProductManagement } from "./BusinessComponents";
 import { IndustryDashboard, IndustryPartners, GlobalDistribution, IndustryCoverage, IPIManagement, IndustryIdentifiersManagement, EnhancedEntertainmentDashboard, PhotographyServices, VideoProductionServices, MonetizationOpportunities, MusicDataExchange, MechanicalLicensingCollective } from "./IndustryComponents";
 import { LabelDashboard, LabelDirectory } from "./LabelComponents";
+import { ULNDashboard } from './ULNComponents';
 import { ProjectManagement, MarketingManagement, FinancialManagement } from "./LabelExtendedComponents";
 import { PaymentPackages, PaymentCheckout, PaymentStatus, BankAccountManager, DigitalWalletManager } from "./PaymentComponents";
 import { EarningsDashboard, RoyaltySplitManager } from "./EarningsComponents";
