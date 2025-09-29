@@ -108,11 +108,15 @@ class LabelMigrationService:
                 print("⚠️ Industry service not available, using fallback data")
             
             # Fallback: get from industry_models directly
-            fallback_labels = await self._get_labels_from_industry_models()
-            if fallback_labels:
-                return fallback_labels
+            try:
+                fallback_labels = await self._get_labels_from_industry_models()
+                if fallback_labels:
+                    return fallback_labels
+            except Exception as e:
+                print(f"⚠️ Fallback failed: {str(e)}")
                 
             # Final fallback: use mock data
+            print("🔄 Using comprehensive sample data for ULN migration")
             return self._get_mock_labels()
             
         except Exception as e:
