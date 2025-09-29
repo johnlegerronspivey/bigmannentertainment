@@ -762,7 +762,7 @@ class ComprehensiveBackendTester:
     def print_comprehensive_summary(self):
         """Print comprehensive test summary"""
         print("\n" + "="*80)
-        print("🎯 COMPREHENSIVE BACKEND FIXES VALIDATION RESULTS")
+        print("🎯 BLOCKCHAIN VERIFICATION TESTING RESULTS")
         print("="*80)
         
         total_tests = len(self.test_results)
