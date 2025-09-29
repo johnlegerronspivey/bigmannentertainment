@@ -47,12 +47,18 @@ async def initialize_record_labels():
                     })
                     
                     if not existing_label:
-                        # Create RecordLabel object
-                        label = RecordLabel(
-                            category="record_label",
-                            tier=tier,
-                            **label_data
-                        )
+                        # Create RecordLabel object with required fields
+                        label_dict = {
+                            "category": "record_label",
+                            "tier": tier,
+                            "integration_type": "manual",  # Required field from IndustryPartner
+                            "label_type": tier,  # Required field from RecordLabel (major/independent)
+                            "authentication_type": "none",  # Default from IndustryPartner
+                            "status": "active",  # Default from IndustryPartner
+                            **label_data  # Include all the label data we defined
+                        }
+                        
+                        label = RecordLabel(**label_dict)
                         
                         # Insert into database
                         result = await db.industry_partners.insert_one(label.dict())
