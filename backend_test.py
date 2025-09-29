@@ -130,7 +130,7 @@ class ComprehensiveBackendTester:
         try:
             alt_registration_data = {
                 "email": "admin@test.com",
-                "password": "admin123",
+                "password": "Admin123!",  # Updated password
                 "full_name": "Admin Test User",
                 "business_name": "Big Mann Entertainment",
                 "date_of_birth": "1985-01-01",
