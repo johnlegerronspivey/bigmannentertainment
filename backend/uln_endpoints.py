@@ -29,9 +29,10 @@ except ImportError:
     import jwt
     
     # Database connection
-    MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/bigmann')
+    MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+    DB_NAME = os.environ.get('DB_NAME', 'bigmann_entertainment_production')
     client = AsyncIOMotorClient(MONGO_URL)
-    db = client.bigmann
+    db = client[DB_NAME]
     
     # JWT Configuration
     SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
