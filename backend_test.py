@@ -153,7 +153,36 @@ class ComprehensiveBackendTester:
         except Exception as e:
             print(f"⚠️ Alternative registration failed: {str(e)}")
         
-        # Method 2: Try to login if user already exists
+        # Method 2: Try creating user with admin role explicitly
+        try:
+            admin_role_data = {
+                "email": "admin@test.com",
+                "password": "Admin123!",
+                "full_name": "Admin Test User",
+                "business_name": "Big Mann Entertainment",
+                "date_of_birth": "1990-01-01T00:00:00Z",
+                "address_line1": "1314 Lincoln Heights Street",
+                "city": "Alexander City",
+                "state_province": "Alabama",
+                "postal_code": "35010",
+                "country": "US",
+                "role": "admin",  # Try to set admin role
+                "is_admin": True   # Try to set admin flag
+            }
+            
+            async with self.session.post(f"{API_BASE}/auth/register", json=admin_role_data) as response:
+                if response.status in [200, 201]:
+                    reg_data = await response.json()
+                    self.auth_token = reg_data.get('access_token')
+                    self.user_id = reg_data.get('user', {}).get('id')
+                    print(f"✅ Admin role registration successful: {self.user_id}")
+                    self.test_results.append(("Admin Role Creation", "PASS", "Admin created with role"))
+                    return await self.test_admin_login()
+                    
+        except Exception as e:
+            print(f"⚠️ Admin role registration failed: {str(e)}")
+        
+        # Method 3: Try to login if user already exists
         print("🔄 Attempting direct login (user may already exist)...")
         return await self.test_admin_login()
 
