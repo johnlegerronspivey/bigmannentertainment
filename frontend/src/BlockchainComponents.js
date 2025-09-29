@@ -417,7 +417,7 @@ export const BlockchainContractsViewer = () => {
       setError('');
       
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API}/api/uln/blockchain/contracts/${labelId}`, {
+      const response = await fetch(`${API}/api/blockchain/contracts/${labelId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
