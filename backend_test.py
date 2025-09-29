@@ -42,11 +42,27 @@ class ComprehensiveBackendTester:
 
     async def create_admin_user_and_login(self):
         """Create admin test user with email 'admin@test.com' and password 'admin123' and login"""
-        try:
-            # Admin registration data as requested - using stronger password
-            admin_registration_data = {
+        
+        # First, try to create a new unique admin user for testing
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # Try multiple admin user creation approaches
+        admin_attempts = [
+            {
+                "email": f"admin_test_{timestamp}@test.com",
+                "password": "Admin123!",
+                "full_name": "Admin Test User",
+                "business_name": "Big Mann Entertainment Admin",
+                "date_of_birth": "1990-01-01T00:00:00Z",
+                "address_line1": "1314 Lincoln Heights Street",
+                "city": "Alexander City",
+                "state_province": "Alabama",
+                "postal_code": "35010",
+                "country": "US"
+            },
+            {
                 "email": "admin@test.com",
-                "password": "Admin123!",  # Updated to meet password requirements
+                "password": "Admin123!",
                 "full_name": "Admin Test User",
                 "business_name": "Big Mann Entertainment Admin",
                 "date_of_birth": "1990-01-01T00:00:00Z",
@@ -56,35 +72,50 @@ class ComprehensiveBackendTester:
                 "postal_code": "35010",
                 "country": "US"
             }
+        ]
+        
+        for i, admin_data in enumerate(admin_attempts):
+            try:
+                print(f"🔐 Attempt {i+1}: Creating admin user with email '{admin_data['email']}'...")
+                
+                # Try to register admin user
+                async with self.session.post(f"{API_BASE}/auth/register", json=admin_data) as response:
+                    if response.status in [200, 201]:
+                        reg_data = await response.json()
+                        self.auth_token = reg_data.get('access_token')
+                        self.user_id = reg_data.get('user', {}).get('id')
+                        user_role = reg_data.get('user', {}).get('role', 'user')
+                        is_admin = reg_data.get('user', {}).get('is_admin', False)
+                        
+                        print(f"✅ Admin user registered successfully!")
+                        print(f"   - User ID: {self.user_id}")
+                        print(f"   - Email: {admin_data['email']}")
+                        print(f"   - Role: {user_role}")
+                        print(f"   - Is Admin: {is_admin}")
+                        
+                        self.test_results.append(("Admin User Creation", "PASS", f"Admin user created: {admin_data['email']}"))
+                        
+                        # Test login with the created admin user
+                        return await self.test_admin_login_with_credentials(admin_data['email'], admin_data['password'])
+                        
+                    elif response.status == 400:
+                        # User might already exist
+                        error_text = await response.text()
+                        print(f"⚠️ User might already exist: {error_text}")
+                        
+                        # If this is the original admin@test.com, try to login
+                        if admin_data['email'] == 'admin@test.com':
+                            print("🔄 Attempting to login with existing admin@test.com credentials...")
+                            return await self.test_admin_login_with_credentials(admin_data['email'], admin_data['password'])
+                    else:
+                        error_text = await response.text()
+                        print(f"❌ Admin registration failed: {response.status} - {error_text}")
 
-            print("🔐 Creating admin test user with email 'admin@test.com'...")
-            
-            # Try to register admin user
-            async with self.session.post(f"{API_BASE}/auth/register", json=admin_registration_data) as response:
-                if response.status in [200, 201]:
-                    reg_data = await response.json()
-                    self.auth_token = reg_data.get('access_token')
-                    self.user_id = reg_data.get('user', {}).get('id')
-                    print(f"✅ Admin user registered successfully: {self.user_id}")
-                    
-                    # Test login with the created admin user
-                    return await self.test_admin_login()
-                    
-                elif response.status == 400:
-                    # User might already exist, try to login
-                    error_text = await response.text()
-                    print(f"⚠️ Admin user might already exist: {error_text}")
-                    print("🔄 Attempting to login with existing admin credentials...")
-                    return await self.test_admin_login()
-                else:
-                    error_text = await response.text()
-                    print(f"❌ Admin registration failed: {response.status} - {error_text}")
-                    # Try alternative method
-                    return await self.try_alternative_admin_creation()
-
-        except Exception as e:
-            print(f"❌ Admin registration error: {str(e)}")
-            return await self.try_alternative_admin_creation()
+            except Exception as e:
+                print(f"❌ Admin registration error: {str(e)}")
+        
+        # If all attempts failed, try alternative methods
+        return await self.try_alternative_admin_creation()
 
     async def test_admin_login(self):
         """Test login with admin credentials"""
