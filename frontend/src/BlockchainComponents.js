@@ -60,7 +60,7 @@ export const BlockchainIntegrationDashboard = () => {
       setError('');
       
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API}/api/uln/blockchain/integrate/step-${stepNumber}`, {
+      const response = await fetch(`${API}/api/blockchain/integrate/step-${stepNumber}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
