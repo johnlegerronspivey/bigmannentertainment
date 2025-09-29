@@ -28,7 +28,7 @@ export const BlockchainIntegrationDashboard = () => {
         return;
       }
 
-      const response = await fetch(`${API}/api/uln/blockchain/status`, {
+      const response = await fetch(`${API}/api/blockchain/status`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
