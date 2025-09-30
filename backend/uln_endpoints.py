@@ -664,7 +664,11 @@ async def get_uln_dashboard_stats(
     if not result["success"]:
         raise HTTPException(status_code=500, detail=result["error"])
     
-    return result
+    return JSONResponse(content={
+        "success": True,
+        "message": "ULN dashboard statistics",
+        "dashboard_stats": result["dashboard_stats"]
+    })
 
 @uln_router.post("/initialize-major-labels")
 async def initialize_major_labels(current_user: dict = Depends(get_current_user)):
