@@ -660,6 +660,31 @@ async def get_uln_dashboard_stats(
     
     return result
 
+@uln_router.post("/initialize-major-labels")
+async def initialize_major_labels(current_user: dict = Depends(get_current_user)):
+    """Initialize all major record labels in the ULN system"""
+    try:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        
+        # Check if user has admin privileges (optional - could allow any authenticated user)
+        # This is a one-time setup operation that populates the label hub
+        
+        uln_service = ULNService()
+        result = await uln_service.initialize_major_labels()
+        
+        return JSONResponse(content=result)
+        
+    except Exception as e:
+        logger.error(f"Error in initialize_major_labels endpoint: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": f"Failed to initialize major labels: {str(e)}"
+            }
+        )
+
 @uln_router.get("/dashboard/label-hub", response_model=Dict[str, Any])
 async def get_label_hub_data(
     territory: Optional[str] = None,
