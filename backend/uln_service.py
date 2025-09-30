@@ -1123,6 +1123,7 @@ class ULNService:
             
             return {
                 "success": True,
+                "message": "ULN dashboard statistics",
                 "dashboard_stats": stats.dict()
             }
             
