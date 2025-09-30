@@ -262,7 +262,7 @@ async def deploy_smart_contract(
         if result.modified_count:
             return {
                 "success": True,
-                "message": f"Smart contract deployed successfully",
+                "message": "Smart contract deployed successfully",
                 "contract_address": mock_contract_address,
                 "transaction_hash": mock_transaction_hash,
                 "blockchain_network": blockchain_network,
