@@ -121,6 +121,7 @@ ISRC_PREFIX = os.environ.get('ISRC_PREFIX', 'QZ9H8')
 PUBLISHER_NUMBER = os.environ.get('PUBLISHER_NUMBER', 'PA04UV')
 IPI_BUSINESS = os.environ.get('IPI_BUSINESS', '813048171')
 IPI_PRINCIPAL = os.environ.get('IPI_PRINCIPAL', '578413032')
+IPN_NUMBER = os.environ.get('IPN_NUMBER', '10959387')  # IPI Name Number
 BUSINESS_LEGAL_NAME = os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment')
 PRINCIPAL_NAME = os.environ.get('PRINCIPAL_NAME', 'John LeGerron Spivey')
 
