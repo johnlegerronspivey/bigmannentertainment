@@ -1119,9 +1119,13 @@ class ULNService:
             stats = ULNDashboardStats(
                 total_labels=total_labels,
                 active_labels=active_labels,
+                major_labels=major_labels,
+                independent_labels=independent_labels,
                 total_content_shared=total_content_shared,
                 total_royalty_pools=total_royalty_pools,
                 total_dao_proposals=total_dao_proposals,
+                smart_contracts=smart_contracts_count,
+                cross_collaborations=total_content_shared,  # Cross-collaborations are related to shared content
                 total_revenue_processed=total_revenue_processed,
                 pending_distributions=float(pending_distributions),
                 labels_by_territory=labels_by_territory,
