@@ -306,6 +306,8 @@ const LabelHub = () => {
     dao_affiliated: null
   });
   const [initializationStatus, setInitializationStatus] = useState('');
+  const [editingLabel, setEditingLabel] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     fetchLabelHubData();
