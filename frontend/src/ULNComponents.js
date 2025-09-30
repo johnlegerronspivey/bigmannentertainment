@@ -454,6 +454,18 @@ const LabelHub = () => {
         </div>
       )}
 
+      {initializationStatus && (
+        <div className={`px-4 py-3 rounded ${
+          initializationStatus.includes('✅') 
+            ? 'bg-green-100 border border-green-400 text-green-700' 
+            : initializationStatus.includes('❌')
+            ? 'bg-red-100 border border-red-400 text-red-700'
+            : 'bg-blue-100 border border-blue-400 text-blue-700'
+        }`}>
+          {initializationStatus}
+        </div>
+      )}
+
       {/* Labels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {labelHubData.map((label) => (
