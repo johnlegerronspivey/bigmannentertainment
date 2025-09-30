@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://unified-labels.preview.emergentagent.com/api"
+BACKEND_URL = "https://record-net.preview.emergentagent.com/api"
 
 class MusicReportsIntegrationTester:
     def __init__(self):

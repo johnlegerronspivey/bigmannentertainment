@@ -16,7 +16,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Any, Optional
 
 # Test Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://unified-labels.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://record-net.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class MLCIntegrationTester:

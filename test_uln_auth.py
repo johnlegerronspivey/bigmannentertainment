@@ -10,7 +10,7 @@ import json
 import os
 from datetime import datetime
 
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://unified-labels.preview.emergentagent.com')
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://record-net.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 async def test_uln_auth():
