@@ -329,6 +329,52 @@ const LabelHub = () => {
     }
   };
 
+  const initializeMajorLabels = async () => {
+    try {
+      setLoading(true);
+      setInitializationStatus('Initializing major labels...');
+      
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API}/api/uln/initialize-major-labels`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setInitializationStatus(`✅ Success! ${data.message}`);
+        // Show detailed results
+        if (data.statistics) {
+          setInitializationStatus(
+            `✅ Successfully initialized ${data.statistics.total_initialized} labels ` +
+            `(${data.statistics.major_labels} major, ${data.statistics.independent_labels} independent)`
+          );
+        }
+        
+        // Refresh the label hub data
+        setTimeout(() => {
+          fetchLabelHubData();
+          setInitializationStatus('');
+        }, 3000);
+        
+      } else {
+        setInitializationStatus(`❌ Error: ${data.error || 'Failed to initialize labels'}`);
+        setTimeout(() => setInitializationStatus(''), 5000);
+      }
+    } catch (error) {
+      console.error('Error initializing major labels:', error);
+      setInitializationStatus('❌ Network error. Please try again.');
+      setTimeout(() => setInitializationStatus(''), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div></div>;
   }
