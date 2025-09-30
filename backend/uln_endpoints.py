@@ -11,12 +11,17 @@ FastAPI endpoints for the ULN system providing:
 """
 
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi.responses import JSONResponse
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 from uln_models import *
 from uln_service import ULNService
 import json
 import os
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 # Import authentication utilities
 from uln_auth import get_current_user, get_current_admin_user, User, db
