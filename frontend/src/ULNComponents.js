@@ -523,7 +523,7 @@ const LabelHub = () => {
   );
 };
 
-const LabelHubCard = ({ label }) => {
+const LabelHubCard = ({ label, onEdit }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -558,10 +558,19 @@ const LabelHubCard = ({ label }) => {
             </span>
           </div>
         </div>
-        <div className="text-2xl">
-          {label.label_type === 'major' ? '🏢' : 
-           label.label_type === 'independent' ? '🎵' :
-           label.label_type === 'distribution' ? '📦' : '🎼'}
+        <div className="flex items-center space-x-2">
+          <div className="text-2xl">
+            {label.label_type === 'major' ? '🏢' : 
+             label.label_type === 'independent' ? '🎵' :
+             label.label_type === 'distribution' ? '📦' : '🎼'}
+          </div>
+          <button
+            onClick={() => onEdit(label)}
+            className="text-purple-600 hover:text-purple-800 transition-colors"
+            title="Edit Label"
+          >
+            ✏️
+          </button>
         </div>
       </div>
 
