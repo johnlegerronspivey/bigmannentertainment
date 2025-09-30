@@ -1,7 +1,28 @@
 #!/usr/bin/env python3
 """
-Business Identifiers Backend Testing for Big Mann Entertainment Platform
-Testing ISRC Prefix (QZ9H8) and Publisher Number (PA04UV) functionality
+Business Identifiers Endpoint Testing
+Testing the Business Identifiers endpoint to verify IPN 10959387 has been added:
+
+**Test Details:**
+1. Test GET /api/business/identifiers endpoint
+   - Should require authentication
+   - Verify response includes all legal identifiers:
+     - business_ein: 270658077
+     - business_tin: 12800
+     - ipi_business: 813048171
+     - ipi_principal: 578413032
+     - **ipn_number: 10959387** (newly added)
+   - Also verify other identifiers:
+     - upc_company_prefix
+     - global_location_number
+     - isrc_prefix
+     - publisher_number
+
+**Expected Results:**
+- Endpoint should return 200 OK with authentication
+- Response should include the new ipn_number field with value "10959387"
+- All other identifiers should remain intact
+- Response format should be valid JSON
 """
 
 import asyncio
