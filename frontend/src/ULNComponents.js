@@ -340,12 +340,21 @@ const LabelHub = () => {
           <h2 className="text-2xl font-bold">🏢 Label Hub</h2>
           <p className="text-gray-600">Connected labels in the Unified Label Network</p>
         </div>
-        <button 
-          onClick={() => window.location.href = '/uln/register'}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          + Register Label
-        </button>
+        <div className="flex space-x-3">
+          <button 
+            onClick={initializeMajorLabels}
+            disabled={loading}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+          >
+            🏢 Initialize Major Labels
+          </button>
+          <button 
+            onClick={() => window.location.href = '/uln/register'}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            + Register Label
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
