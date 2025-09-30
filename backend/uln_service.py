@@ -1134,10 +1134,14 @@ class ULNService:
                 recent_proposals=recent_proposals
             )
             
+            # Convert to dict and prepare for JSON serialization
+            stats_dict = stats.dict()
+            stats_dict = self._prepare_for_mongo(stats_dict)
+            
             return {
                 "success": True,
                 "message": "ULN dashboard statistics",
-                "dashboard_stats": stats.dict()
+                "dashboard_stats": stats_dict
             }
             
         except Exception as e:
