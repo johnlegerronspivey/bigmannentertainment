@@ -19,6 +19,7 @@ from uln_service import ULNService
 import json
 import os
 import logging
+import hashlib
 
 # Set up logger
 logger = logging.getLogger(__name__)
