@@ -50,6 +50,9 @@ class ULNService:
         
         # Initialize jurisdiction rules (will be called lazily when needed)
         self._jurisdiction_rules_initialized = False
+        
+        # Initialize major labels (will be called when needed)
+        self._major_labels_initialized = False
     
     # ===== LABEL REGISTRY SERVICE (FOUNDATIONAL) =====
     
