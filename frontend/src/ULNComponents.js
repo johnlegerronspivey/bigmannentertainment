@@ -291,6 +291,7 @@ const LabelHub = () => {
     genre: '',
     dao_affiliated: null
   });
+  const [initializationStatus, setInitializationStatus] = useState('');
 
   useEffect(() => {
     fetchLabelHubData();
