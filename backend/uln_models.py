@@ -384,9 +384,13 @@ class ULNDashboardStats(BaseModel):
     """Statistics for ULN dashboard"""
     total_labels: int = 0
     active_labels: int = 0
+    major_labels: int = 0
+    independent_labels: int = 0
     total_content_shared: int = 0
     total_royalty_pools: int = 0
     total_dao_proposals: int = 0
+    smart_contracts: int = 0
+    cross_collaborations: int = 0
     
     # Financial metrics
     total_revenue_processed: float = 0.0
