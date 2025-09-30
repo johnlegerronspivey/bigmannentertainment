@@ -20,6 +20,7 @@ import json
 import os
 import logging
 import hashlib
+import uuid
 
 # Set up logger
 logger = logging.getLogger(__name__)
