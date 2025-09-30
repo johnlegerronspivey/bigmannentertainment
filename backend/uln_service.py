@@ -341,6 +341,416 @@ class ULNService:
             logger.error(f"Error fetching federated content: {str(e)}")
             return []
     
+    # ===== MAJOR LABELS INITIALIZATION =====
+    
+    async def initialize_major_labels(self) -> Dict[str, Any]:
+        """
+        Initialize all major record labels in the ULN system
+        This will add Universal Music Group, Sony Music, Warner Music and their subsidiaries
+        """
+        try:
+            if self._major_labels_initialized:
+                return {"success": True, "message": "Major labels already initialized"}
+            
+            # Import industry models for label data
+            from industry_models import ENTERTAINMENT_INDUSTRY_PARTNERS
+            
+            major_labels_data = ENTERTAINMENT_INDUSTRY_PARTNERS["record_labels"]["major"]
+            independent_labels_data = ENTERTAINMENT_INDUSTRY_PARTNERS["record_labels"]["independent"]
+            
+            initialized_count = 0
+            successful_registrations = []
+            failed_registrations = []
+            
+            # Process Major Labels
+            for label_data in major_labels_data:
+                try:
+                    # Create comprehensive metadata profile for each major label
+                    metadata_profile = LabelMetadataProfile(
+                        name=label_data["name"],
+                        legal_name=label_data.get("legal_name", label_data["name"]),
+                        jurisdiction=TerritoryJurisdiction.US if label_data.get("territories", ["US"])[0] == "global" else TerritoryJurisdiction.US,
+                        tax_status="corporation",
+                        founded_date=self._parse_founded_date(label_data.get("founded", "1900")),
+                        headquarters=label_data.get("headquarters", "United States"),
+                        business_registration_number=f"BME-{label_data['name'].upper().replace(' ', '-')}-REG",
+                        tax_id=f"TAX-{str(uuid.uuid4())[:8].upper()}",
+                        contact_information={
+                            "website": f"https://{label_data['name'].lower().replace(' ', '')}.com",
+                            "business_email": f"business@{label_data['name'].lower().replace(' ', '')}.com",
+                            "phone": "+1-555-LABEL-CO"
+                        },
+                        social_media_handles={
+                            "instagram": f"@{label_data['name'].lower().replace(' ', '')}",
+                            "twitter": f"@{label_data['name'].lower().replace(' ', '')}",
+                            "youtube": f"{label_data['name']} Official"
+                        },
+                        genre_specialization=self._get_label_genres(label_data["name"]),
+                        territories_of_operation=label_data.get("territories", ["global"]),
+                        certifications=["RIAA_Certified", "IFPI_Member", "BME_Verified"],
+                        industry_affiliations=["RIAA", "NMPA", "IFPI", "Big Mann Entertainment Network"]
+                    )
+                    
+                    # Create associated entities (executives, A&R, etc.)
+                    associated_entities = self._create_label_entities(label_data["name"])
+                    
+                    # Create smart contract bindings
+                    smart_contracts = self._create_label_smart_contracts(label_data["name"])
+                    
+                    # Create ULN Label
+                    uln_label = ULNLabel(
+                        label_type=LabelType.MAJOR,
+                        integration_type=IntegrationType.FULL_INTEGRATION,
+                        metadata_profile=metadata_profile,
+                        associated_entities=associated_entities,
+                        smart_contracts=smart_contracts,
+                        parent_labels=self._get_parent_label(label_data),
+                        subsidiary_labels=[],  # Will be filled when subsidiaries are processed
+                        partner_labels=[],
+                        content_catalog_id=f"CAT-{str(uuid.uuid4())[:8].upper()}",
+                        rights_database_id=f"RIGHTS-{str(uuid.uuid4())[:8].upper()}",
+                        revenue_sharing_agreements=[
+                            {
+                                "type": "master_licensing",
+                                "percentage": 85.0,
+                                "territory": "global"
+                            }
+                        ],
+                        operational_agreements=[
+                            {
+                                "type": "distribution_agreement",
+                                "partner": "Big Mann Entertainment",
+                                "effective_date": datetime.utcnow().isoformat()
+                            }
+                        ],
+                        onboarding_completed=True,
+                        compliance_verified=True
+                    )
+                    
+                    # Store in database
+                    label_dict = uln_label.dict()
+                    label_dict = self._prepare_for_mongo(label_dict)
+                    
+                    # Check if label already exists
+                    existing_label = await self.uln_labels.find_one({
+                        "metadata_profile.name": label_data["name"]
+                    })
+                    
+                    if not existing_label:
+                        result = await self.uln_labels.insert_one(label_dict)
+                        if result.inserted_id:
+                            initialized_count += 1
+                            successful_registrations.append({
+                                "name": label_data["name"],
+                                "global_id": uln_label.global_id.id,
+                                "type": "major"
+                            })
+                            
+                            # Create audit trail
+                            await self._create_audit_entry(
+                                action_type="major_label_initialized",
+                                actor_id="system",
+                                actor_type="system",
+                                resource_type="label",
+                                resource_id=uln_label.global_id.id,
+                                action_description=f"Initialized major label: {label_data['name']}",
+                                changes_made={"label_type": "major", "status": "active"}
+                            )
+                        else:
+                            failed_registrations.append({"name": label_data["name"], "reason": "Database insertion failed"})
+                    else:
+                        # Label already exists, update if needed
+                        successful_registrations.append({
+                            "name": label_data["name"],
+                            "global_id": existing_label["global_id"]["id"],
+                            "type": "major",
+                            "status": "already_exists"
+                        })
+                
+                except Exception as label_error:
+                    logger.error(f"Error initializing major label {label_data['name']}: {str(label_error)}")
+                    failed_registrations.append({
+                        "name": label_data["name"], 
+                        "reason": str(label_error)
+                    })
+            
+            # Process Top Independent Labels (selective)
+            top_independent_labels = independent_labels_data[:15]  # Top 15 independent labels
+            
+            for label_data in top_independent_labels:
+                try:
+                    metadata_profile = LabelMetadataProfile(
+                        name=label_data["name"],
+                        legal_name=label_data.get("legal_name", label_data["name"]),
+                        jurisdiction=self._get_jurisdiction_from_territories(label_data.get("territories", ["US"])),
+                        tax_status="llc" if "Entertainment" in label_data["name"] else "corporation",
+                        founded_date=self._parse_founded_date(label_data.get("founded", "1980")),
+                        headquarters=label_data.get("headquarters", "United States"),
+                        business_registration_number=f"BME-IND-{label_data['name'].upper().replace(' ', '-')[:10]}-REG",
+                        tax_id=f"IND-{str(uuid.uuid4())[:8].upper()}",
+                        contact_information={
+                            "website": f"https://{label_data['name'].lower().replace(' ', '').replace('.', '')}.com",
+                            "business_email": f"contact@{label_data['name'].lower().replace(' ', '')}.com"
+                        },
+                        genre_specialization=[label_data.get("genre_focus", "Alternative")],
+                        territories_of_operation=label_data.get("territories", ["US"]),
+                        certifications=["BME_Verified", "Independent_Label"],
+                        industry_affiliations=["A2IM", "Big Mann Entertainment Network"]
+                    )
+                    
+                    uln_label = ULNLabel(
+                        label_type=LabelType.INDEPENDENT,
+                        integration_type=IntegrationType.API_PARTNER,
+                        metadata_profile=metadata_profile,
+                        associated_entities=self._create_independent_label_entities(label_data["name"]),
+                        smart_contracts=[],  # Independent labels start with basic setup
+                        onboarding_completed=True,
+                        compliance_verified=True
+                    )
+                    
+                    # Store in database
+                    label_dict = uln_label.dict()
+                    label_dict = self._prepare_for_mongo(label_dict)
+                    
+                    existing_label = await self.uln_labels.find_one({
+                        "metadata_profile.name": label_data["name"]
+                    })
+                    
+                    if not existing_label:
+                        result = await self.uln_labels.insert_one(label_dict)
+                        if result.inserted_id:
+                            initialized_count += 1
+                            successful_registrations.append({
+                                "name": label_data["name"],
+                                "global_id": uln_label.global_id.id,
+                                "type": "independent"
+                            })
+                
+                except Exception as label_error:
+                    logger.error(f"Error initializing independent label {label_data['name']}: {str(label_error)}")
+                    failed_registrations.append({
+                        "name": label_data["name"], 
+                        "reason": str(label_error)
+                    })
+            
+            # Update subsidiary relationships
+            await self._update_subsidiary_relationships()
+            
+            self._major_labels_initialized = True
+            
+            return {
+                "success": True,
+                "message": f"Successfully initialized {initialized_count} labels in ULN",
+                "statistics": {
+                    "total_initialized": initialized_count,
+                    "successful_registrations": len(successful_registrations),
+                    "failed_registrations": len(failed_registrations),
+                    "major_labels": len([l for l in successful_registrations if l["type"] == "major"]),
+                    "independent_labels": len([l for l in successful_registrations if l["type"] == "independent"])
+                },
+                "successful_registrations": successful_registrations,
+                "failed_registrations": failed_registrations if failed_registrations else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in initialize_major_labels: {str(e)}")
+            return {
+                "success": False,
+                "error": f"Failed to initialize major labels: {str(e)}"
+            }
+    
+    def _parse_founded_date(self, founded_str: str) -> Optional[date]:
+        """Parse founded date from string"""
+        try:
+            if founded_str.isdigit():
+                return date(int(founded_str), 1, 1)
+            return None
+        except:
+            return None
+    
+    def _get_jurisdiction_from_territories(self, territories: List[str]) -> TerritoryJurisdiction:
+        """Get jurisdiction from territories list"""
+        if "UK" in territories:
+            return TerritoryJurisdiction.UK
+        elif "Canada" in territories:
+            return TerritoryJurisdiction.CA
+        elif "Germany" in territories or "France" in territories:
+            return TerritoryJurisdiction.EU
+        elif "Australia" in territories:
+            return TerritoryJurisdiction.AU
+        else:
+            return TerritoryJurisdiction.US
+    
+    def _get_label_genres(self, label_name: str) -> List[str]:
+        """Get genre specialization based on label name"""
+        genre_mappings = {
+            "Def Jam": ["Hip-Hop", "Rap", "R&B"],
+            "Atlantic": ["Pop", "R&B", "Rock"],
+            "Capitol": ["Pop", "Rock", "Country"],
+            "Interscope": ["Pop", "Hip-Hop", "Electronic"],
+            "Columbia": ["Pop", "Rock", "Alternative"],
+            "RCA": ["Pop", "Country", "R&B"],
+            "Epic": ["Pop", "Rock", "Hip-Hop"],
+            "Warner": ["Rock", "Pop", "Alternative"],
+            "Elektra": ["Rock", "Alternative", "Pop"],
+            "Republic": ["Pop", "Hip-Hop", "Electronic"],
+            "Island": ["Reggae", "Pop", "Rock"],
+            "Motown": ["R&B", "Soul", "Pop"],
+            "Geffen": ["Rock", "Alternative", "Pop"]
+        }
+        
+        for key, genres in genre_mappings.items():
+            if key.lower() in label_name.lower():
+                return genres
+        
+        return ["Pop", "Rock", "Alternative"]  # Default genres
+    
+    def _get_parent_label(self, label_data: Dict[str, Any]) -> List[str]:
+        """Get parent label if it exists"""
+        if "parent" in label_data:
+            return [label_data["parent"]]
+        return []
+    
+    def _create_label_entities(self, label_name: str) -> List[AssociatedEntity]:
+        """Create associated entities for a major label"""
+        entities = []
+        
+        # CEO/President
+        entities.append(AssociatedEntity(
+            entity_id=str(uuid.uuid4()),
+            entity_type="admin",
+            name=f"{label_name} CEO",
+            role="Chief Executive Officer",
+            permissions=["full_access", "financial_management", "strategic_decisions"],
+            royalty_share=0.0,
+            jurisdiction=TerritoryJurisdiction.US
+        ))
+        
+        # A&R Director
+        entities.append(AssociatedEntity(
+            entity_id=str(uuid.uuid4()),
+            entity_type="admin",
+            name=f"{label_name} A&R Director",
+            role="Artists & Repertoire Director",
+            permissions=["artist_management", "content_approval", "talent_scouting"],
+            royalty_share=0.0,
+            jurisdiction=TerritoryJurisdiction.US
+        ))
+        
+        # Head of Digital Strategy
+        entities.append(AssociatedEntity(
+            entity_id=str(uuid.uuid4()),
+            entity_type="admin",
+            name=f"{label_name} Digital Director",
+            role="Head of Digital Strategy",
+            permissions=["digital_distribution", "platform_management", "analytics_access"],
+            royalty_share=0.0,
+            jurisdiction=TerritoryJurisdiction.US
+        ))
+        
+        return entities
+    
+    def _create_independent_label_entities(self, label_name: str) -> List[AssociatedEntity]:
+        """Create associated entities for an independent label"""
+        entities = []
+        
+        # Founder/Owner
+        entities.append(AssociatedEntity(
+            entity_id=str(uuid.uuid4()),
+            entity_type="admin",
+            name=f"{label_name} Founder",
+            role="Founder & Owner",
+            permissions=["full_access", "financial_management", "artist_relations"],
+            royalty_share=0.0
+        ))
+        
+        return entities
+    
+    def _create_label_smart_contracts(self, label_name: str) -> List[SmartContractBinding]:
+        """Create smart contract bindings for major labels"""
+        contracts = []
+        
+        # Rights Split Contract
+        contracts.append(SmartContractBinding(
+            contract_address=f"0x{uuid.uuid4().hex[:40]}",
+            contract_type=ContractType.RECORDING,
+            blockchain_network="ethereum",
+            rights_splits={
+                "master_rights": 70.0,
+                "publishing_rights": 15.0,
+                "distribution_rights": 15.0
+            },
+            governance_rules={
+                "voting_threshold": 0.67,
+                "proposal_threshold": 0.10,
+                "execution_delay": 86400  # 24 hours
+            },
+            dao_integration=True,
+            auto_execution=True
+        ))
+        
+        # DAO Governance Contract
+        contracts.append(SmartContractBinding(
+            contract_address=f"0x{uuid.uuid4().hex[:40]}",
+            contract_type=ContractType.CROSS_LABEL,
+            blockchain_network="ethereum",
+            governance_rules={
+                "voting_power": 5.0,  # Major labels get more voting power
+                "proposal_creation": True,
+                "veto_power": True
+            },
+            dao_integration=True
+        ))
+        
+        return contracts
+    
+    async def _update_subsidiary_relationships(self):
+        """Update parent-subsidiary relationships between labels"""
+        try:
+            # Define parent-subsidiary relationships
+            relationships = {
+                "Universal Music Group": [
+                    "Interscope Records", "Republic Records", "Def Jam Recordings",
+                    "Capitol Records", "Geffen Records", "Island Records",
+                    "Motown Records", "Polydor Records"
+                ],
+                "Sony Music Entertainment": [
+                    "Columbia Records", "RCA Records", "Epic Records",
+                    "Arista Records", "J Records"
+                ],
+                "Warner Music Group": [
+                    "Atlantic Records", "Warner Records", "Elektra Records",
+                    "Roadrunner Records"
+                ]
+            }
+            
+            for parent_name, subsidiaries in relationships.items():
+                # Get parent label
+                parent_label = await self.uln_labels.find_one({
+                    "metadata_profile.name": parent_name
+                })
+                
+                if parent_label:
+                    parent_global_id = parent_label["global_id"]["id"]
+                    
+                    # Update parent with subsidiary list
+                    await self.uln_labels.update_one(
+                        {"global_id.id": parent_global_id},
+                        {"$set": {"subsidiary_labels": subsidiaries}}
+                    )
+                    
+                    # Update each subsidiary with parent reference
+                    for subsidiary_name in subsidiaries:
+                        await self.uln_labels.update_one(
+                            {"metadata_profile.name": subsidiary_name},
+                            {"$set": {"parent_labels": [parent_name]}}
+                        )
+            
+            logger.info("Successfully updated subsidiary relationships")
+            
+        except Exception as e:
+            logger.error(f"Error updating subsidiary relationships: {str(e)}")
+    
     # ===== MULTI-LABEL ROYALTY ENGINE =====
     
     async def create_royalty_pool(self, request: RoyaltyDistributionRequest, 
