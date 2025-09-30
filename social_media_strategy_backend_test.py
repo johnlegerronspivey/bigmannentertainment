@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Test configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://record-net.preview.emergentagent.com')
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://label-network.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api/social-strategy"
 
 class SocialMediaStrategyTester:

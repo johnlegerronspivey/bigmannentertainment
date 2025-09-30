@@ -21,9 +21,9 @@ class TranscodingSystemTester:
                         self.base_url = line.split('=')[1].strip()
                         break
                 else:
-                    self.base_url = "https://record-net.preview.emergentagent.com"
+                    self.base_url = "https://label-network.preview.emergentagent.com"
         except:
-            self.base_url = "https://record-net.preview.emergentagent.com"
+            self.base_url = "https://label-network.preview.emergentagent.com"
         
         self.api_url = f"{self.base_url}/api"
         self.transcoding_url = f"{self.api_url}/transcoding"
