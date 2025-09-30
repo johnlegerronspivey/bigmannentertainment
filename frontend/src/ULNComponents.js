@@ -500,7 +500,7 @@ const LabelHub = () => {
       {/* Labels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {labelHubData.map((label) => (
-          <LabelHubCard key={label.global_id} label={label} />
+          <LabelHubCard key={label.global_id} label={label} onEdit={handleEditLabel} />
         ))}
       </div>
 
@@ -509,6 +509,15 @@ const LabelHub = () => {
           <div className="text-gray-500 text-lg">No labels found matching your criteria</div>
           <p className="text-gray-400 mt-2">Try adjusting your filters or register a new label</p>
         </div>
+      )}
+
+      {/* Edit Label Modal */}
+      {showEditModal && editingLabel && (
+        <EditLabelModal
+          label={editingLabel}
+          onClose={handleCloseEditModal}
+          onUpdate={handleLabelUpdated}
+        />
       )}
     </div>
   );
