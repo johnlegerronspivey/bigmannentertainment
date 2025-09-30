@@ -223,6 +223,9 @@ class BusinessIdentifiers(BaseModel):
     global_location_number: str
     isrc_prefix: str
     publisher_number: str
+    ipi_business: Optional[str] = None
+    ipi_principal: Optional[str] = None
+    ipn_number: Optional[str] = None  # IPI Name Number
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
