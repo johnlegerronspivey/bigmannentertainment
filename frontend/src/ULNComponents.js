@@ -657,6 +657,286 @@ const LabelHubCard = ({ label, onEdit }) => {
   );
 };
 
+// ===== EDIT LABEL MODAL COMPONENT =====
+
+const EditLabelModal = ({ label, onClose, onUpdate }) => {
+  const [formData, setFormData] = useState({
+    name: label.name || '',
+    legal_name: label.metadata_profile?.legal_name || '',
+    genres: (label.genre_focus || []).join(', '),
+    integration: label.integration_type || '',
+    owner: '',
+    headquarters: label.metadata_profile?.headquarters || '',
+    tax_status: label.metadata_profile?.tax_status || 'corporation'
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Get owner name from associated_entities
+  useEffect(() => {
+    const fetchLabelDetails = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/api/uln/labels/${label.global_id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.label) {
+            const ownerEntity = data.label.associated_entities?.find(
+              e => e.entity_type === 'owner' || e.role === 'Owner'
+            );
+            if (ownerEntity) {
+              setFormData(prev => ({...prev, owner: ownerEntity.name}));
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching label details:', error);
+      }
+    };
+    fetchLabelDetails();
+  }, [label.global_id]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({...prev, [name]: value}));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Prepare update data
+      const updateData = {};
+      
+      if (formData.name !== label.name) {
+        updateData.name = formData.name;
+      }
+      if (formData.legal_name) {
+        updateData.legal_name = formData.legal_name;
+      }
+      if (formData.genres) {
+        // Convert comma-separated string to array
+        updateData.genres = formData.genres.split(',').map(g => g.trim()).filter(g => g);
+      }
+      if (formData.integration !== label.integration_type) {
+        updateData.integration = formData.integration;
+      }
+      if (formData.owner) {
+        updateData.owner = formData.owner;
+      }
+      if (formData.headquarters) {
+        updateData.headquarters = formData.headquarters;
+      }
+      if (formData.tax_status) {
+        updateData.tax_status = formData.tax_status;
+      }
+
+      const response = await fetch(`${API}/api/uln/labels/${label.global_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setSuccess('✅ Label updated successfully!');
+        setTimeout(() => {
+          onUpdate();
+        }, 1500);
+      } else {
+        setError(data.error || data.detail || 'Failed to update label');
+      }
+    } catch (error) {
+      console.error('Error updating label:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="bg-purple-600 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
+          <h2 className="text-xl font-bold">✏️ Edit Label</h2>
+          <button 
+            onClick={onClose}
+            className="text-white hover:text-gray-200 text-2xl font-bold"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Label Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Label Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter label name"
+            />
+          </div>
+
+          {/* Legal Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Legal Name
+            </label>
+            <input
+              type="text"
+              name="legal_name"
+              value={formData.legal_name}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter legal name"
+            />
+          </div>
+
+          {/* Genres */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Music Genres
+            </label>
+            <input
+              type="text"
+              name="genres"
+              value={formData.genres}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="e.g., Hip-Hop, R&B, Rap (comma-separated)"
+            />
+            <p className="text-xs text-gray-500 mt-1">Separate multiple genres with commas</p>
+          </div>
+
+          {/* Integration Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Integration Type
+            </label>
+            <select
+              name="integration"
+              value={formData.integration}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="full_integration">Full Integration</option>
+              <option value="api_partner">API Partner</option>
+              <option value="distribution_only">Distribution Only</option>
+              <option value="metadata_sync">Metadata Sync</option>
+              <option value="content_sharing">Content Sharing</option>
+            </select>
+          </div>
+
+          {/* Owner */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Owner
+            </label>
+            <input
+              type="text"
+              name="owner"
+              value={formData.owner}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter owner name"
+            />
+          </div>
+
+          {/* Headquarters */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Headquarters
+            </label>
+            <input
+              type="text"
+              name="headquarters"
+              value={formData.headquarters}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter headquarters location"
+            />
+          </div>
+
+          {/* Tax Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tax Status
+            </label>
+            <select
+              name="tax_status"
+              value={formData.tax_status}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="corporation">Corporation</option>
+              <option value="llc">LLC</option>
+              <option value="partnership">Partnership</option>
+              <option value="sole_proprietorship">Sole Proprietorship</option>
+            </select>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+              {success}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? '⏳ Saving...' : '💾 Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // ===== CROSS-LABEL CONTENT SHARING COMPONENT =====
 
 const CrossLabelContentSharing = () => {
