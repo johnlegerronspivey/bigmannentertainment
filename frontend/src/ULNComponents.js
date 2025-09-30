@@ -156,25 +156,39 @@ const ULNOverview = ({ stats }) => {
           color="bg-blue-500"
         />
         <MetricCard 
-          title="Shared Content" 
-          value={stats.total_content_shared} 
-          subtitle="Cross-label items"
-          icon="🔗" 
+          title="Major Labels" 
+          value={stats.major_labels || 0} 
+          subtitle="Premium tier"
+          icon="🌟" 
+          color="bg-purple-500"
+        />
+        <MetricCard 
+          title="Independent Labels" 
+          value={stats.independent_labels || 0} 
+          subtitle="Creative freedom"
+          icon="🎵" 
           color="bg-green-500"
         />
         <MetricCard 
-          title="Royalty Pools" 
-          value={stats.total_royalty_pools} 
-          subtitle={`$${stats.total_revenue_processed?.toLocaleString() || 0} processed`}
-          icon="💰" 
-          color="bg-yellow-500"
+          title="Cross-Label Collaborations" 
+          value={stats.cross_collaborations || 0} 
+          subtitle="Active partnerships"
+          icon="🤝" 
+          color="bg-orange-500"
+        />
+        <MetricCard 
+          title="Smart Contracts" 
+          value={stats.smart_contracts || 0} 
+          subtitle="Blockchain enabled"
+          icon="📋" 
+          color="bg-teal-500"
         />
         <MetricCard 
           title="DAO Proposals" 
           value={stats.total_dao_proposals} 
           subtitle="Governance actions"
           icon="🗳️" 
-          color="bg-purple-500"
+          color="bg-red-500"
         />
       </div>
 
