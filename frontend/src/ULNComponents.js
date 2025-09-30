@@ -578,6 +578,32 @@ const LabelHubCard = ({ label }) => {
           </div>
         </div>
       </div>
+
+      {/* Major Label Additional Info */}
+      {label.label_type === 'major' && (
+        <div className="mt-3 pt-3 border-t border-purple-200">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-purple-600 font-medium">🌟 Major Label Network</span>
+            <span className="text-purple-500">Premium Tier</span>
+          </div>
+          <div className="mt-1 text-xs text-gray-500">
+            Full ULN integration • Smart contracts • DAO governance
+          </div>
+        </div>
+      )}
+
+      {/* Independent Label Additional Info */}
+      {label.label_type === 'independent' && (
+        <div className="mt-3 pt-3 border-t border-blue-200">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-blue-600 font-medium">🎶 Independent Spirit</span>
+            <span className="text-blue-500">API Partner</span>
+          </div>
+          <div className="mt-1 text-xs text-gray-500">
+            Creative freedom • Direct artist relationships • Innovation focus
+          </div>
+        </div>
+      )}
     </div>
   );
 };
