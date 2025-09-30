@@ -519,7 +519,9 @@ const LabelHubCard = ({ label }) => {
           </div>
         </div>
         <div className="text-2xl">
-          {label.label_type === 'major' ? '🏢' : '🎵'}
+          {label.label_type === 'major' ? '🏢' : 
+           label.label_type === 'independent' ? '🎵' :
+           label.label_type === 'distribution' ? '📦' : '🎼'}
         </div>
       </div>
 
