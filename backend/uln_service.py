@@ -1053,6 +1053,10 @@ class ULNService:
             total_labels = await self.uln_labels.count_documents({})
             active_labels = await self.uln_labels.count_documents({"status": "active"})
             
+            # Get labels by type
+            major_labels = await self.uln_labels.count_documents({"label_type": "major"})
+            independent_labels = await self.uln_labels.count_documents({"label_type": "independent"})
+            
             # Count federated content
             total_content_shared = await self.federated_content.count_documents({})
             
@@ -1062,6 +1066,11 @@ class ULNService:
             # Count DAO proposals
             total_dao_proposals = await self.dao_proposals.count_documents({})
             active_proposals = await self.dao_proposals.count_documents({"status": "active"})
+            
+            # Count smart contracts
+            smart_contracts_count = await self.uln_labels.count_documents({
+                "smart_contracts": {"$exists": True, "$not": {"$size": 0}}
+            })
             
             # Geographic distribution
             labels_by_territory = {}
