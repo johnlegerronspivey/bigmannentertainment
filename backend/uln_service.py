@@ -212,7 +212,7 @@ class ULNService:
                     genre_focus=label_data["metadata_profile"].get("genre_specialization", []),
                     dao_affiliated=len(label_data.get("smart_contracts", [])) > 0,
                     status=label_data["status"],
-                    last_activity=datetime.fromisoformat(label_data["updated_at"]),
+                    last_activity=datetime.fromisoformat(label_data["updated_at"]) if isinstance(label_data["updated_at"], str) else label_data["updated_at"],
                     verification_status=label_data["global_id"].get("verification_status", "pending"),
                     compliance_status="verified" if label_data.get("compliance_verified") else "pending",
                     blockchain_enabled=any(sc.get("blockchain_network") for sc in label_data.get("smart_contracts", []))
