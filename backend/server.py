@@ -7761,7 +7761,7 @@ async def global_health():
     """Global platform health check"""
     try:
         # Test database connection
-        await client.admin.command('ping')
+        await db.command('ping')
         
         # Get basic platform stats
         users_count = await db.users.count_documents({})
