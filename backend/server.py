@@ -909,7 +909,7 @@ DISTRIBUTION_PLATFORMS = {
         "description": "Internet radio streaming"
     },
 
-    # Television & Video Streaming (8 platforms)
+    # Television & Video Streaming (9 platforms)
     "netflix": {
         "type": "video_streaming",
         "name": "Netflix",
