@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = "https://label-network.preview.emergentagent.com/api"
+BACKEND_URL = "https://label-network-1.preview.emergentagent.com/api"
 TEST_EMAIL = "password.reset.test@bigmannentertainment.com"
 TEST_PASSWORD = "SecurePassword123!"
 NEW_PASSWORD = "NewSecurePassword456!"
