@@ -982,6 +982,15 @@ DISTRIBUTION_PLATFORMS = {
         "credentials_required": ["developer_id", "api_key"],
         "description": "Roku's free streaming platform"
     },
+    "espn": {
+        "type": "video_streaming",
+        "name": "ESPN",
+        "api_endpoint": "https://api.espn.com/v1",
+        "supported_formats": ["video", "audio"],
+        "max_file_size": 5 * 1024 * 1024 * 1024,  # 5GB
+        "credentials_required": ["content_partner_key", "api_key"],
+        "description": "Sports streaming and broadcasting platform"
+    },
 
     # Music Industry Rights Organizations (5 platforms)
     "ascap": {
