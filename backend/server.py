@@ -7358,7 +7358,7 @@ async def api_health():
     """Main API health check endpoint"""
     try:
         # Test database connection
-        await db.admin.command('ping')
+        await db.command('ping')
         
         # Get distribution platform count
         platform_count = len(DISTRIBUTION_PLATFORMS)
