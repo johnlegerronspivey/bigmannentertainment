@@ -504,3 +504,153 @@ async def list_proposals(
             ],
             "total": len(proposals)
         }
+
+
+
+# Proposal Comments/Discussion Endpoints
+
+class ProposalCommentRequest(BaseModel):
+    comment_text: str
+    parent_comment_id: Optional[str] = None
+
+@router.post("/dao/proposals/{proposal_id}/comments")
+async def create_proposal_comment(
+    proposal_id: str,
+    request: ProposalCommentRequest,
+    current_user = Depends(get_current_user)
+):
+    """Add comment to proposal"""
+    async with get_async_session() as session:
+        # Get user profile
+        user_result = await session.execute(
+            select(UserProfile).where(UserProfile.mongo_user_id == get_user_id(current_user))
+        )
+        user_profile = user_result.scalar_one_or_none()
+        
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        # Verify proposal exists
+        proposal_result = await session.execute(
+            select(Proposal).where(Proposal.id == proposal_id)
+        )
+        if not proposal_result.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Proposal not found")
+        
+        comment = ProposalComment(
+            proposal_id=proposal_id,
+            user_id=user_profile.id,
+            comment_text=request.comment_text,
+            parent_comment_id=request.parent_comment_id
+        )
+        
+        session.add(comment)
+        await session.commit()
+        await session.refresh(comment)
+        
+        return {
+            "success": True,
+            "message": "Comment added successfully",
+            "comment": {
+                "id": comment.id,
+                "text": comment.comment_text,
+                "created_at": comment.created_at.isoformat()
+            }
+        }
+
+@router.get("/dao/proposals/{proposal_id}/comments")
+async def get_proposal_comments(proposal_id: str):
+    """Get all comments for a proposal"""
+    async with get_async_session() as session:
+        # Get proposal
+        proposal_result = await session.execute(
+            select(Proposal).where(Proposal.id == proposal_id)
+        )
+        if not proposal_result.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Proposal not found")
+        
+        # Get comments with user info
+        from sqlalchemy.orm import joinedload
+        comments_result = await session.execute(
+            select(ProposalComment)
+            .where(ProposalComment.proposal_id == proposal_id)
+            .order_by(ProposalComment.created_at.asc())
+        )
+        comments = comments_result.scalars().all()
+        
+        # Get user profiles for comments
+        comments_list = []
+        for comment in comments:
+            user_result = await session.execute(
+                select(UserProfile).where(UserProfile.id == comment.user_id)
+            )
+            user = user_result.scalar_one_or_none()
+            
+            comments_list.append({
+                "id": comment.id,
+                "text": comment.comment_text,
+                "author": {
+                    "username": user.username if user else "Unknown",
+                    "displayName": user.display_name if user else "Unknown User",
+                    "avatarUrl": user.avatar_url if user else None
+                },
+                "parent_comment_id": comment.parent_comment_id,
+                "likes": comment.likes,
+                "created_at": comment.created_at.isoformat()
+            })
+        
+        return {
+            "comments": comments_list,
+            "total": len(comments_list)
+        }
+
+@router.put("/dao/proposals/{proposal_id}/status")
+async def update_proposal_status(
+    proposal_id: str,
+    status: str,
+    current_user = Depends(get_current_user)
+):
+    """Update proposal status (owner or admin only)"""
+    async with get_async_session() as session:
+        # Get user profile
+        user_result = await session.execute(
+            select(UserProfile).where(UserProfile.mongo_user_id == get_user_id(current_user))
+        )
+        user_profile = user_result.scalar_one_or_none()
+        
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        # Get proposal
+        proposal_result = await session.execute(
+            select(Proposal).where(Proposal.id == proposal_id)
+        )
+        proposal = proposal_result.scalar_one_or_none()
+        
+        if not proposal:
+            raise HTTPException(status_code=404, detail="Proposal not found")
+        
+        # Check authorization (owner of proposal can update)
+        if proposal.user_id != user_profile.id:
+            raise HTTPException(status_code=403, detail="Not authorized to update this proposal")
+        
+        # Update status
+        valid_statuses = ["open", "closed", "approved", "rejected", "executed"]
+        if status not in valid_statuses:
+            raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}")
+        
+        proposal.status = status
+        if status == "executed":
+            proposal.executed_at = datetime.now(timezone.utc)
+        
+        await session.commit()
+        
+        return {
+            "success": True,
+            "message": f"Proposal status updated to {status}",
+            "proposal": {
+                "id": proposal.id,
+                "status": proposal.status,
+                "executed_at": proposal.executed_at.isoformat() if proposal.executed_at else None
+            }
+        }
