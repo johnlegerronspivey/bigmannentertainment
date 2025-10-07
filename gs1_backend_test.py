@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://creator-profile-hub-1.preview.emergentagent.com"
+BACKEND_URL = "https://creator-profile-hub-2.preview.emergentagent.com"
 
 class GS1AssetRegistryTester:
     def __init__(self):
@@ -136,7 +136,7 @@ class GS1AssetRegistryTester:
             },
             "generate_identifiers": ["gtin", "isrc"],
             "digital_link_config": {
-                "base_uri": "https://creator-profile-hub-1.preview.emergentagent.com",
+                "base_uri": "https://creator-profile-hub-2.preview.emergentagent.com",
                 "qr_code_format": "PNG",
                 "qr_code_size": 200
             }
@@ -381,7 +381,7 @@ class GS1AssetRegistryTester:
                     "asset_id": asset_id,
                     "identifier": gtin_value,
                     "config": {
-                        "base_uri": "https://creator-profile-hub-1.preview.emergentagent.com",
+                        "base_uri": "https://creator-profile-hub-2.preview.emergentagent.com",
                         "qr_code_format": "PNG",
                         "qr_code_size": 200
                     }

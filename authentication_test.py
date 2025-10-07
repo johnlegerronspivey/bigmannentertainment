@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 # Use the correct backend URL from frontend environment
-BACKEND_URL = "https://creator-profile-hub-1.preview.emergentagent.com"
+BACKEND_URL = "https://creator-profile-hub-2.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class AuthenticationTester:
