@@ -789,9 +789,6 @@ async def schedule_post(
 
 # QR Code Generation Endpoints (Phase 5)
 
-from fastapi.responses import Response
-from gs1_profile_service import gs1_service
-
 @router.get("/qr/generate")
 async def generate_qr_code(
     data: str,
