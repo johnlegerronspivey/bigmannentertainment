@@ -99,7 +99,9 @@ async def profile_health():
 @router.get("/me")
 async def get_my_profile(current_user = Depends(get_current_user)):
     """Get current user's profile"""
-    profile = await profile_service.get_profile_by_mongo_id(current_user.id)
+    # current_user can be dict or object, handle both
+    user_id = current_user.get('id') if isinstance(current_user, dict) else current_user.id
+    profile = await profile_service.get_profile_by_mongo_id(user_id)
     
     if not profile:
         return {
