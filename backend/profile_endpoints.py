@@ -109,7 +109,7 @@ async def create_profile(
         }
     }
 
-@router.put("/update")
+@router.put("/me")
 async def update_profile(
     request: ProfileUpdateRequest,
     current_user = Depends(get_current_user)
@@ -117,8 +117,19 @@ async def update_profile(
     """Update current user's profile"""
     # Get existing profile
     existing = await profile_service.get_profile_by_mongo_id(current_user.id)
+    
     if not existing:
-        raise HTTPException(status_code=404, detail="Profile not found. Create one first.")
+        # Auto-create profile if not exists
+        username = current_user.email.split('@')[0] if hasattr(current_user, 'email') else f"user_{current_user.id}"
+        profile = await profile_service.create_profile(
+            mongo_user_id=current_user.id,
+            username=username,
+            data=request.dict(exclude_unset=True)
+        )
+        return {
+            "success": True,
+            "message": "Profile created successfully"
+        }
     
     # Update profile
     profile = await profile_service.update_profile(
@@ -139,13 +150,11 @@ async def get_my_profile(current_user = Depends(get_current_user)):
     if not profile:
         return {
             "hasProfile": False,
-            "message": "No profile created yet"
+            "message": "No profile created yet",
+            "identity": None
         }
     
-    return {
-        "hasProfile": True,
-        "profile": profile
-    }
+    return profile
 
 # Asset Endpoints
 
