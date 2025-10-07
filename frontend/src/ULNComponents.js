@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BlockchainIntegrationDashboard, BlockchainContractsViewer, BlockchainAuditTrail } from './BlockchainComponents';
+import { EnhancedEditLabelModal } from './EnhancedULNComponents';
 
 // Get API URL from environment
 const API = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
