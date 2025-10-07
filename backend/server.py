@@ -7271,6 +7271,10 @@ app.include_router(royalty_engine_router)
 app.include_router(social_media_royalty_router)
 app.include_router(content_ingestion_router)
 
+# Include Creator Profile System routers
+app.include_router(profile_router)
+app.include_router(oauth_router)
+
 # Include comprehensive platform router
 app.include_router(comprehensive_platform_router)
 app.include_router(content_workflow_router)
