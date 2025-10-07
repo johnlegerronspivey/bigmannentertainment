@@ -215,8 +215,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Phase 3, 4, 5 Creator Profile System Frontend Testing Completed Successfully"
-  stuck_tasks: []
+    - "ULN Label Editing System Testing"
+  stuck_tasks:
+    - "ULN Label Editing System"
   test_all: false
   test_priority: "high_first"
 
