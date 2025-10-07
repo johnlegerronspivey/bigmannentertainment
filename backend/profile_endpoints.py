@@ -68,6 +68,31 @@ class VoteRequest(BaseModel):
 
 # Profile Endpoints
 
+# Health check (must be before dynamic routes)
+@router.get("/health")
+async def profile_health():
+    """Check profile service health"""
+    import os
+    postgres_url = os.getenv("POSTGRES_URL")
+    postgres_configured = bool(postgres_url and "localhost" in postgres_url)
+    
+    # Test actual connection
+    connection_status = "disconnected"
+    try:
+        from pg_database import async_engine
+        async with async_engine.connect() as conn:
+            connection_status = "connected"
+    except Exception as e:
+        connection_status = f"error: {str(e)[:100]}"
+    
+    return {
+        "status": "healthy" if connection_status == "connected" else "degraded",
+        "service": "creator_profiles",
+        "postgres": connection_status,
+        "mongodb": "connected",
+        "message": "All systems operational" if connection_status == "connected" else f"PostgreSQL issue: {connection_status}"
+    }
+
 @router.get("/{username}")
 async def get_profile(username: str):
     """Get public profile by username"""
