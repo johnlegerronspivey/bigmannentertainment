@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Test configuration
-API_BASE_URL = "https://bme-creator-hub.preview.emergentagent.com/api"
+API_BASE_URL = "https://bme-profile.preview.emergentagent.com/api"
 TEST_USER_TOKEN = None  # Will be set after authentication
 
 class RoyaltyEngineTestSuite:

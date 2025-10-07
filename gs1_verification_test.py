@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://bme-creator-hub.preview.emergentagent.com"
+BACKEND_URL = "https://bme-profile.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 def test_gs1_business_info_verification():

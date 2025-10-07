@@ -21,7 +21,7 @@ class Function5LifecycleBackendTester:
                     self.base_url = line.split('=')[1].strip()
                     break
             else:
-                self.base_url = "https://bme-creator-hub.preview.emergentagent.com"
+                self.base_url = "https://bme-profile.preview.emergentagent.com"
         
         self.api_base = f"{self.base_url}/api"
         self.lifecycle_base = f"{self.api_base}/lifecycle"

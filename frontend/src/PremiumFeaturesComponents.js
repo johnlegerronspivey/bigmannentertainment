@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://bme-creator-hub.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://bme-profile.preview.emergentagent.com';
 
 // AI Royalty Forecasting Component
 export const AIRoyaltyForecasting = () => {
