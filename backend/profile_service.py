@@ -163,7 +163,7 @@ class ProfileService:
                 license=asset_data.get('license', 'All Rights Reserved'),
                 copyright_notice=asset_data.get('copyright_notice'),
                 rights_holder=asset_data.get('rights_holder'),
-                metadata={
+                asset_metadata={
                     'gs1_digital_link': gs1_link,
                     'qr_code': qr_code
                 }
