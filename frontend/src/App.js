@@ -3497,6 +3497,8 @@ function App() {
             <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/creator/:username" element={<CreatorProfilePage />} />
             <Route path="/dao" element={<ProtectedRoute><DAOGovernance /></ProtectedRoute>} />
+            <Route path="/dao/proposal/:proposalId" element={<ProtectedRoute><ProposalDetail /></ProtectedRoute>} />
+            <Route path="/social" element={<ProtectedRoute><SocialMediaDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><EnhancedUserDashboard /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
