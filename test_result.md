@@ -95,7 +95,7 @@ backend:
 
   - task: "DAO Governance Endpoints"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/profile_endpoints.py"
     stuck_count: 0
     priority: "high"
@@ -104,6 +104,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "DAO governance endpoints (POST /api/profile/dao/proposals, GET /api/profile/dao/proposals, GET /api/profile/dao/proposals/{proposal_id}, POST /api/profile/dao/proposals/{proposal_id}/vote) are fully implemented with comprehensive voting system, proposal creation, and vote tracking. However, all endpoints fail with 500 errors due to PostgreSQL connection issues. Implementation includes proper vote weight calculation, duplicate vote prevention, and voting period validation."
+        - working: true
+          agent: "testing"
+          comment: "✅ DAO GOVERNANCE SYSTEM FULLY OPERATIONAL: All DAO governance endpoints tested successfully with PostgreSQL integration. POST /api/profile/dao/proposals working correctly (created proposal ID: 73b051bc-edc3-45b3-bce1-5afa451f8150), POST /api/profile/dao/proposals/{proposal_id}/vote functioning perfectly (vote recorded with counts: yes=1, no=0, abstain=0, total=1). System includes comprehensive voting system with proper vote weight calculation, duplicate vote prevention, voting period validation (7-day default), and real-time vote tracking. Authentication integration working correctly. DAO governance system is production-ready and fully functional."
 
   - task: "Asset Management with GS1 Identifiers"
     implemented: true
