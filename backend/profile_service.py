@@ -204,8 +204,8 @@ class ProfileService:
                 "isrc": asset.isrc,
                 "isan": asset.isan,
                 "gdti": asset.gdti,
-                "gs1_digital_link": asset.metadata.get('gs1_digital_link') if asset.metadata else None,
-                "qr_code": asset.metadata.get('qr_code') if asset.metadata else None,
+                "gs1_digital_link": asset.asset_metadata.get('gs1_digital_link') if asset.asset_metadata else None,
+                "qr_code": asset.asset_metadata.get('qr_code') if asset.asset_metadata else None,
                 "license": asset.license,
                 "copyright": asset.copyright_notice,
                 "engagement": {
