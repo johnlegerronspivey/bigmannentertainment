@@ -673,6 +673,27 @@ const Navigation = () => {
               >
                 Label
               </Link>
+              
+              {/* Profile & DAO Links - Highlighted in Mobile Menu */}
+              <div className="border-t border-purple-600 mt-2 pt-2">
+                <Link 
+                  to="/profile/settings" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>👤</span>
+                  <span>My Profile</span>
+                </Link>
+                <Link 
+                  to="/dao" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>🏛️</span>
+                  <span>DAO Governance</span>
+                </Link>
+              </div>
+              
               {isAdmin() && (
                 <Link 
                   to="/admin/users" 
