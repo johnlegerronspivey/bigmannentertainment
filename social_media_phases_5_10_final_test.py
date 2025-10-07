@@ -13,7 +13,7 @@ from typing import Dict, List, Any
 import uuid
 
 # Backend URL from environment
-BACKEND_URL = "https://bme-dashboard.preview.emergentagent.com"
+BACKEND_URL = "https://bme-creator-hub.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class SocialMediaPhases510FinalTester:
