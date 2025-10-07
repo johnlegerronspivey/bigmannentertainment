@@ -553,6 +553,39 @@ const LabelHub = () => {
           onUpdate={handleLabelUpdated}
         />
       )}
+
+      {/* Bulk Label Editor */}
+      {showBulkEditor && (
+        <BulkLabelEditor
+          labels={selectedLabelsForBulk}
+          onClose={() => setShowBulkEditor(false)}
+          onUpdate={() => {
+            fetchLabelHubData();
+            setShowBulkEditor(false);
+          }}
+        />
+      )}
+
+      {/* Advanced Search */}
+      {showAdvancedSearch && (
+        <AdvancedSearch
+          onSearch={(criteria) => {
+            console.log('Search criteria:', criteria);
+            // Apply search filters
+            setFilters(prev => ({ ...prev, ...criteria }));
+            setShowAdvancedSearch(false);
+          }}
+          onClose={() => setShowAdvancedSearch(false)}
+        />
+      )}
+
+      {/* Data Exporter */}
+      {showExporter && (
+        <LabelDataExporter
+          labels={labelHubData}
+          onClose={() => setShowExporter(false)}
+        />
+      )}
     </div>
   );
 };
