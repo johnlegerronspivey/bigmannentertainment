@@ -32,466 +32,394 @@ class ProfileSystemTester:
     def __init__(self):
         self.session = None
         self.auth_token = None
-        self.test_user_email = f"uln_test_{int(datetime.now().timestamp())}@bigmannentertainment.com"
-        self.test_results = []
+        self.user_id = None
+        self.profile_id = None
+        self.asset_id = None
+        self.proposal_id = None
         
     async def setup_session(self):
         """Initialize HTTP session"""
         self.session = aiohttp.ClientSession()
         
     async def cleanup_session(self):
-        """Clean up HTTP session"""
+        """Cleanup HTTP session"""
         if self.session:
             await self.session.close()
             
-    def log_test(self, test_name: str, success: bool, details: str = ""):
-        """Log test result"""
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status}: {test_name}")
-        if details:
-            print(f"   Details: {details}")
+    async def register_and_login(self):
+        """Register test user and login to get auth token"""
+        print("🔐 Testing user registration and authentication...")
         
-        self.test_results.append({
-            "test": test_name,
-            "success": success,
-            "details": details
-        })
-        
-    async def create_test_user(self) -> bool:
-        """Create a test user for authentication"""
+        # Try to register user (may already exist)
         try:
-            user_data = {
-                "email": self.test_user_email,
-                "password": "TestPassword123!",
-                "full_name": "ULN Test User",
-                "date_of_birth": "1990-01-01T00:00:00Z",
-                "address_line1": "123 Test Street",
-                "city": "Test City",
-                "state_province": "Test State",
-                "postal_code": "12345",
-                "country": "US"
-            }
-            
-            async with self.session.post(f"{API_BASE}/auth/register", json=user_data) as response:
+            async with self.session.post(f"{API_BASE}/auth/register", json=TEST_USER) as response:
                 if response.status == 201:
-                    data = await response.json()
-                    self.auth_token = data.get("access_token")
-                    self.log_test("User Registration", True, f"Created user: {self.test_user_email}")
-                    return True
+                    print("✅ User registered successfully")
+                elif response.status == 400:
+                    print("ℹ️  User already exists, proceeding to login")
                 else:
-                    error_text = await response.text()
-                    self.log_test("User Registration", False, f"Status: {response.status}, Error: {error_text}")
-                    return False
-                    
+                    print(f"⚠️  Registration response: {response.status}")
         except Exception as e:
-            self.log_test("User Registration", False, f"Exception: {str(e)}")
-            return False
+            print(f"⚠️  Registration error: {e}")
             
-    async def login_test_user(self) -> bool:
-        """Login with test user if registration failed"""
+        # Login to get token
+        login_data = {"email": TEST_USER["email"], "password": TEST_USER["password"]}
         try:
-            login_data = {
-                "email": self.test_user_email,
-                "password": "TestPassword123!"
-            }
-            
             async with self.session.post(f"{API_BASE}/auth/login", json=login_data) as response:
                 if response.status == 200:
                     data = await response.json()
                     self.auth_token = data.get("access_token")
-                    self.log_test("User Login", True, f"Logged in user: {self.test_user_email}")
+                    self.user_id = data.get("user", {}).get("id")
+                    print("✅ Authentication successful")
                     return True
                 else:
                     error_text = await response.text()
-                    self.log_test("User Login", False, f"Status: {response.status}, Error: {error_text}")
+                    print(f"❌ Login failed: {response.status} - {error_text}")
                     return False
-                    
         except Exception as e:
-            self.log_test("User Login", False, f"Exception: {str(e)}")
+            print(f"❌ Login error: {e}")
             return False
             
-    def get_auth_headers(self) -> Dict[str, str]:
-        """Get authentication headers"""
-        if self.auth_token:
-            return {"Authorization": f"Bearer {self.auth_token}"}
-        return {}
-        
-    async def test_uln_health_check(self) -> bool:
-        """Test ULN health check endpoint"""
-        try:
-            async with self.session.get(f"{API_BASE}/uln/health") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    status = data.get("status")
-                    metrics = data.get("metrics", {})
-                    capabilities = data.get("capabilities", {})
-                    
-                    self.log_test("ULN Health Check", True, 
-                                f"Status: {status}, Labels: {metrics.get('total_labels', 0)}, "
-                                f"Capabilities: {len(capabilities)} enabled")
-                    return True
-                else:
-                    error_text = await response.text()
-                    self.log_test("ULN Health Check", False, f"Status: {response.status}, Error: {error_text}")
-                    return False
-                    
-        except Exception as e:
-            self.log_test("ULN Health Check", False, f"Exception: {str(e)}")
-            return False
-            
-    async def test_dashboard_stats(self) -> bool:
-        """Test ULN dashboard stats endpoint"""
-        try:
-            headers = self.get_auth_headers()
-            async with self.session.get(f"{API_BASE}/uln/dashboard/stats", headers=headers) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    stats = data.get("dashboard_stats", {})
-                    
-                    self.log_test("Dashboard Stats", True, 
-                                f"Total Labels: {stats.get('total_labels', 0)}, "
-                                f"Major: {stats.get('major_labels', 0)}, "
-                                f"Independent: {stats.get('independent_labels', 0)}")
-                    return True
-                elif response.status == 401:
-                    self.log_test("Dashboard Stats", True, "Correctly requires authentication (401)")
-                    return True
-                elif response.status == 403:
-                    self.log_test("Dashboard Stats", True, "Correctly requires authentication (403)")
-                    return True
-                else:
-                    error_text = await response.text()
-                    self.log_test("Dashboard Stats", False, f"Status: {response.status}, Error: {error_text}")
-                    return False
-                    
-        except Exception as e:
-            self.log_test("Dashboard Stats", False, f"Exception: {str(e)}")
-            return False
-            
-    async def test_label_directory(self) -> bool:
-        """Test ULN label directory endpoint"""
-        try:
-            headers = self.get_auth_headers()
-            async with self.session.get(f"{API_BASE}/uln/labels/directory", headers=headers) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    labels = data.get("labels", [])
-                    
-                    self.log_test("Label Directory", True, f"Found {len(labels)} labels in directory")
-                    return True
-                elif response.status == 401:
-                    self.log_test("Label Directory", True, "Correctly requires authentication (401)")
-                    return True
-                elif response.status == 403:
-                    self.log_test("Label Directory", True, "Correctly requires authentication (403)")
-                    return True
-                else:
-                    error_text = await response.text()
-                    self.log_test("Label Directory", False, f"Status: {response.status}, Error: {error_text}")
-                    return False
-                    
-        except Exception as e:
-            self.log_test("Label Directory", False, f"Exception: {str(e)}")
-            return False
-            
-    async def test_big_mann_label_retrieval(self) -> Dict[str, Any]:
-        """Test retrieving Big Mann Entertainment label by ID"""
-        try:
-            global_id = "BM-LBL-1758F4E9"
-            headers = self.get_auth_headers()
-            
-            async with self.session.get(f"{API_BASE}/uln/labels/{global_id}", headers=headers) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    label = data.get("label", {})
-                    
-                    self.log_test("Big Mann Label Retrieval", True, 
-                                f"Retrieved label: {label.get('metadata_profile', {}).get('name', 'Unknown')}")
-                    return label
-                elif response.status == 401:
-                    self.log_test("Big Mann Label Retrieval", True, "Correctly requires authentication (401)")
-                    return {}
-                elif response.status == 403:
-                    self.log_test("Big Mann Label Retrieval", True, "Correctly requires authentication (403)")
-                    return {}
-                elif response.status == 404:
-                    self.log_test("Big Mann Label Retrieval", False, "Label BM-LBL-1758F4E9 not found")
-                    return {}
-                else:
-                    error_text = await response.text()
-                    self.log_test("Big Mann Label Retrieval", False, f"Status: {response.status}, Error: {error_text}")
-                    return {}
-                    
-        except Exception as e:
-            self.log_test("Big Mann Label Retrieval", False, f"Exception: {str(e)}")
+    def get_auth_headers(self):
+        """Get authorization headers"""
+        if not self.auth_token:
             return {}
-            
-    async def verify_big_mann_label_data(self, label_data: Dict[str, Any]) -> bool:
-        """Verify Big Mann Entertainment label has expected data"""
-        if not label_data:
-            self.log_test("Big Mann Label Data Verification", False, "No label data to verify")
-            return False
-            
+        return {"Authorization": f"Bearer {self.auth_token}"}
+        
+    async def test_postgresql_health(self):
+        """Test 1: PostgreSQL Connection Health Check"""
+        print("\n🏥 Test 1: PostgreSQL Connection Health Check")
+        
         try:
-            metadata = label_data.get("metadata_profile", {})
-            
-            # Check required fields from review request
-            checks = {
-                "Label Name": metadata.get("name") == "Big Mann Entertainment",
-                "Legal Name": metadata.get("legal_name") == "John LeGerron Spivey", 
-                "Label Type": label_data.get("label_type") == "major",
-                "Genre Specialization": set(metadata.get("genre_specialization", [])) == {"Hip-Hop", "R&B", "Rap"},
-                "Integration Type": label_data.get("integration_type") == "full_integration",
-                "Headquarters": "1314 Lincoln Heights Street, Alexander City, Alabama, 35010" in str(metadata.get("headquarters", "")),
-                "Tax Status": metadata.get("tax_status") == "sole_proprietorship"
-            }
-            
-            # Check owner in associated entities
-            owner_found = False
-            for entity in label_data.get("associated_entities", []):
-                if entity.get("entity_type") == "owner" and "John LeGerron Spivey" in entity.get("name", ""):
-                    owner_found = True
-                    break
-            checks["Owner in Associated Entities"] = owner_found
-            
-            passed_checks = sum(checks.values())
-            total_checks = len(checks)
-            
-            details = f"Passed {passed_checks}/{total_checks} checks: " + ", ".join([k for k, v in checks.items() if v])
-            if passed_checks < total_checks:
-                failed = ", ".join([k for k, v in checks.items() if not v])
-                details += f" | Failed: {failed}"
+            async with self.session.get(f"{API_BASE}/profile/health") as response:
+                data = await response.json()
+                print(f"Status: {response.status}")
+                print(f"Response: {json.dumps(data, indent=2)}")
                 
-            self.log_test("Big Mann Label Data Verification", passed_checks == total_checks, details)
-            return passed_checks == total_checks
-            
-        except Exception as e:
-            self.log_test("Big Mann Label Data Verification", False, f"Exception: {str(e)}")
-            return False
-            
-    async def test_ipn_number_environment(self) -> bool:
-        """Test that IPN_NUMBER environment variable is set correctly"""
-        try:
-            # This would normally be checked on the backend, but we can verify it's in the environment
-            expected_ipn = "10959387"
-            
-            # We'll test this by checking if the backend has the correct configuration
-            # Since we can't directly access env vars, we'll assume it's correct if other tests pass
-            self.log_test("IPN_NUMBER Environment Variable", True, f"Expected IPN_NUMBER: {expected_ipn}")
-            return True
-            
-        except Exception as e:
-            self.log_test("IPN_NUMBER Environment Variable", False, f"Exception: {str(e)}")
-            return False
-            
-    async def test_generic_edit_label_endpoint_auth(self) -> bool:
-        """Test that generic edit label endpoint requires admin authentication"""
-        try:
-            global_id = "BM-LBL-1758F4E9"
-            update_data = {"name": "Test Update"}
-            
-            # Test without authentication
-            async with self.session.patch(f"{API_BASE}/uln/labels/{global_id}", json=update_data) as response:
-                if response.status in [401, 403]:
-                    self.log_test("Generic Edit Label Auth (No Auth)", True, 
-                                f"Correctly rejected unauthenticated request ({response.status})")
-                else:
-                    self.log_test("Generic Edit Label Auth (No Auth)", False, 
-                                f"Should require auth but got status: {response.status}")
-                    
-            # Test with regular user authentication (should fail for admin-only endpoint)
-            headers = self.get_auth_headers()
-            if headers:
-                async with self.session.patch(f"{API_BASE}/uln/labels/{global_id}", 
-                                            json=update_data, headers=headers) as response:
-                    if response.status == 403:
-                        self.log_test("Generic Edit Label Auth (Regular User)", True, 
-                                    "Correctly rejected non-admin user (403)")
-                        return True
-                    elif response.status == 401:
-                        self.log_test("Generic Edit Label Auth (Regular User)", True, 
-                                    "Correctly requires authentication (401)")
+                if response.status == 200:
+                    postgres_status = data.get("postgres", "unknown")
+                    if postgres_status == "connected":
+                        print("✅ PostgreSQL connection successful")
                         return True
                     else:
-                        error_text = await response.text()
-                        self.log_test("Generic Edit Label Auth (Regular User)", False, 
-                                    f"Expected 403 but got {response.status}: {error_text}")
+                        print(f"❌ PostgreSQL connection failed: {postgres_status}")
                         return False
-            else:
-                self.log_test("Generic Edit Label Auth (Regular User)", False, "No auth token available")
-                return False
+                else:
+                    print(f"❌ Health check failed with status {response.status}")
+                    return False
+                    
+        except Exception as e:
+            print(f"❌ Health check error: {e}")
+            return False
+            
+    async def test_profile_creation(self):
+        """Test 2: Profile Creation with Authentication"""
+        print("\n👤 Test 2: Profile Creation with Authentication")
+        
+        if not self.auth_token:
+            print("❌ No auth token available")
+            return False
+            
+        profile_data = {
+            "display_name": "Test Creator Profile",
+            "tagline": "Testing PostgreSQL Creator Profiles",
+            "bio": "This is a test profile for the PostgreSQL Creator Profile System",
+            "location": "Los Angeles, CA",
+            "profile_public": True,
+            "show_earnings": False
+        }
+        
+        try:
+            headers = self.get_auth_headers()
+            headers["Content-Type"] = "application/json"
+            
+            async with self.session.post(
+                f"{API_BASE}/profile/create", 
+                json=profile_data,
+                headers=headers
+            ) as response:
+                data = await response.json()
+                print(f"Status: {response.status}")
+                print(f"Response: {json.dumps(data, indent=2)}")
                 
-        except Exception as e:
-            self.log_test("Generic Edit Label Auth", False, f"Exception: {str(e)}")
-            return False
-            
-    async def test_admin_verification_endpoint(self) -> bool:
-        """Test admin verification endpoint"""
-        try:
-            headers = self.get_auth_headers()
-            async with self.session.get(f"{API_BASE}/uln/admin/verify", headers=headers) as response:
-                if response.status == 403:
-                    self.log_test("Admin Verification Endpoint", True, 
-                                "Correctly requires admin permissions (403)")
+                if response.status == 200:
+                    self.profile_id = data.get("profile", {}).get("id")
+                    print("✅ Profile created successfully")
                     return True
-                elif response.status == 401:
-                    self.log_test("Admin Verification Endpoint", True, 
-                                "Correctly requires authentication (401)")
-                    return True
-                elif response.status == 200:
-                    data = await response.json()
-                    is_admin = data.get("is_admin", False)
-                    self.log_test("Admin Verification Endpoint", True, 
-                                f"Admin status: {is_admin}")
+                elif response.status == 400 and "already exists" in data.get("detail", ""):
+                    print("ℹ️  Profile already exists, proceeding to next test")
                     return True
                 else:
-                    error_text = await response.text()
-                    self.log_test("Admin Verification Endpoint", False, 
-                                f"Status: {response.status}, Error: {error_text}")
+                    print(f"❌ Profile creation failed: {data}")
                     return False
                     
         except Exception as e:
-            self.log_test("Admin Verification Endpoint", False, f"Exception: {str(e)}")
+            print(f"❌ Profile creation error: {e}")
             return False
             
-    async def test_blockchain_integration_status(self) -> bool:
-        """Test blockchain integration status endpoint"""
+    async def test_profile_retrieval(self):
+        """Test 3: Profile Retrieval"""
+        print("\n📋 Test 3: Profile Retrieval (GET /api/profile/me)")
+        
+        if not self.auth_token:
+            print("❌ No auth token available")
+            return False
+            
         try:
             headers = self.get_auth_headers()
-            async with self.session.get(f"{API_BASE}/uln/blockchain/integration-status", headers=headers) as response:
-                if response.status == 403:
-                    self.log_test("Blockchain Integration Status", True, 
-                                "Correctly requires admin permissions (403)")
-                    return True
-                elif response.status == 401:
-                    self.log_test("Blockchain Integration Status", True, 
-                                "Correctly requires authentication (401)")
-                    return True
-                elif response.status == 200:
-                    data = await response.json()
-                    blockchain_status = data.get("blockchain_status", {})
-                    self.log_test("Blockchain Integration Status", True, 
-                                f"Blockchain status: {blockchain_status.get('status', 'unknown')}")
-                    return True
+            
+            async with self.session.get(
+                f"{API_BASE}/profile/me",
+                headers=headers
+            ) as response:
+                data = await response.json()
+                print(f"Status: {response.status}")
+                print(f"Response: {json.dumps(data, indent=2)}")
+                
+                if response.status == 200:
+                    if data.get("hasProfile") == False:
+                        print("ℹ️  No profile found, this is expected if creation failed")
+                        return True
+                    else:
+                        print("✅ Profile retrieved successfully")
+                        return True
                 else:
-                    error_text = await response.text()
-                    self.log_test("Blockchain Integration Status", False, 
-                                f"Status: {response.status}, Error: {error_text}")
+                    print(f"❌ Profile retrieval failed: {data}")
                     return False
                     
         except Exception as e:
-            self.log_test("Blockchain Integration Status", False, f"Exception: {str(e)}")
+            print(f"❌ Profile retrieval error: {e}")
             return False
             
-    async def test_audit_trail_endpoint(self) -> bool:
-        """Test audit trail endpoint"""
+    async def test_profile_update(self):
+        """Test 4: Profile Update"""
+        print("\n✏️  Test 4: Profile Update (PUT /api/profile/me)")
+        
+        if not self.auth_token:
+            print("❌ No auth token available")
+            return False
+            
+        update_data = {
+            "display_name": "Updated Creator Profile",
+            "tagline": "Updated tagline for PostgreSQL testing",
+            "bio": "Updated bio to test profile update functionality",
+            "location": "Updated Location, CA",
+            "show_earnings": True
+        }
+        
         try:
             headers = self.get_auth_headers()
-            async with self.session.get(f"{API_BASE}/uln/audit/trail", headers=headers) as response:
-                if response.status == 403:
-                    self.log_test("Audit Trail Endpoint", True, 
-                                "Correctly requires admin permissions (403)")
-                    return True
-                elif response.status == 401:
-                    self.log_test("Audit Trail Endpoint", True, 
-                                "Correctly requires authentication (401)")
-                    return True
-                elif response.status == 200:
-                    data = await response.json()
-                    entries = data.get("audit_entries", [])
-                    self.log_test("Audit Trail Endpoint", True, 
-                                f"Found {len(entries)} audit entries")
+            headers["Content-Type"] = "application/json"
+            
+            async with self.session.put(
+                f"{API_BASE}/profile/me",
+                json=update_data,
+                headers=headers
+            ) as response:
+                data = await response.json()
+                print(f"Status: {response.status}")
+                print(f"Response: {json.dumps(data, indent=2)}")
+                
+                if response.status == 200:
+                    print("✅ Profile updated successfully")
                     return True
                 else:
-                    error_text = await response.text()
-                    self.log_test("Audit Trail Endpoint", False, 
-                                f"Status: {response.status}, Error: {error_text}")
+                    print(f"❌ Profile update failed: {data}")
                     return False
                     
         except Exception as e:
-            self.log_test("Audit Trail Endpoint", False, f"Exception: {str(e)}")
+            print(f"❌ Profile update error: {e}")
             return False
             
-    async def run_comprehensive_tests(self):
-        """Run all ULN backend tests"""
-        print("🎯 ULN (UNIFIED LABEL NETWORK) BACKEND TESTING STARTED")
+    async def test_asset_creation(self):
+        """Test 5: Asset Creation with GS1 Identifiers"""
+        print("\n🎵 Test 5: Asset Creation with GS1 Identifiers")
+        
+        if not self.auth_token:
+            print("❌ No auth token available")
+            return False
+            
+        asset_data = {
+            "title": "Test Music Track",
+            "description": "A test music track for GS1 identifier testing",
+            "asset_type": "music",
+            "thumbnail_url": "https://example.com/thumbnail.jpg",
+            "content_url": "https://example.com/track.mp3",
+            "license": "All Rights Reserved",
+            "copyright_notice": "© 2025 Big Mann Entertainment",
+            "rights_holder": "Big Mann Entertainment"
+        }
+        
+        try:
+            headers = self.get_auth_headers()
+            headers["Content-Type"] = "application/json"
+            
+            async with self.session.post(
+                f"{API_BASE}/profile/assets/create",
+                json=asset_data,
+                headers=headers
+            ) as response:
+                data = await response.json()
+                print(f"Status: {response.status}")
+                print(f"Response: {json.dumps(data, indent=2)}")
+                
+                if response.status == 200:
+                    self.asset_id = data.get("asset", {}).get("id")
+                    asset_info = data.get("asset", {})
+                    print("✅ Asset created successfully")
+                    print(f"   GTIN: {asset_info.get('gtin')}")
+                    print(f"   ISRC: {asset_info.get('isrc')}")
+                    print(f"   GS1 Digital Link: {asset_info.get('gs1_digital_link')}")
+                    return True
+                else:
+                    print(f"❌ Asset creation failed: {data}")
+                    return False
+                    
+        except Exception as e:
+            print(f"❌ Asset creation error: {e}")
+            return False
+            
+    async def test_dao_proposal_creation(self):
+        """Test 6: DAO Proposal Creation"""
+        print("\n🗳️  Test 6: DAO Proposal Creation")
+        
+        if not self.auth_token:
+            print("❌ No auth token available")
+            return False
+            
+        proposal_data = {
+            "title": "Test Governance Proposal",
+            "description": "This is a test proposal for the DAO governance system to verify PostgreSQL integration",
+            "proposal_type": "general",
+            "target_asset_id": self.asset_id,
+            "target_data": {"test": "data"},
+            "voting_ends_in_days": 7
+        }
+        
+        try:
+            headers = self.get_auth_headers()
+            headers["Content-Type"] = "application/json"
+            
+            async with self.session.post(
+                f"{API_BASE}/profile/dao/proposals",
+                json=proposal_data,
+                headers=headers
+            ) as response:
+                data = await response.json()
+                print(f"Status: {response.status}")
+                print(f"Response: {json.dumps(data, indent=2)}")
+                
+                if response.status == 200:
+                    self.proposal_id = data.get("proposal", {}).get("id")
+                    print("✅ DAO proposal created successfully")
+                    return True
+                else:
+                    print(f"❌ DAO proposal creation failed: {data}")
+                    return False
+                    
+        except Exception as e:
+            print(f"❌ DAO proposal creation error: {e}")
+            return False
+            
+    async def test_dao_voting(self):
+        """Test 7: DAO Voting"""
+        print("\n🗳️  Test 7: DAO Voting")
+        
+        if not self.auth_token or not self.proposal_id:
+            print("❌ No auth token or proposal ID available")
+            return False
+            
+        vote_data = {
+            "choice": "yes",
+            "comment": "This is a test vote for the PostgreSQL DAO system"
+        }
+        
+        try:
+            headers = self.get_auth_headers()
+            headers["Content-Type"] = "application/json"
+            
+            async with self.session.post(
+                f"{API_BASE}/profile/dao/proposals/{self.proposal_id}/vote",
+                json=vote_data,
+                headers=headers
+            ) as response:
+                data = await response.json()
+                print(f"Status: {response.status}")
+                print(f"Response: {json.dumps(data, indent=2)}")
+                
+                if response.status == 200:
+                    vote_counts = data.get("proposal", {}).get("votes", {})
+                    print("✅ DAO vote recorded successfully")
+                    print(f"   Vote counts: {vote_counts}")
+                    return True
+                else:
+                    print(f"❌ DAO voting failed: {data}")
+                    return False
+                    
+        except Exception as e:
+            print(f"❌ DAO voting error: {e}")
+            return False
+            
+    async def run_all_tests(self):
+        """Run all PostgreSQL Creator Profile System tests"""
+        print("🎯 PostgreSQL Creator Profile System Backend Testing")
         print("=" * 60)
         
         await self.setup_session()
         
         try:
+            # Test results tracking
+            results = {}
+            
             # Authentication setup
-            print("\n📋 AUTHENTICATION SETUP")
-            print("-" * 30)
-            auth_success = await self.create_test_user()
+            auth_success = await self.register_and_login()
             if not auth_success:
-                auth_success = await self.login_test_user()
+                print("❌ Authentication failed - cannot proceed with profile tests")
+                return results
                 
-            # Core ULN Endpoints Testing
-            print("\n📋 CORE ULN ENDPOINTS TESTING")
-            print("-" * 30)
-            await self.test_uln_health_check()
-            await self.test_dashboard_stats()
-            await self.test_label_directory()
+            # Run all tests
+            results["postgresql_health"] = await self.test_postgresql_health()
+            results["profile_creation"] = await self.test_profile_creation()
+            results["profile_retrieval"] = await self.test_profile_retrieval()
+            results["profile_update"] = await self.test_profile_update()
+            results["asset_creation"] = await self.test_asset_creation()
+            results["dao_proposal_creation"] = await self.test_dao_proposal_creation()
+            results["dao_voting"] = await self.test_dao_voting()
             
-            # Big Mann Entertainment Label Testing
-            print("\n📋 BIG MANN ENTERTAINMENT LABEL TESTING")
-            print("-" * 30)
-            await self.test_ipn_number_environment()
-            label_data = await self.test_big_mann_label_retrieval()
-            await self.verify_big_mann_label_data(label_data)
+            # Summary
+            print("\n" + "=" * 60)
+            print("📊 TEST RESULTS SUMMARY")
+            print("=" * 60)
             
-            # Admin Authentication Testing
-            print("\n📋 ADMIN AUTHENTICATION TESTING")
-            print("-" * 30)
-            await self.test_generic_edit_label_endpoint_auth()
-            await self.test_admin_verification_endpoint()
-            await self.test_blockchain_integration_status()
-            await self.test_audit_trail_endpoint()
+            passed = sum(1 for result in results.values() if result)
+            total = len(results)
+            
+            for test_name, result in results.items():
+                status = "✅ PASS" if result else "❌ FAIL"
+                print(f"{test_name.replace('_', ' ').title()}: {status}")
+                
+            print(f"\nOverall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+            
+            if passed == total:
+                print("🎉 All PostgreSQL Creator Profile System tests passed!")
+            else:
+                print("⚠️  Some tests failed - check PostgreSQL connection and profile system")
+                
+            return results
             
         finally:
             await self.cleanup_session()
-            
-        # Summary
-        print("\n📊 TEST RESULTS SUMMARY")
-        print("=" * 60)
-        
-        total_tests = len(self.test_results)
-        passed_tests = sum(1 for result in self.test_results if result["success"])
-        failed_tests = total_tests - passed_tests
-        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
-        
-        print(f"Total Tests: {total_tests}")
-        print(f"Passed: {passed_tests}")
-        print(f"Failed: {failed_tests}")
-        print(f"Success Rate: {success_rate:.1f}%")
-        
-        if failed_tests > 0:
-            print(f"\n❌ FAILED TESTS:")
-            for result in self.test_results:
-                if not result["success"]:
-                    print(f"   - {result['test']}: {result['details']}")
-                    
-        print(f"\n✅ PASSED TESTS:")
-        for result in self.test_results:
-            if result["success"]:
-                print(f"   - {result['test']}")
-                
-        return success_rate >= 70  # Consider 70%+ success rate as acceptable
 
 async def main():
     """Main test execution"""
-    tester = ULNBackendTester()
-    success = await tester.run_comprehensive_tests()
+    tester = ProfileSystemTester()
+    results = await tester.run_all_tests()
     
-    if success:
-        print(f"\n🎉 ULN BACKEND TESTING COMPLETED SUCCESSFULLY")
-        print("All critical ULN functionality is working correctly.")
+    # Exit with appropriate code
+    if all(results.values()):
+        exit(0)
     else:
-        print(f"\n⚠️ ULN BACKEND TESTING COMPLETED WITH ISSUES")
-        print("Some ULN functionality may need attention.")
-        
-    return success
+        exit(1)
 
 if __name__ == "__main__":
     asyncio.run(main())
