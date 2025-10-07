@@ -4,7 +4,7 @@ Profile API Endpoints
 from fastapi import APIRouter, HTTPException, Depends, Body
 from typing import Optional, Dict, List
 from profile_service import profile_service
-from profile_models import UserProfile, Asset, Proposal, Vote
+from profile_models import UserProfile, Asset, Proposal, Vote, ProposalComment
 from pg_database import get_async_session
 from sqlalchemy import select
 from datetime import datetime, timezone, timedelta
