@@ -21,7 +21,7 @@ import sys
 import os
 
 # Configuration
-BACKEND_URL = "https://creator-profile-hub-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://uln-label-editor.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"test_user_aws_integration_{int(time.time())}@bigmannentertainment.com"
 TEST_PASSWORD = "SecureTestPass123!"
 

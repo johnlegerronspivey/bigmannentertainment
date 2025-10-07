@@ -7321,7 +7321,7 @@ cors_origins = [
     "https://dev.bigmannentertainment.com",  # Development
     "https://staging.bigmannentertainment.com",  # Staging
     "https://d36jfidccx04u0.cloudfront.net",  # Current CloudFront (temporary)
-    "https://creator-profile-hub-2.preview.emergentagent.com",  # Current preview URL
+    "https://uln-label-editor.preview.emergentagent.com",  # Current preview URL
 ]
 
 app.add_middleware(

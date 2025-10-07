@@ -21,7 +21,7 @@ class Lifecycle404Tester:
                     self.base_url = line.split('=')[1].strip()
                     break
             else:
-                self.base_url = "https://creator-profile-hub-2.preview.emergentagent.com"
+                self.base_url = "https://uln-label-editor.preview.emergentagent.com"
         
         self.api_base = f"{self.base_url}/api"
         
