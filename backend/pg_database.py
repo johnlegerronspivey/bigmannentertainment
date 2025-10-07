@@ -14,14 +14,18 @@ POSTGRES_URL = os.getenv(
     "postgresql+asyncpg://postgres:postgres@localhost:5432/bigmann_profiles"
 )
 
-# Create async engine
+# Create async engine with timeout settings
 async_engine = create_async_engine(
     POSTGRES_URL,
     echo=False,  # Set to True for SQL debugging
-    pool_size=20,
-    max_overflow=40,
+    pool_size=5,
+    max_overflow=10,
     pool_pre_ping=True,
     pool_recycle=3600,
+    connect_args={
+        "timeout": 5,  # 5 second connection timeout
+        "command_timeout": 5,  # 5 second command timeout
+    }
 )
 
 # Create async session factory
