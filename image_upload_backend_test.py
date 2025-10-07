@@ -36,9 +36,9 @@ class AdvancedImageUploadTester:
                         self.base_url = line.split('=')[1].strip()
                         break
                 else:
-                    self.base_url = "https://label-network-1.preview.emergentagent.com"
+                    self.base_url = "https://bme-dashboard.preview.emergentagent.com"
         except Exception:
-            self.base_url = "https://label-network-1.preview.emergentagent.com"
+            self.base_url = "https://bme-dashboard.preview.emergentagent.com"
         
         self.api_url = f"{self.base_url}/api"
         self.session = None

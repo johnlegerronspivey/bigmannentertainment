@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://label-network-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bme-dashboard.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test user credentials for authentication
