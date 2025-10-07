@@ -309,7 +309,7 @@ export const ProposalCreator = ({ onSuccess }) => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API}/dao/proposals`, formData, {
+      await axios.post(`${API}/profile/dao/proposals`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
