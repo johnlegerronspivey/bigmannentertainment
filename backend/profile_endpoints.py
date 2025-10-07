@@ -877,35 +877,3 @@ async def get_asset_qr_code(
                     "gs1_link": gs1_link
                 }
             }
-
-            "status": "scheduled",
-            "media_url": request.media_url
-        }
-    }
-
-@router.delete("/social/posts/scheduled/{post_id}")
-async def cancel_scheduled_post(
-    post_id: str,
-    current_user = Depends(get_current_user)
-):
-    """Cancel a scheduled post (mock functionality)"""
-    
-    return {
-        "success": True,
-        "message": "Scheduled post cancelled",
-        "post_id": post_id
-    }
-
-            proposal.executed_at = datetime.now(timezone.utc)
-        
-        await session.commit()
-        
-        return {
-            "success": True,
-            "message": f"Proposal status updated to {status}",
-            "proposal": {
-                "id": proposal.id,
-                "status": proposal.status,
-                "executed_at": proposal.executed_at.isoformat() if proposal.executed_at else None
-            }
-        }
