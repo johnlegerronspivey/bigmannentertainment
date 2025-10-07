@@ -704,6 +704,15 @@ const Navigation = () => {
                   <span>🏛️</span>
                   <span>DAO Governance</span>
                 </Link>
+
+                <Link 
+                  to="/social" 
+                  className="bg-blue-700 hover:bg-blue-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>📱</span>
+                  <span>Social Media</span>
+                </Link>
               </div>
               
               {isAdmin() && (
