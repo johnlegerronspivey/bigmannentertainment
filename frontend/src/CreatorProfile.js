@@ -377,6 +377,44 @@ const CreatorProfilePage = () => {
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setShowQRModal(null)}>
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">{showQRModal.title}</h3>
+              <button
+                onClick={() => setShowQRModal(null)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <QRCodeDisplay data={showQRModal.gs1_digital_link} />
+            <div className="mt-4 space-y-2 text-sm">
+              {showQRModal.gtin && (
+                <div className="flex justify-between text-gray-300">
+                  <span>GTIN:</span>
+                  <span className="font-mono">{showQRModal.gtin}</span>
+                </div>
+              )}
+              {showQRModal.isrc && (
+                <div className="flex justify-between text-gray-300">
+                  <span>ISRC:</span>
+                  <span className="font-mono">{showQRModal.isrc}</span>
+                </div>
+              )}
+              {showQRModal.isan && (
+                <div className="flex justify-between text-gray-300">
+                  <span>ISAN:</span>
+                  <span className="font-mono">{showQRModal.isan}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
