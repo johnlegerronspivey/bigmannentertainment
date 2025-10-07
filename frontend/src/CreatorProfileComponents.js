@@ -415,7 +415,7 @@ export const ProposalList = () => {
 
   const fetchProposals = async () => {
     try {
-      const response = await axios.get(`${API}/dao/proposals`, {
+      const response = await axios.get(`${API}/profile/dao/proposals`, {
         params: { status: filter === 'all' ? null : filter }
       });
       setProposals(response.data.proposals);
