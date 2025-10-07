@@ -512,9 +512,9 @@ const LabelHub = () => {
         </div>
       )}
 
-      {/* Edit Label Modal */}
+      {/* Edit Label Modal - Using Enhanced Version */}
       {showEditModal && editingLabel && (
-        <EditLabelModal
+        <EnhancedEditLabelModal
           label={editingLabel}
           onClose={handleCloseEditModal}
           onUpdate={handleLabelUpdated}
