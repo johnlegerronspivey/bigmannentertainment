@@ -183,7 +183,7 @@ class TraceEvent(Base):
     gln_source = Column(String)  # Source GLN
     gln_destination = Column(String)  # Destination GLN
     
-    metadata = Column(JSON, default=dict)
+    event_metadata = Column(JSON, default=dict)
     
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
