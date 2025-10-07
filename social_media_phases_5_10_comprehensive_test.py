@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://bme-profile.preview.emergentagent.com"
+BACKEND_URL = "https://creator-profile-hub-1.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class SocialMediaPhases510Tester:
@@ -821,7 +821,7 @@ from typing import Dict, List, Any
 import uuid
 
 # Backend URL from environment
-BACKEND_URL = "https://bme-profile.preview.emergentagent.com"
+BACKEND_URL = "https://creator-profile-hub-1.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class SocialMediaPhases510Tester:
