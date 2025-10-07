@@ -68,7 +68,9 @@ class VoteRequest(BaseModel):
 
 # Profile Endpoints
 
-# Health check (must be before dynamic routes)
+# IMPORTANT: Specific routes must come before dynamic /{username} route
+
+# Health check
 @router.get("/health")
 async def profile_health():
     """Check profile service health"""
@@ -93,16 +95,18 @@ async def profile_health():
         "message": "All systems operational" if connection_status == "connected" else f"PostgreSQL issue: {connection_status}"
     }
 
-@router.get("/{username}")
-async def get_profile(username: str):
-    """Get public profile by username"""
-    profile = await profile_service.get_profile_by_username(username)
+# Get current user's profile
+@router.get("/me")
+async def get_my_profile(current_user = Depends(get_current_user)):
+    """Get current user's profile"""
+    profile = await profile_service.get_profile_by_mongo_id(current_user.id)
     
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
-    
-    if not profile["identity"]["profilePublic"]:
-        raise HTTPException(status_code=403, detail="Profile is private")
+        return {
+            "hasProfile": False,
+            "message": "No profile created yet",
+            "identity": None
+        }
     
     return profile
 
