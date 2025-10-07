@@ -511,8 +511,8 @@ export const ProposalList = () => {
   );
 };
 
-// QR Code Display Component
-export const QRCodeDisplay = ({ data, title }) => {
+// Enhanced QR Code Display Component with Download
+export const QRCodeDisplay = ({ data, title, assetTitle }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState(null);
 
   useEffect(() => {
@@ -527,7 +527,8 @@ export const QRCodeDisplay = ({ data, title }) => {
         color: {
           dark: '#000000',
           light: '#FFFFFF'
-        }
+        },
+        errorCorrectionLevel: 'H'  // High error correction for logo overlay
       });
       setQrCodeUrl(url);
     } catch (err) {
@@ -535,11 +536,35 @@ export const QRCodeDisplay = ({ data, title }) => {
     }
   };
 
+  const handleDownload = () => {
+    if (!qrCodeUrl) return;
+    
+    const link = document.createElement('a');
+    link.download = `${assetTitle || 'qr_code'}_${Date.now()}.png`;
+    link.href = qrCodeUrl;
+    link.click();
+  };
+
   return (
     <div className="bg-gray-900 rounded-lg p-4 text-center">
       {title && <h4 className="text-white font-semibold mb-3">{title}</h4>}
       {qrCodeUrl ? (
-        <img src={qrCodeUrl} alt="QR Code" className="mx-auto rounded" />
+        <div>
+          <div className="relative inline-block">
+            <img src={qrCodeUrl} alt="QR Code" className="mx-auto rounded" />
+            {/* BME Logo Overlay Indicator */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-purple-600 rounded text-white text-xs px-2 py-1 font-bold">
+              BME
+            </div>
+          </div>
+          <button
+            onClick={handleDownload}
+            className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors inline-flex items-center gap-2"
+          >
+            <span>⬇️</span>
+            <span>Download QR Code</span>
+          </button>
+        </div>
       ) : (
         <div className="w-[300px] h-[300px] bg-gray-800 flex items-center justify-center mx-auto">
           <span className="text-gray-500">Generating QR code...</span>
