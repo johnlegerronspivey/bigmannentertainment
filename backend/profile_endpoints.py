@@ -641,6 +641,154 @@ async def update_proposal_status(
         
         proposal.status = status
         if status == "executed":
+
+
+# Social Media Mock Endpoints (Phase 4: UI/Flow only, no actual API integration)
+
+@router.get("/social/dashboard")
+async def get_social_dashboard(current_user = Depends(get_current_user)):
+    """Get social media dashboard with mock analytics data"""
+    
+    # Mock data for demonstration
+    mock_platforms = [
+        {
+            "platform": "facebook",
+            "name": "Facebook",
+            "icon": "📘",
+            "connected": True,
+            "username": "@bigmann_ent",
+            "followers": 125430,
+            "posts": 342,
+            "engagement_rate": 4.2,
+            "recent_stats": {
+                "likes": 8920,
+                "comments": 1240,
+                "shares": 563,
+                "reach": 342100
+            }
+        },
+        {
+            "platform": "tiktok",
+            "name": "TikTok",
+            "icon": "🎵",
+            "connected": True,
+            "username": "@bigmann_music",
+            "followers": 89200,
+            "posts": 156,
+            "engagement_rate": 8.7,
+            "recent_stats": {
+                "likes": 45600,
+                "comments": 3420,
+                "shares": 2130,
+                "views": 1240000
+            }
+        },
+        {
+            "platform": "youtube",
+            "name": "YouTube",
+            "icon": "▶️",
+            "connected": True,
+            "username": "BigMannEntertainment",
+            "followers": 67800,
+            "posts": 89,
+            "engagement_rate": 5.3,
+            "recent_stats": {
+                "likes": 12400,
+                "comments": 890,
+                "views": 452000,
+                "watchTime": 89400
+            }
+        },
+        {
+            "platform": "twitter",
+            "name": "Twitter/X",
+            "icon": "🐦",
+            "connected": False,
+            "username": None,
+            "followers": 0,
+            "posts": 0,
+            "engagement_rate": 0,
+            "recent_stats": {}
+        }
+    ]
+    
+    return {
+        "platforms": mock_platforms,
+        "total_followers": sum(p["followers"] for p in mock_platforms),
+        "total_posts": sum(p["posts"] for p in mock_platforms),
+        "avg_engagement": sum(p["engagement_rate"] for p in mock_platforms if p["connected"]) / 3
+    }
+
+@router.get("/social/posts/scheduled")
+async def get_scheduled_posts(current_user = Depends(get_current_user)):
+    """Get scheduled posts (mock data)"""
+    
+    mock_scheduled = [
+        {
+            "id": "sched_1",
+            "content": "🎵 New track dropping tomorrow! Stay tuned 🔥",
+            "platforms": ["facebook", "tiktok", "twitter"],
+            "scheduled_for": "2025-01-08T14:00:00Z",
+            "status": "scheduled",
+            "media_url": "https://example.com/track-preview.jpg"
+        },
+        {
+            "id": "sched_2",
+            "content": "Behind the scenes from today's studio session 🎤",
+            "platforms": ["instagram", "youtube"],
+            "scheduled_for": "2025-01-09T18:00:00Z",
+            "status": "scheduled",
+            "media_url": None
+        }
+    ]
+    
+    return {
+        "scheduled_posts": mock_scheduled,
+        "total": len(mock_scheduled)
+    }
+
+class SchedulePostRequest(BaseModel):
+    content: str
+    platforms: List[str]
+    scheduled_for: str
+    media_url: Optional[str] = None
+
+@router.post("/social/posts/schedule")
+async def schedule_post(
+    request: SchedulePostRequest,
+    current_user = Depends(get_current_user)
+):
+    """Schedule a post across multiple platforms (mock functionality)"""
+    
+    # In a real implementation, this would queue the post for publishing
+    # For now, just return success with the scheduled data
+    
+    return {
+        "success": True,
+        "message": "Post scheduled successfully",
+        "post": {
+            "id": f"sched_{datetime.now().timestamp()}",
+            "content": request.content,
+            "platforms": request.platforms,
+            "scheduled_for": request.scheduled_for,
+            "status": "scheduled",
+            "media_url": request.media_url
+        }
+    }
+
+@router.delete("/social/posts/scheduled/{post_id}")
+async def cancel_scheduled_post(
+    post_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Cancel a scheduled post (mock functionality)"""
+    
+    return {
+        "success": True,
+        "message": "Scheduled post cancelled",
+        "post_id": post_id
+    }
+
             proposal.executed_at = datetime.now(timezone.utc)
         
         await session.commit()
