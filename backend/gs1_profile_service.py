@@ -130,14 +130,14 @@ class GS1ProfileService:
         
         return url
     
-    def generate_qr_code(self, data: str, size: int = 300) -> str:
+    def generate_qr_code(self, data: str, size: int = 300, with_logo: bool = True) -> str:
         """
-        Generate QR code image as base64 string
+        Generate QR code image as base64 string with optional BME logo overlay
         Returns: data:image/png;base64,{encoded_image}
         """
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,  # High error correction for logo overlay
             box_size=10,
             border=4,
         )
@@ -146,12 +146,82 @@ class GS1ProfileService:
         
         img = qr.make_image(fill_color="black", back_color="white")
         
+        # Convert to PIL Image for logo overlay
+        if with_logo:
+            img = img.convert('RGB')
+            img = self._add_logo_to_qr(img)
+        
         # Convert to base64
         buffer = io.BytesIO()
         img.save(buffer, format='PNG')
         img_str = base64.b64encode(buffer.getvalue()).decode()
         
         return f"data:image/png;base64,{img_str}"
+    
+    def _add_logo_to_qr(self, qr_img: Image.Image) -> Image.Image:
+        """
+        Add Big Mann Entertainment logo to center of QR code
+        Creates a simple branded logo if logo file doesn't exist
+        """
+        # Create a simple BME logo if no file exists
+        # Get QR code dimensions
+        qr_width, qr_height = qr_img.size
+        logo_size = qr_width // 5  # Logo takes up 20% of QR code
+        
+        # Create logo image with purple background and white text
+        logo = Image.new('RGB', (logo_size, logo_size), color='#7C3AED')  # Purple color
+        draw = ImageDraw.Draw(logo)
+        
+        # Draw white border
+        border_width = 3
+        draw.rectangle(
+            [border_width, border_width, logo_size - border_width, logo_size - border_width],
+            outline='white',
+            width=border_width
+        )
+        
+        # Add text "BME" in center (simplified - would need better font handling)
+        text = "BME"
+        text_bbox = draw.textbbox((0, 0), text)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+        text_x = (logo_size - text_width) // 2
+        text_y = (logo_size - text_height) // 2
+        draw.text((text_x, text_y), text, fill='white')
+        
+        # Calculate position to center logo on QR code
+        logo_pos_x = (qr_width - logo_size) // 2
+        logo_pos_y = (qr_height - logo_size) // 2
+        
+        # Paste logo onto QR code
+        qr_img.paste(logo, (logo_pos_x, logo_pos_y))
+        
+        return qr_img
+    
+    def generate_qr_code_file(self, data: str, with_logo: bool = True) -> bytes:
+        """
+        Generate QR code as PNG bytes for download
+        Returns: PNG file bytes
+        """
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        img = img.convert('RGB')
+        
+        if with_logo:
+            img = self._add_logo_to_qr(img)
+        
+        # Convert to bytes
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        return buffer.getvalue()
     
     def _calculate_check_digit(self, code: str) -> int:
         """
