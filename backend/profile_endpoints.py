@@ -126,14 +126,14 @@ async def create_profile(
 ):
     """Create profile for current user"""
     # Check if profile already exists
-    existing = await profile_service.get_profile_by_mongo_id(current_user.id)
+    existing = await profile_service.get_profile_by_mongo_id(get_user_id(current_user))
     if existing:
         raise HTTPException(status_code=400, detail="Profile already exists")
     
     # Create profile
     profile = await profile_service.create_profile(
-        mongo_user_id=current_user.id,
-        username=current_user.email.split('@')[0],  # Use email prefix as username
+        mongo_user_id=get_user_id(current_user),
+        username=get_user_email(current_user).split('@')[0],  # Use email prefix as username
         data=request.dict()
     )
     
@@ -154,13 +154,13 @@ async def update_profile(
 ):
     """Update current user's profile"""
     # Get existing profile
-    existing = await profile_service.get_profile_by_mongo_id(current_user.id)
+    existing = await profile_service.get_profile_by_mongo_id(get_user_id(current_user))
     
     if not existing:
         # Auto-create profile if not exists
-        username = current_user.email.split('@')[0] if hasattr(current_user, 'email') else f"user_{current_user.id}"
+        username = get_user_email(current_user).split('@')[0] if hasattr(current_user, 'email') else f"user_{get_user_id(current_user)}"
         profile = await profile_service.create_profile(
-            mongo_user_id=current_user.id,
+            mongo_user_id=get_user_id(current_user),
             username=username,
             data=request.dict(exclude_unset=True)
         )
@@ -203,14 +203,14 @@ async def create_asset(
 ):
     """Create new asset with GS1 identifiers"""
     # Get user profile
-    profile = await profile_service.get_profile_by_mongo_id(current_user.id)
+    profile = await profile_service.get_profile_by_mongo_id(get_user_id(current_user))
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found. Create one first.")
     
     # Extract profile ID (it's in the identity section)
     async with get_async_session() as session:
         result = await session.execute(
-            select(UserProfile).where(UserProfile.mongo_user_id == current_user.id)
+            select(UserProfile).where(UserProfile.mongo_user_id == get_user_id(current_user))
         )
         user_profile = result.scalar_one_or_none()
         
@@ -281,7 +281,7 @@ async def create_proposal(
     async with get_async_session() as session:
         # Get user profile
         result = await session.execute(
-            select(UserProfile).where(UserProfile.mongo_user_id == current_user.id)
+            select(UserProfile).where(UserProfile.mongo_user_id == get_user_id(current_user))
         )
         user_profile = result.scalar_one_or_none()
         
@@ -327,7 +327,7 @@ async def vote_on_proposal(
     async with get_async_session() as session:
         # Get user profile
         user_result = await session.execute(
-            select(UserProfile).where(UserProfile.mongo_user_id == current_user.id)
+            select(UserProfile).where(UserProfile.mongo_user_id == get_user_id(current_user))
         )
         user_profile = user_result.scalar_one_or_none()
         
