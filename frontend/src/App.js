@@ -1173,37 +1173,56 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-xl p-6 sm:p-8">
         <div className="text-center">
           <img 
             src="/big-mann-logo.png" 
             alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey" 
-            className="w-20 h-20 object-contain mx-auto mb-4"
+            className="w-16 h-16 sm:w-20 sm:h-20 object-contain mx-auto mb-4"
           />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
-          <p className="text-gray-600">Big Mann Entertainment - Founded by John LeGerron Spivey</p>
+          <p className="mt-2 text-sm sm:text-base text-gray-600">Big Mann Entertainment - Founded by John LeGerron Spivey</p>
         </div>
 
-        <div className="mt-8 space-y-6">
+        <div className="mt-6 sm:mt-8 space-y-6">
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-r shadow-sm">
+              <div className="flex items-center">
+                <span className="text-red-500 mr-2">⚠️</span>
+                <span className="text-sm">{error}</span>
+              </div>
             </div>
           )}
           
           {success && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-              {success}
+            <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-r shadow-sm">
+              <div className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                <span className="text-sm">{success}</span>
+              </div>
             </div>
           )}
 
-          {/* Progress indicator */}
-          <div className="flex items-center justify-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
-            <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
+          {/* Enhanced Progress indicator */}
+          <div className="flex items-center justify-center space-x-4 mb-6">
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${step >= 1 ? 'bg-purple-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                1
+              </div>
+              <span className="ml-2 text-xs sm:text-sm font-medium text-gray-700">Personal Info</span>
+            </div>
+            <div className="w-8 sm:w-12 h-1 bg-gray-300">
+              <div className={`h-full transition-all duration-300 ${step >= 2 ? 'bg-purple-600 w-full' : 'w-0'}`}></div>
+            </div>
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${step >= 2 ? 'bg-purple-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                2
+              </div>
+              <span className="ml-2 text-xs sm:text-sm font-medium text-gray-700">Address</span>
+            </div>
           </div>
 
           {step === 1 && (
