@@ -408,7 +408,6 @@ export const ProposalList = () => {
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('open');
-  const [votingOn, setVotingOn] = useState(null);
 
   useEffect(() => {
     fetchProposals();
@@ -424,22 +423,6 @@ export const ProposalList = () => {
       console.error('Failed to fetch proposals:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVote = async (proposalId, choice) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${API}/dao/proposals/${proposalId}/vote`,
-        { choice, comment: '' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      setVotingOn(null);
-      await fetchProposals();
-    } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to vote');
     }
   };
 
@@ -509,46 +492,13 @@ export const ProposalList = () => {
                 </div>
               </div>
 
-              {/* Voting Buttons */}
-              {proposal.status === 'open' && (
-                <div>
-                  {votingOn === proposal.id ? (
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleVote(proposal.id, 'yes')}
-                        className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
-                      >
-                        ✓ Vote Yes
-                      </button>
-                      <button
-                        onClick={() => handleVote(proposal.id, 'no')}
-                        className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
-                      >
-                        ✗ Vote No
-                      </button>
-                      <button
-                        onClick={() => handleVote(proposal.id, 'abstain')}
-                        className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
-                      >
-                        ― Abstain
-                      </button>
-                      <button
-                        onClick={() => setVotingOn(null)}
-                        className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setVotingOn(proposal.id)}
-                      className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
-                    >
-                      Cast Your Vote
-                    </button>
-                  )}
-                </div>
-              )}
+              {/* View Details Button */}
+              <a
+                href={`/dao/proposal/${proposal.id}`}
+                className="block w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors text-center"
+              >
+                View Details & Vote
+              </a>
             </div>
           ))
         ) : (
