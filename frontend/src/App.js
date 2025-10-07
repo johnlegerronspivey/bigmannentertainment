@@ -465,6 +465,18 @@ const Navigation = () => {
                 </div>
               )}
             </div>
+
+            {/* DAO Governance Link */}
+            <Link to="/dao" className="hover:text-purple-200 flex items-center gap-1">
+              🏛️ DAO
+            </Link>
+
+            {/* Profile Link */}
+            <div className="relative">
+              <Link to="/profile/settings" className="hover:text-purple-200 flex items-center gap-1">
+                👤 Profile
+              </Link>
+            </div>
             
             {/* Industry Dropdown */}
             <div className="relative">
