@@ -221,9 +221,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "ULN Label Editing System Testing"
-  stuck_tasks:
-    - "ULN Label Editing System"
+    - "All major backend systems tested and operational"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
