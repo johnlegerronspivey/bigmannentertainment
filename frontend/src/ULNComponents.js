@@ -419,24 +419,52 @@ const LabelHub = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
         <div>
           <h2 className="text-2xl font-bold">🏢 Label Hub</h2>
           <p className="text-gray-600">Connected labels in the Unified Label Network</p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-2">
+          <button 
+            onClick={() => setShowAdvancedSearch(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-1"
+          >
+            <span>🔍</span>
+            <span>Advanced Search</span>
+          </button>
+          <button 
+            onClick={() => {
+              setSelectedLabelsForBulk(labelHubData);
+              setShowBulkEditor(true);
+            }}
+            disabled={labelHubData.length === 0}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-1"
+          >
+            <span>📦</span>
+            <span>Bulk Edit</span>
+          </button>
+          <button 
+            onClick={() => setShowExporter(true)}
+            disabled={labelHubData.length === 0}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-1"
+          >
+            <span>📤</span>
+            <span>Export</span>
+          </button>
           <button 
             onClick={initializeMajorLabels}
             disabled={loading}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-1"
           >
-            🏢 Initialize Major Labels
+            <span>🏢</span>
+            <span className="hidden sm:inline">Initialize Labels</span>
           </button>
           <button 
             onClick={() => window.location.href = '/uln/register'}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-1"
           >
-            + Register Label
+            <span>+</span>
+            <span>Register</span>
           </button>
         </div>
       </div>
