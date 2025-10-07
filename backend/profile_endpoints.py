@@ -171,20 +171,6 @@ async def update_profile(
         "message": "Profile updated successfully"
     }
 
-@router.get("/me")
-async def get_my_profile(current_user = Depends(get_current_user)):
-    """Get current user's profile"""
-    profile = await profile_service.get_profile_by_mongo_id(current_user.id)
-    
-    if not profile:
-        return {
-            "hasProfile": False,
-            "message": "No profile created yet",
-            "identity": None
-        }
-    
-    return profile
-
 # Asset Endpoints
 
 @router.post("/assets/create")
