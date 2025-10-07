@@ -226,15 +226,12 @@ const CreatorProfilePage = () => {
                               View GS1 Link
                             </a>
                           )}
-                          {asset.qr_code && (
+                          {asset.gs1_digital_link && (
                             <button
-                              onClick={() => {
-                                // Show QR code modal
-                                alert('QR Code feature coming soon');
-                              }}
+                              onClick={() => setShowQRModal(asset)}
                               className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded transition-colors"
                             >
-                              QR
+                              📱 QR
                             </button>
                           )}
                         </div>
