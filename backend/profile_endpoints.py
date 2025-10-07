@@ -445,19 +445,3 @@ async def list_proposals(
             ],
             "total": len(proposals)
         }
-
-# Health check
-@router.get("/health")
-async def profile_health():
-    """Check profile service health"""
-    import os
-    postgres_url = os.getenv("POSTGRES_URL")
-    postgres_configured = bool(postgres_url and "localhost" not in postgres_url)
-    
-    return {
-        "status": "healthy" if postgres_configured else "degraded",
-        "service": "creator_profiles",
-        "postgres": "connected" if postgres_configured else "not_configured",
-        "mongodb": "connected",
-        "message": "Configure POSTGRES_URL in .env to enable profile features" if not postgres_configured else "All systems operational"
-    }
