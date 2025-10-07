@@ -234,7 +234,7 @@ async def get_asset(asset_id: str):
 
 # DAO Governance Endpoints
 
-@router.post("/dao/proposals/create")
+@router.post("/dao/proposals")
 async def create_proposal(
     request: ProposalCreateRequest,
     current_user = Depends(get_current_user)
