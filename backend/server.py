@@ -132,6 +132,28 @@ PRINCIPAL_NAME = os.environ.get('PRINCIPAL_NAME', 'John LeGerron Spivey')
 # Create the main app without a prefix
 app = FastAPI(title="Big Mann Entertainment API", version="1.0.0")
 
+# PostgreSQL Database Lifecycle Management
+@app.on_event("startup")
+async def startup_event():
+    """Initialize PostgreSQL database on startup"""
+    try:
+        from pg_database import init_db
+        await init_db()
+        print("✅ PostgreSQL database initialized")
+    except Exception as e:
+        print(f"⚠️  PostgreSQL initialization failed: {str(e)}")
+        print("   Profile features will be unavailable until configured")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close PostgreSQL connections on shutdown"""
+    try:
+        from pg_database import close_db
+        await close_db()
+        print("✅ PostgreSQL connections closed")
+    except Exception as e:
+        print(f"⚠️  PostgreSQL shutdown error: {str(e)}")
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
