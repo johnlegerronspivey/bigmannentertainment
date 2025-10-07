@@ -1235,5 +1235,290 @@ async def update_label(
         logger.error(f"Error updating label {global_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to update label: {str(e)}")
 
+# ===== ADVANCED SEARCH & BULK OPERATIONS (PHASE 2 ENHANCEMENTS) =====
+
+@uln_router.post("/labels/advanced-search", response_model=Dict[str, Any])
+async def advanced_search_labels(
+    search_criteria: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Advanced search for labels with multiple criteria
+    Supports: name, label_type, status, territory, genres, integration_type, owner
+    """
+    try:
+        query = {}
+        
+        # Text search on name
+        if search_criteria.get('name'):
+            query["metadata_profile.name"] = {
+                "$regex": search_criteria['name'],
+                "$options": "i"
+            }
+        
+        # Label type filter
+        if search_criteria.get('label_type'):
+            query["label_type"] = search_criteria['label_type']
+        
+        # Status filter
+        if search_criteria.get('status'):
+            query["status"] = search_criteria['status']
+        
+        # Territory/Jurisdiction filter
+        if search_criteria.get('territory'):
+            query["metadata_profile.jurisdiction"] = search_criteria['territory']
+        
+        # Genre filter (match any genre in array)
+        if search_criteria.get('genres'):
+            genres = search_criteria['genres'] if isinstance(search_criteria['genres'], list) else [search_criteria['genres']]
+            query["metadata_profile.genre_specialization"] = {
+                "$in": genres
+            }
+        
+        # Integration type filter
+        if search_criteria.get('integration_type'):
+            query["integration_type"] = search_criteria['integration_type']
+        
+        # Owner filter
+        if search_criteria.get('owner'):
+            query["associated_entities"] = {
+                "$elemMatch": {
+                    "entity_type": "owner",
+                    "name": {
+                        "$regex": search_criteria['owner'],
+                        "$options": "i"
+                    }
+                }
+            }
+        
+        # DAO affiliated filter
+        if 'dao_affiliated' in search_criteria:
+            if search_criteria['dao_affiliated']:
+                query["smart_contracts.dao_integration"] = True
+            else:
+                query["$or"] = [
+                    {"smart_contracts": {"$size": 0}},
+                    {"smart_contracts.dao_integration": {"$ne": True}}
+                ]
+        
+        # Compliance filter
+        if 'compliance_verified' in search_criteria:
+            query["compliance_verified"] = search_criteria['compliance_verified']
+        
+        # Execute search
+        labels = await db.uln_labels.find(query).to_list(length=None)
+        
+        # Clean up MongoDB _id
+        for label in labels:
+            label.pop("_id", None)
+        
+        return {
+            "success": True,
+            "labels": labels,
+            "total_results": len(labels),
+            "search_criteria": search_criteria
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in advanced search: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Advanced search failed: {str(e)}")
+
+@uln_router.post("/labels/bulk-edit", response_model=Dict[str, Any])
+async def bulk_edit_labels(
+    label_ids: List[str],
+    update_data: Dict[str, Any],
+    current_user: User = Depends(get_current_admin_user)
+):
+    """
+    Bulk edit multiple labels with the same update
+    Applies the same changes to all selected labels
+    """
+    try:
+        if not label_ids:
+            raise HTTPException(status_code=400, detail="No label IDs provided")
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No update data provided")
+        
+        # Prepare bulk update dictionary
+        mongo_update = {}
+        
+        # Handle metadata_profile updates
+        metadata_fields = [
+            'name', 'legal_name', 'jurisdiction', 'tax_status', 'founded_date',
+            'headquarters', 'business_registration_number', 'tax_id', 
+            'contact_information', 'social_media_handles', 'genre_specialization',
+            'territories_of_operation', 'certifications', 'industry_affiliations'
+        ]
+        
+        for field in metadata_fields:
+            if field in update_data:
+                mongo_update[f"metadata_profile.{field}"] = update_data[field]
+            # Special handling for genres -> genre_specialization
+            if field == 'genre_specialization' and 'genres' in update_data:
+                mongo_update["metadata_profile.genre_specialization"] = update_data['genres']
+        
+        # Handle direct label fields
+        direct_fields = ['label_type', 'integration_type', 'status', 'onboarding_completed', 'compliance_verified']
+        
+        for field in direct_fields:
+            if field in update_data:
+                mongo_update[field] = update_data[field]
+            # Special handling for integration -> integration_type
+            if field == 'integration_type' and 'integration' in update_data:
+                mongo_update['integration_type'] = update_data['integration']
+        
+        # Add updated timestamp
+        mongo_update["updated_at"] = datetime.utcnow().isoformat()
+        
+        # Perform bulk update
+        if mongo_update:
+            result = await db.uln_labels.update_many(
+                {"global_id.id": {"$in": label_ids}},
+                {"$set": mongo_update}
+            )
+            
+            # Create audit trail for each label
+            for label_id in label_ids:
+                await uln_service._create_audit_entry(
+                    action_type="label_bulk_updated",
+                    actor_id=current_user.id,
+                    actor_type="admin",
+                    resource_type="label",
+                    resource_id=label_id,
+                    action_description=f"Bulk updated label {label_id}",
+                    changes_made=update_data
+                )
+            
+            return {
+                "success": True,
+                "message": f"Bulk updated {result.modified_count} labels",
+                "labels_updated": result.modified_count,
+                "labels_matched": result.matched_count,
+                "updated_fields": list(update_data.keys())
+            }
+        else:
+            raise HTTPException(status_code=400, detail="No valid update fields provided")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in bulk edit: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Bulk edit failed: {str(e)}")
+
+@uln_router.post("/labels/export", response_model=Dict[str, Any])
+async def export_labels(
+    label_ids: Optional[List[str]] = None,
+    filters: Optional[Dict[str, Any]] = None,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """
+    Export labels data in JSON format
+    Can export specific labels or all labels matching filters
+    """
+    try:
+        query = {}
+        
+        # If specific label IDs provided, use them
+        if label_ids:
+            query["global_id.id"] = {"$in": label_ids}
+        # Otherwise apply filters
+        elif filters:
+            if filters.get('label_type'):
+                query["label_type"] = filters['label_type']
+            if filters.get('status'):
+                query["status"] = filters['status']
+            if filters.get('territory'):
+                query["metadata_profile.jurisdiction"] = filters['territory']
+        
+        # Fetch labels
+        labels = await db.uln_labels.find(query).to_list(length=None)
+        
+        # Clean up MongoDB _id
+        for label in labels:
+            label.pop("_id", None)
+        
+        # Prepare export data
+        export_data = {
+            "export_timestamp": datetime.utcnow().isoformat(),
+            "exported_by": current_user.id,
+            "total_labels": len(labels),
+            "labels": labels
+        }
+        
+        # Create audit trail
+        await uln_service._create_audit_entry(
+            action_type="labels_exported",
+            actor_id=current_user.id,
+            actor_type="admin",
+            resource_type="label",
+            resource_id="bulk_export",
+            action_description=f"Exported {len(labels)} labels",
+            changes_made={"export_count": len(labels), "filters": filters or {}}
+        )
+        
+        return {
+            "success": True,
+            "export_data": export_data,
+            "message": f"Exported {len(labels)} labels successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error exporting labels: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+@uln_router.get("/labels/filters/options", response_model=Dict[str, Any])
+async def get_filter_options(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get available filter options for advanced search
+    Returns unique values for territories, genres, statuses, etc.
+    """
+    try:
+        # Get unique territories
+        territories_pipeline = [
+            {"$group": {"_id": "$metadata_profile.jurisdiction"}},
+            {"$sort": {"_id": 1}}
+        ]
+        territories = await db.uln_labels.aggregate(territories_pipeline).to_list(length=None)
+        territory_options = [t["_id"] for t in territories if t["_id"]]
+        
+        # Get unique genres
+        genres_pipeline = [
+            {"$unwind": "$metadata_profile.genre_specialization"},
+            {"$group": {"_id": "$metadata_profile.genre_specialization"}},
+            {"$sort": {"_id": 1}}
+        ]
+        genres = await db.uln_labels.aggregate(genres_pipeline).to_list(length=None)
+        genre_options = [g["_id"] for g in genres if g["_id"]]
+        
+        # Get unique statuses
+        statuses_pipeline = [
+            {"$group": {"_id": "$status"}},
+            {"$sort": {"_id": 1}}
+        ]
+        statuses = await db.uln_labels.aggregate(statuses_pipeline).to_list(length=None)
+        status_options = [s["_id"] for s in statuses if s["_id"]]
+        
+        # Predefined options from enums
+        label_types = ["major", "independent", "distribution", "publishing", "management"]
+        integration_types = ["full_integration", "api_partner", "distribution_only", "metadata_sync", "content_sharing"]
+        
+        return {
+            "success": True,
+            "filter_options": {
+                "territories": territory_options,
+                "genres": genre_options,
+                "statuses": status_options if status_options else ["active", "inactive", "pending"],
+                "label_types": label_types,
+                "integration_types": integration_types
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting filter options: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get filter options: {str(e)}")
+
 # Export router
 router = uln_router
