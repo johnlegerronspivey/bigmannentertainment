@@ -137,7 +137,7 @@ app = FastAPI(title="Big Mann Entertainment API", version="1.0.0")
 async def startup_event():
     """Initialize PostgreSQL database on startup"""
     postgres_url = os.getenv("POSTGRES_URL")
-    if postgres_url and "localhost" not in postgres_url:
+    if postgres_url:
         try:
             from pg_database import init_db
             await init_db()
@@ -147,7 +147,7 @@ async def startup_event():
             print(f"⚠️  PostgreSQL initialization failed: {str(e)}")
             print("   Profile features will be unavailable until configured")
     else:
-        print("ℹ️  PostgreSQL not configured (POSTGRES_URL not set or using localhost)")
+        print("ℹ️  PostgreSQL not configured (POSTGRES_URL not set)")
         print("   Creator Profile features will be unavailable")
         print("   See /app/CREATOR_PROFILE_SETUP.md for setup instructions")
 
