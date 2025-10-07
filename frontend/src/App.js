@@ -487,6 +487,16 @@ const Navigation = () => {
               <span>🏛️</span>
               <span>DAO</span>
             </Link>
+
+            {/* Social Media Link */}
+            <Link 
+              to="/social" 
+              className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium"
+              title="Social Media Dashboard"
+            >
+              <span>📱</span>
+              <span>Social</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
