@@ -22,6 +22,15 @@ except:
 
 router = APIRouter(prefix="/api/profile", tags=["Creator Profiles"])
 
+# Helper function to extract user ID from current_user (dict or object)
+def get_user_id(current_user) -> str:
+    """Extract user ID from current_user which can be dict or object"""
+    return current_user.get('id') if isinstance(current_user, dict) else current_user.id
+
+def get_user_email(current_user) -> str:
+    """Extract user email from current_user which can be dict or object"""
+    return current_user.get('email') if isinstance(current_user, dict) else current_user.email
+
 # Pydantic models for requests
 class ProfileCreateRequest(BaseModel):
     display_name: Optional[str] = None
