@@ -310,6 +310,10 @@ const LabelHub = () => {
   const [initializationStatus, setInitializationStatus] = useState('');
   const [editingLabel, setEditingLabel] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showBulkEditor, setShowBulkEditor] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showExporter, setShowExporter] = useState(false);
+  const [selectedLabelsForBulk, setSelectedLabelsForBulk] = useState([]);
 
   useEffect(() => {
     fetchLabelHubData();
