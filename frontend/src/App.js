@@ -466,17 +466,25 @@ const Navigation = () => {
               )}
             </div>
 
-            {/* DAO Governance Link */}
-            <Link to="/dao" className="hover:text-purple-200 flex items-center gap-1">
-              🏛️ DAO
+            {/* Creator Profile Link - Enhanced visibility */}
+            <Link 
+              to="/profile/settings" 
+              className="bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium"
+              title="Manage your creator profile"
+            >
+              <span>👤</span>
+              <span>Profile</span>
             </Link>
 
-            {/* Profile Link */}
-            <div className="relative">
-              <Link to="/profile/settings" className="hover:text-purple-200 flex items-center gap-1">
-                👤 Profile
-              </Link>
-            </div>
+            {/* DAO Governance Link - Enhanced visibility */}
+            <Link 
+              to="/dao" 
+              className="bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium"
+              title="DAO Governance & Proposals"
+            >
+              <span>🏛️</span>
+              <span>DAO</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
