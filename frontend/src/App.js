@@ -1416,6 +1416,7 @@ const Register = () => {
                   <option value="ZA">South Africa</option>
                   <option value="NZ">New Zealand</option>
                 </select>
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
