@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Optional, Dict
 import random
 import string
+from PIL import Image, ImageDraw
 
 class GS1ProfileService:
     """Service for managing GS1 identifiers and digital links"""
