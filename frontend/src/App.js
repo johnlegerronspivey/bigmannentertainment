@@ -1418,18 +1418,18 @@ const Register = () => {
                 </select>
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-md transition-colors"
+                  className="w-full sm:flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg transition-all shadow-sm hover:shadow-md"
                 >
-                  Back
+                  ← Back
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 flex items-center justify-center"
+                  className="w-full sm:flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                 >
                   {loading ? (
                     <>
