@@ -290,3 +290,20 @@ class SocialConnection(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+# DAO Proposal Comment/Discussion Model
+class ProposalComment(Base):
+    __tablename__ = "proposal_comments"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    proposal_id = Column(String, ForeignKey("proposals.id"), nullable=False)
+    user_id = Column(String, ForeignKey("user_profiles.id"), nullable=False)
+    
+    comment_text = Column(Text, nullable=False)
+    parent_comment_id = Column(String, ForeignKey("proposal_comments.id"))  # For threaded discussions
+    
+    likes = Column(Integer, default=0)
+    flagged = Column(Boolean, default=False)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
