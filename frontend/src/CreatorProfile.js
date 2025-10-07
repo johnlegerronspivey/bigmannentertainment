@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import { QRCodeDisplay } from './CreatorProfileComponents';
 
 const CreatorProfilePage = () => {
   const { username } = useParams();
@@ -8,6 +9,7 @@ const CreatorProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('assets');
+  const [showQRModal, setShowQRModal] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
