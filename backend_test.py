@@ -1,29 +1,34 @@
 #!/usr/bin/env python3
 """
-ULN (Unified Label Network) Backend Testing
-==========================================
-
-Comprehensive testing of ULN backend implementation focusing on:
-1. Generic Edit Label Endpoint (PATCH /api/uln/labels/{global_id})
-2. Recent Changes Verification for Big Mann Entertainment label
-3. Core ULN Endpoints (dashboard stats, directory, label retrieval)
-4. Authentication and admin requirements
-5. Audit trail creation
+PostgreSQL Creator Profile System Backend Testing
+Tests the PostgreSQL-based Creator Profile System with authentication
 """
 
 import asyncio
 import aiohttp
 import json
 import os
-import sys
-from datetime import datetime
-from typing import Dict, Any, List
+from datetime import datetime, timezone
 
-# Backend URL from environment
+# Configuration
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bme-creator-hub.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
-class ULNBackendTester:
+# Test user credentials
+TEST_USER = {
+    "email": "creator@bigmannentertainment.com",
+    "password": "CreatorProfile123!",
+    "full_name": "Creator Profile Test User",
+    "business_name": "Test Creator Business",
+    "date_of_birth": "1990-01-01T00:00:00Z",
+    "address_line1": "123 Creator Street",
+    "city": "Los Angeles",
+    "state_province": "CA",
+    "postal_code": "90210",
+    "country": "USA"
+}
+
+class ProfileSystemTester:
     def __init__(self):
         self.session = None
         self.auth_token = None
