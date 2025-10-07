@@ -785,7 +785,23 @@ async def schedule_post(
             "content": request.content,
             "platforms": request.platforms,
             "scheduled_for": request.scheduled_for,
+            "status": "scheduled",
+            "media_url": request.media_url
+        }
+    }
 
+@router.delete("/social/posts/scheduled/{post_id}")
+async def cancel_scheduled_post(
+    post_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Cancel a scheduled post (mock functionality)"""
+    
+    return {
+        "success": True,
+        "message": "Scheduled post cancelled",
+        "post_id": post_id
+    }
 
 # QR Code Generation Endpoints (Phase 5)
 
