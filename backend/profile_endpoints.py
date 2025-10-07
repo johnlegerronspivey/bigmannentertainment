@@ -171,6 +171,20 @@ async def update_profile(
         "message": "Profile updated successfully"
     }
 
+# Get public profile by username (dynamic route - must be last)
+@router.get("/{username}")
+async def get_profile(username: str):
+    """Get public profile by username"""
+    profile = await profile_service.get_profile_by_username(username)
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    if not profile["identity"]["profilePublic"]:
+        raise HTTPException(status_code=403, detail="Profile is private")
+    
+    return profile
+
 # Asset Endpoints
 
 @router.post("/assets/create")
