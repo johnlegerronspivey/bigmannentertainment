@@ -38,6 +38,8 @@ import { ComprehensivePlatform } from './ComprehensivePlatformComponents';
 import { WorkflowIntegrationDashboard } from './WorkflowIntegrationComponents';
 import { SupportSystemDashboard } from './SupportSystemComponents';
 import CreatorProfilePage from './CreatorProfile';
+import ProfileSettings from './ProfileSettings';
+import DAOGovernance from './DAOGovernance';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
