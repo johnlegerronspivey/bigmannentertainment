@@ -185,8 +185,8 @@ async def create_asset(
                 "isrc": asset.isrc,
                 "isan": asset.isan,
                 "gdti": asset.gdti,
-                "gs1_digital_link": asset.metadata.get('gs1_digital_link'),
-                "qr_code": asset.metadata.get('qr_code')
+                "gs1_digital_link": asset.asset_metadata.get('gs1_digital_link'),
+                "qr_code": asset.asset_metadata.get('qr_code')
             }
         }
 
