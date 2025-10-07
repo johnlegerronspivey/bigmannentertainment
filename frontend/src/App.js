@@ -37,6 +37,7 @@ import { RealTimeRoyaltyDashboard } from './RealTimeRoyaltyComponents';
 import { ComprehensivePlatform } from './ComprehensivePlatformComponents';
 import { WorkflowIntegrationDashboard } from './WorkflowIntegrationComponents';
 import { SupportSystemDashboard } from './SupportSystemComponents';
+import CreatorProfilePage from './CreatorProfile';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
