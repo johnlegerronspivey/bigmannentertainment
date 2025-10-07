@@ -270,6 +270,52 @@ async def get_asset(asset_id: str):
             "contract_status": asset.contract_status
         }
 
+@router.get("/assets")
+async def list_user_assets(current_user = Depends(get_current_user)):
+    """List current user's assets"""
+    async with get_async_session() as session:
+        # Get user profile
+        result = await session.execute(
+            select(UserProfile).where(UserProfile.mongo_user_id == get_user_id(current_user))
+        )
+        user_profile = result.scalar_one_or_none()
+        
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        # Get user's assets
+        assets_result = await session.execute(
+            select(Asset).where(Asset.user_id == user_profile.id).order_by(Asset.created_at.desc())
+        )
+        assets = assets_result.scalars().all()
+        
+        return {
+            "assets": [
+                {
+                    "id": asset.id,
+                    "title": asset.title,
+                    "description": asset.description,
+                    "type": asset.asset_type,
+                    "thumbnail": asset.thumbnail_url,
+                    "gtin": asset.gtin,
+                    "isrc": asset.isrc,
+                    "isan": asset.isan,
+                    "gdti": asset.gdti,
+                    "gs1_digital_link": asset.asset_metadata.get('gs1_digital_link') if asset.asset_metadata else None,
+                    "license": asset.license,
+                    "engagement": {
+                        "views": asset.views,
+                        "likes": asset.likes,
+                        "shares": asset.shares
+                    },
+                    "contract_status": asset.contract_status,
+                    "created_at": asset.created_at.isoformat()
+                }
+                for asset in assets
+            ],
+            "total": len(assets)
+        }
+
 # DAO Governance Endpoints
 
 @router.post("/dao/proposals")
