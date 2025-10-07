@@ -3,9 +3,15 @@ PostgreSQL Database Connection Manager
 Dual database setup: MongoDB (existing) + PostgreSQL (new for profiles)
 """
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from contextlib import asynccontextmanager
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 # PostgreSQL connection string from environment
 # Format: postgresql+asyncpg://username:password@host:port/database
