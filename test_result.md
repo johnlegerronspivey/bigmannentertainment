@@ -14,7 +14,7 @@
 # Main and testing agents must follow this exact format to maintain testing data. 
 # The testing data must be entered in yaml format Below is the data structure:
 
-user_problem_statement: "Test the ULN (Unified Label Network) frontend implementation with focus on the Generic Edit Label feature and Label Hub UI"
+user_problem_statement: "Implement and test comprehensive Creator Profile System with: 1) Full creator profile pages with GS1 identifiers, 2) Social Media OAuth integration (Facebook, TikTok, YouTube, Twitter), 3) DAO Governance system with proposals and voting, 4) Profile settings management"
 
 frontend:
   - task: "ULN Dashboard Navigation"
