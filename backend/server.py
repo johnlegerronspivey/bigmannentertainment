@@ -155,7 +155,7 @@ async def startup_event():
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
     postgres_url = os.getenv("POSTGRES_URL")
-    if postgres_url and "localhost" not in postgres_url:
+    if postgres_url:
         try:
             from pg_database import close_db
             await close_db()
