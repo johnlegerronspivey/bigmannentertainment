@@ -108,8 +108,8 @@ class Asset(Base):
     contract_address = Column(String)
     blockchain_hash = Column(String)
     
-    # Metadata
-    metadata = Column(JSON, default=dict)  # Flexible metadata storage
+    # Additional data storage
+    asset_metadata = Column(JSON, default=dict)  # Flexible metadata storage
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
