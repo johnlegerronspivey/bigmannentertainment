@@ -641,7 +641,19 @@ async def update_proposal_status(
         
         proposal.status = status
         if status == "executed":
-
+            proposal.executed_at = datetime.now(timezone.utc)
+        
+        await session.commit()
+        
+        return {
+            "success": True,
+            "message": f"Proposal status updated to {status}",
+            "proposal": {
+                "id": proposal.id,
+                "status": proposal.status,
+                "executed_at": proposal.executed_at.isoformat() if proposal.executed_at else None
+            }
+        }
 
 # Social Media Mock Endpoints (Phase 4: UI/Flow only, no actual API integration)
 
