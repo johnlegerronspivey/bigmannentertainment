@@ -771,6 +771,86 @@ async def schedule_post(
             "content": request.content,
             "platforms": request.platforms,
             "scheduled_for": request.scheduled_for,
+
+
+# QR Code Generation Endpoints (Phase 5)
+
+from fastapi.responses import Response
+from gs1_profile_service import gs1_service
+
+@router.get("/qr/generate")
+async def generate_qr_code(
+    data: str,
+    with_logo: bool = True,
+    download: bool = False
+):
+    """Generate QR code with optional BME logo"""
+    
+    if download:
+        # Return as downloadable file
+        qr_bytes = gs1_service.generate_qr_code_file(data, with_logo=with_logo)
+        return Response(
+            content=qr_bytes,
+            media_type="image/png",
+            headers={
+                "Content-Disposition": f"attachment; filename=qr_code_{datetime.now().timestamp()}.png"
+            }
+        )
+    else:
+        # Return as base64 string
+        qr_base64 = gs1_service.generate_qr_code(data, with_logo=with_logo)
+        return {
+            "qr_code": qr_base64,
+            "data": data
+        }
+
+@router.get("/assets/{asset_id}/qr")
+async def get_asset_qr_code(
+    asset_id: str,
+    with_logo: bool = True,
+    download: bool = False
+):
+    """Get QR code for a specific asset"""
+    
+    async with get_async_session() as session:
+        result = await session.execute(
+            select(Asset).where(Asset.id == asset_id)
+        )
+        asset = result.scalar_one_or_none()
+        
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        
+        # Get GS1 Digital Link
+        gs1_link = asset.asset_metadata.get('gs1_digital_link') if asset.asset_metadata else None
+        if not gs1_link:
+            # Generate if not exists
+            gs1_link = gs1_service.create_digital_link(asset.gtin, {
+                'title': asset.title,
+                'type': asset.asset_type
+            })
+        
+        if download:
+            qr_bytes = gs1_service.generate_qr_code_file(gs1_link, with_logo=with_logo)
+            return Response(
+                content=qr_bytes,
+                media_type="image/png",
+                headers={
+                    "Content-Disposition": f"attachment; filename={asset.title.replace(' ', '_')}_qr.png"
+                }
+            )
+        else:
+            qr_base64 = gs1_service.generate_qr_code(gs1_link, with_logo=with_logo)
+            return {
+                "qr_code": qr_base64,
+                "asset": {
+                    "id": asset.id,
+                    "title": asset.title,
+                    "gtin": asset.gtin,
+                    "gs1_link": gs1_link
+                }
+            }
+
             "status": "scheduled",
             "media_url": request.media_url
         }
