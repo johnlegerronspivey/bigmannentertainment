@@ -154,14 +154,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "PostgreSQL Database Connectivity for Creator Profiles"
-    - "Profile Management System"
-    - "DAO Governance System"
-    - "Asset Management with GS1 Identifiers"
+    - "ULN Frontend Navigation Issues"
+    - "ULN Backend Database Connectivity"
   stuck_tasks:
-    - "Profile Management Endpoints"
-    - "DAO Governance Endpoints"
-    - "Asset Management with GS1 Identifiers"
+    - "ULN API Endpoints"
   test_all: false
   test_priority: "high_first"
 
