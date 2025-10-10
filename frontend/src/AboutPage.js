@@ -209,16 +209,16 @@ const AboutPage = () => {
       {/* Call to Action */}
       <div className="py-20">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-slate-100 mb-6">Ready to Join Our Family?</h2>
-          <p className="text-xl text-slate-300 mb-8">
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to Join Our Family?</h2>
+          <p className="text-xl text-slate-200 mb-8">
             Experience the Big Mann Entertainment difference. Join thousands of artists who trust 
             John LeGerron Spivey's vision and our comprehensive distribution platform.
           </p>
-          <div className="space-x-4">
-            <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg">
+          <div className="flex flex-wrap gap-4 justify-center">
+            <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 hover:shadow-lg">
               Get Started Today
             </button>
-            <button className="border border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-bold py-3 px-8 rounded-lg">
+            <button className="border border-purple-600 text-purple-400 hover:bg-purple-600 hover:text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 hover:shadow-lg">
               Contact John LeGerron Spivey
             </button>
           </div>
