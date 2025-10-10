@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://uln-label-editor.preview.emergentagent.com"
+BACKEND_URL = "https://uln-label-editor-1.preview.emergentagent.com"
 
 class GS1BusinessInfoTester:
     def __init__(self):

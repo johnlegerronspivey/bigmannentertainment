@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://uln-label-editor.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL || 'https://uln-label-editor-1.preview.emergentagent.com';
 
 // Main MDE Integration Component
 export const MDEIntegration = () => {

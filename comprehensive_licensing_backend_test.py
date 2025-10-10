@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://uln-label-editor.preview.emergentagent.com/api"
+BACKEND_URL = "https://uln-label-editor-1.preview.emergentagent.com/api"
 
 class ComprehensiveLicensingTester:
     def __init__(self):
