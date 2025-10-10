@@ -47,7 +47,7 @@ const AboutPage = () => {
               <div className="bg-white rounded-full w-64 h-64 mx-auto flex items-center justify-center shadow-lg border-4 border-purple-600">
                 <span className="text-8xl">👤</span>
               </div>
-              <p className="text-gray-600 mt-4 italic">"Empowering artists with comprehensive distribution solutions"</p>
+              <p className="text-slate-300 mt-4 italic">"Empowering artists with comprehensive distribution solutions"</p>
             </div>
           </div>
         </div>
