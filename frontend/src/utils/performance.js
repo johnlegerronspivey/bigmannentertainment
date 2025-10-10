@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Performance Utility
  * Provides utilities for optimizing React component performance
