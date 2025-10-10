@@ -41,7 +41,7 @@ def init_metadata_services(db, services_dict):
 async def parse_metadata_file(
     file: UploadFile = File(...),
     format: MetadataFormat = Form(...),
-    validate: bool = Form(True),
+    validate_metadata: bool = Form(True),
     check_duplicates: bool = Form(True),
     current_user: dict = Depends(get_current_user)
 ):
@@ -80,7 +80,7 @@ async def parse_metadata_file(
         )
         
         # Perform validation if requested
-        if validate:
+        if validate_metadata:
             validation_config = MetadataValidationConfig(
                 check_duplicates=check_duplicates,
                 duplicate_scope="platform"
