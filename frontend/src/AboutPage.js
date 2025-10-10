@@ -21,25 +21,25 @@ const AboutPage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">Meet Our Founder & CEO</h2>
-              <h3 className="text-2xl font-semibold text-purple-600 mb-4">John LeGerron Spivey</h3>
-              <p className="text-lg text-gray-700 mb-6">
+              <h2 className="text-4xl font-bold text-white mb-6">Meet Our Founder & CEO</h2>
+              <h3 className="text-2xl font-semibold text-purple-400 mb-4">John LeGerron Spivey</h3>
+              <p className="text-lg text-slate-200 mb-6">
                 John LeGerron Spivey is the visionary founder and CEO of Big Mann Entertainment, bringing years of 
                 industry expertise and innovative thinking to the music distribution landscape. Under his leadership, 
                 the platform has grown to serve artists across 114+ global distribution platforms.
               </p>
               <div className="space-y-4">
                 <div className="flex items-center">
-                  <span className="text-purple-600 font-semibold mr-3">📍 Location:</span>
-                  <span>Alexander City, Alabama</span>
+                  <span className="text-purple-400 font-semibold mr-3">📍 Location:</span>
+                  <span className="text-slate-200">Alexander City, Alabama</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-purple-600 font-semibold mr-3">📧 Contact:</span>
-                  <span>owner@bigmannentertainment.com</span>
+                  <span className="text-purple-400 font-semibold mr-3">📧 Contact:</span>
+                  <span className="text-slate-200">owner@bigmannentertainment.com</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-purple-600 font-semibold mr-3">📞 Phone:</span>
-                  <span>(334) 669-8638</span>
+                  <span className="text-purple-400 font-semibold mr-3">📞 Phone:</span>
+                  <span className="text-slate-200">(334) 669-8638</span>
                 </div>
               </div>
             </div>
