@@ -456,7 +456,7 @@ class SocialMediaOAuthTester:
 
 async def main():
     """Main test execution"""
-    tester = ProfileSystemTester()
+    tester = SocialMediaOAuthTester()
     results = await tester.run_all_tests()
     
     # Exit with appropriate code
