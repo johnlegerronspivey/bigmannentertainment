@@ -405,8 +405,8 @@ class SocialMediaOAuthTester:
             return False
             
     async def run_all_tests(self):
-        """Run all PostgreSQL Creator Profile System tests"""
-        print("🎯 PostgreSQL Creator Profile System Backend Testing")
+        """Run all Social Media OAuth Integration tests"""
+        print("🎯 Social Media OAuth Integration Backend Testing")
         print("=" * 60)
         
         await self.setup_session()
@@ -418,17 +418,17 @@ class SocialMediaOAuthTester:
             # Authentication setup
             auth_success = await self.register_and_login()
             if not auth_success:
-                print("❌ Authentication failed - cannot proceed with profile tests")
+                print("❌ Authentication failed - cannot proceed with social media tests")
                 return results
                 
             # Run all tests
-            results["postgresql_health"] = await self.test_postgresql_health()
-            results["profile_creation"] = await self.test_profile_creation()
-            results["profile_retrieval"] = await self.test_profile_retrieval()
-            results["profile_update"] = await self.test_profile_update()
-            results["asset_creation"] = await self.test_asset_creation()
-            results["dao_proposal_creation"] = await self.test_dao_proposal_creation()
-            results["dao_voting"] = await self.test_dao_voting()
+            results["social_health"] = await self.test_social_health()
+            results["providers_list"] = await self.test_providers_list()
+            results["oauth_status"] = await self.test_oauth_status()
+            results["twitter_oauth_connect"] = await self.test_twitter_oauth_connect()
+            results["social_connections"] = await self.test_social_connections()
+            results["twitter_bearer_token"] = await self.test_twitter_bearer_token()
+            results["social_post_structure"] = await self.test_social_post_structure()
             
             # Summary
             print("\n" + "=" * 60)
@@ -445,9 +445,9 @@ class SocialMediaOAuthTester:
             print(f"\nOverall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
             
             if passed == total:
-                print("🎉 All PostgreSQL Creator Profile System tests passed!")
+                print("🎉 All Social Media OAuth Integration tests passed!")
             else:
-                print("⚠️  Some tests failed - check PostgreSQL connection and profile system")
+                print("⚠️  Some tests failed - check social media configuration and endpoints")
                 
             return results
             
