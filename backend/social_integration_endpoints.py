@@ -53,12 +53,13 @@ async def get_user_profile_id(mongo_user_id: str, auto_create: bool = True) -> s
         if not profile and auto_create:
             # Auto-create a minimal profile for social media use
             from datetime import datetime, timezone
+            import uuid
             profile = UserProfile(
                 mongo_user_id=mongo_user_id,
-                name="User",  # Will be updated later
-                business_name="Social Media User",
-                profile_type="creator",
-                created_at=datetime.now(timezone.utc)
+                username=f"user_{str(uuid.uuid4())[:8]}",  # Generate unique username
+                display_name="Social Media User",
+                profile_public=True,
+                show_dao_activity=True
             )
             session.add(profile)
             await session.commit()
