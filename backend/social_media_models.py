@@ -39,6 +39,7 @@ class OAuthToken(Base):
 # Social Media Connection
 class SocialConnection(Base):
     __tablename__ = "social_connections"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, ForeignKey("user_profiles.id"), nullable=False, index=True)
