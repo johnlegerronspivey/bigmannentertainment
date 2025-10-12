@@ -130,6 +130,7 @@ class SocialMetric(Base):
 # Webhook Event Log
 class WebhookEvent(Base):
     __tablename__ = "webhook_events"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(String, primary_key=True, default=generate_uuid)
     provider = Column(String, nullable=False, index=True)
