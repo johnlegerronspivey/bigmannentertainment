@@ -95,9 +95,9 @@ class SocialPost(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    user = relationship("UserProfile", back_populates="social_posts")
-    connection = relationship("SocialConnection", back_populates="connection_posts")
-    metrics = relationship("SocialMetric", back_populates="post")
+    user = relationship("UserProfile", back_populates="social_posts", lazy="joined")
+    connection = relationship("SocialConnection", back_populates="connection_posts", lazy="joined")
+    metrics = relationship("SocialMetric", back_populates="post", lazy="dynamic")
 
 # Social Media Metrics
 class SocialMetric(Base):
