@@ -17,7 +17,7 @@ if not ENCRYPTION_KEY:
     SECRET_KEY = os.getenv('SECRET_KEY', 'default-secret-key-change-in-production')
     
     # Derive a Fernet key from SECRET_KEY
-    kdf = PBKDF2(
+    kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
         salt=b'social_media_encryption_salt',  # Static salt for deterministic key
