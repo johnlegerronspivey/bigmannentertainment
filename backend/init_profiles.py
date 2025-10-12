@@ -6,6 +6,7 @@ import asyncio
 import os
 from pg_database import init_db, Base, async_engine
 from profile_models import *
+from social_media_models import *
 from sqlalchemy.ext.asyncio import AsyncSession
 from gs1_profile_service import gs1_service
 
