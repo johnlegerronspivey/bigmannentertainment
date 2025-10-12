@@ -86,23 +86,27 @@ class SocialMediaOAuthTester:
             return {}
         return {"Authorization": f"Bearer {self.auth_token}"}
         
-    async def test_postgresql_health(self):
-        """Test 1: PostgreSQL Connection Health Check"""
-        print("\n🏥 Test 1: PostgreSQL Connection Health Check")
+    async def test_social_health(self):
+        """Test 1: Social Media Integration Health Check"""
+        print("\n🏥 Test 1: Social Media Integration Health Check")
         
         try:
-            async with self.session.get(f"{API_BASE}/profile/health") as response:
+            async with self.session.get(f"{API_BASE}/social/health") as response:
                 data = await response.json()
                 print(f"Status: {response.status}")
                 print(f"Response: {json.dumps(data, indent=2)}")
                 
                 if response.status == 200:
-                    postgres_status = data.get("postgres", "unknown")
-                    if postgres_status == "connected":
-                        print("✅ PostgreSQL connection successful")
+                    service_status = data.get("status", "unknown")
+                    if service_status == "healthy":
+                        print("✅ Social Media Integration service is healthy")
+                        providers = data.get("providers", [])
+                        print(f"   Available providers: {len(providers)}")
+                        for provider in providers:
+                            print(f"   - {provider.get('name', provider.get('provider'))}: {'✅' if provider.get('configured') else '❌'}")
                         return True
                     else:
-                        print(f"❌ PostgreSQL connection failed: {postgres_status}")
+                        print(f"❌ Social Media service unhealthy: {service_status}")
                         return False
                 else:
                     print(f"❌ Health check failed with status {response.status}")
