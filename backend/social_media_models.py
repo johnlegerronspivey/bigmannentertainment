@@ -63,7 +63,7 @@ class SocialConnection(Base):
     
     # Relationships
     user = relationship("UserProfile", back_populates="social_connections")
-    posts = relationship("SocialPost", back_populates="connection")
+    connection_posts = relationship("SocialPost", back_populates="connection")
 
 # Social Media Post
 class SocialPost(Base):
