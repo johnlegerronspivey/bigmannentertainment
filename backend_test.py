@@ -28,7 +28,7 @@ TEST_USER = {
     "country": "USA"
 }
 
-class ProfileSystemTester:
+class SocialMediaOAuthTester:
     def __init__(self):
         self.session = None
         self.auth_token = None
