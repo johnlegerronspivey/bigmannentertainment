@@ -96,7 +96,7 @@ class SocialPost(Base):
     
     # Relationships
     user = relationship("UserProfile", back_populates="social_posts")
-    connection = relationship("SocialConnection", back_populates="posts")
+    connection = relationship("SocialConnection", back_populates="connection_posts")
     metrics = relationship("SocialMetric", back_populates="post")
 
 # Social Media Metrics
