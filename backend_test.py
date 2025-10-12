@@ -152,38 +152,39 @@ class SocialMediaOAuthTester:
             print(f"❌ Providers list error: {e}")
             return False
             
-    async def test_profile_retrieval(self):
-        """Test 3: Profile Retrieval"""
-        print("\n📋 Test 3: Profile Retrieval (GET /api/profile/me)")
+    async def test_oauth_status(self):
+        """Test 3: OAuth Configuration Status"""
+        print("\n🔐 Test 3: OAuth Configuration Status")
         
-        if not self.auth_token:
-            print("❌ No auth token available")
-            return False
-            
         try:
-            headers = self.get_auth_headers()
-            
-            async with self.session.get(
-                f"{API_BASE}/profile/me",
-                headers=headers
-            ) as response:
+            async with self.session.get(f"{API_BASE}/oauth/status") as response:
                 data = await response.json()
                 print(f"Status: {response.status}")
                 print(f"Response: {json.dumps(data, indent=2)}")
                 
                 if response.status == 200:
-                    if data.get("hasProfile") == False:
-                        print("ℹ️  No profile found, this is expected if creation failed")
-                        return True
-                    else:
-                        print("✅ Profile retrieved successfully")
-                        return True
+                    print("✅ OAuth status endpoint working")
+                    
+                    # Check each platform configuration
+                    platforms = ["facebook", "tiktok", "google_youtube", "twitter"]
+                    configured_count = 0
+                    
+                    for platform in platforms:
+                        if platform in data:
+                            configured = data[platform].get("configured", False)
+                            scope = data[platform].get("scope", "")
+                            print(f"   {platform}: {'✅' if configured else '❌'} (scope: {scope})")
+                            if configured:
+                                configured_count += 1
+                    
+                    print(f"   Total configured platforms: {configured_count}/{len(platforms)}")
+                    return True
                 else:
-                    print(f"❌ Profile retrieval failed: {data}")
+                    print(f"❌ OAuth status failed: {response.status}")
                     return False
                     
         except Exception as e:
-            print(f"❌ Profile retrieval error: {e}")
+            print(f"❌ OAuth status error: {e}")
             return False
             
     async def test_profile_update(self):
