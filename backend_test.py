@@ -123,36 +123,41 @@ class SocialMediaOAuthTester:
             print(f"❌ Social health check error: {e}")
             return False
             
-    async def test_providers_list(self):
-        """Test 2: Get Available Social Media Providers"""
-        print("\n📋 Test 2: Get Available Social Media Providers")
+    async def test_social_providers(self):
+        """Test 3: GET /api/social/providers - Check all 6 providers listed"""
+        print("\n📋 Test 3: Social Media Providers List")
         
         try:
             async with self.session.get(f"{API_BASE}/social/providers") as response:
-                data = await response.json()
-                print(f"Status: {response.status}")
-                print(f"Response: {json.dumps(data, indent=2)}")
+                print(f"GET /api/social/providers - Status: {response.status}")
                 
                 if response.status == 200:
+                    data = await response.json()
+                    print(f"Response: {json.dumps(data, indent=2)}")
+                    
                     providers = data.get("providers", [])
                     print(f"✅ Found {len(providers)} social media providers")
                     
-                    # Check for Twitter configuration
-                    twitter_configured = False
+                    # Expected providers
+                    expected_providers = ["twitter", "facebook", "instagram", "tiktok", "linkedin", "youtube"]
+                    found_providers = []
+                    
                     for provider in providers:
-                        if provider.get("provider") == "twitter":
-                            twitter_configured = provider.get("configured", False)
-                            print(f"   Twitter configured: {'✅' if twitter_configured else '❌'}")
-                            break
+                        provider_name = provider.get("provider", provider.get("name", "")).lower()
+                        found_providers.append(provider_name)
+                        configured = provider.get("configured", False)
+                        print(f"   - {provider_name}: {'✅ configured' if configured else '❌ not configured'}")
                     
-                    if twitter_configured:
-                        print("✅ Twitter provider is properly configured")
+                    # Check if we have at least 6 providers
+                    if len(providers) >= 6:
+                        print("✅ All 6 providers listed correctly")
+                        return True
                     else:
-                        print("⚠️  Twitter provider not configured (expected for testing)")
-                    
-                    return True
+                        print(f"❌ Expected 6 providers, found {len(providers)}")
+                        return False
                 else:
-                    print(f"❌ Failed to get providers list: {response.status}")
+                    error_text = await response.text()
+                    print(f"❌ Failed to get providers list: {response.status} - {error_text}")
                     return False
                     
         except Exception as e:
