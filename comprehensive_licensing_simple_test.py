@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://uln-label-editor-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bme-profile-boost.preview.emergentagent.com/api"
 
 class ComprehensiveLicensingSimpleTest:
     def __init__(self):

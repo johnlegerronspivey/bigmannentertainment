@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 # Use the correct backend URL
-BACKEND_URL = "https://uln-label-editor-1.preview.emergentagent.com"
+BACKEND_URL = "https://bme-profile-boost.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 async def test_exact_scenario():

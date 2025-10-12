@@ -29,7 +29,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://uln-label-editor-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://bme-profile-boost.preview.emergentagent.com/api"
 
 class DistributionPlatformsTest:
     def __init__(self):

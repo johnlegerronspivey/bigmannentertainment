@@ -28,7 +28,7 @@ from typing import Dict, List, Any, Optional
 import uuid
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://uln-label-editor-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bme-profile-boost.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class ComprehensivePlatformTester:
