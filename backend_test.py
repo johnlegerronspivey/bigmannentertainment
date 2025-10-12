@@ -25,9 +25,7 @@ class SocialMediaOAuthTester:
         self.session = None
         self.auth_token = None
         self.user_id = None
-        self.profile_id = None
-        self.asset_id = None
-        self.proposal_id = None
+        self.test_results = {}
         
     async def setup_session(self):
         """Initialize HTTP session"""
@@ -38,31 +36,20 @@ class SocialMediaOAuthTester:
         if self.session:
             await self.session.close()
             
-    async def register_and_login(self):
-        """Register test user and login to get auth token"""
-        print("🔐 Testing user registration and authentication...")
+    async def authenticate_user(self):
+        """Authenticate with provided credentials"""
+        print("🔐 Part 2: Authentication Flow")
         
-        # Try to register user (may already exist)
         try:
-            async with self.session.post(f"{API_BASE}/auth/register", json=TEST_USER) as response:
-                if response.status == 201:
-                    print("✅ User registered successfully")
-                elif response.status == 400:
-                    print("ℹ️  User already exists, proceeding to login")
-                else:
-                    print(f"⚠️  Registration response: {response.status}")
-        except Exception as e:
-            print(f"⚠️  Registration error: {e}")
-            
-        # Login to get token
-        login_data = {"email": TEST_USER["email"], "password": TEST_USER["password"]}
-        try:
-            async with self.session.post(f"{API_BASE}/auth/login", json=login_data) as response:
+            async with self.session.post(f"{API_BASE}/auth/login", json=TEST_CREDENTIALS) as response:
+                print(f"POST /api/auth/login - Status: {response.status}")
+                
                 if response.status == 200:
                     data = await response.json()
                     self.auth_token = data.get("access_token")
                     self.user_id = data.get("user", {}).get("id")
                     print("✅ Authentication successful")
+                    print(f"   User ID: {self.user_id}")
                     return True
                 else:
                     error_text = await response.text()
