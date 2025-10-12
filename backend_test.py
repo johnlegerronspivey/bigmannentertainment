@@ -65,34 +65,62 @@ class SocialMediaOAuthTester:
             return {}
         return {"Authorization": f"Bearer {self.auth_token}"}
         
+    async def test_profile_health(self):
+        """Test 1: GET /api/profile/health - Verify PostgreSQL connected"""
+        print("\n🏥 Test 1: Profile Health Check")
+        
+        try:
+            async with self.session.get(f"{API_BASE}/profile/health") as response:
+                print(f"GET /api/profile/health - Status: {response.status}")
+                
+                if response.status == 200:
+                    data = await response.json()
+                    print(f"Response: {json.dumps(data, indent=2)}")
+                    
+                    postgres_status = data.get("postgres", "unknown")
+                    if postgres_status == "connected":
+                        print("✅ PostgreSQL connected and operational")
+                        return True
+                    else:
+                        print(f"❌ PostgreSQL not connected: {postgres_status}")
+                        return False
+                else:
+                    error_text = await response.text()
+                    print(f"❌ Profile health check failed: {response.status} - {error_text}")
+                    return False
+                    
+        except Exception as e:
+            print(f"❌ Profile health check error: {e}")
+            return False
+            
     async def test_social_health(self):
-        """Test 1: Social Media Integration Health Check"""
-        print("\n🏥 Test 1: Social Media Integration Health Check")
+        """Test 2: GET /api/social/health - Verify service healthy"""
+        print("\n🏥 Test 2: Social Media Service Health Check")
         
         try:
             async with self.session.get(f"{API_BASE}/social/health") as response:
-                data = await response.json()
-                print(f"Status: {response.status}")
-                print(f"Response: {json.dumps(data, indent=2)}")
+                print(f"GET /api/social/health - Status: {response.status}")
                 
                 if response.status == 200:
+                    data = await response.json()
+                    print(f"Response: {json.dumps(data, indent=2)}")
+                    
                     service_status = data.get("status", "unknown")
                     if service_status == "healthy":
-                        print("✅ Social Media Integration service is healthy")
+                        print("✅ Social Media service is healthy")
                         providers = data.get("providers", [])
                         print(f"   Available providers: {len(providers)}")
-                        for provider in providers:
-                            print(f"   - {provider.get('name', provider.get('provider'))}: {'✅' if provider.get('configured') else '❌'}")
                         return True
                     else:
                         print(f"❌ Social Media service unhealthy: {service_status}")
                         return False
                 else:
-                    print(f"❌ Health check failed with status {response.status}")
+                    error_text = await response.text()
+                    print(f"❌ Social health check failed: {response.status} - {error_text}")
                     return False
                     
         except Exception as e:
-            print(f"❌ Health check error: {e}")
+            print(f"❌ Social health check error: {e}")
             return False
             
     async def test_providers_list(self):
