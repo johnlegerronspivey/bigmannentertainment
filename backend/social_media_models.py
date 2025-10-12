@@ -62,8 +62,8 @@ class SocialConnection(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    user = relationship("UserProfile", back_populates="social_connections")
-    connection_posts = relationship("SocialPost", back_populates="connection")
+    user = relationship("UserProfile", back_populates="social_connections", lazy="joined")
+    connection_posts = relationship("SocialPost", back_populates="connection", lazy="dynamic")
 
 # Social Media Post
 class SocialPost(Base):
