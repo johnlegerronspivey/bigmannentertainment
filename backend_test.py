@@ -253,9 +253,9 @@ class SocialMediaOAuthTester:
             print(f"❌ Social connections error: {e}")
             return False
             
-    async def test_social_connections(self):
-        """Test 5: Get User's Social Media Connections"""
-        print("\n🔗 Test 5: Get User's Social Media Connections")
+    async def test_social_posts(self):
+        """Test 8: GET /api/social/posts - Should return empty posts array (no 500 error)"""
+        print("\n📝 Test 8: Social Media Posts")
         
         if not self.auth_token:
             print("❌ No auth token available")
@@ -263,47 +263,41 @@ class SocialMediaOAuthTester:
             
         try:
             headers = self.get_auth_headers()
-            
-            async with self.session.get(
-                f"{API_BASE}/social/connections",
-                headers=headers
-            ) as response:
-                print(f"Status: {response.status}")
+            async with self.session.get(f"{API_BASE}/social/posts", headers=headers) as response:
+                print(f"GET /api/social/posts - Status: {response.status}")
                 
                 if response.status == 200:
                     data = await response.json()
                     print(f"Response: {json.dumps(data, indent=2)}")
                     
-                    connections = data.get("connections", [])
-                    print(f"✅ Retrieved {len(connections)} social media connections")
+                    posts = data.get("posts", [])
+                    print(f"✅ Retrieved posts successfully")
+                    print(f"   Post count: {len(posts)}")
                     
-                    if len(connections) == 0:
-                        print("   No connections found (expected for new user)")
+                    if len(posts) == 0:
+                        print("✅ Empty posts array returned properly (expected)")
                     else:
-                        for conn in connections:
-                            provider = conn.get("provider")
-                            username = conn.get("username")
-                            print(f"   - {provider}: @{username}")
+                        print(f"   Found {len(posts)} existing posts")
                     
                     return True
-                elif response.status == 404:
-                    # Profile not found - expected if PostgreSQL not configured
-                    data = await response.json()
-                    error_detail = data.get("detail", "")
-                    if "Profile not found" in error_detail:
-                        print("⚠️  Profile not found (expected if PostgreSQL not configured)")
+                elif response.status == 500:
+                    error_text = await response.text()
+                    print(f"❌ CRITICAL: 500 Internal Server Error - {error_text}")
+                    return False
+                else:
+                    error_text = await response.text()
+                    print(f"Status {response.status}: {error_text}")
+                    
+                    # Check if it's expected error (like 404 for profile not found)
+                    if response.status in [401, 404]:
+                        print("✅ Proper error status returned (not 500)")
                         return True
                     else:
-                        print(f"❌ Unexpected 404 error: {error_detail}")
+                        print(f"❌ Unexpected status: {response.status}")
                         return False
-                else:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    print(f"❌ Failed to get connections: {response.status}")
-                    return False
                     
         except Exception as e:
-            print(f"❌ Social connections error: {e}")
+            print(f"❌ Social posts error: {e}")
             return False
             
     async def test_twitter_bearer_token(self):
