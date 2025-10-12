@@ -72,9 +72,9 @@ class UserProfile(Base):
     proposals = relationship("Proposal", back_populates="user")
     votes = relationship("Vote", back_populates="voter")
     # Social media relationships (defined in social_media_models.py)
-    oauth_tokens = relationship("OAuthToken", back_populates="user")
-    social_connections = relationship("SocialConnection", back_populates="user")
-    social_posts = relationship("SocialPost", back_populates="user")
+    oauth_tokens = relationship("OAuthToken", back_populates="user", lazy="dynamic")
+    social_connections = relationship("SocialConnection", back_populates="user", lazy="dynamic")
+    social_posts = relationship("SocialPost", back_populates="user", lazy="dynamic")
 
 # Asset Model (Music, Video, Merch, etc.)
 class Asset(Base):
