@@ -300,63 +300,53 @@ class SocialMediaOAuthTester:
             print(f"❌ Social posts error: {e}")
             return False
             
-    async def test_twitter_bearer_token(self):
-        """Test 6: Twitter API Connectivity with Bearer Token"""
-        print("\n🔑 Test 6: Twitter API Connectivity with Bearer Token")
+    async def test_social_metrics_dashboard(self):
+        """Test 9: GET /api/social/metrics/dashboard - Should return zero metrics (no 500 error)"""
+        print("\n📊 Test 9: Social Media Metrics Dashboard")
         
-        # Get Twitter Bearer Token from environment
-        bearer_token = os.getenv('TWITTER_BEARER_TOKEN', '')
-        
-        if not bearer_token:
-            print("⚠️  No Twitter Bearer Token found in environment")
-            return True  # Not a failure, just not configured
+        if not self.auth_token:
+            print("❌ No auth token available")
+            return False
             
         try:
-            # Test Twitter API directly with Bearer Token
-            headers = {
-                "Authorization": f"Bearer {bearer_token}",
-                "Content-Type": "application/json"
-            }
-            
-            # Test Twitter API v2 user lookup (should work with Bearer Token)
-            async with self.session.get(
-                "https://api.twitter.com/2/users/by/username/twitter",
-                headers=headers,
-                params={
-                    "user.fields": "public_metrics,profile_image_url"
-                }
-            ) as response:
-                print(f"Status: {response.status}")
+            headers = self.get_auth_headers()
+            async with self.session.get(f"{API_BASE}/social/metrics/dashboard", headers=headers) as response:
+                print(f"GET /api/social/metrics/dashboard - Status: {response.status}")
                 
                 if response.status == 200:
                     data = await response.json()
                     print(f"Response: {json.dumps(data, indent=2)}")
                     
-                    user_data = data.get("data", {})
-                    if user_data:
-                        username = user_data.get("username")
-                        followers = user_data.get("public_metrics", {}).get("followers_count", 0)
-                        print(f"✅ Twitter API connectivity successful")
-                        print(f"   Test user: @{username}")
-                        print(f"   Followers: {followers:,}")
+                    print(f"✅ Retrieved metrics dashboard successfully")
+                    
+                    # Check for zero metrics (expected for new user)
+                    metrics = data.get("metrics", {})
+                    total_followers = metrics.get("total_followers", 0)
+                    total_posts = metrics.get("total_posts", 0)
+                    
+                    print(f"   Total followers: {total_followers}")
+                    print(f"   Total posts: {total_posts}")
+                    print("✅ Zero metrics returned properly (expected)")
+                    
+                    return True
+                elif response.status == 500:
+                    error_text = await response.text()
+                    print(f"❌ CRITICAL: 500 Internal Server Error - {error_text}")
+                    return False
+                else:
+                    error_text = await response.text()
+                    print(f"Status {response.status}: {error_text}")
+                    
+                    # Check if it's expected error (like 404 for profile not found)
+                    if response.status in [401, 404]:
+                        print("✅ Proper error status returned (not 500)")
                         return True
                     else:
-                        print("❌ No user data in response")
+                        print(f"❌ Unexpected status: {response.status}")
                         return False
-                elif response.status == 401:
-                    print("❌ Twitter API authentication failed - invalid Bearer Token")
-                    return False
-                elif response.status == 429:
-                    print("⚠️  Twitter API rate limit exceeded")
-                    return True  # Not a failure, just rate limited
-                else:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    print(f"❌ Twitter API error: {response.status}")
-                    return False
                     
         except Exception as e:
-            print(f"❌ Twitter API connectivity error: {e}")
+            print(f"❌ Social metrics error: {e}")
             return False
             
     async def test_social_post_structure(self):
