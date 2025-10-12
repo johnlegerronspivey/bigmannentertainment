@@ -125,7 +125,7 @@ class SocialMetric(Base):
     collected_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
-    post = relationship("SocialPost", back_populates="metrics")
+    post = relationship("SocialPost", back_populates="metrics", lazy="joined")
 
 # Webhook Event Log
 class WebhookEvent(Base):
