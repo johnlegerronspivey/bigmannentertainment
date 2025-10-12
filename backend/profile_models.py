@@ -268,31 +268,7 @@ class Vote(Base):
     proposal = relationship("Proposal", back_populates="votes")
     voter = relationship("UserProfile", back_populates="votes")
 
-# Social Media Connection Status
-class SocialConnection(Base):
-    __tablename__ = "social_connections"
-
-    id = Column(String, primary_key=True, default=generate_uuid)
-    user_id = Column(String, ForeignKey("user_profiles.id"), nullable=False)
-    
-    platform = Column(String, nullable=False)  # facebook, tiktok, instagram, youtube, twitter
-    platform_user_id = Column(String)
-    platform_username = Column(String)
-    
-    access_token = Column(Text)
-    refresh_token = Column(Text)
-    token_expires_at = Column(DateTime(timezone=True))
-    
-    connected = Column(Boolean, default=True)
-    last_sync = Column(DateTime(timezone=True))
-    
-    # Engagement Metrics from Platform
-    followers = Column(Integer, default=0)
-    posts = Column(Integer, default=0)
-    engagement_rate = Column(Float, default=0.0)
-    
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+# Note: SocialConnection model moved to social_media_models.py to avoid conflicts
 
 # DAO Proposal Comment/Discussion Model
 class ProposalComment(Base):
