@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-PostgreSQL Creator Profile System Backend Testing
-Tests the PostgreSQL-based Creator Profile System with authentication
+Social Media OAuth Integration Backend Testing
+Tests the newly implemented Social Media OAuth Integration endpoints
 """
 
 import asyncio
