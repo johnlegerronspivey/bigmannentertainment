@@ -164,39 +164,46 @@ class SocialMediaOAuthTester:
             print(f"❌ Providers list error: {e}")
             return False
             
-    async def test_oauth_status(self):
-        """Test 3: OAuth Configuration Status"""
-        print("\n🔐 Test 3: OAuth Configuration Status")
+    async def test_auth_me(self):
+        """Test 5: GET /api/auth/me - Get current user info"""
+        print("\n👤 Test 5: Current User Information")
         
+        if not self.auth_token:
+            print("❌ No auth token available")
+            return False
+            
         try:
-            async with self.session.get(f"{API_BASE}/oauth/status") as response:
-                data = await response.json()
-                print(f"Status: {response.status}")
-                print(f"Response: {json.dumps(data, indent=2)}")
+            headers = self.get_auth_headers()
+            async with self.session.get(f"{API_BASE}/auth/me", headers=headers) as response:
+                print(f"GET /api/auth/me - Status: {response.status}")
                 
                 if response.status == 200:
-                    print("✅ OAuth status endpoint working")
+                    data = await response.json()
+                    print(f"Response: {json.dumps(data, indent=2)}")
                     
-                    # Check each platform configuration
-                    platforms = ["facebook", "tiktok", "google_youtube", "twitter"]
-                    configured_count = 0
+                    user_email = data.get("email", "")
+                    user_role = data.get("role", "")
+                    business_name = data.get("business_name", "")
                     
-                    for platform in platforms:
-                        if platform in data:
-                            configured = data[platform].get("configured", False)
-                            scope = data[platform].get("scope", "")
-                            print(f"   {platform}: {'✅' if configured else '❌'} (scope: {scope})")
-                            if configured:
-                                configured_count += 1
+                    print(f"✅ User info retrieved successfully")
+                    print(f"   Email: {user_email}")
+                    print(f"   Role: {user_role}")
+                    print(f"   Business: {business_name}")
                     
-                    print(f"   Total configured platforms: {configured_count}/{len(platforms)}")
-                    return True
+                    # Verify JWT token working
+                    if user_email == TEST_CREDENTIALS["email"]:
+                        print("✅ JWT token working correctly")
+                        return True
+                    else:
+                        print(f"❌ Token mismatch - expected {TEST_CREDENTIALS['email']}, got {user_email}")
+                        return False
                 else:
-                    print(f"❌ OAuth status failed: {response.status}")
+                    error_text = await response.text()
+                    print(f"❌ Failed to get user info: {response.status} - {error_text}")
                     return False
                     
         except Exception as e:
-            print(f"❌ OAuth status error: {e}")
+            print(f"❌ Auth me error: {e}")
             return False
             
     async def test_twitter_oauth_connect(self):
