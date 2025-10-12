@@ -102,6 +102,7 @@ class SocialPost(Base):
 # Social Media Metrics
 class SocialMetric(Base):
     __tablename__ = "social_metrics"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(String, primary_key=True, default=generate_uuid)
     post_id = Column(String, ForeignKey("social_posts.id"), nullable=False, index=True)
