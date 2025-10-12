@@ -116,49 +116,40 @@ class SocialMediaOAuthTester:
             print(f"❌ Health check error: {e}")
             return False
             
-    async def test_profile_creation(self):
-        """Test 2: Profile Creation with Authentication"""
-        print("\n👤 Test 2: Profile Creation with Authentication")
-        
-        if not self.auth_token:
-            print("❌ No auth token available")
-            return False
-            
-        profile_data = {
-            "display_name": "Test Creator Profile",
-            "tagline": "Testing PostgreSQL Creator Profiles",
-            "bio": "This is a test profile for the PostgreSQL Creator Profile System",
-            "location": "Los Angeles, CA",
-            "profile_public": True,
-            "show_earnings": False
-        }
+    async def test_providers_list(self):
+        """Test 2: Get Available Social Media Providers"""
+        print("\n📋 Test 2: Get Available Social Media Providers")
         
         try:
-            headers = self.get_auth_headers()
-            headers["Content-Type"] = "application/json"
-            
-            async with self.session.post(
-                f"{API_BASE}/profile/create", 
-                json=profile_data,
-                headers=headers
-            ) as response:
+            async with self.session.get(f"{API_BASE}/social/providers") as response:
                 data = await response.json()
                 print(f"Status: {response.status}")
                 print(f"Response: {json.dumps(data, indent=2)}")
                 
                 if response.status == 200:
-                    self.profile_id = data.get("profile", {}).get("id")
-                    print("✅ Profile created successfully")
-                    return True
-                elif response.status == 400 and "already exists" in data.get("detail", ""):
-                    print("ℹ️  Profile already exists, proceeding to next test")
+                    providers = data.get("providers", [])
+                    print(f"✅ Found {len(providers)} social media providers")
+                    
+                    # Check for Twitter configuration
+                    twitter_configured = False
+                    for provider in providers:
+                        if provider.get("provider") == "twitter":
+                            twitter_configured = provider.get("configured", False)
+                            print(f"   Twitter configured: {'✅' if twitter_configured else '❌'}")
+                            break
+                    
+                    if twitter_configured:
+                        print("✅ Twitter provider is properly configured")
+                    else:
+                        print("⚠️  Twitter provider not configured (expected for testing)")
+                    
                     return True
                 else:
-                    print(f"❌ Profile creation failed: {data}")
+                    print(f"❌ Failed to get providers list: {response.status}")
                     return False
                     
         except Exception as e:
-            print(f"❌ Profile creation error: {e}")
+            print(f"❌ Providers list error: {e}")
             return False
             
     async def test_profile_retrieval(self):
