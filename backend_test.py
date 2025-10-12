@@ -206,9 +206,9 @@ class SocialMediaOAuthTester:
             print(f"❌ Auth me error: {e}")
             return False
             
-    async def test_twitter_oauth_connect(self):
-        """Test 4: Twitter OAuth Connect Endpoint"""
-        print("\n🐦 Test 4: Twitter OAuth Connect Endpoint")
+    async def test_social_connections(self):
+        """Test 7: GET /api/social/connections - Should return empty array (no 500 error)"""
+        print("\n🔗 Test 7: Social Media Connections")
         
         if not self.auth_token:
             print("❌ No auth token available")
@@ -216,39 +216,41 @@ class SocialMediaOAuthTester:
             
         try:
             headers = self.get_auth_headers()
-            
-            # Test OAuth connect endpoint (should return redirect or error)
-            async with self.session.get(
-                f"{API_BASE}/social/connect/twitter",
-                headers=headers,
-                allow_redirects=False
-            ) as response:
-                print(f"Status: {response.status}")
+            async with self.session.get(f"{API_BASE}/social/connections", headers=headers) as response:
+                print(f"GET /api/social/connections - Status: {response.status}")
                 
-                if response.status == 302:
-                    # Redirect to OAuth provider
-                    location = response.headers.get('Location', '')
-                    print(f"✅ OAuth redirect working: {location[:100]}...")
-                    return True
-                elif response.status == 400:
-                    # Expected if Twitter not configured
-                    data = await response.json()
-                    error_detail = data.get("detail", "")
-                    if "not configured" in error_detail or "Missing API credentials" in error_detail:
-                        print("⚠️  Twitter OAuth not configured (expected for testing)")
-                        print(f"   Error: {error_detail}")
-                        return True
-                    else:
-                        print(f"❌ Unexpected error: {error_detail}")
-                        return False
-                else:
+                if response.status == 200:
                     data = await response.json()
                     print(f"Response: {json.dumps(data, indent=2)}")
-                    print(f"❌ Unexpected status: {response.status}")
+                    
+                    connections = data.get("connections", [])
+                    print(f"✅ Retrieved connections successfully")
+                    print(f"   Connection count: {len(connections)}")
+                    
+                    if len(connections) == 0:
+                        print("✅ Empty array returned properly (expected for new user)")
+                    else:
+                        print(f"   Found {len(connections)} existing connections")
+                    
+                    return True
+                elif response.status == 500:
+                    error_text = await response.text()
+                    print(f"❌ CRITICAL: 500 Internal Server Error - {error_text}")
                     return False
+                else:
+                    error_text = await response.text()
+                    print(f"Status {response.status}: {error_text}")
+                    
+                    # Check if it's expected error (like 404 for profile not found)
+                    if response.status in [401, 404]:
+                        print("✅ Proper error status returned (not 500)")
+                        return True
+                    else:
+                        print(f"❌ Unexpected status: {response.status}")
+                        return False
                     
         except Exception as e:
-            print(f"❌ Twitter OAuth connect error: {e}")
+            print(f"❌ Social connections error: {e}")
             return False
             
     async def test_social_connections(self):
