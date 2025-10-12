@@ -67,6 +67,7 @@ from uln_blockchain_endpoints import router as blockchain_router
 # Import Creator Profile System endpoints
 from profile_endpoints import router as profile_router
 from social_oauth_service import router as oauth_router
+from social_integration_endpoints import router as social_integration_router
 
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
