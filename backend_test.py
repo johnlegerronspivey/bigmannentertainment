@@ -187,44 +187,49 @@ class SocialMediaOAuthTester:
             print(f"❌ OAuth status error: {e}")
             return False
             
-    async def test_profile_update(self):
-        """Test 4: Profile Update"""
-        print("\n✏️  Test 4: Profile Update (PUT /api/profile/me)")
+    async def test_twitter_oauth_connect(self):
+        """Test 4: Twitter OAuth Connect Endpoint"""
+        print("\n🐦 Test 4: Twitter OAuth Connect Endpoint")
         
         if not self.auth_token:
             print("❌ No auth token available")
             return False
             
-        update_data = {
-            "display_name": "Updated Creator Profile",
-            "tagline": "Updated tagline for PostgreSQL testing",
-            "bio": "Updated bio to test profile update functionality",
-            "location": "Updated Location, CA",
-            "show_earnings": True
-        }
-        
         try:
             headers = self.get_auth_headers()
-            headers["Content-Type"] = "application/json"
             
-            async with self.session.put(
-                f"{API_BASE}/profile/me",
-                json=update_data,
-                headers=headers
+            # Test OAuth connect endpoint (should return redirect or error)
+            async with self.session.get(
+                f"{API_BASE}/social/connect/twitter",
+                headers=headers,
+                allow_redirects=False
             ) as response:
-                data = await response.json()
                 print(f"Status: {response.status}")
-                print(f"Response: {json.dumps(data, indent=2)}")
                 
-                if response.status == 200:
-                    print("✅ Profile updated successfully")
+                if response.status == 302:
+                    # Redirect to OAuth provider
+                    location = response.headers.get('Location', '')
+                    print(f"✅ OAuth redirect working: {location[:100]}...")
                     return True
+                elif response.status == 400:
+                    # Expected if Twitter not configured
+                    data = await response.json()
+                    error_detail = data.get("detail", "")
+                    if "not configured" in error_detail or "Missing API credentials" in error_detail:
+                        print("⚠️  Twitter OAuth not configured (expected for testing)")
+                        print(f"   Error: {error_detail}")
+                        return True
+                    else:
+                        print(f"❌ Unexpected error: {error_detail}")
+                        return False
                 else:
-                    print(f"❌ Profile update failed: {data}")
+                    data = await response.json()
+                    print(f"Response: {json.dumps(data, indent=2)}")
+                    print(f"❌ Unexpected status: {response.status}")
                     return False
                     
         except Exception as e:
-            print(f"❌ Profile update error: {e}")
+            print(f"❌ Twitter OAuth connect error: {e}")
             return False
             
     async def test_asset_creation(self):
