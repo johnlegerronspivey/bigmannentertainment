@@ -34,7 +34,7 @@ class OAuthToken(Base):
     last_used = Column(DateTime(timezone=True))
     
     # Relationships
-    user = relationship("UserProfile", back_populates="oauth_tokens")
+    user = relationship("UserProfile", back_populates="oauth_tokens", lazy="joined")
 
 # Social Media Connection
 class SocialConnection(Base):
