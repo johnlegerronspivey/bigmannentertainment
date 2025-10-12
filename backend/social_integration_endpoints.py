@@ -39,15 +39,35 @@ def get_user_id(current_user) -> str:
     """Extract user ID from current_user"""
     return current_user.get('id') if isinstance(current_user, dict) else current_user.id
 
-async def get_user_profile_id(mongo_user_id: str) -> str:
-    """Get PostgreSQL profile ID from MongoDB user ID"""
+async def get_user_profile_id(mongo_user_id: str, auto_create: bool = True) -> str:
+    """
+    Get PostgreSQL profile ID from MongoDB user ID
+    If auto_create=True, creates a minimal profile if not exists
+    """
     async with get_async_session() as session:
         result = await session.execute(
             select(UserProfile).where(UserProfile.mongo_user_id == mongo_user_id)
         )
         profile = result.scalar_one_or_none()
+        
+        if not profile and auto_create:
+            # Auto-create a minimal profile for social media use
+            from datetime import datetime, timezone
+            profile = UserProfile(
+                mongo_user_id=mongo_user_id,
+                name="User",  # Will be updated later
+                business_name="Social Media User",
+                profile_type="creator",
+                created_at=datetime.now(timezone.utc)
+            )
+            session.add(profile)
+            await session.commit()
+            await session.refresh(profile)
+            print(f"✅ Auto-created profile for user {mongo_user_id}")
+        
         if not profile:
-            raise HTTPException(status_code=404, detail="Profile not found")
+            raise HTTPException(status_code=404, detail="Profile not found. Please create your profile first.")
+        
         return profile.id
 
 async def get_provider_instance(provider: str, user_id: str):
