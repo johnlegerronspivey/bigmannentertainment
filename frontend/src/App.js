@@ -40,7 +40,7 @@ import { SupportSystemDashboard } from './SupportSystemComponents';
 import CreatorProfilePage from './CreatorProfile';
 import ProfileSettings from './ProfileSettings';
 import DAOGovernance from './DAOGovernance';
-import SocialMediaDashboard from './SocialMediaDashboard';
+import SocialMediaDashboard from './SocialMediaDashboardEnhanced';
 import ProposalDetail from './ProposalDetail';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
