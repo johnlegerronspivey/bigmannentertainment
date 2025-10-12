@@ -15,6 +15,7 @@ def generate_uuid():
 # OAuth Token Storage (Encrypted)
 class OAuthToken(Base):
     __tablename__ = "oauth_tokens"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, ForeignKey("user_profiles.id"), nullable=False, index=True)
