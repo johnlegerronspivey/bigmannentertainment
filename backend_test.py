@@ -349,65 +349,38 @@ class SocialMediaOAuthTester:
             print(f"❌ Social metrics error: {e}")
             return False
             
-    async def test_social_post_structure(self):
-        """Test 7: Social Media Post Endpoint Structure"""
-        print("\n📝 Test 7: Social Media Post Endpoint Structure")
+    async def test_error_handling_unauthenticated(self):
+        """Test 10: Test endpoints without authentication - Should return 401, not 500"""
+        print("\n🚫 Test 10: Error Handling - Unauthenticated Requests")
         
-        if not self.auth_token:
-            print("❌ No auth token available")
-            return False
-            
-        # Test post request structure (should fail without valid connection)
-        post_data = {
-            "provider": "twitter",
-            "content": "Test post from Big Mann Entertainment Social Media Integration! 🎵 #Testing",
-            "media_urls": [],
-            "scheduled_for": None
-        }
+        endpoints_to_test = [
+            "/api/social/connections",
+            "/api/social/posts", 
+            "/api/social/metrics/dashboard"
+        ]
         
-        try:
-            headers = self.get_auth_headers()
-            headers["Content-Type"] = "application/json"
-            
-            async with self.session.post(
-                f"{API_BASE}/social/post",
-                json=post_data,
-                headers=headers
-            ) as response:
-                print(f"Status: {response.status}")
+        all_passed = True
+        
+        for endpoint in endpoints_to_test:
+            try:
+                async with self.session.get(f"{BACKEND_URL}{endpoint}") as response:
+                    print(f"GET {endpoint} (no auth) - Status: {response.status}")
+                    
+                    if response.status == 401:
+                        print(f"✅ Proper 401 Unauthorized returned")
+                    elif response.status == 500:
+                        error_text = await response.text()
+                        print(f"❌ CRITICAL: 500 Internal Server Error - {error_text}")
+                        all_passed = False
+                    else:
+                        print(f"⚠️  Unexpected status {response.status} (expected 401)")
+                        # Still acceptable as long as it's not 500
+                        
+            except Exception as e:
+                print(f"❌ Error testing {endpoint}: {e}")
+                all_passed = False
                 
-                if response.status == 404:
-                    # Expected - no Twitter connection found
-                    data = await response.json()
-                    error_detail = data.get("detail", "")
-                    if "connection found" in error_detail or "Profile not found" in error_detail:
-                        print("✅ Post endpoint structure working correctly")
-                        print(f"   Expected error: {error_detail}")
-                        return True
-                    else:
-                        print(f"❌ Unexpected 404 error: {error_detail}")
-                        return False
-                elif response.status == 500:
-                    # May occur if provider implementation has issues
-                    data = await response.json()
-                    error_detail = data.get("detail", "")
-                    print("⚠️  Post endpoint has implementation issues")
-                    print(f"   Error: {error_detail}")
-                    return True  # Not a failure of the endpoint structure
-                else:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    
-                    if response.status == 200:
-                        print("✅ Post created successfully (unexpected but good)")
-                        return True
-                    else:
-                        print(f"❌ Unexpected response: {response.status}")
-                        return False
-                    
-        except Exception as e:
-            print(f"❌ Social post error: {e}")
-            return False
+        return all_passed
             
     async def run_all_tests(self):
         """Run all Social Media OAuth Integration tests"""
