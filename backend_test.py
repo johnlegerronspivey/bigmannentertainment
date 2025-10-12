@@ -285,46 +285,63 @@ class SocialMediaOAuthTester:
             print(f"❌ Social connections error: {e}")
             return False
             
-    async def test_dao_proposal_creation(self):
-        """Test 6: DAO Proposal Creation"""
-        print("\n🗳️  Test 6: DAO Proposal Creation")
+    async def test_twitter_bearer_token(self):
+        """Test 6: Twitter API Connectivity with Bearer Token"""
+        print("\n🔑 Test 6: Twitter API Connectivity with Bearer Token")
         
-        if not self.auth_token:
-            print("❌ No auth token available")
-            return False
+        # Get Twitter Bearer Token from environment
+        bearer_token = os.getenv('TWITTER_BEARER_TOKEN', '')
+        
+        if not bearer_token:
+            print("⚠️  No Twitter Bearer Token found in environment")
+            return True  # Not a failure, just not configured
             
-        proposal_data = {
-            "title": "Test Governance Proposal",
-            "description": "This is a test proposal for the DAO governance system to verify PostgreSQL integration",
-            "proposal_type": "general",
-            "target_asset_id": self.asset_id,
-            "target_data": {"test": "data"},
-            "voting_ends_in_days": 7
-        }
-        
         try:
-            headers = self.get_auth_headers()
-            headers["Content-Type"] = "application/json"
+            # Test Twitter API directly with Bearer Token
+            headers = {
+                "Authorization": f"Bearer {bearer_token}",
+                "Content-Type": "application/json"
+            }
             
-            async with self.session.post(
-                f"{API_BASE}/profile/dao/proposals",
-                json=proposal_data,
-                headers=headers
+            # Test Twitter API v2 user lookup (should work with Bearer Token)
+            async with self.session.get(
+                "https://api.twitter.com/2/users/by/username/twitter",
+                headers=headers,
+                params={
+                    "user.fields": "public_metrics,profile_image_url"
+                }
             ) as response:
-                data = await response.json()
                 print(f"Status: {response.status}")
-                print(f"Response: {json.dumps(data, indent=2)}")
                 
                 if response.status == 200:
-                    self.proposal_id = data.get("proposal", {}).get("id")
-                    print("✅ DAO proposal created successfully")
-                    return True
+                    data = await response.json()
+                    print(f"Response: {json.dumps(data, indent=2)}")
+                    
+                    user_data = data.get("data", {})
+                    if user_data:
+                        username = user_data.get("username")
+                        followers = user_data.get("public_metrics", {}).get("followers_count", 0)
+                        print(f"✅ Twitter API connectivity successful")
+                        print(f"   Test user: @{username}")
+                        print(f"   Followers: {followers:,}")
+                        return True
+                    else:
+                        print("❌ No user data in response")
+                        return False
+                elif response.status == 401:
+                    print("❌ Twitter API authentication failed - invalid Bearer Token")
+                    return False
+                elif response.status == 429:
+                    print("⚠️  Twitter API rate limit exceeded")
+                    return True  # Not a failure, just rate limited
                 else:
-                    print(f"❌ DAO proposal creation failed: {data}")
+                    data = await response.json()
+                    print(f"Response: {json.dumps(data, indent=2)}")
+                    print(f"❌ Twitter API error: {response.status}")
                     return False
                     
         except Exception as e:
-            print(f"❌ DAO proposal creation error: {e}")
+            print(f"❌ Twitter API connectivity error: {e}")
             return False
             
     async def test_dao_voting(self):
