@@ -7306,6 +7306,7 @@ app.include_router(content_ingestion_router)
 # Include Creator Profile System routers
 app.include_router(profile_router)
 app.include_router(oauth_router)
+app.include_router(social_integration_router)
 
 # Include comprehensive platform router
 app.include_router(comprehensive_platform_router)
