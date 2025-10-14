@@ -130,6 +130,13 @@ IPN_NUMBER = os.environ.get('IPN_NUMBER', '10959387')  # IPI Name Number
 BUSINESS_LEGAL_NAME = os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment')
 PRINCIPAL_NAME = os.environ.get('PRINCIPAL_NAME', 'John LeGerron Spivey')
 
+# Import performance optimization modules
+from cache_service import cache
+from rate_limiter import rate_limit_middleware
+from performance_monitor import perf_monitor
+from db_optimizer import DatabaseOptimizer
+from enhanced_validation import Validator, EnhancedValidator
+
 # Create the main app without a prefix
 app = FastAPI(title="Big Mann Entertainment API", version="1.0.0")
 
