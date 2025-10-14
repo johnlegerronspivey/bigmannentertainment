@@ -7475,6 +7475,51 @@ async def api_health():
             "database": "disconnected"
         }
 
+@api_router.get("/performance/stats")
+async def get_performance_stats():
+    """Get comprehensive performance statistics"""
+    try:
+        return {
+            "status": "success",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "performance": perf_monitor.get_all_stats(),
+            "cache": cache.get_stats()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/performance/cache")
+async def get_cache_stats():
+    """Get cache statistics"""
+    return {
+        "status": "success",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "cache_stats": cache.get_stats()
+    }
+
+@api_router.post("/performance/cache/clear")
+async def clear_cache():
+    """Clear all cached data"""
+    cache.clear()
+    return {
+        "status": "success",
+        "message": "Cache cleared successfully",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/database/stats")
+async def get_database_stats():
+    """Get database collection statistics"""
+    try:
+        stats = await DatabaseOptimizer.get_collection_stats(db)
+        return {
+            "status": "success",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "collections": stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/auth/health")
 async def auth_health():
     """Authentication service health check"""
