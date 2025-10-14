@@ -155,19 +155,27 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${API}/auth/login`, { email, password });
-      const { access_token, refresh_token, user: userData } = response.data;
+      const response = await api.post('/auth/login', { email, password });
+      const { access_token, refresh_token, user: userData } = response;
       
       localStorage.setItem('token', access_token);
       localStorage.setItem('refreshToken', refresh_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(userData);
       
+      toast.success('Welcome back!', {
+        description: 'You have successfully logged in.'
+      });
+      
       return { success: true };
     } catch (error) {
+      const errorMessage = error.message || 'Login failed. Please check your credentials.';
+      toast.error('Login Failed', {
+        description: errorMessage
+      });
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Login failed' 
+        error: errorMessage
       };
     }
   };
