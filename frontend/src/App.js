@@ -3718,6 +3718,7 @@ function App() {
             </div>
           </footer>
         </div>
+        <Toaster position="top-right" richColors closeButton />
       </AuthProvider>
     </BrowserRouter>
   );
