@@ -140,10 +140,35 @@ from enhanced_validation import Validator, EnhancedValidator
 # Create the main app without a prefix
 app = FastAPI(title="Big Mann Entertainment API", version="1.0.0")
 
+# Add performance monitoring middleware
+@app.middleware("http")
+async def performance_tracking_middleware(request: Request, call_next):
+    """Track performance metrics for all requests"""
+    import time
+    start_time = time.time()
+    
+    response = await call_next(request)
+    
+    duration = time.time() - start_time
+    endpoint = f"{request.method} {request.url.path}"
+    perf_monitor.record_request(endpoint, duration, response.status_code, request.method)
+    
+    # Add performance header
+    response.headers['X-Response-Time'] = f"{duration:.3f}s"
+    
+    return response
+
+# Add rate limiting middleware
+@app.middleware("http")
+async def apply_rate_limiting(request: Request, call_next):
+    """Apply rate limiting to all requests"""
+    return await rate_limit_middleware(request, call_next)
+
 # PostgreSQL Database Lifecycle Management
 @app.on_event("startup")
 async def startup_event():
-    """Initialize PostgreSQL database on startup"""
+    """Initialize PostgreSQL database and optimizations on startup"""
+    # Initialize PostgreSQL
     postgres_url = os.getenv("POSTGRES_URL")
     if postgres_url:
         try:
@@ -158,6 +183,14 @@ async def startup_event():
         print("ℹ️  PostgreSQL not configured (POSTGRES_URL not set)")
         print("   Creator Profile features will be unavailable")
         print("   See /app/CREATOR_PROFILE_SETUP.md for setup instructions")
+    
+    # Initialize MongoDB indexes for optimal performance
+    print("🔧 Creating database indexes for optimal performance...")
+    await DatabaseOptimizer.ensure_indexes(db)
+    
+    # Initialize cache service
+    print("💾 Cache service initialized")
+    print(f"⚡ Performance monitoring active")
 
 @app.on_event("shutdown")
 async def shutdown_event():
