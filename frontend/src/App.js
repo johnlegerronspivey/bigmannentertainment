@@ -1054,33 +1054,59 @@ const Login = () => {
         </div>
 
         <div className="mt-8 space-y-6">
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handlePasswordLogin} className="space-y-4">
             <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address
+              </label>
               <input
+                id="email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 required
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  errors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Enter your email"
+                aria-label="Email address"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
               />
+              {errors.email && (
+                <p id="email-error" className="mt-1 text-sm text-red-600" role="alert">
+                  {errors.email}
+                </p>
+              )}
             </div>
 
             <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
               <input
+                id="password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
                 required
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  errors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Enter your password"
+                aria-label="Password"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "password-error" : undefined}
               />
+              {errors.password && (
+                <p id="password-error" className="mt-1 text-sm text-red-600" role="alert">
+                  {errors.password}
+                </p>
+              )}
             </div>
 
             <button
