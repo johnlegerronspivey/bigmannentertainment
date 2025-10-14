@@ -270,7 +270,7 @@ const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <PageLoadingOverlay message="Verifying your session..." />;
   }
   
   if (!user) {
@@ -285,7 +285,7 @@ const AdminRoute = ({ children }) => {
   const { user, isAdmin, loading } = useAuth();
   
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <PageLoadingOverlay message="Checking permissions..." />;
   }
   
   if (!user) {
