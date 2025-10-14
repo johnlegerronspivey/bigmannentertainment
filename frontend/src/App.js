@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation,
 import axios from "axios";
 import { api } from "./utils/apiClient";
 import { PageLoadingOverlay } from "./components/LoadingSkeleton";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import { DDEXERNCreator, DDEXCWRCreator, DDEXMessageList, DDEXIdentifierGenerator, DDEXAdminDashboard } from "./DDEXComponents";
 import { MusicReportsDashboard } from "./MusicReportsComponents";
 import { EnhancedUserDashboard, OnboardingTracker, SuccessCelebration } from "./WorkflowEnhancementComponents";
