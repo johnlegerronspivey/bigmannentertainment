@@ -182,19 +182,27 @@ const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post(`${API}/auth/register`, userData);
-      const { access_token, refresh_token, user: newUser } = response.data;
+      const response = await api.post('/auth/register', userData);
+      const { access_token, refresh_token, user: newUser } = response;
       
       localStorage.setItem('token', access_token);
       localStorage.setItem('refreshToken', refresh_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(newUser);
       
+      toast.success('Account Created!', {
+        description: 'Welcome to Big Mann Entertainment. Your account has been successfully created.'
+      });
+      
       return { success: true };
     } catch (error) {
+      const errorMessage = error.message || 'Registration failed. Please try again.';
+      toast.error('Registration Failed', {
+        description: errorMessage
+      });
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Registration failed' 
+        error: errorMessage
       };
     }
   };
