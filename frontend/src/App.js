@@ -984,22 +984,55 @@ const Login = () => {
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const validateField = (name, value) => {
+    // Import validation functions dynamically
+    if (name === 'email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!value) return 'Email is required';
+      if (!emailRegex.test(value)) return 'Please enter a valid email address';
+    }
+    if (name === 'password') {
+      if (!value) return 'Password is required';
+      if (value.length < 6) return 'Password must be at least 6 characters';
+    }
+    return '';
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Real-time validation
+    const error = validateField(name, value);
+    setErrors({ ...errors, [name]: error });
+  };
+
   const handlePasswordLogin = async (e) => {
     e.preventDefault();
+    
+    // Validate all fields
+    const newErrors = {};
+    newErrors.email = validateField('email', formData.email);
+    newErrors.password = validateField('password', formData.password);
+    
+    setErrors(newErrors);
+    
+    // Check if there are any errors
+    if (Object.values(newErrors).some(error => error)) {
+      return;
+    }
+
     setLoading(true);
-    setError('');
 
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
       navigate('/');
-    } else {
-      setError(result.error);
     }
     
     setLoading(false);
