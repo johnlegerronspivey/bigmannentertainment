@@ -395,21 +395,16 @@ class BMEComprehensiveBackendTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check for compensation breakdown
-                artist_share = data.get("artist_share_percentage")
-                songwriter_share = data.get("songwriter_share_percentage") 
-                publisher_share = data.get("publisher_share_percentage")
-                platform_commission = data.get("platform_commission_percentage")
+                # Check for compensation breakdown (nested structure)
+                compensation_dashboard = data.get("compensation_dashboard", {})
+                breakdown = compensation_dashboard.get("compensation_breakdown", {})
                 
-                # Verify percentages match .env config
-                expected_percentages = {
-                    "artist_share": 25.0,
-                    "songwriter_share": 15.0,
-                    "publisher_share": 50.0,
-                    "platform_commission": 10.0
-                }
+                artist_share = breakdown.get("artist_percentage", 0)
+                songwriter_share = breakdown.get("songwriter_percentage", 0) 
+                publisher_share = breakdown.get("publisher_percentage", 0)
+                platform_commission = breakdown.get("big_mann_commission", 0)
                 
-                total_percentage = (artist_share or 0) + (songwriter_share or 0) + (publisher_share or 0) + (platform_commission or 0)
+                total_percentage = artist_share + songwriter_share + publisher_share + platform_commission
                 
                 if abs(total_percentage - 100.0) < 0.1:  # Allow small floating point differences
                     self.log_test("Compensation Dashboard", "PASS", 
