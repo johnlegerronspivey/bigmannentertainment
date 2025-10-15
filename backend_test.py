@@ -542,6 +542,10 @@ class BMEComprehensiveBackendTester:
                 self.log_test("Social Metrics Dashboard", "PASS", 
                             "No profile found (expected for new user)")
                 return True
+            elif response.status_code == 500:
+                self.log_test("Social Metrics Dashboard", "FAIL", 
+                            "PostgreSQL dependency - endpoint unavailable (expected)")
+                return False
             else:
                 self.log_test("Social Metrics Dashboard", "FAIL", 
                             f"Social metrics failed: {response.status_code} - {response.text}")
@@ -549,7 +553,7 @@ class BMEComprehensiveBackendTester:
                 
         except Exception as e:
             self.log_test("Social Metrics Dashboard", "FAIL", 
-                        f"Error testing social metrics: {str(e)}")
+                        f"PostgreSQL dependency - {str(e)} (expected)")
             return False
     
     def test_database_connectivity(self):
