@@ -324,14 +324,22 @@ class BMEComprehensiveBackendTester:
                 self.log_test("Profile Me Endpoint", "PASS", 
                             f"Profile endpoint working, hasProfile: {has_profile}")
                 return True
+            elif response.status_code == 500 and "PostgreSQL" in str(response.text):
+                self.log_test("Profile Me Endpoint", "FAIL", 
+                            "PostgreSQL dependency - endpoint unavailable (expected)")
+                return False
             else:
                 self.log_test("Profile Me Endpoint", "FAIL", 
                             f"Profile me failed: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_test("Profile Me Endpoint", "FAIL", 
-                        f"Error testing profile me: {str(e)}")
+            if "Connection reset by peer" in str(e):
+                self.log_test("Profile Me Endpoint", "FAIL", 
+                            "PostgreSQL dependency - connection error (expected)")
+            else:
+                self.log_test("Profile Me Endpoint", "FAIL", 
+                            f"Error testing profile me: {str(e)}")
             return False
     
     def test_asset_creation(self):
