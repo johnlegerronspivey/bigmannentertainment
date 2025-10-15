@@ -608,31 +608,83 @@ class BMEComprehensiveBackendTester:
             return False
     
     def run_all_tests(self):
-        """Run all comprehensive license generation tests"""
-        print("🚀 Starting Comprehensive Platform License Generation Testing")
-        print("=" * 70)
+        """Run all BME comprehensive backend tests"""
+        print("🚀 Starting BME Application Comprehensive Backend Testing")
+        print("=" * 80)
         
         # Test 1: Authentication
         if not self.authenticate():
             print("❌ Authentication failed - cannot proceed with other tests")
             return False
         
-        # Test 2: Distribution platforms availability
-        self.test_distribution_platforms_availability()
+        print("\n🔍 GENERAL HEALTH CHECKS")
+        print("-" * 40)
+        # Test 2: Main health endpoint
+        self.test_main_health_endpoint()
         
-        # Test 3: Main license generation endpoint
-        self.test_comprehensive_license_generation()
+        # Test 3: Auth login (separate test)
+        self.test_auth_login()
         
-        # Test 4: Error handling
-        self.test_error_handling()
+        # Test 4: Database connectivity
+        self.test_database_connectivity()
         
-        # Test 5: Dashboard access
-        self.test_licensing_dashboard()
+        print("\n🏷️ ULN SYSTEM TESTING")
+        print("-" * 40)
+        # Test 5: ULN health endpoint
+        self.test_uln_health_endpoint()
+        
+        # Test 6: ULN label hub
+        self.test_uln_label_hub()
+        
+        # Test 7: ULN edit label API
+        self.test_uln_edit_label_api()
+        
+        # Test 8: ULN advanced search
+        self.test_uln_advanced_search()
+        
+        # Test 9: ULN bulk edit
+        self.test_uln_bulk_edit()
+        
+        # Test 10: ULN export
+        self.test_uln_export()
+        
+        print("\n👤 CREATOR PROFILE SYSTEM TESTING")
+        print("-" * 40)
+        # Test 11: Profile health
+        self.test_profile_health_endpoint()
+        
+        # Test 12: Profile me endpoint
+        self.test_profile_me_endpoint()
+        
+        # Test 13: Asset creation
+        self.test_asset_creation()
+        
+        # Test 14: DAO proposals
+        self.test_dao_proposals()
+        
+        print("\n💰 LICENSING & COMPENSATION TESTING")
+        print("-" * 40)
+        # Test 15: Compensation dashboard
+        self.test_compensation_dashboard()
+        
+        # Test 16: Comprehensive licensing
+        self.test_comprehensive_licensing()
+        
+        print("\n📱 SOCIAL MEDIA INTEGRATION TESTING")
+        print("-" * 40)
+        # Test 17: Social health
+        self.test_social_health_endpoint()
+        
+        # Test 18: Social connections
+        self.test_social_connections()
+        
+        # Test 19: Social metrics dashboard
+        self.test_social_metrics_dashboard()
         
         # Summary
-        print("\n" + "=" * 70)
-        print("📊 TEST SUMMARY")
-        print("=" * 70)
+        print("\n" + "=" * 80)
+        print("📊 COMPREHENSIVE TEST SUMMARY")
+        print("=" * 80)
         
         passed_tests = len([t for t in self.test_results if t["status"] == "PASS"])
         total_tests = len(self.test_results)
@@ -648,6 +700,13 @@ class BMEComprehensiveBackendTester:
             print("\n❌ FAILED TESTS:")
             for test in failed_tests:
                 print(f"  - {test['test']}: {test['details']}")
+        
+        # Show passed tests summary
+        passed_test_names = [t["test"] for t in self.test_results if t["status"] == "PASS"]
+        if passed_test_names:
+            print("\n✅ PASSED TESTS:")
+            for test_name in passed_test_names:
+                print(f"  - {test_name}")
         
         return passed_tests == total_tests
 
