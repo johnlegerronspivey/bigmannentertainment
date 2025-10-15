@@ -1,32 +1,18 @@
 #!/usr/bin/env python3
 """
-Updated Revenue Breakdown Configuration Testing
-Testing the updated revenue breakdown percentages with new stakeholder allocations
+Comprehensive Platform License Generation Testing
+Testing the comprehensive platform license generation functionality for all 115+ platforms
 """
 
-import asyncio
-import aiohttp
+import requests
 import json
-import os
-from datetime import datetime, timezone
+import sys
+from datetime import datetime
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://social-profile-sync.preview.emergentagent.com')
-API_BASE = f"{BACKEND_URL}/api"
-
-# Test credentials from review request
-TEST_CREDENTIALS = {
-    "email": "uln.admin@bigmann.com",
-    "password": "Admin123!"
-}
-
-# Expected new percentages from review request
-EXPECTED_PERCENTAGES = {
-    'artist_percentage': 25.0,
-    'songwriter_percentage': 15.0,
-    'publisher_percentage': 50.0,
-    'big_mann_commission': 10.0
-}
+BACKEND_URL = "https://social-profile-sync.preview.emergentagent.com/api"
+ADMIN_EMAIL = "uln.admin@bigmann.com"
+ADMIN_PASSWORD = "Admin123!"
 
 class RevenueBreakdownTester:
     def __init__(self):
