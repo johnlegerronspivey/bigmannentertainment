@@ -425,25 +425,11 @@ class LabelMigrationService:
             if not result.get("success"):
                 raise Exception(result.get("error", "Registration failed"))
             
-            if result.inserted_id:
-                print(f"✅ Successfully migrated: {label_name} -> {uln_label.global_id.id}")
-                self.migration_stats["successful_migrations"] += 1
-                
-                # Create audit trail entry
-                await self.uln_service._create_audit_entry(
-                    action_type="label_migrated",
-                    actor_id="migration_system",
-                    actor_type="system",
-                    resource_type="label",
-                    resource_id=uln_label.global_id.id,
-                    action_description=f"Migrated existing label {label_name} to ULN system",
-                    changes_made={
-                        "source": label_data.get("source", "unknown"),
-                        "migration_timestamp": datetime.utcnow().isoformat()
-                    }
-                )
-            else:
-                raise Exception("Failed to insert into database")
+            # Registration successful - the register_label method already creates audit trail
+            registered_label = result.get("label", {})
+            global_id = registered_label.get("global_id", {}).get("id", "Unknown")
+            print(f"✅ Successfully migrated: {label_name} -> {global_id}")
+            self.migration_stats["successful_migrations"] += 1
             
         except Exception as e:
             error_msg = f"Failed to migrate {label_data.get('name', 'Unknown')}: {str(e)}"
