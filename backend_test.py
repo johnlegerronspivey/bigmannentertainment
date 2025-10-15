@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Platform License Generation Testing
-Testing the comprehensive platform license generation functionality for all 115+ platforms
+BME Application Comprehensive Backend Testing
+Testing all backend systems including ULN, Creator Profile, Licensing, and Social Media Integration
 """
 
 import requests
@@ -9,8 +9,8 @@ import json
 import sys
 from datetime import datetime
 
-# Configuration
-BACKEND_URL = "https://social-profile-sync.preview.emergentagent.com/api"
+# Configuration - Use the correct backend URL from frontend/.env
+BACKEND_URL = "https://creator-profile-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "uln.admin@bigmann.com"
 ADMIN_PASSWORD = "Admin123!"
 
