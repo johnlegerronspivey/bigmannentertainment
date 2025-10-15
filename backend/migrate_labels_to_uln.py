@@ -578,7 +578,7 @@ class LabelMigrationService:
             # Sample a few labels to verify structure
             sample_labels = await db.uln_labels.find({}).limit(3).to_list(length=None)
             
-            print(f"\n📋 Sample Migrated Labels:")
+            print("\n📋 Sample Migrated Labels:")
             for label in sample_labels:
                 global_id = label.get("global_id", {}).get("id", "Unknown")
                 name = label.get("metadata_profile", {}).get("name", "Unknown")
