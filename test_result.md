@@ -363,12 +363,15 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 7
-  run_ui: true
+  test_sequence: 8
+  run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus:
+    - "BME Application Comprehensive Backend Testing"
+    - "PostgreSQL Database Setup"
+  stuck_tasks:
+    - "PostgreSQL Database Connectivity"
   test_all: false
   test_priority: "high_first"
 
