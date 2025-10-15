@@ -389,14 +389,22 @@ class BMEComprehensiveBackendTester:
                 self.log_test("DAO Proposals", "PASS", 
                             f"Retrieved {total} DAO proposals")
                 return True
+            elif response.status_code == 500:
+                self.log_test("DAO Proposals", "FAIL", 
+                            "PostgreSQL dependency - endpoint unavailable (expected)")
+                return False
             else:
                 self.log_test("DAO Proposals", "FAIL", 
                             f"DAO proposals failed: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_test("DAO Proposals", "FAIL", 
-                        f"Error testing DAO proposals: {str(e)}")
+            if "Connection reset by peer" in str(e):
+                self.log_test("DAO Proposals", "FAIL", 
+                            "PostgreSQL dependency - connection error (expected)")
+            else:
+                self.log_test("DAO Proposals", "FAIL", 
+                            f"Error testing DAO proposals: {str(e)}")
             return False
     
     def test_compensation_dashboard(self):
