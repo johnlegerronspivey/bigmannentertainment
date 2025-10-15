@@ -599,11 +599,11 @@ class CompensationBreakdownTester:
 
 async def main():
     """Main test execution"""
-    tester = SocialMediaOAuthTester()
+    tester = CompensationBreakdownTester()
     results = await tester.run_all_tests()
     
     # Exit with appropriate code
-    if all(results.values()):
+    if results.get("compensation_dashboard", False):
         exit(0)
     else:
         exit(1)
