@@ -63,7 +63,7 @@ class ComprehensiveLicenseGenerationTester:
             
             if response.status_code == 200:
                 data = response.json()
-                platform_count = data.get("total_platforms", 0)
+                platform_count = data.get("total_count", data.get("total_platforms", 0))
                 
                 if platform_count >= 115:
                     self.log_test("Distribution Platforms Availability", "PASS", 
