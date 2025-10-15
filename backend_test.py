@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Compensation Breakdown Calculation Testing
-Testing the updated compensation breakdown calculation with configurable business rules
+Updated Revenue Breakdown Configuration Testing
+Testing the updated revenue breakdown percentages with new stakeholder allocations
 """
 
 import asyncio
@@ -18,6 +18,14 @@ API_BASE = f"{BACKEND_URL}/api"
 TEST_CREDENTIALS = {
     "email": "uln.admin@bigmann.com",
     "password": "Admin123!"
+}
+
+# Expected new percentages from review request
+EXPECTED_PERCENTAGES = {
+    'artist_percentage': 25.0,
+    'songwriter_percentage': 15.0,
+    'publisher_percentage': 50.0,
+    'big_mann_commission': 10.0
 }
 
 class CompensationBreakdownTester:
