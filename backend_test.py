@@ -20,7 +20,7 @@ TEST_CREDENTIALS = {
     "password": "Admin123!"
 }
 
-class SocialMediaOAuthTester:
+class CompensationBreakdownTester:
     def __init__(self):
         self.session = None
         self.auth_token = None
