@@ -415,9 +415,9 @@ class CompensationBreakdownTester:
             print(f"❌ Error testing invalid provider: {e}")
             return False
             
-    async def test_database_verification(self):
-        """Test 12: Verify auto-created profiles exist in PostgreSQL"""
-        print("\n🗄️  Test 12: Database Verification - Auto-Profile Creation")
+    async def test_compensation_dashboard(self):
+        """Test: GET /api/licensing/compensation-dashboard - Verify compensation breakdown percentages"""
+        print("\n💰 Test: Compensation Dashboard - Updated Calculation")
         
         if not self.auth_token:
             print("❌ No auth token available")
@@ -425,40 +425,104 @@ class CompensationBreakdownTester:
             
         try:
             headers = self.get_auth_headers()
-            
-            # Test profile endpoint to verify auto-profile creation
-            async with self.session.get(f"{API_BASE}/profile/me", headers=headers) as response:
-                print(f"GET /api/profile/me - Status: {response.status}")
+            async with self.session.get(f"{API_BASE}/licensing/compensation-dashboard", headers=headers) as response:
+                print(f"GET /api/licensing/compensation-dashboard - Status: {response.status}")
                 
                 if response.status == 200:
                     data = await response.json()
                     print(f"Response: {json.dumps(data, indent=2)}")
                     
-                    has_profile = data.get("hasProfile", False)
-                    if has_profile:
-                        print("✅ Auto-profile creation working - profile exists")
-                    else:
-                        print("✅ Profile system working - no profile created yet (expected)")
+                    # Extract compensation breakdown
+                    compensation_breakdown = data.get("compensation_dashboard", {}).get("compensation_breakdown", {})
                     
-                    return True
-                elif response.status == 500:
-                    error_text = await response.text()
-                    print(f"❌ CRITICAL: 500 Internal Server Error - {error_text}")
-                    return False
-                else:
-                    error_text = await response.text()
-                    print(f"Status {response.status}: {error_text}")
-                    
-                    # Check if it's expected error
-                    if response.status in [401, 404]:
-                        print("✅ Proper error status returned (not 500)")
-                        return True
-                    else:
-                        print(f"❌ Unexpected status: {response.status}")
+                    if not compensation_breakdown:
+                        print("❌ No compensation_breakdown found in response")
                         return False
                     
+                    # Expected values from environment variables
+                    expected_values = {
+                        "artist_percentage": 60.0,
+                        "songwriter_percentage": 20.0,
+                        "publisher_percentage": 12.0,
+                        "big_mann_commission": 8.0
+                    }
+                    
+                    print("\n📊 Compensation Breakdown Verification:")
+                    all_correct = True
+                    total_percentage = 0.0
+                    
+                    for key, expected_value in expected_values.items():
+                        actual_value = compensation_breakdown.get(key, 0.0)
+                        total_percentage += actual_value
+                        
+                        if abs(actual_value - expected_value) < 0.01:  # Allow for floating point precision
+                            print(f"   ✅ {key}: {actual_value}% (expected: {expected_value}%)")
+                        else:
+                            print(f"   ❌ {key}: {actual_value}% (expected: {expected_value}%)")
+                            all_correct = False
+                    
+                    # Verify total equals 100%
+                    print(f"\n📈 Total Percentage: {total_percentage}%")
+                    if abs(total_percentage - 100.0) < 0.01:
+                        print("✅ Total percentages sum to 100%")
+                    else:
+                        print(f"❌ Total percentages do not sum to 100% (actual: {total_percentage}%)")
+                        all_correct = False
+                    
+                    # Verify business information fields
+                    calculation_method = compensation_breakdown.get("calculation_method")
+                    last_updated = compensation_breakdown.get("last_updated")
+                    notes = compensation_breakdown.get("notes")
+                    
+                    print(f"\n📋 Business Information:")
+                    if calculation_method:
+                        print(f"   ✅ Calculation Method: {calculation_method}")
+                    else:
+                        print("   ❌ Missing calculation_method field")
+                        all_correct = False
+                    
+                    if last_updated:
+                        print(f"   ✅ Last Updated: {last_updated}")
+                    else:
+                        print("   ❌ Missing last_updated field")
+                        all_correct = False
+                    
+                    if notes:
+                        print(f"   ✅ Notes: {notes}")
+                    else:
+                        print("   ❌ Missing notes field")
+                        all_correct = False
+                    
+                    # Verify percentages are properly rounded to 2 decimal places
+                    print(f"\n🔢 Decimal Precision Check:")
+                    precision_correct = True
+                    for key, value in expected_values.items():
+                        actual_value = compensation_breakdown.get(key, 0.0)
+                        # Check if value has at most 2 decimal places
+                        if round(actual_value, 2) == actual_value:
+                            print(f"   ✅ {key}: {actual_value}% (properly rounded)")
+                        else:
+                            print(f"   ❌ {key}: {actual_value}% (not properly rounded to 2 decimal places)")
+                            precision_correct = False
+                    
+                    if all_correct and precision_correct:
+                        print("\n🎉 Compensation breakdown calculation is working correctly!")
+                        print("✅ All percentages match expected values")
+                        print("✅ Total equals 100%")
+                        print("✅ All required fields present")
+                        print("✅ Proper decimal precision")
+                        return True
+                    else:
+                        print("\n❌ Compensation breakdown has issues")
+                        return False
+                        
+                else:
+                    error_text = await response.text()
+                    print(f"❌ Failed to get compensation dashboard: {response.status} - {error_text}")
+                    return False
+                    
         except Exception as e:
-            print(f"❌ Database verification error: {e}")
+            print(f"❌ Compensation dashboard test error: {e}")
             return False
 
     async def run_all_tests(self):
