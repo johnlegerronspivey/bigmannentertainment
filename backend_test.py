@@ -572,23 +572,40 @@ class BMEComprehensiveBackendTester:
                         f"Error testing database connectivity: {str(e)}")
             return False
     
-    def test_licensing_dashboard(self):
-        """Test the licensing dashboard endpoint"""
+    def test_auth_login(self):
+        """Test authentication login endpoint (already done in authenticate but test separately)"""
         try:
-            response = self.session.get(f"{BACKEND_URL}/comprehensive-licensing/dashboard")
+            # Test with correct credentials (should work)
+            login_data = {
+                "email": ADMIN_EMAIL,
+                "password": ADMIN_PASSWORD
+            }
+            
+            # Use a separate session to avoid interfering with main session
+            test_session = requests.Session()
+            response = test_session.post(f"{BACKEND_URL}/auth/login", json=login_data)
             
             if response.status_code == 200:
                 data = response.json()
-                if "comprehensive_licensing_dashboard" in data:
-                    self.log_test("Licensing Dashboard", "PASS", "Dashboard endpoint accessible")
+                access_token = data.get("access_token")
+                user_info = data.get("user", {})
+                
+                if access_token:
+                    self.log_test("Auth Login", "PASS", 
+                                f"Login successful for {user_info.get('email', 'unknown user')}")
+                    return True
                 else:
-                    self.log_test("Licensing Dashboard", "FAIL", "Dashboard data missing")
+                    self.log_test("Auth Login", "FAIL", "No access token in response")
+                    return False
             else:
-                self.log_test("Licensing Dashboard", "FAIL", 
-                            f"Dashboard endpoint failed: {response.status_code}")
+                self.log_test("Auth Login", "FAIL", 
+                            f"Login failed: {response.status_code} - {response.text}")
+                return False
                 
         except Exception as e:
-            self.log_test("Licensing Dashboard", "FAIL", f"Dashboard error: {str(e)}")
+            self.log_test("Auth Login", "FAIL", 
+                        f"Error testing auth login: {str(e)}")
+            return False
     
     def run_all_tests(self):
         """Run all comprehensive license generation tests"""
