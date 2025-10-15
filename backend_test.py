@@ -339,7 +339,7 @@ class BMEComprehensiveBackendTester:
         try:
             asset_data = {
                 "title": "Test Asset",
-                "type": "music",
+                "asset_type": "music",
                 "description": "Backend test asset"
             }
             
