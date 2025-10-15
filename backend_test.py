@@ -372,11 +372,11 @@ class CompensationBreakdownTester:
             # Success criteria check
             if results.get("compensation_dashboard", False):
                 print("\n🎉 SUCCESS CRITERIA MET:")
-                print("✅ Compensation breakdown shows correct percentages")
-                print("✅ Artist percentage: 60.0%")
-                print("✅ Songwriter percentage: 20.0%")
-                print("✅ Publisher percentage: 12.0%")
-                print("✅ Big Mann commission: 8.0%")
+                print("✅ Compensation breakdown shows correct UPDATED percentages")
+                print("✅ Artist percentage: 55.0% (Updated from 60.0%)")
+                print("✅ Songwriter percentage: 20.0% (Unchanged)")
+                print("✅ Publisher percentage: 15.0% (Updated from 12.0%)")
+                print("✅ Big Mann commission: 10.0% (Updated from 8.0%)")
                 print("✅ Total equals 100%")
                 print("✅ All business information fields present")
                 print("✅ Proper decimal precision (2 decimal places)")
