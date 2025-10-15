@@ -9,8 +9,8 @@ import json
 import sys
 from datetime import datetime
 
-# Configuration - Use the correct backend URL from frontend/.env
-BACKEND_URL = "https://creator-profile-hub.preview.emergentagent.com/api"
+# Configuration - Use local backend URL since external mapping is not working
+BACKEND_URL = "http://localhost:8001/api"
 ADMIN_EMAIL = "uln.admin@bigmann.com"
 ADMIN_PASSWORD = "Admin123!"
 
