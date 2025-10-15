@@ -28,7 +28,7 @@ EXPECTED_PERCENTAGES = {
     'big_mann_commission': 10.0
 }
 
-class CompensationBreakdownTester:
+class RevenueBreakdownTester:
     def __init__(self):
         self.session = None
         self.auth_token = None
