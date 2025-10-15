@@ -712,11 +712,11 @@ class BMEComprehensiveBackendTester:
 
 def main():
     """Main test execution"""
-    tester = ComprehensiveLicenseGenerationTester()
+    tester = BMEComprehensiveBackendTester()
     success = tester.run_all_tests()
     
     if success:
-        print("\n🎉 All tests passed! Comprehensive license generation is working correctly.")
+        print("\n🎉 All tests passed! BME backend systems are working correctly.")
         sys.exit(0)
     else:
         print("\n⚠️  Some tests failed. Please check the results above.")
