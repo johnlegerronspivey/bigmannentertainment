@@ -390,28 +390,66 @@ export const CompensationOverviewDashboard = () => {
         </div>
       </div>
 
-      {/* Compensation Breakdown */}
+      {/* Compensation Breakdown - Enhanced with Stakeholder Names */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Compensation Breakdown</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Artist Share</span>
-              <span className="text-green-400 font-semibold">{compensation_breakdown?.artist_percentage}%</span>
+        <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 backdrop-blur-sm rounded-xl p-6 border border-purple-400/30 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-white">💰 Revenue Distribution</h3>
+            <span className="text-xs text-purple-200 bg-purple-900/50 px-2 py-1 rounded">
+              Total: 100%
+            </span>
+          </div>
+          <div className="space-y-4">
+            {/* Artist Share */}
+            <div className="bg-black/20 rounded-lg p-3 border-l-4 border-green-400">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-white font-medium">Artist Share</span>
+                <span className="text-green-400 font-bold text-lg">{compensation_breakdown?.artist_percentage}%</span>
+              </div>
+              <p className="text-xs text-gray-300">Recording & Performance Rights</p>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Songwriter Share</span>
-              <span className="text-blue-400 font-semibold">{compensation_breakdown?.songwriter_percentage}%</span>
+            
+            {/* Songwriter Share */}
+            <div className="bg-black/20 rounded-lg p-3 border-l-4 border-blue-400">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-white font-medium">Songwriter Share</span>
+                <span className="text-blue-400 font-bold text-lg">{compensation_breakdown?.songwriter_percentage}%</span>
+              </div>
+              <p className="text-xs text-gray-300">Composition Rights</p>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Publisher Share</span>
-              <span className="text-yellow-400 font-semibold">{compensation_breakdown?.publisher_percentage}%</span>
+            
+            {/* Publisher Share - Big Mann Entertainment */}
+            <div className="bg-black/20 rounded-lg p-3 border-l-4 border-yellow-400">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-white font-medium">Publisher Share</span>
+                <span className="text-yellow-400 font-bold text-lg">{compensation_breakdown?.publisher_percentage}%</span>
+              </div>
+              <p className="text-xs text-gray-300">Big Mann Entertainment - Publishing Rights</p>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-purple-200">Big Mann Commission</span>
-              <span className="text-purple-400 font-semibold">{compensation_breakdown?.big_mann_commission}%</span>
+            
+            {/* Platform Commission - John LeGerron Spivey */}
+            <div className="bg-black/20 rounded-lg p-3 border-l-4 border-purple-400">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-white font-medium">Platform Commission</span>
+                <span className="text-purple-400 font-bold text-lg">{compensation_breakdown?.big_mann_commission}%</span>
+              </div>
+              <p className="text-xs text-gray-300">John LeGerron Spivey - Operations</p>
             </div>
           </div>
+          
+          {/* Calculation Info */}
+          {compensation_breakdown?.calculation_method && (
+            <div className="mt-4 pt-4 border-t border-purple-400/30">
+              <p className="text-xs text-purple-200">
+                <span className="font-semibold">Method:</span> {compensation_breakdown.calculation_method}
+              </p>
+              {compensation_breakdown?.last_updated && (
+                <p className="text-xs text-purple-200 mt-1">
+                  <span className="font-semibold">Updated:</span> {new Date(compensation_breakdown.last_updated).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
