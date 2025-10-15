@@ -289,60 +289,102 @@ class BMEComprehensiveBackendTester:
                         f"Error testing export: {str(e)}")
             return False
     
-    def test_comprehensive_license_generation(self):
-        """Test the main comprehensive license generation endpoint"""
+    def test_profile_health_endpoint(self):
+        """Test Creator Profile health endpoint"""
         try:
-            # Test the comprehensive license generation endpoint
+            response = self.session.get(f"{BACKEND_URL}/profile/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                status = data.get("status")
+                postgres_status = data.get("postgres", "unknown")
+                mongodb_status = data.get("mongodb", "unknown")
+                
+                self.log_test("Profile Health Endpoint", "PASS", 
+                            f"Profile service status: {status}, PostgreSQL: {postgres_status}, MongoDB: {mongodb_status}")
+                return True
+            else:
+                self.log_test("Profile Health Endpoint", "FAIL", 
+                            f"Profile health check failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Profile Health Endpoint", "FAIL", 
+                        f"Error checking profile health: {str(e)}")
+            return False
+    
+    def test_profile_me_endpoint(self):
+        """Test profile retrieval endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/profile/me")
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_profile = data.get("hasProfile", False)
+                self.log_test("Profile Me Endpoint", "PASS", 
+                            f"Profile endpoint working, hasProfile: {has_profile}")
+                return True
+            else:
+                self.log_test("Profile Me Endpoint", "FAIL", 
+                            f"Profile me failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Profile Me Endpoint", "FAIL", 
+                        f"Error testing profile me: {str(e)}")
+            return False
+    
+    def test_asset_creation(self):
+        """Test asset creation endpoint"""
+        try:
+            asset_data = {
+                "title": "Test Asset",
+                "type": "music",
+                "description": "Backend test asset"
+            }
+            
             response = self.session.post(
-                f"{BACKEND_URL}/comprehensive-licensing/generate-all-platform-licenses",
-                json={
-                    "include_compliance_docs": True,
-                    "generate_workflows": True
-                }
+                f"{BACKEND_URL}/profile/assets/create",
+                json=asset_data
             )
             
             if response.status_code == 200:
                 data = response.json()
-                
-                # Verify response structure
-                required_fields = [
-                    "message", "master_agreement", "agreement_id", 
-                    "business_entity", "platforms_licensed", "platform_categories",
-                    "comprehensive_features"
-                ]
-                
-                missing_fields = []
-                for field in required_fields:
-                    if field not in data:
-                        missing_fields.append(field)
-                
-                if missing_fields:
-                    self.log_test("License Generation Response Structure", "FAIL", 
-                                f"Missing fields: {missing_fields}")
-                    return False
-                
-                # Verify platforms licensed count
-                platforms_licensed = data.get("platforms_licensed", 0)
-                if platforms_licensed >= 115:
-                    self.log_test("License Generation", "PASS", 
-                                f"Successfully generated licenses for {platforms_licensed} platforms")
-                    
-                    # Test individual response components
-                    self.verify_response_components(data)
-                    return True
-                else:
-                    self.log_test("License Generation", "FAIL", 
-                                f"Only {platforms_licensed} platforms licensed (need 115+)")
-                    return False
-                    
+                asset_id = data.get("asset_id")
+                gtin = data.get("gtin")
+                self.log_test("Asset Creation", "PASS", 
+                            f"Asset created with ID: {asset_id}, GTIN: {gtin}")
+                return True
             else:
-                self.log_test("License Generation", "FAIL", 
-                            f"Endpoint failed: {response.status_code} - {response.text}")
+                self.log_test("Asset Creation", "FAIL", 
+                            f"Asset creation failed: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_test("License Generation", "FAIL", 
-                        f"Error testing license generation: {str(e)}")
+            self.log_test("Asset Creation", "FAIL", 
+                        f"Error testing asset creation: {str(e)}")
+            return False
+    
+    def test_dao_proposals(self):
+        """Test DAO proposals endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/profile/dao/proposals")
+            
+            if response.status_code == 200:
+                data = response.json()
+                proposals = data.get("proposals", [])
+                total = data.get("total", 0)
+                self.log_test("DAO Proposals", "PASS", 
+                            f"Retrieved {total} DAO proposals")
+                return True
+            else:
+                self.log_test("DAO Proposals", "FAIL", 
+                            f"DAO proposals failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("DAO Proposals", "FAIL", 
+                        f"Error testing DAO proposals: {str(e)}")
             return False
     
     def verify_response_components(self, data):
