@@ -3302,41 +3302,39 @@ class SESService:
 
 class EmailService:
     def __init__(self):
-        self.smtp_server = SMTP_SERVER
-        self.smtp_port = SMTP_PORT
-        self.username = EMAIL_USERNAME
-        self.password = EMAIL_PASSWORD
-        self.from_name = EMAIL_FROM_NAME
-        self.from_address = EMAIL_FROM_ADDRESS
+        self.ses_client = boto3.client(
+            'ses',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            region_name=os.environ.get('AWS_REGION', 'us-east-1')
+        )
+        self.from_name = os.environ.get('SES_SENDER_NAME', 'Big Mann Entertainment')
+        self.from_address = os.environ.get('SES_VERIFIED_SENDER', 'no-reply@bigmannentertainment.com')
     
     async def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None):
-        """Send email using SMTP"""
+        """Send email using AWS SES"""
         try:
-            # Create message
-            msg = MimeMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f"{self.from_name} <{self.from_address}>"
-            msg['To'] = to_email
-            
-            # Add text version if provided
+            # Build the email body
+            body = {}
             if text_content:
-                text_part = MimeText(text_content, 'plain')
-                msg.attach(text_part)
+                body['Text'] = {'Charset': 'UTF-8', 'Data': text_content}
+            if html_content:
+                body['Html'] = {'Charset': 'UTF-8', 'Data': html_content}
             
-            # Add HTML version
-            html_part = MimeText(html_content, 'html')
-            msg.attach(html_part)
+            # Send email via SES
+            response = self.ses_client.send_email(
+                Source=f"{self.from_name} <{self.from_address}>",
+                Destination={'ToAddresses': [to_email]},
+                Message={
+                    'Subject': {'Charset': 'UTF-8', 'Data': subject},
+                    'Body': body
+                }
+            )
             
-            # Send email
-            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                server.starttls()
-                if self.username and self.password:
-                    server.login(self.username, self.password)
-                server.send_message(msg)
-            
+            print(f"✅ Email sent successfully to {to_email}. Message ID: {response['MessageId']}")
             return True
         except Exception as e:
-            print(f"Failed to send email: {str(e)}")
+            print(f"❌ Failed to send email to {to_email}: {str(e)}")
             return False
     
     async def send_password_reset_email(self, to_email: str, reset_token: str, user_name: str):
