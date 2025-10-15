@@ -526,12 +526,15 @@ class CompensationBreakdownTester:
             return False
 
     async def run_all_tests(self):
-        """Run comprehensive Social Media OAuth Integration tests"""
-        print("🎯 Final Verification: Social Media OAuth Integration - All Internal Server Errors Fixed")
+        """Run compensation breakdown calculation tests"""
+        print("🎯 Compensation Breakdown Calculation Testing")
         print("=" * 80)
-        print("Test Context: Fixed SQLAlchemy relationship mapping issues")
-        print("Expected: All endpoints return proper responses (200 or appropriate status codes)")
-        print("Expected: NO 500 Internal Server Errors")
+        print("Test Context: Updated compensation breakdown calculation with configurable business rules")
+        print("Expected Environment Variables:")
+        print("  - ARTIST_SHARE_PERCENTAGE=60.0")
+        print("  - SONGWRITER_SHARE_PERCENTAGE=20.0") 
+        print("  - PUBLISHER_SHARE_PERCENTAGE=12.0")
+        print("  - PLATFORM_COMMISSION_PERCENTAGE=8.0")
         print("=" * 80)
         
         await self.setup_session()
@@ -540,96 +543,54 @@ class CompensationBreakdownTester:
             # Test results tracking
             results = {}
             
-            # Part 1: Health & Configuration Endpoints
-            print("\n🏥 PART 1: HEALTH & CONFIGURATION ENDPOINTS")
-            results["profile_health"] = await self.test_profile_health()
-            results["social_health"] = await self.test_social_health()
-            results["social_providers"] = await self.test_social_providers()
-            
-            # Part 2: Authentication Flow
-            print("\n🔐 PART 2: AUTHENTICATION FLOW")
+            # Authentication Flow
+            print("\n🔐 AUTHENTICATION")
             auth_success = await self.authenticate_user()
             if not auth_success:
-                print("❌ Authentication failed - cannot proceed with authenticated tests")
+                print("❌ Authentication failed - cannot proceed with compensation dashboard test")
                 return results
                 
             results["auth_me"] = await self.test_auth_me()
             
-            # Part 3: Social Media Endpoints (With Auto-Profile Creation)
-            print("\n📱 PART 3: SOCIAL MEDIA ENDPOINTS (WITH AUTO-PROFILE CREATION)")
-            results["social_connections"] = await self.test_social_connections()
-            results["social_posts"] = await self.test_social_posts()
-            results["social_metrics"] = await self.test_social_metrics_dashboard()
-            
-            # Part 4: Error Handling Verification
-            print("\n🚫 PART 4: ERROR HANDLING VERIFICATION")
-            results["error_handling_unauth"] = await self.test_error_handling_unauthenticated()
-            results["invalid_provider"] = await self.test_invalid_provider_names()
-            
-            # Part 5: Database Verification
-            print("\n🗄️  PART 5: DATABASE VERIFICATION")
-            results["database_verification"] = await self.test_database_verification()
+            # Compensation Dashboard Test
+            print("\n💰 COMPENSATION BREAKDOWN TESTING")
+            results["compensation_dashboard"] = await self.test_compensation_dashboard()
             
             # Summary
             print("\n" + "=" * 80)
-            print("📊 COMPREHENSIVE TEST RESULTS SUMMARY")
+            print("📊 COMPENSATION BREAKDOWN TEST RESULTS")
             print("=" * 80)
             
             passed = sum(1 for result in results.values() if result)
             total = len(results)
             
-            # Categorize results
-            health_tests = ["profile_health", "social_health", "social_providers"]
-            auth_tests = ["auth_me"]
-            social_tests = ["social_connections", "social_posts", "social_metrics"]
-            error_tests = ["error_handling_unauth", "invalid_provider"]
-            db_tests = ["database_verification"]
+            print("🔐 Authentication:")
+            if "auth_me" in results:
+                status = "✅ PASS" if results["auth_me"] else "❌ FAIL"
+                print(f"   Authentication: {status}")
             
-            print("🏥 Health & Configuration:")
-            for test in health_tests:
-                if test in results:
-                    status = "✅ PASS" if results[test] else "❌ FAIL"
-                    print(f"   {test.replace('_', ' ').title()}: {status}")
-            
-            print("\n🔐 Authentication:")
-            for test in auth_tests:
-                if test in results:
-                    status = "✅ PASS" if results[test] else "❌ FAIL"
-                    print(f"   {test.replace('_', ' ').title()}: {status}")
-            
-            print("\n📱 Social Media Endpoints:")
-            for test in social_tests:
-                if test in results:
-                    status = "✅ PASS" if results[test] else "❌ FAIL"
-                    print(f"   {test.replace('_', ' ').title()}: {status}")
-            
-            print("\n🚫 Error Handling:")
-            for test in error_tests:
-                if test in results:
-                    status = "✅ PASS" if results[test] else "❌ FAIL"
-                    print(f"   {test.replace('_', ' ').title()}: {status}")
-            
-            print("\n🗄️  Database:")
-            for test in db_tests:
-                if test in results:
-                    status = "✅ PASS" if results[test] else "❌ FAIL"
-                    print(f"   {test.replace('_', ' ').title()}: {status}")
+            print("\n💰 Compensation Dashboard:")
+            if "compensation_dashboard" in results:
+                status = "✅ PASS" if results["compensation_dashboard"] else "❌ FAIL"
+                print(f"   Compensation Breakdown: {status}")
                     
             print(f"\n📈 OVERALL RESULTS: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
             
             # Success criteria check
-            if passed == total:
+            if results.get("compensation_dashboard", False):
                 print("\n🎉 SUCCESS CRITERIA MET:")
-                print("✅ Zero 500 errors across all endpoints")
-                print("✅ Proper HTTP status codes")
-                print("✅ Clean error messages")
-                print("✅ Auto-profile creation confirmed")
-                print("✅ PostgreSQL connectivity stable")
-                print("\n🚀 Social Media OAuth Integration is FULLY OPERATIONAL!")
+                print("✅ Compensation breakdown shows correct percentages")
+                print("✅ Artist percentage: 60.0%")
+                print("✅ Songwriter percentage: 20.0%")
+                print("✅ Publisher percentage: 12.0%")
+                print("✅ Big Mann commission: 8.0%")
+                print("✅ Total equals 100%")
+                print("✅ All business information fields present")
+                print("✅ Proper decimal precision (2 decimal places)")
+                print("\n🚀 Compensation Breakdown Calculation is FULLY OPERATIONAL!")
             else:
-                failed_tests = [test for test, result in results.items() if not result]
-                print(f"\n⚠️  FAILED TESTS: {', '.join(failed_tests)}")
-                print("❌ Some tests failed - check implementation and configuration")
+                print("\n❌ COMPENSATION BREAKDOWN TEST FAILED")
+                print("Check environment variables and implementation")
                 
             return results
             
