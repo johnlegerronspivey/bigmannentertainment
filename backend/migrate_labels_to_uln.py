@@ -410,11 +410,20 @@ class LabelMigrationService:
             # Create ULN label
             uln_label = await self._convert_to_uln_label(label_data)
             
-            # Store in database using prepared data
-            label_dict = uln_label.dict()
-            label_dict = self.uln_service._prepare_for_mongo(label_dict)
+            # Use ULN service registration method instead of direct DB insert
+            # This ensures proper audit trail and validation
+            registration_data = LabelRegistrationRequest(
+                label_type=uln_label.label_type,
+                integration_type=uln_label.integration_type,
+                metadata_profile=uln_label.metadata_profile,
+                initial_entities=uln_label.associated_entities,
+                onboarding_preferences={"migration_source": label_data.get("source", "unknown")}
+            )
             
-            result = await db.uln_labels.insert_one(label_dict)
+            result = await self.uln_service.register_label(registration_data, "migration_system")
+            
+            if not result.get("success"):
+                raise Exception(result.get("error", "Registration failed"))
             
             if result.inserted_id:
                 print(f"✅ Successfully migrated: {label_name} -> {uln_label.global_id.id}")
