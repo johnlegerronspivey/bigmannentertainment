@@ -232,12 +232,12 @@ class CompensationBreakdownTester:
                         print("❌ No compensation_breakdown found in response")
                         return False
                     
-                    # Expected values from environment variables
+                    # Expected values from updated environment variables
                     expected_values = {
-                        "artist_percentage": 60.0,
-                        "songwriter_percentage": 20.0,
-                        "publisher_percentage": 12.0,
-                        "big_mann_commission": 8.0
+                        "artist_percentage": 55.0,  # Updated from 60.0
+                        "songwriter_percentage": 20.0,  # Unchanged
+                        "publisher_percentage": 15.0,  # Updated from 12.0
+                        "big_mann_commission": 10.0  # Updated from 8.0
                     }
                     
                     print("\n📊 Compensation Breakdown Verification:")
