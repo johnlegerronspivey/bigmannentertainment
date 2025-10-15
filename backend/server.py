@@ -3333,6 +3333,16 @@ class EmailService:
             
             print(f"✅ Email sent successfully to {to_email}. Message ID: {response['MessageId']}")
             return True
+        except self.ses_client.exceptions.MessageRejected as e:
+            error_msg = str(e)
+            if "Email address is not verified" in error_msg:
+                print(f"❌ AWS SES Sandbox Mode: {to_email} is not verified. To send emails:")
+                print(f"   1. Verify {to_email} in AWS SES Console, OR")
+                print(f"   2. Request production access for your AWS SES account")
+                print(f"   Falling back to development mode with reset token in response.")
+            else:
+                print(f"❌ AWS SES rejected email to {to_email}: {error_msg}")
+            return False
         except Exception as e:
             print(f"❌ Failed to send email to {to_email}: {str(e)}")
             return False
