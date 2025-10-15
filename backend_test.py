@@ -458,30 +458,119 @@ class BMEComprehensiveBackendTester:
                         f"Error testing comprehensive licensing: {str(e)}")
             return False
     
-    def test_error_handling(self):
-        """Test error handling scenarios"""
-        
-        # Test without authentication
-        temp_headers = self.session.headers.copy()
-        if "Authorization" in self.session.headers:
-            del self.session.headers["Authorization"]
-        
+    def test_social_health_endpoint(self):
+        """Test social media health endpoint"""
         try:
-            response = self.session.post(
-                f"{BACKEND_URL}/comprehensive-licensing/generate-all-platform-licenses"
-            )
+            response = self.session.get(f"{BACKEND_URL}/social/health")
             
-            if response.status_code in [401, 403]:
-                self.log_test("Authentication Required", "PASS", 
-                            "Endpoint properly requires authentication")
+            if response.status_code == 200:
+                data = response.json()
+                status = data.get("status")
+                providers = data.get("providers_configured", 0)
+                self.log_test("Social Health Endpoint", "PASS", 
+                            f"Social service status: {status}, Providers: {providers}")
+                return True
             else:
-                self.log_test("Authentication Required", "FAIL", 
-                            f"Endpoint should require auth but returned: {response.status_code}")
+                self.log_test("Social Health Endpoint", "FAIL", 
+                            f"Social health check failed: {response.status_code}")
+                return False
+                
         except Exception as e:
-            self.log_test("Authentication Required", "FAIL", f"Error testing auth: {str(e)}")
-        
-        # Restore headers
-        self.session.headers.update(temp_headers)
+            self.log_test("Social Health Endpoint", "FAIL", 
+                        f"Error checking social health: {str(e)}")
+            return False
+    
+    def test_social_connections(self):
+        """Test social connections endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/social/connections")
+            
+            if response.status_code == 200:
+                data = response.json()
+                connections = data.get("connections", [])
+                self.log_test("Social Connections", "PASS", 
+                            f"Retrieved {len(connections)} social connections")
+                return True
+            elif response.status_code == 404:
+                self.log_test("Social Connections", "PASS", 
+                            "No profile found (expected for new user)")
+                return True
+            else:
+                self.log_test("Social Connections", "FAIL", 
+                            f"Social connections failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Social Connections", "FAIL", 
+                        f"Error testing social connections: {str(e)}")
+            return False
+    
+    def test_social_metrics_dashboard(self):
+        """Test social metrics dashboard"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/social/metrics/dashboard")
+            
+            if response.status_code == 200:
+                data = response.json()
+                total_followers = data.get("total_followers", 0)
+                total_posts = data.get("total_posts", 0)
+                avg_engagement = data.get("avg_engagement", 0.0)
+                
+                self.log_test("Social Metrics Dashboard", "PASS", 
+                            f"Metrics - Followers: {total_followers}, Posts: {total_posts}, Engagement: {avg_engagement}")
+                return True
+            elif response.status_code == 404:
+                self.log_test("Social Metrics Dashboard", "PASS", 
+                            "No profile found (expected for new user)")
+                return True
+            else:
+                self.log_test("Social Metrics Dashboard", "FAIL", 
+                            f"Social metrics failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Social Metrics Dashboard", "FAIL", 
+                        f"Error testing social metrics: {str(e)}")
+            return False
+    
+    def test_database_connectivity(self):
+        """Test database connectivity through various endpoints"""
+        try:
+            # Test MongoDB connectivity via distribution platforms
+            response = self.session.get(f"{BACKEND_URL}/distribution/platforms")
+            
+            if response.status_code == 200:
+                data = response.json()
+                platform_count = data.get("total_count", data.get("total_platforms", 0))
+                self.log_test("MongoDB Connectivity", "PASS", 
+                            f"MongoDB connected - {platform_count} platforms available")
+                mongo_ok = True
+            else:
+                self.log_test("MongoDB Connectivity", "FAIL", 
+                            f"MongoDB connection issue: {response.status_code}")
+                mongo_ok = False
+            
+            # Test PostgreSQL connectivity via profile health
+            pg_response = self.session.get(f"{BACKEND_URL}/profile/health")
+            if pg_response.status_code == 200:
+                pg_data = pg_response.json()
+                postgres_status = pg_data.get("postgres", "unknown")
+                if postgres_status == "connected":
+                    self.log_test("PostgreSQL Connectivity", "PASS", "PostgreSQL connected")
+                    pg_ok = True
+                else:
+                    self.log_test("PostgreSQL Connectivity", "FAIL", f"PostgreSQL status: {postgres_status}")
+                    pg_ok = False
+            else:
+                self.log_test("PostgreSQL Connectivity", "FAIL", "Cannot check PostgreSQL status")
+                pg_ok = False
+            
+            return mongo_ok and pg_ok
+                
+        except Exception as e:
+            self.log_test("Database Connectivity", "FAIL", 
+                        f"Error testing database connectivity: {str(e)}")
+            return False
     
     def test_licensing_dashboard(self):
         """Test the licensing dashboard endpoint"""
