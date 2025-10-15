@@ -14,7 +14,7 @@ BACKEND_URL = "https://creator-profile-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "uln.admin@bigmann.com"
 ADMIN_PASSWORD = "Admin123!"
 
-class ComprehensiveLicenseGenerationTester:
+class BMEComprehensiveBackendTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
