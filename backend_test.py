@@ -56,31 +56,237 @@ class BMEComprehensiveBackendTester:
             self.log_test("Authentication", "FAIL", f"Authentication error: {str(e)}")
             return False
     
-    def test_distribution_platforms_availability(self):
-        """Test that distribution platforms are available"""
+    def test_main_health_endpoint(self):
+        """Test main health endpoint"""
         try:
-            response = self.session.get(f"{BACKEND_URL}/distribution/platforms")
+            response = self.session.get(f"{BACKEND_URL}/health")
             
             if response.status_code == 200:
                 data = response.json()
-                platform_count = data.get("total_count", data.get("total_platforms", 0))
-                
-                if platform_count >= 115:
-                    self.log_test("Distribution Platforms Availability", "PASS", 
-                                f"Found {platform_count} platforms (meets 115+ requirement)")
+                status = data.get("status")
+                if status == "healthy":
+                    self.log_test("Main Health Endpoint", "PASS", 
+                                f"System healthy - {data.get('message', 'No message')}")
                     return True
                 else:
-                    self.log_test("Distribution Platforms Availability", "FAIL", 
-                                f"Only {platform_count} platforms found (need 115+)")
+                    self.log_test("Main Health Endpoint", "FAIL", 
+                                f"System status: {status}")
                     return False
             else:
-                self.log_test("Distribution Platforms Availability", "FAIL", 
-                            f"Failed to get platforms: {response.status_code}")
+                self.log_test("Main Health Endpoint", "FAIL", 
+                            f"Health check failed: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log_test("Distribution Platforms Availability", "FAIL", 
-                        f"Error checking platforms: {str(e)}")
+            self.log_test("Main Health Endpoint", "FAIL", 
+                        f"Error checking health: {str(e)}")
+            return False
+    
+    def test_uln_health_endpoint(self):
+        """Test ULN health endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/uln/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                status = data.get("status")
+                if status == "healthy":
+                    labels_count = data.get("total_labels", 0)
+                    self.log_test("ULN Health Endpoint", "PASS", 
+                                f"ULN system healthy with {labels_count} labels")
+                    return True
+                else:
+                    self.log_test("ULN Health Endpoint", "FAIL", 
+                                f"ULN status: {status}")
+                    return False
+            else:
+                self.log_test("ULN Health Endpoint", "FAIL", 
+                            f"ULN health check failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("ULN Health Endpoint", "FAIL", 
+                        f"Error checking ULN health: {str(e)}")
+            return False
+    
+    def test_uln_label_hub(self):
+        """Test ULN label directory/hub"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/uln/dashboard/label-hub")
+            
+            if response.status_code == 200:
+                data = response.json()
+                labels = data.get("labels", [])
+                total_labels = data.get("total_labels", len(labels))
+                self.log_test("ULN Label Hub", "PASS", 
+                            f"Retrieved {total_labels} labels from hub")
+                return True
+            elif response.status_code == 403:
+                self.log_test("ULN Label Hub", "FAIL", 
+                            "Access denied - requires admin permissions")
+                return False
+            else:
+                self.log_test("ULN Label Hub", "FAIL", 
+                            f"Label hub failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("ULN Label Hub", "FAIL", 
+                        f"Error accessing label hub: {str(e)}")
+            return False
+    
+    def test_uln_edit_label_api(self):
+        """Test generic Edit Label API"""
+        try:
+            # First get a label to edit
+            hub_response = self.session.get(f"{BACKEND_URL}/uln/dashboard/label-hub")
+            if hub_response.status_code != 200:
+                self.log_test("ULN Edit Label API", "FAIL", "Cannot get labels for editing test")
+                return False
+            
+            labels = hub_response.json().get("labels", [])
+            if not labels:
+                self.log_test("ULN Edit Label API", "FAIL", "No labels available for editing")
+                return False
+            
+            # Test editing the first label
+            test_label = labels[0]
+            global_id = test_label.get("global_id")
+            
+            if not global_id:
+                self.log_test("ULN Edit Label API", "FAIL", "No global_id found in label")
+                return False
+            
+            # Test update
+            update_data = {
+                "status": "active",
+                "updated_by": "backend_test"
+            }
+            
+            response = self.session.patch(
+                f"{BACKEND_URL}/uln/labels/{global_id}",
+                json=update_data
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_test("ULN Edit Label API", "PASS", 
+                            f"Successfully updated label {global_id}")
+                return True
+            else:
+                self.log_test("ULN Edit Label API", "FAIL", 
+                            f"Edit failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("ULN Edit Label API", "FAIL", 
+                        f"Error testing edit API: {str(e)}")
+            return False
+    
+    def test_uln_advanced_search(self):
+        """Test ULN advanced search"""
+        try:
+            search_data = {
+                "name": "Atlantic",
+                "label_type": "major",
+                "status": "active"
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/uln/labels/advanced-search",
+                json=search_data
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get("results", [])
+                total = data.get("total", 0)
+                self.log_test("ULN Advanced Search", "PASS", 
+                            f"Search returned {total} results")
+                return True
+            else:
+                self.log_test("ULN Advanced Search", "FAIL", 
+                            f"Search failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("ULN Advanced Search", "FAIL", 
+                        f"Error testing advanced search: {str(e)}")
+            return False
+    
+    def test_uln_bulk_edit(self):
+        """Test ULN bulk edit"""
+        try:
+            # Get some labels first
+            hub_response = self.session.get(f"{BACKEND_URL}/uln/dashboard/label-hub")
+            if hub_response.status_code != 200:
+                self.log_test("ULN Bulk Edit", "FAIL", "Cannot get labels for bulk edit test")
+                return False
+            
+            labels = hub_response.json().get("labels", [])
+            if len(labels) < 2:
+                self.log_test("ULN Bulk Edit", "FAIL", "Need at least 2 labels for bulk edit test")
+                return False
+            
+            # Test bulk edit on first 2 labels
+            label_ids = [labels[0].get("global_id"), labels[1].get("global_id")]
+            
+            bulk_data = {
+                "label_ids": label_ids,
+                "update_data": {
+                    "status": "active",
+                    "updated_by": "bulk_test"
+                }
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/uln/labels/bulk-edit",
+                json=bulk_data
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                updated_count = data.get("updated_count", 0)
+                self.log_test("ULN Bulk Edit", "PASS", 
+                            f"Bulk updated {updated_count} labels")
+                return True
+            else:
+                self.log_test("ULN Bulk Edit", "FAIL", 
+                            f"Bulk edit failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("ULN Bulk Edit", "FAIL", 
+                        f"Error testing bulk edit: {str(e)}")
+            return False
+    
+    def test_uln_export(self):
+        """Test ULN export"""
+        try:
+            export_data = {
+                "format": "json",
+                "include_metadata": True
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/uln/labels/export",
+                json=export_data
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                exported_count = data.get("exported_count", 0)
+                self.log_test("ULN Export", "PASS", 
+                            f"Exported {exported_count} labels")
+                return True
+            else:
+                self.log_test("ULN Export", "FAIL", 
+                            f"Export failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("ULN Export", "FAIL", 
+                        f"Error testing export: {str(e)}")
             return False
     
     def test_comprehensive_license_generation(self):
