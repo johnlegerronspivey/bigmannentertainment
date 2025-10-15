@@ -380,15 +380,15 @@ class RevenueBreakdownTester:
             # Success criteria check
             if results.get("compensation_dashboard", False):
                 print("\n🎉 SUCCESS CRITERIA MET:")
-                print("✅ Compensation breakdown shows correct UPDATED percentages")
-                print("✅ Artist percentage: 55.0% (Updated from 60.0%)")
-                print("✅ Songwriter percentage: 20.0% (Unchanged)")
-                print("✅ Publisher percentage: 15.0% (Updated from 12.0%)")
-                print("✅ Big Mann commission: 10.0% (Updated from 8.0%)")
+                print("✅ Compensation breakdown shows correct NEW UPDATED percentages")
+                print("✅ Artist percentage: 25.0% (UPDATED from 55.0%)")
+                print("✅ Songwriter percentage: 15.0% (UPDATED from 20.0%)")
+                print("✅ Publisher percentage: 50.0% (UPDATED from 15.0%)")
+                print("✅ Big Mann commission: 10.0% (UNCHANGED)")
                 print("✅ Total equals 100%")
                 print("✅ All business information fields present")
                 print("✅ Proper decimal precision (2 decimal places)")
-                print("\n🚀 Compensation Breakdown Calculation is FULLY OPERATIONAL!")
+                print("\n🚀 Updated Revenue Breakdown Configuration is FULLY OPERATIONAL!")
             else:
                 print("\n❌ COMPENSATION BREAKDOWN TEST FAILED")
                 print("Check environment variables and implementation")
