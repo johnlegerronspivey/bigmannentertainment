@@ -14,399 +14,288 @@ BACKEND_URL = "https://social-profile-sync.preview.emergentagent.com/api"
 ADMIN_EMAIL = "uln.admin@bigmann.com"
 ADMIN_PASSWORD = "Admin123!"
 
-class RevenueBreakdownTester:
+class ComprehensiveLicenseGenerationTester:
     def __init__(self):
-        self.session = None
+        self.session = requests.Session()
         self.auth_token = None
-        self.user_id = None
-        self.test_results = {}
+        self.test_results = []
         
-    async def setup_session(self):
-        """Initialize HTTP session"""
-        self.session = aiohttp.ClientSession()
+    def log_test(self, test_name, status, details):
+        """Log test results"""
+        result = {
+            "test": test_name,
+            "status": status,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status_symbol = "✅" if status == "PASS" else "❌"
+        print(f"{status_symbol} {test_name}: {details}")
         
-    async def cleanup_session(self):
-        """Cleanup HTTP session"""
-        if self.session:
-            await self.session.close()
-            
-    async def authenticate_user(self):
-        """Authenticate with provided credentials"""
-        print("🔐 Part 2: Authentication Flow")
-        
+    def authenticate(self):
+        """Authenticate with admin credentials"""
         try:
-            async with self.session.post(f"{API_BASE}/auth/login", json=TEST_CREDENTIALS) as response:
-                print(f"POST /api/auth/login - Status: {response.status}")
+            login_data = {
+                "email": ADMIN_EMAIL,
+                "password": ADMIN_PASSWORD
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.auth_token = data.get("access_token")
+                self.session.headers.update({"Authorization": f"Bearer {self.auth_token}"})
+                self.log_test("Authentication", "PASS", f"Successfully authenticated as {ADMIN_EMAIL}")
+                return True
+            else:
+                self.log_test("Authentication", "FAIL", f"Login failed: {response.status_code} - {response.text}")
+                return False
                 
-                if response.status == 200:
-                    data = await response.json()
-                    self.auth_token = data.get("access_token")
-                    self.user_id = data.get("user", {}).get("id")
-                    print("✅ Authentication successful")
-                    print(f"   User ID: {self.user_id}")
+        except Exception as e:
+            self.log_test("Authentication", "FAIL", f"Authentication error: {str(e)}")
+            return False
+    
+    def test_distribution_platforms_availability(self):
+        """Test that distribution platforms are available"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/distribution/platforms")
+            
+            if response.status_code == 200:
+                data = response.json()
+                platform_count = data.get("total_platforms", 0)
+                
+                if platform_count >= 115:
+                    self.log_test("Distribution Platforms Availability", "PASS", 
+                                f"Found {platform_count} platforms (meets 115+ requirement)")
                     return True
                 else:
-                    error_text = await response.text()
-                    print(f"❌ Login failed: {response.status} - {error_text}")
+                    self.log_test("Distribution Platforms Availability", "FAIL", 
+                                f"Only {platform_count} platforms found (need 115+)")
                     return False
-        except Exception as e:
-            print(f"❌ Login error: {e}")
-            return False
-            
-    def get_auth_headers(self):
-        """Get authorization headers"""
-        if not self.auth_token:
-            return {}
-        return {"Authorization": f"Bearer {self.auth_token}"}
-        
-    async def test_profile_health(self):
-        """Test 1: GET /api/profile/health - Verify PostgreSQL connected"""
-        print("\n🏥 Test 1: Profile Health Check")
-        
-        try:
-            async with self.session.get(f"{API_BASE}/profile/health") as response:
-                print(f"GET /api/profile/health - Status: {response.status}")
-                
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    
-                    postgres_status = data.get("postgres", "unknown")
-                    if postgres_status == "connected":
-                        print("✅ PostgreSQL connected and operational")
-                        return True
-                    else:
-                        print(f"❌ PostgreSQL not connected: {postgres_status}")
-                        return False
-                else:
-                    error_text = await response.text()
-                    print(f"❌ Profile health check failed: {response.status} - {error_text}")
-                    return False
-                    
-        except Exception as e:
-            print(f"❌ Profile health check error: {e}")
-            return False
-            
-    async def test_social_health(self):
-        """Test 2: GET /api/social/health - Verify service healthy"""
-        print("\n🏥 Test 2: Social Media Service Health Check")
-        
-        try:
-            async with self.session.get(f"{API_BASE}/social/health") as response:
-                print(f"GET /api/social/health - Status: {response.status}")
-                
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    
-                    service_status = data.get("status", "unknown")
-                    if service_status == "healthy":
-                        print("✅ Social Media service is healthy")
-                        providers = data.get("providers", [])
-                        print(f"   Available providers: {len(providers)}")
-                        return True
-                    else:
-                        print(f"❌ Social Media service unhealthy: {service_status}")
-                        return False
-                else:
-                    error_text = await response.text()
-                    print(f"❌ Social health check failed: {response.status} - {error_text}")
-                    return False
-                    
-        except Exception as e:
-            print(f"❌ Social health check error: {e}")
-            return False
-            
-    async def test_social_providers(self):
-        """Test 3: GET /api/social/providers - Check all 6 providers listed"""
-        print("\n📋 Test 3: Social Media Providers List")
-        
-        try:
-            async with self.session.get(f"{API_BASE}/social/providers") as response:
-                print(f"GET /api/social/providers - Status: {response.status}")
-                
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    
-                    providers = data.get("providers", [])
-                    print(f"✅ Found {len(providers)} social media providers")
-                    
-                    # Expected providers
-                    expected_providers = ["twitter", "facebook", "instagram", "tiktok", "linkedin", "youtube"]
-                    found_providers = []
-                    
-                    for provider in providers:
-                        provider_name = provider.get("provider", provider.get("name", "")).lower()
-                        found_providers.append(provider_name)
-                        configured = provider.get("configured", False)
-                        print(f"   - {provider_name}: {'✅ configured' if configured else '❌ not configured'}")
-                    
-                    # Check if we have at least 6 providers
-                    if len(providers) >= 6:
-                        print("✅ All 6 providers listed correctly")
-                        return True
-                    else:
-                        print(f"❌ Expected 6 providers, found {len(providers)}")
-                        return False
-                else:
-                    error_text = await response.text()
-                    print(f"❌ Failed to get providers list: {response.status} - {error_text}")
-                    return False
-                    
-        except Exception as e:
-            print(f"❌ Providers list error: {e}")
-            return False
-            
-    async def test_auth_me(self):
-        """Test 5: GET /api/auth/me - Get current user info"""
-        print("\n👤 Test 5: Current User Information")
-        
-        if not self.auth_token:
-            print("❌ No auth token available")
-            return False
-            
-        try:
-            headers = self.get_auth_headers()
-            async with self.session.get(f"{API_BASE}/auth/me", headers=headers) as response:
-                print(f"GET /api/auth/me - Status: {response.status}")
-                
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    
-                    user_email = data.get("email", "")
-                    user_role = data.get("role", "")
-                    business_name = data.get("business_name", "")
-                    
-                    print(f"✅ User info retrieved successfully")
-                    print(f"   Email: {user_email}")
-                    print(f"   Role: {user_role}")
-                    print(f"   Business: {business_name}")
-                    
-                    # Verify JWT token working
-                    if user_email == TEST_CREDENTIALS["email"]:
-                        print("✅ JWT token working correctly")
-                        return True
-                    else:
-                        print(f"❌ Token mismatch - expected {TEST_CREDENTIALS['email']}, got {user_email}")
-                        return False
-                else:
-                    error_text = await response.text()
-                    print(f"❌ Failed to get user info: {response.status} - {error_text}")
-                    return False
-                    
-        except Exception as e:
-            print(f"❌ Auth me error: {e}")
-            return False
-            
-    # Removed unused test methods to focus on compensation dashboard testing
-            
-    async def test_compensation_dashboard(self):
-        """Test: GET /api/licensing/compensation-dashboard - Verify compensation breakdown percentages"""
-        print("\n💰 Test: Compensation Dashboard - Updated Calculation")
-        
-        if not self.auth_token:
-            print("❌ No auth token available")
-            return False
-            
-        try:
-            headers = self.get_auth_headers()
-            async with self.session.get(f"{API_BASE}/licensing/compensation-dashboard", headers=headers) as response:
-                print(f"GET /api/licensing/compensation-dashboard - Status: {response.status}")
-                
-                if response.status == 200:
-                    data = await response.json()
-                    print(f"Response: {json.dumps(data, indent=2)}")
-                    
-                    # Extract compensation breakdown
-                    compensation_breakdown = data.get("compensation_dashboard", {}).get("compensation_breakdown", {})
-                    
-                    if not compensation_breakdown:
-                        print("❌ No compensation_breakdown found in response")
-                        return False
-                    
-                    # Expected values from NEW updated environment variables (review request)
-                    expected_values = {
-                        "artist_percentage": 25.0,  # UPDATED from 55.0 to 25.0
-                        "songwriter_percentage": 15.0,  # UPDATED from 20.0 to 15.0
-                        "publisher_percentage": 50.0,  # UPDATED from 15.0 to 50.0
-                        "big_mann_commission": 10.0  # UNCHANGED at 10.0
-                    }
-                    
-                    print("\n📊 Compensation Breakdown Verification:")
-                    all_correct = True
-                    total_percentage = 0.0
-                    
-                    for key, expected_value in expected_values.items():
-                        actual_value = compensation_breakdown.get(key, 0.0)
-                        total_percentage += actual_value
-                        
-                        if abs(actual_value - expected_value) < 0.01:  # Allow for floating point precision
-                            print(f"   ✅ {key}: {actual_value}% (expected: {expected_value}%)")
-                        else:
-                            print(f"   ❌ {key}: {actual_value}% (expected: {expected_value}%)")
-                            all_correct = False
-                    
-                    # Verify total equals 100%
-                    print(f"\n📈 Total Percentage: {total_percentage}%")
-                    if abs(total_percentage - 100.0) < 0.01:
-                        print("✅ Total percentages sum to 100%")
-                    else:
-                        print(f"❌ Total percentages do not sum to 100% (actual: {total_percentage}%)")
-                        all_correct = False
-                    
-                    # Verify business information fields
-                    calculation_method = compensation_breakdown.get("calculation_method")
-                    last_updated = compensation_breakdown.get("last_updated")
-                    notes = compensation_breakdown.get("notes")
-                    
-                    print(f"\n📋 Business Information:")
-                    if calculation_method:
-                        print(f"   ✅ Calculation Method: {calculation_method}")
-                    else:
-                        print("   ❌ Missing calculation_method field")
-                        all_correct = False
-                    
-                    if last_updated:
-                        print(f"   ✅ Last Updated: {last_updated}")
-                    else:
-                        print("   ❌ Missing last_updated field")
-                        all_correct = False
-                    
-                    if notes:
-                        print(f"   ✅ Notes: {notes}")
-                    else:
-                        print("   ❌ Missing notes field")
-                        all_correct = False
-                    
-                    # Verify percentages are properly rounded to 2 decimal places
-                    print(f"\n🔢 Decimal Precision Check:")
-                    precision_correct = True
-                    for key, value in expected_values.items():
-                        actual_value = compensation_breakdown.get(key, 0.0)
-                        # Check if value has at most 2 decimal places
-                        if round(actual_value, 2) == actual_value:
-                            print(f"   ✅ {key}: {actual_value}% (properly rounded)")
-                        else:
-                            print(f"   ❌ {key}: {actual_value}% (not properly rounded to 2 decimal places)")
-                            precision_correct = False
-                    
-                    if all_correct and precision_correct:
-                        print("\n🎉 Compensation breakdown calculation is working correctly!")
-                        print("✅ All percentages match expected values")
-                        print("✅ Total equals 100%")
-                        print("✅ All required fields present")
-                        print("✅ Proper decimal precision")
-                        return True
-                    else:
-                        print("\n❌ Compensation breakdown has issues")
-                        return False
-                        
-                else:
-                    error_text = await response.text()
-                    print(f"❌ Failed to get compensation dashboard: {response.status} - {error_text}")
-                    return False
-                    
-        except Exception as e:
-            print(f"❌ Compensation dashboard test error: {e}")
-            return False
-
-    async def run_all_tests(self):
-        """Run compensation breakdown calculation tests"""
-        print("🎯 Compensation Breakdown Calculation Testing")
-        print("=" * 80)
-        print("Test Context: Updated compensation breakdown calculation with configurable business rules")
-        print("Expected Environment Variables (UPDATED):")
-        print("  - ARTIST_SHARE_PERCENTAGE=55.0 (Updated from 60.0)")
-        print("  - SONGWRITER_SHARE_PERCENTAGE=20.0 (Unchanged)") 
-        print("  - PUBLISHER_SHARE_PERCENTAGE=15.0 (Updated from 12.0)")
-        print("  - PLATFORM_COMMISSION_PERCENTAGE=10.0 (Updated from 8.0)")
-        print("=" * 80)
-        
-        await self.setup_session()
-        
-        try:
-            # Test results tracking
-            results = {}
-            
-            # Authentication Flow
-            print("\n🔐 AUTHENTICATION")
-            auth_success = await self.authenticate_user()
-            if not auth_success:
-                print("❌ Authentication failed - cannot proceed with compensation dashboard test")
-                return results
-                
-            results["auth_me"] = await self.test_auth_me()
-            
-            # Compensation Dashboard Test
-            print("\n💰 COMPENSATION BREAKDOWN TESTING")
-            results["compensation_dashboard"] = await self.test_compensation_dashboard()
-            
-            # Summary
-            print("\n" + "=" * 80)
-            print("📊 COMPENSATION BREAKDOWN TEST RESULTS")
-            print("=" * 80)
-            
-            passed = sum(1 for result in results.values() if result)
-            total = len(results)
-            
-            print("🔐 Authentication:")
-            if "auth_me" in results:
-                status = "✅ PASS" if results["auth_me"] else "❌ FAIL"
-                print(f"   Authentication: {status}")
-            
-            print("\n💰 Compensation Dashboard:")
-            if "compensation_dashboard" in results:
-                status = "✅ PASS" if results["compensation_dashboard"] else "❌ FAIL"
-                print(f"   Compensation Breakdown: {status}")
-                    
-            print(f"\n📈 OVERALL RESULTS: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
-            
-            # Success criteria check
-            if results.get("compensation_dashboard", False):
-                print("\n🎉 SUCCESS CRITERIA MET:")
-                print("✅ Compensation breakdown shows correct NEW UPDATED percentages")
-                print("✅ Artist percentage: 25.0% (UPDATED from 55.0%)")
-                print("✅ Songwriter percentage: 15.0% (UPDATED from 20.0%)")
-                print("✅ Publisher percentage: 50.0% (UPDATED from 15.0%)")
-                print("✅ Big Mann commission: 10.0% (UNCHANGED)")
-                print("✅ Total equals 100%")
-                print("✅ All business information fields present")
-                print("✅ Proper decimal precision (2 decimal places)")
-                print("\n🚀 Updated Revenue Breakdown Configuration is FULLY OPERATIONAL!")
             else:
-                print("\n❌ COMPENSATION BREAKDOWN TEST FAILED")
-                print("Check environment variables and implementation")
+                self.log_test("Distribution Platforms Availability", "FAIL", 
+                            f"Failed to get platforms: {response.status_code}")
+                return False
                 
-            return results
+        except Exception as e:
+            self.log_test("Distribution Platforms Availability", "FAIL", 
+                        f"Error checking platforms: {str(e)}")
+            return False
+    
+    def test_comprehensive_license_generation(self):
+        """Test the main comprehensive license generation endpoint"""
+        try:
+            # Test the comprehensive license generation endpoint
+            response = self.session.post(
+                f"{BACKEND_URL}/comprehensive-licensing/generate-all-platform-licenses",
+                json={
+                    "include_compliance_docs": True,
+                    "generate_workflows": True
+                }
+            )
             
-        finally:
-            await self.cleanup_session()
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify response structure
+                required_fields = [
+                    "message", "master_agreement", "agreement_id", 
+                    "business_entity", "platforms_licensed", "platform_categories",
+                    "comprehensive_features"
+                ]
+                
+                missing_fields = []
+                for field in required_fields:
+                    if field not in data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.log_test("License Generation Response Structure", "FAIL", 
+                                f"Missing fields: {missing_fields}")
+                    return False
+                
+                # Verify platforms licensed count
+                platforms_licensed = data.get("platforms_licensed", 0)
+                if platforms_licensed >= 115:
+                    self.log_test("License Generation", "PASS", 
+                                f"Successfully generated licenses for {platforms_licensed} platforms")
+                    
+                    # Test individual response components
+                    self.verify_response_components(data)
+                    return True
+                else:
+                    self.log_test("License Generation", "FAIL", 
+                                f"Only {platforms_licensed} platforms licensed (need 115+)")
+                    return False
+                    
+            else:
+                self.log_test("License Generation", "FAIL", 
+                            f"Endpoint failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("License Generation", "FAIL", 
+                        f"Error testing license generation: {str(e)}")
+            return False
+    
+    def verify_response_components(self, data):
+        """Verify individual components of the response"""
+        
+        # Test message field
+        message = data.get("message", "")
+        if "comprehensive platform licensing" in message.lower():
+            self.log_test("Response Message", "PASS", "Message field contains expected content")
+        else:
+            self.log_test("Response Message", "FAIL", f"Unexpected message: {message}")
+        
+        # Test master_agreement object
+        master_agreement = data.get("master_agreement")
+        if isinstance(master_agreement, dict) and master_agreement:
+            self.log_test("Master Agreement Object", "PASS", "Master agreement object exists and is populated")
+        else:
+            self.log_test("Master Agreement Object", "FAIL", "Master agreement object missing or empty")
+        
+        # Test agreement_id
+        agreement_id = data.get("agreement_id")
+        if agreement_id and isinstance(agreement_id, str):
+            self.log_test("Agreement ID", "PASS", f"Agreement ID generated: {agreement_id}")
+        else:
+            self.log_test("Agreement ID", "FAIL", "Agreement ID missing or invalid")
+        
+        # Test business_entity
+        business_entity = data.get("business_entity")
+        if business_entity:
+            self.log_test("Business Entity", "PASS", f"Business entity populated: {business_entity}")
+        else:
+            self.log_test("Business Entity", "FAIL", "Business entity missing")
+        
+        # Test platform_categories
+        platform_categories = data.get("platform_categories", [])
+        if isinstance(platform_categories, list) and len(platform_categories) > 0:
+            self.log_test("Platform Categories", "PASS", 
+                        f"Found {len(platform_categories)} platform categories")
+        else:
+            self.log_test("Platform Categories", "FAIL", "Platform categories missing or empty")
+        
+        # Test comprehensive_features
+        comprehensive_features = data.get("comprehensive_features", [])
+        expected_features = [
+            "Business information integration",
+            "Multi-platform category licensing", 
+            "Automated compliance documentation"
+        ]
+        
+        found_features = 0
+        for feature in expected_features:
+            if any(feature.lower() in f.lower() for f in comprehensive_features):
+                found_features += 1
+        
+        if found_features >= 2:
+            self.log_test("Comprehensive Features", "PASS", 
+                        f"Found {found_features}/{len(expected_features)} expected features")
+        else:
+            self.log_test("Comprehensive Features", "FAIL", 
+                        f"Only found {found_features}/{len(expected_features)} expected features")
+    
+    def test_error_handling(self):
+        """Test error handling scenarios"""
+        
+        # Test without authentication
+        temp_headers = self.session.headers.copy()
+        if "Authorization" in self.session.headers:
+            del self.session.headers["Authorization"]
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/comprehensive-licensing/generate-all-platform-licenses"
+            )
+            
+            if response.status_code in [401, 403]:
+                self.log_test("Authentication Required", "PASS", 
+                            "Endpoint properly requires authentication")
+            else:
+                self.log_test("Authentication Required", "FAIL", 
+                            f"Endpoint should require auth but returned: {response.status_code}")
+        except Exception as e:
+            self.log_test("Authentication Required", "FAIL", f"Error testing auth: {str(e)}")
+        
+        # Restore headers
+        self.session.headers.update(temp_headers)
+    
+    def test_licensing_dashboard(self):
+        """Test the licensing dashboard endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/comprehensive-licensing/dashboard")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "comprehensive_licensing_dashboard" in data:
+                    self.log_test("Licensing Dashboard", "PASS", "Dashboard endpoint accessible")
+                else:
+                    self.log_test("Licensing Dashboard", "FAIL", "Dashboard data missing")
+            else:
+                self.log_test("Licensing Dashboard", "FAIL", 
+                            f"Dashboard endpoint failed: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Licensing Dashboard", "FAIL", f"Dashboard error: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all comprehensive license generation tests"""
+        print("🚀 Starting Comprehensive Platform License Generation Testing")
+        print("=" * 70)
+        
+        # Test 1: Authentication
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with other tests")
+            return False
+        
+        # Test 2: Distribution platforms availability
+        self.test_distribution_platforms_availability()
+        
+        # Test 3: Main license generation endpoint
+        self.test_comprehensive_license_generation()
+        
+        # Test 4: Error handling
+        self.test_error_handling()
+        
+        # Test 5: Dashboard access
+        self.test_licensing_dashboard()
+        
+        # Summary
+        print("\n" + "=" * 70)
+        print("📊 TEST SUMMARY")
+        print("=" * 70)
+        
+        passed_tests = len([t for t in self.test_results if t["status"] == "PASS"])
+        total_tests = len(self.test_results)
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {total_tests - passed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        # Show failed tests
+        failed_tests = [t for t in self.test_results if t["status"] == "FAIL"]
+        if failed_tests:
+            print("\n❌ FAILED TESTS:")
+            for test in failed_tests:
+                print(f"  - {test['test']}: {test['details']}")
+        
+        return passed_tests == total_tests
 
-async def main():
-    """Main test execution for Updated Revenue Breakdown Configuration"""
-    print("🚀 Starting Updated Revenue Breakdown Configuration Testing")
-    print("=" * 80)
-    print("Testing new stakeholder allocations:")
-    print("• Artist Share: 55% → 25%")
-    print("• Songwriter Share: 20% → 15%") 
-    print("• Publisher Share (Big Mann Entertainment): 15% → 50%")
-    print("• Platform Commission (John LeGerron Spivey): 10% (unchanged)")
-    print("=" * 80)
+def main():
+    """Main test execution"""
+    tester = ComprehensiveLicenseGenerationTester()
+    success = tester.run_all_tests()
     
-    tester = RevenueBreakdownTester()
-    results = await tester.run_all_tests()
-    
-    # Exit with appropriate code
-    if results.get("compensation_dashboard", False):
-        print("\n🎉 ✅ UPDATED REVENUE BREAKDOWN CONFIGURATION TESTING COMPLETED SUCCESSFULLY")
-        print("All new percentages verified and calculation integrity confirmed!")
-        exit(0)
+    if success:
+        print("\n🎉 All tests passed! Comprehensive license generation is working correctly.")
+        sys.exit(0)
     else:
-        print("\n❌ UPDATED REVENUE BREAKDOWN CONFIGURATION TESTING FAILED")
-        print("Issues found with new percentage configuration")
-        exit(1)
+        print("\n⚠️  Some tests failed. Please check the results above.")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
