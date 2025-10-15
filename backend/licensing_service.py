@@ -893,6 +893,53 @@ class LicensingService:
             }
         }
     
+    
+    def calculate_compensation_breakdown(self) -> Dict[str, float]:
+        """
+        Calculate compensation breakdown based on business configuration and industry standards.
+        
+        This method calculates revenue sharing percentages across:
+        - Artist Share (Performance + Master Recording Rights)
+        - Songwriter Share (Composition Rights)
+        - Publisher Share (Publishing Rights)
+        - Platform Commission (Big Mann Entertainment)
+        
+        Calculations follow industry standards:
+        - Total Artist compensation includes both recording and performance rights
+        - Songwriters receive composition mechanical and performance royalties
+        - Publishers get their share of publishing rights
+        - Platform takes operational commission
+        
+        All percentages must sum to 100% for accurate revenue distribution.
+        """
+        
+        # Get compensation settings from environment or use industry-standard defaults
+        artist_percentage = float(os.getenv('ARTIST_SHARE_PERCENTAGE', '60.0'))
+        songwriter_percentage = float(os.getenv('SONGWRITER_SHARE_PERCENTAGE', '20.0'))
+        publisher_percentage = float(os.getenv('PUBLISHER_SHARE_PERCENTAGE', '12.0'))
+        platform_commission = float(os.getenv('PLATFORM_COMMISSION_PERCENTAGE', '8.0'))
+        
+        # Ensure percentages sum to 100%
+        total_percentage = artist_percentage + songwriter_percentage + publisher_percentage + platform_commission
+        
+        if abs(total_percentage - 100.0) > 0.01:  # Allow for floating point precision
+            # Normalize percentages to sum to 100%
+            normalization_factor = 100.0 / total_percentage
+            artist_percentage *= normalization_factor
+            songwriter_percentage *= normalization_factor
+            publisher_percentage *= normalization_factor
+            platform_commission *= normalization_factor
+        
+        return {
+            "artist_percentage": round(artist_percentage, 2),
+            "songwriter_percentage": round(songwriter_percentage, 2),
+            "publisher_percentage": round(publisher_percentage, 2),
+            "big_mann_commission": round(platform_commission, 2),
+            "calculation_method": "industry_standard",
+            "last_updated": datetime.utcnow().isoformat(),
+            "notes": "Percentages calculated based on industry standards for music royalty distribution"
+        }
+
     def get_comprehensive_compliance_status(self) -> Dict[str, Any]:
         """Get comprehensive compliance status across all platforms"""
         try:
