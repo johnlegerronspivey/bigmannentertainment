@@ -24,7 +24,8 @@ sys.path.append('/app/backend')
 
 from uln_models import (
     ULNLabel, LabelType, IntegrationType, LabelMetadataProfile, 
-    GlobalLabelID, TerritoryJurisdiction, AssociatedEntity
+    GlobalLabelID, TerritoryJurisdiction, AssociatedEntity,
+    LabelRegistrationRequest
 )
 from uln_service import ULNService
 
