@@ -399,14 +399,27 @@ class RevenueBreakdownTester:
             await self.cleanup_session()
 
 async def main():
-    """Main test execution"""
-    tester = CompensationBreakdownTester()
+    """Main test execution for Updated Revenue Breakdown Configuration"""
+    print("🚀 Starting Updated Revenue Breakdown Configuration Testing")
+    print("=" * 80)
+    print("Testing new stakeholder allocations:")
+    print("• Artist Share: 55% → 25%")
+    print("• Songwriter Share: 20% → 15%") 
+    print("• Publisher Share (Big Mann Entertainment): 15% → 50%")
+    print("• Platform Commission (John LeGerron Spivey): 10% (unchanged)")
+    print("=" * 80)
+    
+    tester = RevenueBreakdownTester()
     results = await tester.run_all_tests()
     
     # Exit with appropriate code
     if results.get("compensation_dashboard", False):
+        print("\n🎉 ✅ UPDATED REVENUE BREAKDOWN CONFIGURATION TESTING COMPLETED SUCCESSFULLY")
+        print("All new percentages verified and calculation integrity confirmed!")
         exit(0)
     else:
+        print("\n❌ UPDATED REVENUE BREAKDOWN CONFIGURATION TESTING FAILED")
+        print("Issues found with new percentage configuration")
         exit(1)
 
 if __name__ == "__main__":
