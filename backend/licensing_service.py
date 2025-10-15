@@ -874,12 +874,7 @@ class LicensingService:
                 "sync_rate": 500.00,
                 "digital_performance_rate": 0.0084
             },
-            "compensation_breakdown": {
-                "artist_percentage": 50.0,
-                "songwriter_percentage": 25.0,
-                "publisher_percentage": 15.0,
-                "big_mann_commission": 10.0
-            },
+            "compensation_breakdown": self.calculate_compensation_breakdown(),
             "platform_performance": platform_performance_json,
             "recent_payouts": [
                 {
