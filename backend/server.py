@@ -2931,7 +2931,7 @@ class SESService:
     
     async def send_password_reset_email(self, to_email: str, reset_token: str, user_name: str):
         """Send password reset email with Big Mann Entertainment branding"""
-        reset_url = f"https://bigmannentertainment.com/reset-password?token={reset_token}"
+        reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
         
         subject = "Reset Your Big Mann Entertainment Password"
         
