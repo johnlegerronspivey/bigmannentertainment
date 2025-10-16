@@ -30,10 +30,10 @@ oauth.register(
     name='tiktok',
     client_id=os.getenv('TIKTOK_CLIENT_KEY', ''),
     client_secret=os.getenv('TIKTOK_CLIENT_SECRET', ''),
-    authorize_url='https://www.tiktok.com/auth/authorize/',
-    access_token_url='https://open-api.tiktok.com/oauth/access_token/',
-    api_base_url='https://open-api.tiktok.com/',
-    client_kwargs={'scope': 'user.info.basic,video.list'}
+    authorize_url='https://www.tiktok.com/v2/auth/authorize/',
+    access_token_url='https://open.tiktokapis.com/v2/oauth/token/',
+    api_base_url='https://open.tiktokapis.com',
+    client_kwargs={'scope': 'user.info.basic,user.info.profile,user.info.stats,video.list,video.publish'}
 )
 
 # YouTube (Google) OAuth
