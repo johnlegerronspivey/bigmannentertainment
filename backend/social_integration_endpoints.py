@@ -222,6 +222,9 @@ async def oauth_callback(provider: str, request: Request):
         if provider == "twitter":
             provider_instance = TwitterProvider(token['access_token'], config)
             user_profile = await provider_instance.get_user_profile()
+        elif provider == "tiktok":
+            provider_instance = TikTokProvider(token['access_token'], config)
+            user_profile = await provider_instance.get_user_profile()
         else:
             raise HTTPException(status_code=501, detail=f"Provider {provider} not implemented")
         
