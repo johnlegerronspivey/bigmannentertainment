@@ -413,8 +413,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Reset Functionality with AWS SES Integration"
-    - "Comprehensive Backend Testing"
+    - "Comprehensive TikTok Integration Frontend Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
