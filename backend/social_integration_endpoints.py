@@ -27,6 +27,7 @@ from sqlalchemy import select, and_
 from oauth_config import get_provider_config, get_configured_providers, get_oauth_scopes
 from encryption_utils import encrypt_token, decrypt_token
 from providers import TwitterProvider
+from providers.tiktok_provider import TikTokProvider
 from authlib.integrations.starlette_client import OAuth
 
 router = APIRouter(prefix="/api/social", tags=["Social Media Integration"])
