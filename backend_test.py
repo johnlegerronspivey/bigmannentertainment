@@ -9,8 +9,8 @@ import json
 import sys
 from datetime import datetime
 
-# Configuration - Use local backend URL since it's running locally
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use production backend URL from frontend/.env
+BACKEND_URL = "https://uln-profile-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "uln.admin@bigmann.com"
 ADMIN_PASSWORD = "Admin123!"
 
