@@ -106,6 +106,8 @@ async def get_provider_instance(provider: str, user_id: str):
         # Return provider instance based on type
         if provider == "twitter":
             return TwitterProvider(access_token, config)
+        elif provider == "tiktok":
+            return TikTokProvider(access_token, config)
         else:
             raise HTTPException(
                 status_code=501,
