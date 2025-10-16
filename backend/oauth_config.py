@@ -76,15 +76,20 @@ OAUTH_PROVIDERS = {
         "client_secret": os.getenv('TIKTOK_CLIENT_SECRET', ''),
         "authorize_url": "https://www.tiktok.com/v2/auth/authorize/",
         "access_token_url": "https://open.tiktokapis.com/v2/oauth/token/",
-        "api_base_url": "https://open.tiktokapis.com/v2/",
+        "api_base_url": "https://open.tiktokapis.com",
         "scopes": [
             "user.info.basic",
+            "user.info.profile",
+            "user.info.stats",
             "video.list",
             "video.publish"
         ],
         "endpoints": {
             "user_info": "user/info/",
-            "videos": "video/list/"
+            "videos": "video/list/",
+            "video_publish": "post/publish/video/init/",
+            "photo_publish": "post/publish/content/init/",
+            "publish_status": "post/publish/status/fetch/"
         }
     },
     "linkedin": {
