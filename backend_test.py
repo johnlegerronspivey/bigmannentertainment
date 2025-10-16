@@ -556,6 +556,208 @@ class BMEComprehensiveBackendTester:
                         f"PostgreSQL dependency - {str(e)} (expected)")
             return False
     
+    # TikTok Integration Tests
+    
+    def test_tiktok_provider_configuration(self):
+        """Test TikTok provider appears in provider list with configured status"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/social/providers")
+            
+            if response.status_code == 200:
+                data = response.json()
+                providers = data.get("providers", [])
+                
+                # Find TikTok provider
+                tiktok_provider = next((p for p in providers if p.get("provider") == "tiktok"), None)
+                
+                if tiktok_provider:
+                    configured = tiktok_provider.get("configured", False)
+                    name = tiktok_provider.get("name", "")
+                    
+                    if configured:
+                        self.log_test("TikTok Provider Configuration", "PASS", 
+                                    f"TikTok provider found and configured: {name}")
+                        return True
+                    else:
+                        self.log_test("TikTok Provider Configuration", "FAIL", 
+                                    f"TikTok provider found but not configured: {name}")
+                        return False
+                else:
+                    self.log_test("TikTok Provider Configuration", "FAIL", 
+                                "TikTok provider not found in provider list")
+                    return False
+            else:
+                self.log_test("TikTok Provider Configuration", "FAIL", 
+                            f"Failed to get providers: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("TikTok Provider Configuration", "FAIL", 
+                        f"Error testing TikTok provider configuration: {str(e)}")
+            return False
+    
+    def test_tiktok_oauth_status(self):
+        """Test TikTok OAuth configuration status"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/oauth/status")
+            
+            if response.status_code == 200:
+                data = response.json()
+                tiktok_config = data.get("tiktok", {})
+                
+                configured = tiktok_config.get("configured", False)
+                scope = tiktok_config.get("scope", "")
+                
+                if configured:
+                    self.log_test("TikTok OAuth Status", "PASS", 
+                                f"TikTok OAuth configured with scope: {scope}")
+                    return True
+                else:
+                    self.log_test("TikTok OAuth Status", "FAIL", 
+                                "TikTok OAuth not configured")
+                    return False
+            else:
+                self.log_test("TikTok OAuth Status", "FAIL", 
+                            f"Failed to get OAuth status: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("TikTok OAuth Status", "FAIL", 
+                        f"Error testing TikTok OAuth status: {str(e)}")
+            return False
+    
+    def test_tiktok_oauth_connect_endpoint(self):
+        """Test TikTok OAuth connect endpoint exists and doesn't return 404/500"""
+        try:
+            # Test without following redirects to avoid OAuth flow
+            response = self.session.get(f"{BACKEND_URL}/social/connect/tiktok", allow_redirects=False)
+            
+            # Should redirect (302/307) or return authorization URL, not 404/500
+            if response.status_code in [302, 307, 200]:
+                self.log_test("TikTok OAuth Connect Endpoint", "PASS", 
+                            f"TikTok connect endpoint accessible (status: {response.status_code})")
+                return True
+            elif response.status_code == 401:
+                self.log_test("TikTok OAuth Connect Endpoint", "PASS", 
+                            "TikTok connect endpoint requires authentication (expected)")
+                return True
+            elif response.status_code == 400:
+                # Check if it's a configuration error vs endpoint not found
+                error_text = response.text.lower()
+                if "not configured" in error_text or "missing api credentials" in error_text:
+                    self.log_test("TikTok OAuth Connect Endpoint", "FAIL", 
+                                "TikTok OAuth not properly configured")
+                    return False
+                else:
+                    self.log_test("TikTok OAuth Connect Endpoint", "PASS", 
+                                "TikTok connect endpoint exists but has configuration issue")
+                    return True
+            elif response.status_code == 404:
+                self.log_test("TikTok OAuth Connect Endpoint", "FAIL", 
+                            "TikTok connect endpoint not found (404)")
+                return False
+            elif response.status_code == 500:
+                self.log_test("TikTok OAuth Connect Endpoint", "FAIL", 
+                            f"TikTok connect endpoint server error: {response.text}")
+                return False
+            else:
+                self.log_test("TikTok OAuth Connect Endpoint", "PASS", 
+                            f"TikTok connect endpoint accessible (status: {response.status_code})")
+                return True
+                
+        except Exception as e:
+            self.log_test("TikTok OAuth Connect Endpoint", "FAIL", 
+                        f"Error testing TikTok connect endpoint: {str(e)}")
+            return False
+    
+    def test_tiktok_in_social_health(self):
+        """Test TikTok is included in social health endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/social/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                providers = data.get("providers", [])
+                
+                # Check if TikTok is in the providers list
+                tiktok_found = any(p.get("provider") == "tiktok" for p in providers)
+                
+                if tiktok_found:
+                    self.log_test("TikTok in Social Health", "PASS", 
+                                "TikTok found in social health providers list")
+                    return True
+                else:
+                    self.log_test("TikTok in Social Health", "FAIL", 
+                                "TikTok not found in social health providers list")
+                    return False
+            else:
+                self.log_test("TikTok in Social Health", "FAIL", 
+                            f"Social health endpoint failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("TikTok in Social Health", "FAIL", 
+                        f"Error testing TikTok in social health: {str(e)}")
+            return False
+    
+    def test_tiktok_environment_variables(self):
+        """Test TikTok credentials are loaded from environment (indirect test via OAuth status)"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/oauth/status")
+            
+            if response.status_code == 200:
+                data = response.json()
+                tiktok_config = data.get("tiktok", {})
+                
+                configured = tiktok_config.get("configured", False)
+                
+                if configured:
+                    self.log_test("TikTok Environment Variables", "PASS", 
+                                "TikTok credentials loaded from environment (TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET)")
+                    return True
+                else:
+                    self.log_test("TikTok Environment Variables", "FAIL", 
+                                "TikTok credentials not loaded from environment")
+                    return False
+            else:
+                self.log_test("TikTok Environment Variables", "FAIL", 
+                            f"Cannot check environment variables: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("TikTok Environment Variables", "FAIL", 
+                        f"Error testing TikTok environment variables: {str(e)}")
+            return False
+    
+    def test_social_connections_endpoint(self):
+        """Test social connections endpoint works (may return empty if no connections)"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/social/connections")
+            
+            if response.status_code == 200:
+                data = response.json()
+                connections = data.get("connections", [])
+                self.log_test("Social Connections Endpoint", "PASS", 
+                            f"Social connections endpoint working, {len(connections)} connections found")
+                return True
+            elif response.status_code == 404:
+                self.log_test("Social Connections Endpoint", "PASS", 
+                            "Social connections endpoint working (no profile found - expected)")
+                return True
+            elif response.status_code == 500:
+                self.log_test("Social Connections Endpoint", "FAIL", 
+                            "PostgreSQL dependency - endpoint unavailable (expected)")
+                return False
+            else:
+                self.log_test("Social Connections Endpoint", "FAIL", 
+                            f"Social connections failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Social Connections Endpoint", "FAIL", 
+                        f"Error testing social connections: {str(e)}")
+            return False
+    
     def test_database_connectivity(self):
         """Test database connectivity through various endpoints"""
         try:
