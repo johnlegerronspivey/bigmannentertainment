@@ -906,6 +906,26 @@ class BMEComprehensiveBackendTester:
         # Test 19: Social metrics dashboard
         self.test_social_metrics_dashboard()
         
+        print("\n🎵 TIKTOK INTEGRATION TESTING")
+        print("-" * 40)
+        # Test 20: TikTok provider configuration
+        self.test_tiktok_provider_configuration()
+        
+        # Test 21: TikTok OAuth status
+        self.test_tiktok_oauth_status()
+        
+        # Test 22: TikTok OAuth connect endpoint
+        self.test_tiktok_oauth_connect_endpoint()
+        
+        # Test 23: TikTok in social health
+        self.test_tiktok_in_social_health()
+        
+        # Test 24: TikTok environment variables
+        self.test_tiktok_environment_variables()
+        
+        # Test 25: Social connections endpoint (TikTok ready)
+        self.test_social_connections_endpoint()
+        
         # Summary
         print("\n" + "=" * 80)
         print("📊 COMPREHENSIVE TEST SUMMARY")
