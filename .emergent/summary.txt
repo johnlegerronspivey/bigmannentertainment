@@ -1,24 +1,26 @@
 <analysis>
-The previous AI engineer successfully implemented a comprehensive social media integration for the BME application (Twitter/X), including OAuth, new database models, provider interfaces, and API endpoints, while resolving critical infrastructure issues like PostgreSQL setup and various code-level bugs (SQLAlchemy conflicts, circular imports, incorrect column names). Following this, the engineer addressed user requests for performance optimization (backend/frontend utilities, middleware), UI/UX improvements (API client, loading skeletons, error handling, form validation), and bug fixes. Key bug fixes included correcting hardcoded compensation breakdown calculations in the backend, making them configurable via environment variables, and enhancing the frontend UI to prominently display these values. Finally, the engineer diagnosed and fixed multiple supervisor service issues, updating configurations and providing a management script and documentation.
+The AI engineer's work progressed through several critical phases. Initially, the focus was on addressing pending improvements and bug fixes, starting with optimizing ULN granular label updates by refactoring  to utilize the generic Edit Label API, moving away from direct database manipulation. A significant infrastructure issue arose: an unavailable PostgreSQL service, which the engineer resolved by installing, configuring, and initializing the database. Subsequently, a user-reported password reset not working bug led to a multi-stage fix. This involved correcting hardcoded  values in the backend, transitioning from a placeholder SMTP service to AWS SES, and debugging AWS SES sandbox mode limitations. The final challenge was a critical frontend environment variable precedence issue where  was overriding , causing CORS errors. This was resolved by updating the  file. All fixes were thoroughly tested and verified.
 </analysis>
 
 <product_requirements>
 The BME project aims to establish a Unified Label Network (ULN) and a Creator Profile System. The ULN provides admin login, label editing, legal identifiers, label types, and platform integration. The Creator Profile System manages user profiles via a dual-database (PostgreSQL/MongoDB) for GS1 metadata, a one-user-one-vote DAO governance system, and OAuth-based social media integration.
 
-**Initial Completed Task**: Full social media integration, starting with Twitter/X, including dynamic OAuth registration, FastAPI routes (login, callback, posting, webhooks, metrics), database models (, , , , ), an abstract provider interface, and robust security measures (encrypted tokens, OAuth scopes). The frontend UI was updated to use these new APIs.
+**Initial Completed Task**: Full social media integration, starting with Twitter/X, including dynamic OAuth registration, FastAPI routes, database models, an abstract provider interface, and robust security. The frontend UI was updated to use these new APIs.
 
 **Subsequent Requested Improvements & Fixes**:
 *   **Performance Optimization**: For both frontend and backend.
 *   **UI/UX Improvements**: Across all components.
 *   **Error Handling & Validation**: Across all components.
 *   **Feature Refinements**: General improvements.
-*   **Fix Compensation Breakdown**: Correct incorrect calculations in Platform earnings breakdown revenue sharing percentages based on business information.
+*   **Fix Compensation Breakdown**: Correct incorrect calculations in Platform earnings based on business information.
 *   **Fix Comprehensive Licenses**: Resolve issues with generating comprehensive licenses for the entire platform.
 *   **Fix Supervisor Tools**: Address issues with services not starting/crashing, commands not working, logs inaccessible, incorrect status, and update/fix supervisor configuration.
+*   **ULN Edit Label API Improvements**: Ensure granular label updates use the generic Edit Label API, eliminating direct database scripts.
+*   **Fix Password Reset**: Resolve issues preventing the password reset functionality from working.
 </product_requirements>
 
 <key_technical_concepts>
--   **Backend**: FastAPI, Pydantic, SQLAlchemy, Authlib (OAuth), ,  (for encryption),  (for performance monitoring).
+-   **Backend**: FastAPI, Pydantic, SQLAlchemy, Authlib (OAuth), , , ,  (for AWS SES).
 -   **Frontend**: React, React Router, Tailwind CSS, Sonner.
 -   **Databases**: PostgreSQL, MongoDB.
 -   **Architectural Pattern**: Monorepo.
@@ -31,109 +33,47 @@ The application utilizes a monorepo structure, separating the backend (FastAPI) 
 
 
 -   ****:
-    -   **Importance**: Main FastAPI application entry point.
-    -   **Changes Made**: Updated to include  router. Further modified to import new performance utilities (, , ) and integrate them as middleware and add performance monitoring endpoints after the  check.
--   ****:
-    -   **Importance**: Manages metadata-related API operations.
-    -   **Changes Made**: Previously corrected Pydantic warning.
--   ****:
-    -   **Importance**: Defines SQLAlchemy models for Creator Profiles.
-    -   **Changes Made**: Modified for  relationship and later string references (, ) to resolve circular import issues. Corrected column name usage in auto-profile creation.
--   ****:
-    -   **Importance**: Manages PostgreSQL database connections.
-    -   **Changes Made**: Updated to import .
--   ****:
-    -   **Importance**: Script to initialize PostgreSQL tables.
-    -   **Changes Made**: Added import for .
--   ****:
-    -   **Importance**: Stores environment variables.
-    -   **Changes Made**: Updated with Twitter API keys and PostgreSQL credentials. Later updated with revenue sharing percentages: , , ,  for compensation breakdown.
--   ** (NEW)**:
-    -   **Importance**: Provides utilities for encrypting/decrypting sensitive OAuth tokens.
--   ** (NEW)**:
-    -   **Importance**: Centralized configuration for OAuth providers (e.g., Twitter).
--   ** (NEW)**:
-    -   **Importance**: Defines SQLAlchemy models for social media data (, , , , ).
-    -   **Changes Made**: Included  and lazy-loaded string references for relationships.
--   ** (NEW Directory)**:
-    -   **Importance**: Houses individual social media provider implementations.
--   ** (NEW)**:
-    -   **Importance**: Defines an abstract base class ().
--   ** (NEW)**:
-    -   **Importance**: Implements  for Twitter/X API v2.
--   ** (NEW)**:
-    -   **Importance**: Defines FastAPI routes for social media integration (, , , etc.). Includes .
--   ** (NEW)**:
-    -   **Importance**: Provides caching mechanisms for backend performance.
--   ** (NEW)**:
-    -   **Importance**: Implements rate limiting middleware for backend endpoints.
--   ** (NEW)**:
-    -   **Importance**: Offers utilities to monitor backend performance metrics.
--   ** (NEW)**:
-    -   **Importance**: Contains helper functions for database query optimization.
--   ** (NEW)**:
-    -   **Importance**: Provides enhanced data validation utilities for the backend.
+    -   **Importance**: Main FastAPI application entry point, including authentication and email services.
+    -   **Changes Made**: Previously integrated social media and performance utilities. Modified to use environment variables for  in password reset emails instead of hardcoded values. The  was refactored to use AWS SES () instead of SMTP, and enhanced to provide better error messages and handle AWS SES sandbox mode limitations.
 -   ****:
     -   **Importance**: Handles business logic for licensing and compensation.
-    -   **Changes Made**: Modified  to calculate compensation breakdown based on configurable business rules (environment variables) instead of hardcoded values. Added a  helper method.
+    -   **Changes Made**: Modified  to calculate compensation breakdown based on configurable environment variables instead of hardcoded values.
+-   ** (MODIFIED)**:
+    -   **Importance**: Script intended for migrating existing labels to the ULN system.
+    -   **Changes Made**: Updated to use the generic Edit Label API endpoint for label creation/updates, rather than direct database insertions, ensuring API consistency and audit trails.
 -   ****:
-    -   **Importance**: Renders application's About information.
-    -   **Changes Made**: Previously fixed text contrast issues.
+    -   **Importance**: Stores environment variables for backend.
+    -   **Changes Made**: Updated with Twitter API keys, PostgreSQL credentials, revenue sharing percentages, and AWS SES credentials.  was confirmed to point to  as per production requirements.
+-   ** (NEW)**:
+    -   **Importance**: Documentation for AWS SES setup, including verification requirements.
 -   ****:
-    -   **Importance**: Original social media dashboard.
-    -   **Changes Made**: Superseded by .
--   ** (NEW)**:
-    -   **Importance**: Enhanced social media dashboard component interacting with new backend APIs.
--   ****:
-    -   **Importance**: Main frontend file defining routes and component rendering.
-    -   **Changes Made**: Updated to use . Later, enhanced , login/register functions,  to use  with better error handling. Updated loading state with . Enhanced  component with form validation. Added  component.
--   ****:
-    -   **Importance**: Renders licensing and compensation related UI.
-    -   **Changes Made**: Enhanced to display compensation breakdown more prominently with improved labels including stakeholder names.
--   ** (NEW)**:
-    -   **Importance**: Provides loading skeleton components for better UX.
--   ** (NEW)**:
-    -   **Importance**: An enhanced API client for frontend to interact with backend with better error handling.
--   ** (NEW)**:
-    -   **Importance**: Provides client-side form validation utilities.
--   ** (NEW)**:
-    -   **Importance**: Contains helpers for improving frontend accessibility.
--   ** (NEW)**:
-    -   **Importance**: Documentation for social media OAuth integration strategy.
--   ** (NEW)**:
-    -   **Importance**: Documents all backend and frontend performance optimizations implemented.
--   ** (NEW)**:
-    -   **Importance**: Documentation for the supervisor tools and configuration fixes.
+    -   **Importance**: Main frontend file defining routes, component rendering, and core application logic.
+    -   **Changes Made**: Enhanced , login/register,  to use  with better error handling. Added  and . Password reset functionality was examined, but the core issue was environment variable handling.
+-   ** (MODIFIED)**:
+    -   **Importance**: Environment variables specifically for the frontend in development mode, overriding .
+    -   **Changes Made**: Updated  to the correct preview URL () to resolve CORS and API connectivity issues in development.
 </code_architecture>
 
 <pending_tasks>
--   Ensure future granular label updates fully utilize the generic Edit Label API and UI, eliminating reliance on temporary direct database scripts for ULN.
+-   No explicit pending tasks were left by the previous engineer that were not addressed in the trajectory. The ULN granular label updates task was completed by modifying .
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer successfully addressed and verified several critical issues and improvements:
+Immediately before this summary, the AI engineer successfully diagnosed and fixed multiple critical issues, primarily focusing on the password reset not working bug reported by the user, which involved several layers of the application:
 
-1.  **Compensation Breakdown Fix**:
-    *   **Problem**: The Compensation Breakdown in the frontend was showing incorrect or hardcoded percentages for revenue sharing.
-    *   **Backend Fix ()**: The  method was modified. Hardcoded compensation percentages (Publisher Share, Platform Commission, Artist Share, Songwriter Share) were replaced with values retrieved from environment variables (). A new helper method  was introduced to encapsulate this logic.
-    *   **Configuration ()**: The  file was updated with specific environment variables for , , , and . The percentages were iteratively updated based on user requests (e.g., Publisher Share 15% -> 50%, Platform 10%, Artist 25%, Songwriter 15%).
-    *   **Frontend UI Enhancement ()**: The frontend  was enhanced to prominently display the compensation breakdown values. The UI was updated to include clearer labels and stakeholder names to present the calculated revenue sharing percentages transparently.
-    *   **Testing**: Comprehensive backend testing verified the correct calculation and retrieval of compensation data based on the new  configurations. Frontend testing confirmed the updated UI correctly displayed these dynamically calculated values.
+1.  **ULN Edit Label API Improvements**: The  script was identified to be directly manipulating the database. This was refactored to use the existing generic  API endpoint, ensuring all label updates go through the proper API.
 
-2.  **Comprehensive Licenses Fix**:
-    *   **Problem**: There was an issue with generating comprehensive licenses with entire platform.
-    *   **Fix**: The backend endpoint  in  and its corresponding frontend trigger in  were examined and confirmed to be working correctly. Backend testing validated the functionality.
+2.  **PostgreSQL Service Fix**: Following a backend test failure due to PostgreSQL unavailability, the engineer diagnosed that PostgreSQL was not installed. The service was then installed, configured (creating user  and database ), started, and verified, restoring full database functionality.
 
-3.  **Supervisor Tools Fix**:
-    *   **Problem**: Multiple supervisor issues were reported, including services not starting, commands not working, logs inaccessible, and incorrect service status.
-    *   **Diagnosis**: The engineer diagnosed supervisor status, configuration files (), log files, and version, identifying issues like running as root without user specification, lack of HTTP authentication, and unexpected service restarts.
-    *   **Fix**: New, enhanced supervisor configuration files (, ) and a management script () were created. The existing configuration was backed up, and the enhanced configurations were applied. Services were reloaded and restarted.
-    *   **Documentation**: Comprehensive documentation for the supervisor tools and configuration was created in .
-    *   **Testing**: Services were confirmed to be running properly, and the backend initialized successfully after the supervisor fixes.
+3.  **Password Reset Functionality Fix**:
+    *   **Backend URL Hardcoding**: The  within the  method in  was hardcoded to . This was updated to dynamically use the  environment variable.
+    *   **Email Service Integration**: The  in  was found to be using placeholder SMTP settings. It was re-implemented to utilize AWS SES () for robust email sending.
+    *   **AWS SES Sandbox Mode Handling**: It was discovered that AWS SES was in sandbox mode, requiring recipient email addresses to be verified. The  was further refined to provide clearer error messages and gracefully handle this limitation. A documentation file () was also created.
+    *   **Frontend Environment Variable Precedence (CORS Issue)**: The frontend was experiencing CORS errors because  was incorrectly pointing to an old preview URL (). This was traced to the  file, which was overriding the main  file during development. The  file was updated with the correct  URL.
 
-The product currently has a correctly functioning compensation breakdown system, verified comprehensive license generation, and a stable supervisor environment.
+All these fixes were thoroughly tested with comprehensive backend and frontend testing agents, confirming that the password reset functionality is now fully operational and emails are sent successfully via AWS SES, and all previously reported issues are resolved.
 </current_work>
 
 <optional_next_step>
-The previous work concluded with fixing supervisor tools and creating documentation. No explicit next step was requested.
+Confirm with the user if any further features or improvements are required, as all reported issues have been addressed.
 </optional_next_step>
