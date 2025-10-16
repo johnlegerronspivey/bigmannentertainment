@@ -315,7 +315,7 @@ const SocialMediaDashboardEnhanced = () => {
                           onClick={() => handleConnectPlatform(platform)}
                           className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
                         >
-                          Connect {platform === 'twitter' ? '(Available)' : '(Coming Soon)'}
+                          Connect {(platform === 'twitter' || platform === 'tiktok') ? '(Available)' : '(Coming Soon)'}
                         </button>
                       )}
                     </div>
