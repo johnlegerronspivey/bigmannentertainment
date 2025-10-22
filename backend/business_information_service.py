@@ -55,6 +55,9 @@ class BusinessInformation(BaseModel):
     # ISRC Identifier
     isrc_prefix: str  # International Standard Recording Code prefix
     
+    # DPID Identifier
+    dpid: Optional[str] = None  # Digital Provider ID for music industry
+    
     # Regulatory Information
     operating_countries: List[str] = Field(default_factory=list)
     regulatory_licenses: List[Dict[str, Any]] = Field(default_factory=list)
