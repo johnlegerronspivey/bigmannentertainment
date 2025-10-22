@@ -758,6 +758,318 @@ class BMEComprehensiveBackendTester:
                         f"Error testing social connections: {str(e)}")
             return False
     
+    # Additional Health & Infrastructure Tests
+    
+    def test_auth_health_endpoint(self):
+        """Test authentication health endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/auth/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                status = data.get("status")
+                total_users = data.get("total_users", 0)
+                active_sessions = data.get("active_sessions", 0)
+                
+                self.log_test("Auth Health Endpoint", "PASS", 
+                            f"Auth service status: {status}, Users: {total_users}, Sessions: {active_sessions}")
+                return True
+            else:
+                self.log_test("Auth Health Endpoint", "FAIL", 
+                            f"Auth health check failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Auth Health Endpoint", "FAIL", 
+                        f"Error checking auth health: {str(e)}")
+            return False
+    
+    def test_licensing_health_endpoint(self):
+        """Test licensing system health endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/licensing/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                status = data.get("status")
+                capabilities = data.get("capabilities", {})
+                
+                self.log_test("Licensing Health Endpoint", "PASS", 
+                            f"Licensing service status: {status}, Capabilities: {len(capabilities)}")
+                return True
+            else:
+                self.log_test("Licensing Health Endpoint", "FAIL", 
+                            f"Licensing health check failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Licensing Health Endpoint", "FAIL", 
+                        f"Error checking licensing health: {str(e)}")
+            return False
+    
+    def test_performance_stats_endpoint(self):
+        """Test performance monitoring stats endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/performance/stats")
+            
+            if response.status_code == 200:
+                data = response.json()
+                total_requests = data.get("total_requests", 0)
+                error_rate = data.get("error_rate", 0)
+                
+                self.log_test("Performance Stats Endpoint", "PASS", 
+                            f"Performance stats - Requests: {total_requests}, Error Rate: {error_rate}%")
+                return True
+            else:
+                self.log_test("Performance Stats Endpoint", "FAIL", 
+                            f"Performance stats failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Performance Stats Endpoint", "FAIL", 
+                        f"Error checking performance stats: {str(e)}")
+            return False
+    
+    def test_database_stats_endpoint(self):
+        """Test database statistics endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/database/stats")
+            
+            if response.status_code == 200:
+                data = response.json()
+                collections = data.get("collections", 0)
+                indexes = data.get("indexes", {})
+                
+                self.log_test("Database Stats Endpoint", "PASS", 
+                            f"Database stats - Collections: {collections}, Indexes: {len(indexes)}")
+                return True
+            else:
+                self.log_test("Database Stats Endpoint", "FAIL", 
+                            f"Database stats failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Database Stats Endpoint", "FAIL", 
+                        f"Error checking database stats: {str(e)}")
+            return False
+    
+    def test_auth_me_endpoint(self):
+        """Test current user info endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/auth/me")
+            
+            if response.status_code == 200:
+                data = response.json()
+                email = data.get("email", "")
+                role = data.get("role", "")
+                business_name = data.get("business_name", "")
+                
+                self.log_test("Auth Me Endpoint", "PASS", 
+                            f"User info - Email: {email}, Role: {role}, Business: {business_name}")
+                return True
+            else:
+                self.log_test("Auth Me Endpoint", "FAIL", 
+                            f"Auth me failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Auth Me Endpoint", "FAIL", 
+                        f"Error checking auth me: {str(e)}")
+            return False
+    
+    def test_forgot_password_endpoint(self):
+        """Test password reset request endpoint"""
+        try:
+            # Test with a test email (should not actually send email)
+            reset_data = {
+                "email": "test@example.com"
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/auth/forgot-password", json=reset_data)
+            
+            # Should return 200 regardless of whether email exists (security best practice)
+            if response.status_code == 200:
+                data = response.json()
+                message = data.get("message", "")
+                
+                self.log_test("Forgot Password Endpoint", "PASS", 
+                            f"Password reset endpoint working - {message}")
+                return True
+            else:
+                self.log_test("Forgot Password Endpoint", "FAIL", 
+                            f"Forgot password failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Forgot Password Endpoint", "FAIL", 
+                        f"Error testing forgot password: {str(e)}")
+            return False
+    
+    def test_uln_audit_trail_endpoint(self):
+        """Test ULN audit trail endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/uln/audit/trail")
+            
+            if response.status_code == 200:
+                data = response.json()
+                entries = data.get("entries", [])
+                total = data.get("total", len(entries))
+                
+                self.log_test("ULN Audit Trail Endpoint", "PASS", 
+                            f"Audit trail - {total} entries found")
+                return True
+            elif response.status_code == 403:
+                self.log_test("ULN Audit Trail Endpoint", "FAIL", 
+                            "Access denied - requires admin permissions")
+                return False
+            else:
+                self.log_test("ULN Audit Trail Endpoint", "FAIL", 
+                            f"Audit trail failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("ULN Audit Trail Endpoint", "FAIL", 
+                        f"Error checking audit trail: {str(e)}")
+            return False
+    
+    def test_qr_generation_endpoint(self):
+        """Test QR code generation endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/profile/qr/generate")
+            
+            if response.status_code == 200:
+                data = response.json()
+                qr_code = data.get("qr_code", "")
+                
+                if qr_code:
+                    self.log_test("QR Generation Endpoint", "PASS", 
+                                f"QR code generated successfully ({len(qr_code)} chars)")
+                    return True
+                else:
+                    self.log_test("QR Generation Endpoint", "FAIL", 
+                                "No QR code in response")
+                    return False
+            elif response.status_code == 500:
+                self.log_test("QR Generation Endpoint", "FAIL", 
+                            "PostgreSQL dependency - endpoint unavailable (expected)")
+                return False
+            else:
+                self.log_test("QR Generation Endpoint", "FAIL", 
+                            f"QR generation failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("QR Generation Endpoint", "FAIL", 
+                        f"Error testing QR generation: {str(e)}")
+            return False
+    
+    def test_social_providers_endpoint(self):
+        """Test social media providers list endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/social/providers")
+            
+            if response.status_code == 200:
+                data = response.json()
+                providers = data.get("providers", [])
+                
+                # Count configured vs available providers
+                configured_count = len([p for p in providers if p.get("configured", False)])
+                total_count = len(providers)
+                
+                self.log_test("Social Providers Endpoint", "PASS", 
+                            f"Social providers - {configured_count}/{total_count} configured")
+                return True
+            else:
+                self.log_test("Social Providers Endpoint", "FAIL", 
+                            f"Social providers failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Social Providers Endpoint", "FAIL", 
+                        f"Error checking social providers: {str(e)}")
+            return False
+    
+    def test_oauth_status_endpoint(self):
+        """Test OAuth configuration status endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/oauth/status")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Count configured OAuth providers
+                configured_providers = []
+                for provider, config in data.items():
+                    if isinstance(config, dict) and config.get("configured", False):
+                        configured_providers.append(provider)
+                
+                self.log_test("OAuth Status Endpoint", "PASS", 
+                            f"OAuth status - {len(configured_providers)} providers configured: {', '.join(configured_providers)}")
+                return True
+            else:
+                self.log_test("OAuth Status Endpoint", "FAIL", 
+                            f"OAuth status failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("OAuth Status Endpoint", "FAIL", 
+                        f"Error checking OAuth status: {str(e)}")
+            return False
+    
+    def test_social_posts_endpoint(self):
+        """Test social media posts endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/social/posts")
+            
+            if response.status_code == 200:
+                data = response.json()
+                posts = data.get("posts", [])
+                total = data.get("total", len(posts))
+                
+                self.log_test("Social Posts Endpoint", "PASS", 
+                            f"Social posts - {total} posts found")
+                return True
+            elif response.status_code == 404:
+                self.log_test("Social Posts Endpoint", "PASS", 
+                            "Social posts endpoint working (no profile found - expected)")
+                return True
+            elif response.status_code == 500:
+                self.log_test("Social Posts Endpoint", "FAIL", 
+                            "PostgreSQL dependency - endpoint unavailable (expected)")
+                return False
+            else:
+                self.log_test("Social Posts Endpoint", "FAIL", 
+                            f"Social posts failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Social Posts Endpoint", "FAIL", 
+                        f"Error testing social posts: {str(e)}")
+            return False
+    
+    def test_distribution_platforms_endpoint(self):
+        """Test distribution platforms list endpoint"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/distribution/platforms")
+            
+            if response.status_code == 200:
+                data = response.json()
+                platforms = data.get("platforms", [])
+                total = data.get("total_platforms", data.get("total_count", len(platforms)))
+                
+                self.log_test("Distribution Platforms Endpoint", "PASS", 
+                            f"Distribution platforms - {total} platforms available")
+                return True
+            else:
+                self.log_test("Distribution Platforms Endpoint", "FAIL", 
+                            f"Distribution platforms failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Distribution Platforms Endpoint", "FAIL", 
+                        f"Error checking distribution platforms: {str(e)}")
+            return False
+    
     def test_database_connectivity(self):
         """Test database connectivity through various endpoints"""
         try:
