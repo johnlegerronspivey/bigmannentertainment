@@ -58,6 +58,10 @@ class BusinessInformation(BaseModel):
     # DPID Identifier
     dpid: Optional[str] = None  # Digital Provider ID for music industry
     
+    # IPI/IPN Identifiers
+    ipi_number: Optional[str] = None  # Interested Parties Information number
+    ipn_number: Optional[str] = None  # IPI Name Number
+    
     # Regulatory Information
     operating_countries: List[str] = Field(default_factory=list)
     regulatory_licenses: List[Dict[str, Any]] = Field(default_factory=list)
