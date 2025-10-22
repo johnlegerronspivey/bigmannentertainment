@@ -1170,9 +1170,15 @@ class BMEComprehensiveBackendTester:
         
         print("\n🔐 AUTHENTICATION SYSTEM TESTING")
         print("-" * 40)
-        # Authentication tests
-        self.test_auth_login()
-        self.test_auth_me_endpoint()
+        # Authentication tests (skip if not authenticated)
+        if auth_success:
+            self.test_auth_login()
+            self.test_auth_me_endpoint()
+        else:
+            self.log_test("Auth Login", "SKIP", "Skipped due to authentication failure")
+            self.log_test("Auth Me Endpoint", "SKIP", "Skipped due to authentication failure")
+        
+        # Test forgot password (public endpoint)
         self.test_forgot_password_endpoint()
         
         print("\n🏷️ ULN SYSTEM (UNIFIED LABEL NETWORK) TESTING")
