@@ -59,7 +59,8 @@ class BusinessInformation(BaseModel):
     dpid: Optional[str] = None  # Digital Provider ID for music industry
     
     # IPI/IPN Identifiers
-    ipi_number: Optional[str] = None  # Interested Parties Information number
+    ipi_number: Optional[str] = None  # Interested Parties Information number (Company)
+    ipi_number_individual: Optional[str] = None  # IPI for individual owner
     ipn_number: Optional[str] = None  # IPI Name Number
     
     # Regulatory Information
