@@ -115,7 +115,7 @@ class BusinessInformationService:
             "legal_entity_gln": "0860004340201",
             "isan_prefix": "johnlegerron",
             "isrc_prefix": "QZ9H8",
-            "dpid": "PADPIDA20180727000C",
+            "dpid": "PADPIDA2018072700C",
             "ipi_number": "813048171",
             "ipi_number_individual": "578413032",
             "ipn_number": "10959387",
