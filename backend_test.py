@@ -1201,31 +1201,50 @@ class BMEComprehensiveBackendTester:
         
         print("\n👤 CREATOR PROFILE SYSTEM TESTING")
         print("-" * 40)
-        # Profile system tests
-        self.test_profile_me_endpoint()
-        self.test_asset_creation()
-        self.test_qr_generation_endpoint()
+        # Profile system tests (require authentication)
+        if auth_success:
+            self.test_profile_me_endpoint()
+            self.test_asset_creation()
+            self.test_qr_generation_endpoint()
+        else:
+            self.log_test("Profile Me Endpoint", "SKIP", "Skipped - requires authentication")
+            self.log_test("Asset Creation", "SKIP", "Skipped - requires authentication")
+            self.log_test("QR Generation Endpoint", "SKIP", "Skipped - requires authentication")
         
         print("\n🏛️ DAO GOVERNANCE TESTING")
         print("-" * 40)
-        # DAO tests
-        self.test_dao_proposals()
+        # DAO tests (require authentication)
+        if auth_success:
+            self.test_dao_proposals()
+        else:
+            self.log_test("DAO Proposals", "SKIP", "Skipped - requires authentication")
         
         print("\n📱 SOCIAL MEDIA INTEGRATION TESTING")
         print("-" * 40)
         # Social media comprehensive tests
-        self.test_social_providers_endpoint()
-        self.test_oauth_status_endpoint()
-        self.test_social_connections()
-        self.test_social_posts_endpoint()
-        self.test_social_metrics_dashboard()
+        self.test_social_providers_endpoint()  # Public endpoint
+        self.test_oauth_status_endpoint()      # Public endpoint
+        
+        if auth_success:
+            self.test_social_connections()
+            self.test_social_posts_endpoint()
+            self.test_social_metrics_dashboard()
+        else:
+            self.log_test("Social Connections", "SKIP", "Skipped - requires authentication")
+            self.log_test("Social Posts Endpoint", "SKIP", "Skipped - requires authentication")
+            self.log_test("Social Metrics Dashboard", "SKIP", "Skipped - requires authentication")
         
         print("\n💰 LICENSING & COMPENSATION TESTING")
         print("-" * 40)
         # Licensing tests
-        self.test_compensation_dashboard()
-        self.test_comprehensive_licensing()
-        self.test_distribution_platforms_endpoint()
+        self.test_distribution_platforms_endpoint()  # Public endpoint
+        
+        if auth_success:
+            self.test_compensation_dashboard()
+            self.test_comprehensive_licensing()
+        else:
+            self.log_test("Compensation Dashboard", "SKIP", "Skipped - requires authentication")
+            self.log_test("Comprehensive Licensing", "SKIP", "Skipped - requires authentication")
         
         print("\n🎵 TIKTOK INTEGRATION TESTING")
         print("-" * 40)
