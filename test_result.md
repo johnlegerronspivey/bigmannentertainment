@@ -239,9 +239,9 @@ backend:
 
   - task: "TikTok Integration Backend Testing"
     implemented: true
-    working: true
+    working: false
     file: "tiktok_provider.py, oauth_config.py, social_oauth_service.py, social_integration_endpoints.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
