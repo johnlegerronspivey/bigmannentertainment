@@ -119,6 +119,7 @@ class BusinessInformationService:
             "ipi_number": "813048171",
             "ipi_number_individual": "578413032",
             "ipn_number": "10959387",
+            "isni_number": "0000000491551894",
             "established_date": datetime(2020, 1, 1),
             "operating_countries": ["US"],
             "contact_email": "owner@bigmannentertainment.com",
