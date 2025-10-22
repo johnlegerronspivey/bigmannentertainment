@@ -7382,7 +7382,8 @@ cors_origins = [
     "https://dev.bigmannentertainment.com",  # Development
     "https://staging.bigmannentertainment.com",  # Staging
     "https://d36jfidccx04u0.cloudfront.net",  # Current CloudFront (temporary)
-    "https://social-profile-sync.preview.emergentagent.com",  # Current preview URL
+    "https://social-profile-sync.preview.emergentagent.com",  # Preview URL
+    "https://bme-social-connect.preview.emergentagent.com",  # Current preview URL
 ]
 
 app.add_middleware(
