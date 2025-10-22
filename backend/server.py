@@ -141,6 +141,16 @@ from enhanced_validation import Validator, EnhancedValidator
 # Create the main app without a prefix
 app = FastAPI(title="Big Mann Entertainment API", version="1.0.0")
 
+# Add session middleware for OAuth state management
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SECRET_KEY,
+    session_cookie="bme_session",
+    max_age=1800,  # 30 minutes
+    same_site="lax",
+    https_only=False  # Set to True in production with HTTPS
+)
+
 # Add performance monitoring middleware
 @app.middleware("http")
 async def performance_tracking_middleware(request: Request, call_next):
