@@ -313,6 +313,7 @@ class BusinessIdentifiers(BaseModel):
     ipi_business: Optional[str] = None
     ipi_principal: Optional[str] = None
     ipn_number: Optional[str] = None  # IPI Name Number
+    dpid: Optional[str] = None  # Digital Provider ID
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
