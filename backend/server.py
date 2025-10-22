@@ -128,6 +128,7 @@ PUBLISHER_NUMBER = os.environ.get('PUBLISHER_NUMBER', 'PA04UV')
 IPI_BUSINESS = os.environ.get('IPI_NUMBER_COMPANY', '813048171')  # IPI Business/Company Number
 IPI_PRINCIPAL = os.environ.get('IPI_NUMBER_INDIVIDUAL', '578413032')  # IPI Principal/Individual Number
 IPN_NUMBER = os.environ.get('IPN_NUMBER', '10959387')  # IPI Name Number
+DPID = os.environ.get('DPID', 'PADPIDA2018072700C')  # Digital Provider ID
 BUSINESS_LEGAL_NAME = os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment')
 PRINCIPAL_NAME = os.environ.get('PRINCIPAL_NAME', 'John LeGerron Spivey')
 
