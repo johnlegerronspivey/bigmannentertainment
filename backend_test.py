@@ -9,8 +9,8 @@ import json
 import sys
 from datetime import datetime
 
-# Configuration - Use production backend URL from frontend/.env
-BACKEND_URL = "https://uln-profile-hub.preview.emergentagent.com/api"
+# Configuration - Use production backend URL from review request
+BACKEND_URL = "https://bme-social-connect.preview.emergentagent.com/api"
 ADMIN_EMAIL = "uln.admin@bigmann.com"
 ADMIN_PASSWORD = "Admin123!"
 
