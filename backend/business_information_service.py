@@ -116,6 +116,7 @@ class BusinessInformationService:
             "isrc_prefix": "QZ9H8",
             "dpid": "PADPIDA2018072700C",
             "ipi_number": "813048171",
+            "ipi_number_individual": "578413032",
             "ipn_number": "10959387",
             "established_date": datetime(2020, 1, 1),
             "operating_countries": ["US"],
