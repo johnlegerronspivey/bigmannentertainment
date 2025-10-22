@@ -114,6 +114,8 @@ class BusinessInformationService:
             "isan_prefix": "johnlegerron",
             "isrc_prefix": "QZ9H8",
             "dpid": "PADPIDA2018072700C",
+            "ipi_number": "813048171",
+            "ipn_number": "10959387",
             "established_date": datetime(2020, 1, 1),
             "operating_countries": ["US"],
             "contact_email": "owner@bigmannentertainment.com",
