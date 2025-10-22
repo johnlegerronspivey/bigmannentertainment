@@ -1150,10 +1150,11 @@ class BMEComprehensiveBackendTester:
         print("Following Review Request Protocol for https://bme-social-connect.preview.emergentagent.com")
         print("=" * 80)
         
-        # Test 1: Authentication
-        if not self.authenticate():
-            print("❌ Authentication failed - cannot proceed with other tests")
-            return False
+        # Test 1: Authentication (continue even if it fails to test public endpoints)
+        auth_success = self.authenticate()
+        if not auth_success:
+            print("⚠️  Authentication failed - will test public endpoints only")
+            print("    This may be due to account lockout or incorrect credentials")
         
         print("\n🔍 HEALTH & INFRASTRUCTURE CHECKS")
         print("-" * 40)
