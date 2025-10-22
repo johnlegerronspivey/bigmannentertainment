@@ -270,10 +270,14 @@ async def register_musical_work(
         
         # Add publisher if provided
         if publisher_name:
+            # Use actual IPI and IPN for Big Mann Entertainment
+            publisher_ipi = "813048171" if publisher_name == "Big Mann Entertainment" else f"00000000{uuid.uuid4().hex[:3].upper()}"
+            publisher_ipn = "10959387" if publisher_name == "Big Mann Entertainment" else None
             publisher = DDEXParty(
                 party_name=publisher_name,
                 party_type="Publisher",
-                ipi=f"00000000{uuid.uuid4().hex[:3].upper()}"
+                ipi=publisher_ipi,
+                ipn=publisher_ipn
             )
             publishers.append(publisher)
         
