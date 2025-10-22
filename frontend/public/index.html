@@ -29,6 +29,57 @@
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
+        <!-- Disable Emergent Platform Tracking -->
+        <script>
+            // Block Emergent platform analytics by intercepting script loads
+            const originalAppendChild = Node.prototype.appendChild;
+            const originalInsertBefore = Node.prototype.insertBefore;
+            
+            const blockList = [
+                'api.emergent.sh',
+                'app.emergent.sh',
+                'emergent.sh/loading-preview',
+                'connect.facebook.net',
+                'googletagmanager.com',
+                'google-analytics.com',
+                'blitzllama.com',
+                'mpc-prod'
+            ];
+            
+            Node.prototype.appendChild = function(child) {
+                if (child.tagName === 'SCRIPT' || child.tagName === 'IFRAME') {
+                    const src = child.src || child.getAttribute('src') || '';
+                    if (blockList.some(blocked => src.includes(blocked))) {
+                        console.log('[BME] Blocked external tracking script:', src);
+                        return child;
+                    }
+                }
+                return originalAppendChild.call(this, child);
+            };
+            
+            Node.prototype.insertBefore = function(child, reference) {
+                if (child.tagName === 'SCRIPT' || child.tagName === 'IFRAME') {
+                    const src = child.src || child.getAttribute('src') || '';
+                    if (blockList.some(blocked => src.includes(blocked))) {
+                        console.log('[BME] Blocked external tracking script:', src);
+                        return child;
+                    }
+                }
+                return originalInsertBefore.call(this, child, reference);
+            };
+            
+            // Stub out fbq if Facebook Pixel tries to load
+            window.fbq = function() {
+                console.log('[BME] Facebook Pixel call blocked');
+            };
+            window._fbq = window.fbq;
+            
+            // Stub out gtag if Google Analytics tries to load
+            window.gtag = function() {
+                console.log('[BME] Google Analytics call blocked');
+            };
+            window.dataLayer = window.dataLayer || [];
+        </script>
         <div id="root"></div>
         <!--
       This HTML file is a template.
