@@ -1147,6 +1147,7 @@ class BMEComprehensiveBackendTester:
     def run_all_tests(self):
         """Run all BME comprehensive backend tests"""
         print("🚀 Starting BME Application Comprehensive Backend Testing")
+        print("Following Review Request Protocol for https://bme-social-connect.preview.emergentagent.com")
         print("=" * 80)
         
         # Test 1: Authentication
@@ -1154,89 +1155,76 @@ class BMEComprehensiveBackendTester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return False
         
-        print("\n🔍 GENERAL HEALTH CHECKS")
+        print("\n🔍 HEALTH & INFRASTRUCTURE CHECKS")
         print("-" * 40)
-        # Test 2: Main health endpoint
+        # Main health endpoints
         self.test_main_health_endpoint()
-        
-        # Test 3: Auth login (separate test)
-        self.test_auth_login()
-        
-        # Test 4: Database connectivity
-        self.test_database_connectivity()
-        
-        print("\n🏷️ ULN SYSTEM TESTING")
-        print("-" * 40)
-        # Test 5: ULN health endpoint
+        self.test_auth_health_endpoint()
         self.test_uln_health_endpoint()
+        self.test_profile_health_endpoint()
+        self.test_social_health_endpoint()
+        self.test_licensing_health_endpoint()
+        self.test_performance_stats_endpoint()
+        self.test_database_stats_endpoint()
         
-        # Test 6: ULN label hub
+        print("\n🔐 AUTHENTICATION SYSTEM TESTING")
+        print("-" * 40)
+        # Authentication tests
+        self.test_auth_login()
+        self.test_auth_me_endpoint()
+        self.test_forgot_password_endpoint()
+        
+        print("\n🏷️ ULN SYSTEM (UNIFIED LABEL NETWORK) TESTING")
+        print("-" * 40)
+        # ULN comprehensive tests
         self.test_uln_label_hub()
-        
-        # Test 7: ULN edit label API
         self.test_uln_edit_label_api()
-        
-        # Test 8: ULN advanced search
         self.test_uln_advanced_search()
-        
-        # Test 9: ULN bulk edit
         self.test_uln_bulk_edit()
-        
-        # Test 10: ULN export
         self.test_uln_export()
+        self.test_uln_audit_trail_endpoint()
         
         print("\n👤 CREATOR PROFILE SYSTEM TESTING")
         print("-" * 40)
-        # Test 11: Profile health
-        self.test_profile_health_endpoint()
-        
-        # Test 12: Profile me endpoint
+        # Profile system tests
         self.test_profile_me_endpoint()
-        
-        # Test 13: Asset creation
         self.test_asset_creation()
+        self.test_qr_generation_endpoint()
         
-        # Test 14: DAO proposals
-        self.test_dao_proposals()
-        
-        print("\n💰 LICENSING & COMPENSATION TESTING")
+        print("\n🏛️ DAO GOVERNANCE TESTING")
         print("-" * 40)
-        # Test 15: Compensation dashboard
-        self.test_compensation_dashboard()
-        
-        # Test 16: Comprehensive licensing
-        self.test_comprehensive_licensing()
+        # DAO tests
+        self.test_dao_proposals()
         
         print("\n📱 SOCIAL MEDIA INTEGRATION TESTING")
         print("-" * 40)
-        # Test 17: Social health
-        self.test_social_health_endpoint()
-        
-        # Test 18: Social connections
+        # Social media comprehensive tests
+        self.test_social_providers_endpoint()
+        self.test_oauth_status_endpoint()
         self.test_social_connections()
-        
-        # Test 19: Social metrics dashboard
+        self.test_social_posts_endpoint()
         self.test_social_metrics_dashboard()
+        
+        print("\n💰 LICENSING & COMPENSATION TESTING")
+        print("-" * 40)
+        # Licensing tests
+        self.test_compensation_dashboard()
+        self.test_comprehensive_licensing()
+        self.test_distribution_platforms_endpoint()
         
         print("\n🎵 TIKTOK INTEGRATION TESTING")
         print("-" * 40)
-        # Test 20: TikTok provider configuration
+        # TikTok specific tests
         self.test_tiktok_provider_configuration()
-        
-        # Test 21: TikTok OAuth status
         self.test_tiktok_oauth_status()
-        
-        # Test 22: TikTok OAuth connect endpoint
         self.test_tiktok_oauth_connect_endpoint()
-        
-        # Test 23: TikTok in social health
         self.test_tiktok_in_social_health()
-        
-        # Test 24: TikTok environment variables
         self.test_tiktok_environment_variables()
         
-        # Test 25: Social connections endpoint (TikTok ready)
-        self.test_social_connections_endpoint()
+        print("\n🗄️ DATABASE CONNECTIVITY TESTING")
+        print("-" * 40)
+        # Database tests
+        self.test_database_connectivity()
         
         # Summary
         print("\n" + "=" * 80)
@@ -1251,7 +1239,7 @@ class BMEComprehensiveBackendTester:
         print(f"Failed: {total_tests - passed_tests}")
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
-        # Show failed tests
+        # Show failed tests with details
         failed_tests = [t for t in self.test_results if t["status"] == "FAIL"]
         if failed_tests:
             print("\n❌ FAILED TESTS:")
@@ -1261,7 +1249,7 @@ class BMEComprehensiveBackendTester:
         # Show passed tests summary
         passed_test_names = [t["test"] for t in self.test_results if t["status"] == "PASS"]
         if passed_test_names:
-            print("\n✅ PASSED TESTS:")
+            print(f"\n✅ PASSED TESTS ({len(passed_test_names)}):")
             for test_name in passed_test_names:
                 print(f"  - {test_name}")
         
