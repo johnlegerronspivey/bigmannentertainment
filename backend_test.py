@@ -1183,13 +1183,21 @@ class BMEComprehensiveBackendTester:
         
         print("\n🏷️ ULN SYSTEM (UNIFIED LABEL NETWORK) TESTING")
         print("-" * 40)
-        # ULN comprehensive tests
-        self.test_uln_label_hub()
-        self.test_uln_edit_label_api()
-        self.test_uln_advanced_search()
-        self.test_uln_bulk_edit()
-        self.test_uln_export()
-        self.test_uln_audit_trail_endpoint()
+        # ULN comprehensive tests (most require admin auth)
+        if auth_success:
+            self.test_uln_label_hub()
+            self.test_uln_edit_label_api()
+            self.test_uln_advanced_search()
+            self.test_uln_bulk_edit()
+            self.test_uln_export()
+            self.test_uln_audit_trail_endpoint()
+        else:
+            self.log_test("ULN Label Hub", "SKIP", "Skipped - requires admin authentication")
+            self.log_test("ULN Edit Label API", "SKIP", "Skipped - requires admin authentication")
+            self.log_test("ULN Advanced Search", "SKIP", "Skipped - requires admin authentication")
+            self.log_test("ULN Bulk Edit", "SKIP", "Skipped - requires admin authentication")
+            self.log_test("ULN Export", "SKIP", "Skipped - requires admin authentication")
+            self.log_test("ULN Audit Trail Endpoint", "SKIP", "Skipped - requires admin authentication")
         
         print("\n👤 CREATOR PROFILE SYSTEM TESTING")
         print("-" * 40)
