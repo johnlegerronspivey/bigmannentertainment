@@ -109,10 +109,12 @@ async def create_ern_message(
         )
         
         # Create DDEX Party for label
+        # Use actual DPID for Big Mann Entertainment
+        label_dpid = "PADPIDA2018072700C" if label_name == "Big Mann Entertainment" else f"LABEL_{uuid.uuid4().hex[:8].upper()}"
         label_party = DDEXParty(
             party_name=label_name,
             party_type="Label",
-            dpid=f"LABEL_{uuid.uuid4().hex[:8].upper()}"
+            dpid=label_dpid
         )
         
         # Create audio resource
