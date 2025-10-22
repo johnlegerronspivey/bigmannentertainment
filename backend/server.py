@@ -4940,7 +4940,8 @@ async def get_business_identifiers(current_user: User = Depends(get_current_user
         publisher_number=PUBLISHER_NUMBER,
         ipi_business=IPI_BUSINESS,
         ipi_principal=IPI_PRINCIPAL,
-        ipn_number=IPN_NUMBER
+        ipn_number=IPN_NUMBER,
+        dpid=DPID
     )
 
 @api_router.post("/business/generate-upc")
