@@ -11,7 +11,7 @@ from datetime import datetime
 
 # Configuration - Use production backend URL from review request
 BACKEND_URL = "https://bme-social-connect.preview.emergentagent.com/api"
-ADMIN_EMAIL = "uln.admin@bigmann.com"
+ADMIN_EMAIL = "test.admin@bigmann.com"
 ADMIN_PASSWORD = "Admin123!"
 
 class BMEComprehensiveBackendTester:
