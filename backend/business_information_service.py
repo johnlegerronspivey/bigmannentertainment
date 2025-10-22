@@ -62,6 +62,7 @@ class BusinessInformation(BaseModel):
     ipi_number: Optional[str] = None  # Interested Parties Information number (Company)
     ipi_number_individual: Optional[str] = None  # IPI for individual owner
     ipn_number: Optional[str] = None  # IPI Name Number
+    isni_number: Optional[str] = None  # International Standard Name Identifier
     
     # Regulatory Information
     operating_countries: List[str] = Field(default_factory=list)
