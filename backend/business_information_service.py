@@ -142,7 +142,9 @@ class BusinessInformationService:
                 IndexModel([("tin", 1)]),
                 IndexModel([("legal_entity_gln", 1)]),
                 IndexModel([("company_prefix", 1)]),
-                IndexModel([("dpid", 1)])
+                IndexModel([("dpid", 1)]),
+                IndexModel([("ipi_number", 1)]),
+                IndexModel([("ipn_number", 1)])
             ])
             
             logger.info("Business information collections initialized successfully")
