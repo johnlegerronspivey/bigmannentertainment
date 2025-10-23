@@ -1425,11 +1425,14 @@ const Register = () => {
           {step === 2 && (
             <form onSubmit={handleRegister} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="register-address-line1" className="block text-sm font-medium text-gray-700 mb-2">
                   Street Address <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="register-address-line1"
+                  name="address_line1"
                   type="text"
+                  autoComplete="address-line1"
                   required
                   value={formData.address_line1}
                   onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
@@ -1439,11 +1442,14 @@ const Register = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="register-address-line2" className="block text-sm font-medium text-gray-700 mb-2">
                   Address Line 2 <span className="text-gray-400 text-xs">(Optional)</span>
                 </label>
                 <input
+                  id="register-address-line2"
+                  name="address_line2"
                   type="text"
+                  autoComplete="address-line2"
                   value={formData.address_line2}
                   onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
@@ -1453,11 +1459,14 @@ const Register = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="register-city" className="block text-sm font-medium text-gray-700 mb-2">
                     City <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="register-city"
+                    name="city"
                     type="text"
+                    autoComplete="address-level2"
                     required
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
