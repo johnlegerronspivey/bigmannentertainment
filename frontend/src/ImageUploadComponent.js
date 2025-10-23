@@ -484,7 +484,8 @@ const MediaUploadComponent = () => {
                 min="1"
                 max={earnings?.earnings_summary?.total_earnings || 0}
                 placeholder="0.00"
-                id="payout-amount"
+                id="image-payout-amount"
+                name="payout_amount"
               />
             </div>
             
@@ -498,11 +499,12 @@ const MediaUploadComponent = () => {
             </div>
             
             <div className="form-group">
-              <label>Payout Details (Email/Account Info)</label>
+              <label htmlFor="image-payout-details">Payout Details (Email/Account Info)</label>
               <input
                 type="text"
                 placeholder="paypal@example.com or account details"
-                id="payout-details"
+                id="image-payout-details"
+                name="payout_details"
               />
             </div>
             
