@@ -68,11 +68,21 @@
                 return originalInsertBefore.call(this, child, reference);
             };
             
-            // Stub out fbq if Facebook Pixel tries to load
+            // Comprehensive Facebook Pixel stub to prevent errors and warnings
             window.fbq = function() {
-                console.log('[BME] Facebook Pixel call blocked');
+                // Silently ignore all Facebook Pixel calls
+                return;
             };
+            window.fbq.push = function() { return; };
+            window.fbq.loaded = true;
+            window.fbq.version = '2.0';
+            window.fbq.queue = [];
             window._fbq = window.fbq;
+            
+            // Prevent Facebook Pixel from initializing
+            window.FB = window.FB || {};
+            window.FB.init = function() { return; };
+            window.FB.AppEvents = { logEvent: function() { return; } };
             
             // Stub out gtag if Google Analytics tries to load
             window.gtag = function() {
