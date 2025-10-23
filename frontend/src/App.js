@@ -1321,11 +1321,14 @@ const Register = () => {
           {step === 1 && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="register-full-name" className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="register-full-name"
+                  name="full_name"
                   type="text"
+                  autoComplete="name"
                   required
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
@@ -1335,11 +1338,14 @@ const Register = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="register-email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="register-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -1349,11 +1355,14 @@ const Register = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="register-password" className="block text-sm font-medium text-gray-700 mb-2">
                   Password <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="register-password"
+                  name="password"
                   type="password"
+                  autoComplete="new-password"
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -1367,11 +1376,14 @@ const Register = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="register-business-name" className="block text-sm font-medium text-gray-700 mb-2">
                   Business Name <span className="text-gray-400 text-xs">(Optional)</span>
                 </label>
                 <input
+                  id="register-business-name"
+                  name="business_name"
                   type="text"
+                  autoComplete="organization"
                   value={formData.business_name}
                   onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
@@ -1380,11 +1392,14 @@ const Register = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="register-date-of-birth" className="block text-sm font-medium text-gray-700 mb-2">
                   Date of Birth <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="register-date-of-birth"
+                  name="date_of_birth"
                   type="date"
+                  autoComplete="bday"
                   required
                   value={formData.date_of_birth}
                   onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
