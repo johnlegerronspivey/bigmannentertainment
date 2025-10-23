@@ -81,12 +81,45 @@
             window.fbq.loaded = true;
             window.fbq.version = '2.0';
             window.fbq.queue = [];
+            window.fbq.callMethod = function() { return; };
             window._fbq = window.fbq;
             
             // Prevent Facebook Pixel from initializing
             window.FB = window.FB || {};
             window.FB.init = function() { return; };
             window.FB.AppEvents = { logEvent: function() { return; } };
+            
+            // Watch for dynamically injected scripts and remove them
+            if (typeof MutationObserver !== 'undefined') {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.tagName === 'SCRIPT') {
+                                const src = node.src || '';
+                                if (blockList.some(blocked => src.includes(blocked))) {
+                                    console.log('[BME] Blocked injected script:', src);
+                                    node.remove();
+                                }
+                            } else if (node.tagName === 'IFRAME') {
+                                const src = node.src || '';
+                                if (blockList.some(blocked => src.includes(blocked))) {
+                                    console.log('[BME] Blocked injected iframe:', src);
+                                    node.remove();
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                // Start observing after DOM is ready
+                if (document.body) {
+                    observer.observe(document.body, { childList: true, subtree: true });
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        observer.observe(document.body, { childList: true, subtree: true });
+                    });
+                }
+            }
             
             // Stub out gtag if Google Analytics tries to load
             window.gtag = function() {
