@@ -1475,11 +1475,14 @@ const Register = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="register-state-province" className="block text-sm font-medium text-gray-700 mb-2">
                     State/Province <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="register-state-province"
+                    name="state_province"
                     type="text"
+                    autoComplete="address-level1"
                     required
                     value={formData.state_province}
                     onChange={(e) => setFormData({ ...formData, state_province: e.target.value })}
@@ -1491,11 +1494,14 @@ const Register = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="register-postal-code" className="block text-sm font-medium text-gray-700 mb-2">
                     Postal Code <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="register-postal-code"
+                    name="postal_code"
                     type="text"
+                    autoComplete="postal-code"
                     required
                     value={formData.postal_code}
                     onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
@@ -1504,10 +1510,13 @@ const Register = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="register-country" className="block text-sm font-medium text-gray-700 mb-2">
                     Country <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="register-country"
+                    name="country"
+                    autoComplete="country"
                     value={formData.country}
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
