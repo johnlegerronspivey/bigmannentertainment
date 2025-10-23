@@ -489,8 +489,8 @@ const MediaUploadComponent = () => {
             </div>
             
             <div className="form-group">
-              <label>Payout Method</label>
-              <select id="payout-method">
+              <label htmlFor="media-payout-method">Payout Method</label>
+              <select id="media-payout-method" name="payout_method">
                 <option value="paypal">PayPal (2.5% fee)</option>
                 <option value="stripe">Stripe (2.9% fee)</option>
                 <option value="bank_transfer">Bank Transfer (1.5% fee)</option>
