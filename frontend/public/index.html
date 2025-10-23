@@ -86,9 +86,38 @@
             
             // Stub out gtag if Google Analytics tries to load
             window.gtag = function() {
-                console.log('[BME] Google Analytics call blocked');
+                // Silently ignore Google Analytics calls
+                return;
             };
             window.dataLayer = window.dataLayer || [];
+            
+            // Suppress Meta Pixel console warnings
+            const originalConsoleWarn = console.warn;
+            console.warn = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('[Meta Pixel]') || 
+                    message.includes('Facebook') || 
+                    message.includes('invalid email') ||
+                    message.includes('fbevents')) {
+                    // Suppress Meta Pixel warnings
+                    return;
+                }
+                originalConsoleWarn.apply(console, args);
+            };
+            
+            // Suppress Meta Pixel console errors
+            const originalConsoleError = console.error;
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('connect.facebook.net') || 
+                    message.includes('fbevents') ||
+                    message.includes('api.emergent.sh') ||
+                    message.includes('app.emergent.sh')) {
+                    // Suppress external platform errors
+                    return;
+                }
+                originalConsoleError.apply(console, args);
+            };
         </script>
         <div id="root"></div>
         <!--
