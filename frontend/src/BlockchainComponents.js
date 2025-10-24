@@ -130,8 +130,62 @@ export const BlockchainIntegrationDashboard = () => {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {error}
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-md">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-lg font-medium text-red-800 mb-2">
+                    Failed to Load Blockchain Integration Status
+                  </h3>
+                  <p className="text-red-700 mb-4">{error}</p>
+                  
+                  {error.includes('404') || error.includes('not accessible') ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4">
+                      <p className="text-sm text-yellow-800 font-semibold mb-2">⚠️ Backend API Not Accessible</p>
+                      <p className="text-sm text-yellow-700 mb-3">
+                        The preview environment's routing is not initialized. This is a platform infrastructure issue.
+                      </p>
+                      <div className="space-y-2 text-sm text-yellow-800">
+                        <p>✅ <strong>Option 1:</strong> Click "Wake up servers" button (if visible)</p>
+                        <p>✅ <strong>Option 2:</strong> Test locally: <code className="bg-yellow-100 px-2 py-1 rounded">http://localhost:3000</code></p>
+                        <p>✅ <strong>Option 3:</strong> Deploy your app for stable access</p>
+                      </div>
+                    </div>
+                  ) : null}
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={fetchIntegrationStatus}
+                      className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                    >
+                      🔄 Retry
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/'}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors"
+                    >
+                      ← Back to Home
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Additional Help Section */}
+            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-blue-800 mb-2">💡 Need Help?</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Check your internet connection</li>
+                <li>• Ensure you're logged in with admin credentials</li>
+                <li>• Try refreshing the page</li>
+                <li>• Contact support if the issue persists</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
