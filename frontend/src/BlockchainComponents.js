@@ -43,8 +43,12 @@ export const BlockchainIntegrationDashboard = () => {
       } else if (response.status === 401) {
         setError('Session expired. Please log in again.');
         localStorage.removeItem('token');
+      } else if (response.status === 404) {
+        setError('Backend API not accessible. Please ensure the preview servers are active or test locally at http://localhost:3000');
+      } else if (response.status === 403) {
+        setError('Admin access required. Please log in with admin credentials.');
       } else {
-        setError('Failed to load blockchain integration status');
+        setError(`Failed to load blockchain integration status (Status: ${response.status})`);
       }
     } catch (error) {
       console.error('Blockchain status fetch error:', error);
