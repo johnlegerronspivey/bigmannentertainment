@@ -7387,6 +7387,7 @@ cors_origins = [
     "https://d36jfidccx04u0.cloudfront.net",  # Current CloudFront (temporary)
     "https://social-profile-sync.preview.emergentagent.com",  # Preview URL
     "https://bme-social-connect.preview.emergentagent.com",  # Current preview URL
+    "https://bme-connect-1.preview.emergentagent.com",
 ]
 
 app.add_middleware(
