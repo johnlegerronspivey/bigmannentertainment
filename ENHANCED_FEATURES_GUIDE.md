@@ -54,6 +54,7 @@ Five major AI-powered features have been successfully implemented in the BME pla
 - TikTok
 - YouTube Shorts
 - Instagram Reels
+- OnlyFans
 
 **Key Capabilities:**
 - Multi-platform distribution from single upload
