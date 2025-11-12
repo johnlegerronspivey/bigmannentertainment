@@ -7397,6 +7397,7 @@ app.include_router(analytics_router)
 app.include_router(lifecycle_router)
 api_router.include_router(enhanced_features_router)
 api_router.include_router(agency_aws_router)
+api_router.include_router(snapchat_router)
 
 # CORS configuration for multi-environment setup
 cors_origins = [
