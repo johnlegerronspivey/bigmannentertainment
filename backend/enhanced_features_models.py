@@ -60,6 +60,7 @@ class SocialPlatformType(str, Enum):
     TIKTOK = "tiktok"
     YOUTUBE_SHORTS = "youtube_shorts"
     INSTAGRAM_REELS = "instagram_reels"
+    ONLYFANS = "onlyfans"
 
 class SocialDistributionRequest(BaseModel):
     """Request for social platform native distribution"""
