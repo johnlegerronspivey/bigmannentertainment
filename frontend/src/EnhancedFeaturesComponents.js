@@ -286,7 +286,7 @@ export const SocialPlatformDistribution = ({ token }) => {
       <h2 className="text-2xl font-bold mb-4 flex items-center">
         <span className="mr-2">🚀</span> Social Platform Native Distribution
       </h2>
-      <p className="text-gray-600 mb-6">Direct distribution to TikTok, YouTube Shorts, and Instagram Reels</p>
+      <p className="text-gray-600 mb-6">Direct distribution to TikTok, YouTube Shorts, Instagram Reels, and OnlyFans</p>
 
       <div className="space-y-4 mb-6">
         <input
