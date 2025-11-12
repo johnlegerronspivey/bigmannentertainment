@@ -658,6 +658,15 @@ DISTRIBUTION_PLATFORMS = {
         "credentials_required": ["client_id", "client_secret", "access_token"],
         "description": "Enhanced multimedia messaging and content sharing"
     },
+    "onlyfans": {
+        "type": "social_media",
+        "name": "OnlyFans",
+        "api_endpoint": "https://onlyfans.com/api2/v2",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["user_id", "auth_token", "user_agent"],
+        "description": "Content subscription and monetization platform for creators"
+    },
 
     # Major Music Streaming Platforms (16 platforms)
     "spotify": {
