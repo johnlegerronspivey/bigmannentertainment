@@ -203,7 +203,8 @@ export const SocialPlatformDistribution = ({ token }) => {
   const platformOptions = [
     { value: 'tiktok', label: 'TikTok', icon: '🎵' },
     { value: 'youtube_shorts', label: 'YouTube Shorts', icon: '▶️' },
-    { value: 'instagram_reels', label: 'Instagram Reels', icon: '📸' }
+    { value: 'instagram_reels', label: 'Instagram Reels', icon: '📸' },
+    { value: 'onlyfans', label: 'OnlyFans', icon: '💎' }
   ];
 
   const createDistribution = async () => {
