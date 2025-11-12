@@ -40,6 +40,7 @@ import { RealTimeRoyaltyDashboard } from './RealTimeRoyaltyComponents';
 import { ComprehensivePlatform } from './ComprehensivePlatformComponents';
 import { WorkflowIntegrationDashboard } from './WorkflowIntegrationComponents';
 import { SupportSystemDashboard } from './SupportSystemComponents';
+import EnhancedFeaturesDashboard from './EnhancedFeaturesComponents';
 import CreatorProfilePage from './CreatorProfile';
 import ProfileSettings from './ProfileSettings';
 import DAOGovernance from './DAOGovernance';
