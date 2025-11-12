@@ -3625,6 +3625,7 @@ function App() {
             <Route path="/dao/proposal/:proposalId" element={<ProtectedRoute><ProposalDetail /></ProtectedRoute>} />
             <Route path="/social" element={<ProtectedRoute><SocialMediaDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><EnhancedUserDashboard /></ProtectedRoute>} />
+            <Route path="/enhanced-features" element={<ProtectedRoute><EnhancedFeaturesDashboard token={localStorage.getItem('token')} /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
             <Route path="/image-upload" element={<ProtectedRoute><ImageUploadComponent /></ProtectedRoute>} />
