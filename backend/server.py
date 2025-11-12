@@ -7380,7 +7380,7 @@ app.include_router(transcoding_router)
 app.include_router(distribution_router)
 app.include_router(analytics_router)
 app.include_router(lifecycle_router)
-app.include_router(enhanced_features_router)
+api_router.include_router(enhanced_features_router)
 
 # CORS configuration for multi-environment setup
 cors_origins = [
