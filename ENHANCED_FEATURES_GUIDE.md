@@ -73,7 +73,7 @@ Five major AI-powered features have been successfully implemented in the BME pla
 ```json
 {
   "media_id": "media-456",
-  "platforms": ["tiktok", "youtube_shorts", "instagram_reels"],
+  "platforms": ["tiktok", "youtube_shorts", "instagram_reels", "onlyfans"],
   "caption": "New track dropping soon! 🎵",
   "hashtags": ["music", "newrelease", "hiphop"],
   "scheduled_time": "2025-12-01T18:00:00Z"
