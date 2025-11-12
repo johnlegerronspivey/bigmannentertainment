@@ -1660,6 +1660,9 @@ from dao_smart_contracts import dao_contract_manager
 # Import Enhanced Features endpoints
 from enhanced_features_endpoints import router as enhanced_features_router
 
+# Import AWS Agency Platform endpoints
+from agency_aws_endpoints import router as agency_aws_router
+
 # Missing Service Health Endpoints Implementation
 @api_router.get("/licensing/health")
 async def licensing_health():
