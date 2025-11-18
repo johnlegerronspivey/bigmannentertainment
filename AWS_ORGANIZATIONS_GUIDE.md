@@ -346,6 +346,9 @@ Planned features:
 - [ ] State change analytics dashboard
 - [ ] Export to CSV/PDF reports
 - [ ] Integration with AWS Control Tower
+- [ ] Amazon Q Developer integration for natural language queries
+
+**Note**: Consider using Amazon Q Developer for advanced querying capabilities. AWS Config's natural language query feature is being deprecated January 15, 2026. See `AWS_CONFIG_NATURAL_LANGUAGE_DEPRECATION.md` for details.
 
 ## 📝 Migration Checklist
 
