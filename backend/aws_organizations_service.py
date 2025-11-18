@@ -312,5 +312,11 @@ org_service: Optional[AWSOrganizationsService] = None
 def initialize_service(mongo_db):
     """Initialize service with MongoDB connection"""
     global org_service
-    org_service = AWSOrganizationsService(mongo_db=mongo_db)
-    return org_service
+    try:
+        org_service = AWSOrganizationsService(mongo_db=mongo_db)
+        logger.info(f"AWS Organizations service initialized successfully: {org_service is not None}")
+        return org_service
+    except Exception as e:
+        logger.error(f"Failed to initialize AWS Organizations service: {str(e)}")
+        org_service = None
+        return None
