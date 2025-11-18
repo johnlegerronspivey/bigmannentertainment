@@ -240,6 +240,7 @@ Monitor these AWS services for announcements:
 - ✅ Implemented AWS Organizations State field management system
 - ✅ Updated Lambda functions to Node.js 22.x
 - ✅ Documented AWS Config natural language query deprecation
+- ✅ Documented AWS S3 Owner.DisplayName removal (BME compliant)
 - ✅ Created comprehensive service update tracking
 
 ### October 2025
