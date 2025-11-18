@@ -238,3 +238,17 @@ INFO:aws_organizations_service:AWS Organizations service initialized successfull
 Your AWS Organizations Management System is fully operational and using the new **State field** (Sept 2025 update)!
 
 You're ready for the Status field deprecation on **September 9, 2026**.
+
+---
+
+## 📢 Related AWS Updates
+
+### AWS Config Natural Language Queries
+**Deprecation**: January 15, 2026
+
+If you need to query AWS resources using natural language:
+- ✅ Use **Amazon Q Developer** instead
+- ✅ Alternative: AWS Config SQL queries (free)
+- ℹ️ See: `AWS_CONFIG_NATURAL_LANGUAGE_DEPRECATION.md`
+
+This BME platform does not use AWS Config natural language queries, so no action is required.
