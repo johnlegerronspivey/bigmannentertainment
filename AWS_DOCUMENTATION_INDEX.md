@@ -299,10 +299,11 @@ Complete index of all AWS-related documentation for the Big Mann Entertainment p
 
 ## 📊 Documentation Statistics
 
-**Total Documents**: 12 AWS-specific docs
-**Total Pages**: ~150 pages equivalent
+**Total Documents**: 13 AWS-specific docs
+**Total Pages**: ~160 pages equivalent
 **Last Major Update**: November 2025
 **Coverage**: 11 AWS services documented
+**Deprecation Guides**: 3 (Organizations, Config, S3)
 
 ---
 
