@@ -238,6 +238,7 @@ Complete index of all AWS-related documentation for the Big Mann Entertainment p
 | AWS_INTEGRATIONS_README.md | ✅ Current | Nov 2025 | Dec 2025 |
 | AWS_SERVICES_UPDATE_LOG.md | ✅ Current | Nov 2025 | Dec 2025 |
 | AWS_ORGANIZATIONS_GUIDE.md | ✅ Current | Nov 2025 | Jan 2026 |
+| AWS_S3_OWNER_DISPLAYNAME_DEPRECATION.md | ✅ Current | Nov 2025 | Nov 2025 |
 | AWS_CONFIG_NATURAL_LANGUAGE_DEPRECATION.md | ✅ Current | Nov 2025 | Jan 2026 |
 | TERRAFORM_INFRASTRUCTURE_GUIDE.md | ✅ Current | Oct 2025 | Mar 2026 |
 | AWS_AGENCY_PLATFORM_GUIDE.md | ✅ Current | Sep 2025 | Mar 2026 |
