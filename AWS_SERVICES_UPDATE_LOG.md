@@ -256,6 +256,7 @@ Monitor these AWS services for announcements:
 ### Documentation Files
 - `AWS_ORGANIZATIONS_GUIDE.md` - Organizations management system
 - `AWS_CONFIG_NATURAL_LANGUAGE_DEPRECATION.md` - Config query deprecation
+- `AWS_S3_OWNER_DISPLAYNAME_DEPRECATION.md` - S3 Owner.DisplayName removal
 - `AWS_SERVICES_UPDATE_LOG.md` - This file
 - `aws-lambda-update/README.md` - Lambda update tools
 
