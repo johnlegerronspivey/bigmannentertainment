@@ -327,9 +327,14 @@ curl -X POST "${BACKEND_URL}/api/aws-organizations/monitor"
 
 ## 📚 Additional Resources
 
+### AWS Organizations
 - [AWS Organizations Documentation](https://docs.aws.amazon.com/organizations/)
 - [AWS Account State Management](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_account_state.html)
 - [AWS Blog: State Field Update](https://aws.amazon.com/blogs/mt/updates-to-account-status-information-in-aws-organizations/)
+
+### Query Methods
+- [Amazon Q Developer](https://aws.amazon.com/q/developer/) - For natural language queries about AWS resources
+- **Note**: AWS Config natural language querying is being discontinued on January 15, 2026. See `AWS_CONFIG_NATURAL_LANGUAGE_DEPRECATION.md` for migration guidance.
 
 ## 🔮 Future Enhancements
 
