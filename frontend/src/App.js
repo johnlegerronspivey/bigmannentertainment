@@ -46,6 +46,7 @@ import ProfileSettings from './ProfileSettings';
 import DAOGovernance from './DAOGovernance';
 import SocialMediaDashboard from './SocialMediaDashboardEnhanced';
 import ProposalDetail from './ProposalDetail';
+import AWSOrganizationsComponent from './AWSOrganizationsComponent';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
