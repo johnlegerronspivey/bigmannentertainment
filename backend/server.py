@@ -70,6 +70,10 @@ from profile_endpoints import router as profile_router
 from social_oauth_service import router as oauth_router
 from social_integration_endpoints import router as social_integration_router
 
+# Import AWS Organizations management
+from aws_organizations_endpoints import router as aws_organizations_router
+from aws_organizations_service import initialize_service as init_org_service
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
