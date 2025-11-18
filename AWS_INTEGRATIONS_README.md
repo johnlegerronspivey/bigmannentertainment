@@ -166,7 +166,31 @@ Complete guide to all AWS service integrations in the BME platform.
 
 ## ⚠️ Service Deprecations
 
-### AWS Config - Natural Language Querying
+### 1. AWS S3 - Owner.DisplayName Removal
+
+**Removal Date**: November 21, 2025
+
+**Details**:
+- Owner.DisplayName attribute being removed from all S3 API responses
+- Preview period: July 15 - November 21, 2025
+- Affects: GetBucketAcl, GetObjectAcl, ListObjects, ListObjectsV2, and more
+- Migration: Use Owner.ID (canonical ID) instead
+
+**BME Platform Status**:
+- ✅ Platform already compliant
+- ✅ No Owner.DisplayName usage found
+- ✅ No migration required
+
+**Documentation**: `AWS_S3_OWNER_DISPLAYNAME_DEPRECATION.md`
+
+**Action Required**: 
+- ℹ️ None for BME platform (already compliant)
+- ℹ️ Monitor for any external S3 integrations
+- ✅ Documentation created for awareness
+
+---
+
+### 2. AWS Config - Natural Language Querying
 
 **Deprecation Date**: January 15, 2026
 
