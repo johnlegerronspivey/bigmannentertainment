@@ -55,6 +55,7 @@ async def list_accounts(
     Uses new State field (PENDING_ACTIVATION, ACTIVE, SUSPENDED, PENDING_CLOSURE, CLOSED)
     """
     try:
+        org_service = aws_organizations_service.org_service
         if not org_service:
             raise HTTPException(status_code=503, detail="AWS Organizations service not available")
         
