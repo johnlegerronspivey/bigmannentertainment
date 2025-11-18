@@ -100,7 +100,7 @@ This document tracks AWS service updates, deprecations, and migrations relevant 
 
 ---
 
-### 3. Lambda Runtime Updates - Node.js 22.x
+### 4. Lambda Runtime Updates - Node.js 22.x
 
 **Status**: ✅ Completed (November 2025)
 
