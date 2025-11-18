@@ -200,7 +200,7 @@ The following AWS services are actively used in the BME platform and should be m
 |---------|----------------|---------------|-------------|----------|
 | AWS Organizations | State field | Nov 2025 | Monitor | High |
 | Lambda (Node.js) | 22.x | Nov 2025 | Monitor | High |
-| AWS S3 | Current | Stable | Monitor | High |
+| **AWS S3** | **Owner.ID only** | **Nov 2025 deprecation** | **None (Compliant)** | **High** |
 | AWS Cognito | Current | Stable | Monitor | High |
 | Rekognition | Current | Stable | Monitor | Medium |
 | DynamoDB | Current | Stable | Monitor | Medium |
