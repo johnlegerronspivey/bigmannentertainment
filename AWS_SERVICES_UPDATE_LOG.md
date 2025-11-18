@@ -4,7 +4,41 @@ This document tracks AWS service updates, deprecations, and migrations relevant 
 
 ## 📋 Active Updates
 
-### 1. AWS Organizations - State Field Migration
+### 1. AWS S3 - Owner.DisplayName Removal
+
+**Status**: ℹ️ Awareness (BME Platform Compliant)
+
+**Summary**: AWS S3 is removing the `Owner.DisplayName` attribute from all API responses. Applications should use canonical IDs instead.
+
+**Timeline**:
+- **Preview Period**: July 15, 2025 - November 21, 2025
+- **Full Removal**: November 21, 2025
+- **BME Assessment**: November 18, 2025
+
+**Changes**:
+- Owner.DisplayName attribute removed from all S3 API responses
+- Affected APIs:
+  - GetBucketAcl, GetObjectAcl
+  - ListObjects, ListObjectsV2, ListObjectVersions
+  - GetBucketLogging, ListBuckets
+  - ListParts, ListMultipartUploads
+  - CreateBucket
+- Migration: Use Owner.ID (canonical ID) instead
+
+**BME Platform Status**:
+- ✅ Codebase analyzed: No Owner.DisplayName usage found
+- ✅ Platform is already compliant
+- ✅ No migration required
+- ✅ Documentation created: `AWS_S3_OWNER_DISPLAYNAME_DEPRECATION.md`
+
+**Recommended Actions**:
+- ℹ️ Monitor AWS announcements
+- ℹ️ Review any external S3 integrations
+- ✅ Documentation complete
+
+---
+
+### 2. AWS Organizations - State Field Migration
 
 **Status**: ✅ Implemented (November 2025)
 
