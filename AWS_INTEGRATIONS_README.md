@@ -225,6 +225,19 @@ Complete guide to all AWS service integrations in the BME platform.
 | `TERRAFORM_INFRASTRUCTURE_GUIDE.md` | IaC documentation | ✅ Current |
 | `AWS_DEPLOYMENT_GUIDE.md` | Deployment procedures | ✅ Current |
 
+### Deprecation & Migration Guides
+
+#### AWS S3
+| Document | Purpose | Length |
+|----------|---------|--------|
+| **AWS_S3_OWNER_DISPLAYNAME_DEPRECATION.md** | Owner.DisplayName removal guide | 12 min |
+
+#### AWS Config
+| Document | Purpose | Length |
+|----------|---------|--------|
+| **AWS_CONFIG_NATURAL_LANGUAGE_DEPRECATION.md** | Full deprecation guide | 15 min |
+| **AWS_CONFIG_QUERY_MIGRATION_QUICK_REF.md** | Quick migration reference | 3 min |
+
 ### Service-Specific Docs
 
 | Service | Documentation Location |
