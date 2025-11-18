@@ -392,6 +392,25 @@ closing_accounts = await org_service.get_accounts_by_state(AccountState.PENDING_
 # Track 90-day reinstatement window
 ```
 
+### 4. Natural Language Queries with Amazon Q
+For ad-hoc queries about your organization:
+```python
+# Using Amazon Q Developer for natural language queries
+import boto3
+
+q_client = boto3.client('q-developer')
+response = q_client.query(
+    query="Show me all accounts in PENDING_ACTIVATION state",
+    context="AWS Organizations"
+)
+
+# Or use this system's REST API for programmatic access
+import requests
+accounts = requests.get('http://backend/api/aws-organizations/accounts?state=PENDING_ACTIVATION')
+```
+
+**Migration Note**: If you previously used AWS Config natural language queries, see `AWS_CONFIG_NATURAL_LANGUAGE_DEPRECATION.md` for migration to Amazon Q Developer.
+
 ## 🎯 Summary
 
 The AWS Organizations Management System provides:
