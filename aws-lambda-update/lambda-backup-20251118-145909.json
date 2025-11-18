@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-11-18T14:59:09.460896",
+  "region": "us-east-2",
+  "functions": {
+    "amplify-login-create-auth-challenge-ec5da3fb": {
+      "runtime": "nodejs20.x",
+      "handler": "index.handler",
+      "timeout": 15,
+      "memory_size": 256,
+      "environment": {},
+      "description": "",
+      "role": "arn:aws:iam::314108682794:role/amplify-login-lambda-ec5da3fb",
+      "layers": [],
+      "vpc_config": {},
+      "revision_id": "ef16e3f8-c3d8-48b5-8e56-dfd4752f708a"
+    },
+    "amplify-login-custom-message-ec5da3fb": {
+      "runtime": "nodejs20.x",
+      "handler": "index.handler",
+      "timeout": 15,
+      "memory_size": 256,
+      "environment": {},
+      "description": "",
+      "role": "arn:aws:iam::314108682794:role/amplify-login-lambda-ec5da3fb",
+      "layers": [],
+      "vpc_config": {},
+      "revision_id": "f28cd53d-32d7-41c7-8705-c2cf77d2f3a5"
+    },
+    "amplify-login-define-auth-challenge-ec5da3fb": {
+      "runtime": "nodejs20.x",
+      "handler": "index.handler",
+      "timeout": 15,
+      "memory_size": 256,
+      "environment": {},
+      "description": "",
+      "role": "arn:aws:iam::314108682794:role/amplify-login-lambda-ec5da3fb",
+      "layers": [],
+      "vpc_config": {},
+      "revision_id": "8eafe054-8cc7-4551-ac0c-4331d5df3995"
+    },
+    "amplify-login-verify-auth-challenge-ec5da3fb": {
+      "runtime": "nodejs20.x",
+      "handler": "index.handler",
+      "timeout": 15,
+      "memory_size": 256,
+      "environment": {
+        "Variables": {}
+      },
+      "description": "",
+      "role": "arn:aws:iam::314108682794:role/amplify-login-lambda-ec5da3fb",
+      "layers": [],
+      "vpc_config": {},
+      "revision_id": "489aaf54-7fe7-4945-9ef8-e5568826ca49"
+    }
+  }
+}
