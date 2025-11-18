@@ -71,7 +71,7 @@ This document tracks AWS service updates, deprecations, and migrations relevant 
 
 ---
 
-### 2. AWS Config - Natural Language Querying Deprecation
+### 3. AWS Config - Natural Language Querying Deprecation
 
 **Status**: ⚠️ Deprecation Notice (Not implemented in BME)
 
