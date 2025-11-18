@@ -7928,6 +7928,9 @@ class RekognitionService:
 # Initialize content removal service
 init_removal_service(db)
 
+# Initialize AWS Organizations service
+init_org_service(db)
+
 # Initialize Phase 2 services
 cloudfront_service = CloudFrontService()
 lambda_service = LambdaProcessingService()
