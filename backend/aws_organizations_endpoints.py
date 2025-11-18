@@ -82,6 +82,7 @@ async def list_accounts(
 async def get_account(account_id: str):
     """Get specific account details by ID"""
     try:
+        org_service = aws_organizations_service.org_service
         if not org_service:
             raise HTTPException(status_code=503, detail="AWS Organizations service not available")
         
@@ -102,6 +103,7 @@ async def get_account(account_id: str):
 async def get_accounts_by_state(state: AccountState):
     """Get all accounts in a specific state"""
     try:
+        org_service = aws_organizations_service.org_service
         if not org_service:
             raise HTTPException(status_code=503, detail="AWS Organizations service not available")
         
@@ -116,6 +118,7 @@ async def get_accounts_by_state(state: AccountState):
 async def get_critical_accounts():
     """Get accounts in critical states (SUSPENDED, CLOSED)"""
     try:
+        org_service = aws_organizations_service.org_service
         if not org_service:
             raise HTTPException(status_code=503, detail="AWS Organizations service not available")
         
@@ -130,6 +133,7 @@ async def get_critical_accounts():
 async def get_organization_summary():
     """Get summary of organization account states"""
     try:
+        org_service = aws_organizations_service.org_service
         if not org_service:
             raise HTTPException(status_code=503, detail="AWS Organizations service not available")
         
@@ -170,6 +174,7 @@ async def monitor_state_changes():
     Compares current states with last known states and tracks changes
     """
     try:
+        org_service = aws_organizations_service.org_service
         if not org_service:
             raise HTTPException(status_code=503, detail="AWS Organizations service not available")
         
