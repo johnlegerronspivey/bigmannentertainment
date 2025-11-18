@@ -16,7 +16,7 @@ from aws_organizations_models import (
     StateMonitoringConfig,
     AccountStateHistoryQuery
 )
-from aws_organizations_service import org_service
+import aws_organizations_service
 
 router = APIRouter(prefix="/api/aws-organizations", tags=["AWS Organizations"])
 
@@ -24,6 +24,7 @@ router = APIRouter(prefix="/api/aws-organizations", tags=["AWS Organizations"])
 @router.get("/health", response_model=dict)
 async def health_check():
     """Check AWS Organizations service health"""
+    org_service = aws_organizations_service.org_service
     if not org_service or not org_service.org_client:
         return {
             "status": "unavailable",
