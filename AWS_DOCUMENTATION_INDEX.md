@@ -248,6 +248,7 @@ Complete index of all AWS-related documentation for the Big Mann Entertainment p
 ## 🔔 Important Dates
 
 ### Upcoming Deprecations
+- **November 21, 2025**: AWS S3 Owner.DisplayName attribute removed (✅ BME compliant)
 - **January 15, 2026**: AWS Config natural language queries discontinued
 - **September 9, 2026**: AWS Organizations Status field fully deprecated
 
