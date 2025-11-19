@@ -10,6 +10,7 @@
 
 | Component | Version | Status | CVEs | Action Taken |
 |-----------|---------|--------|------|--------------|
+| js-yaml | 4.1.1 | ✅ PATCHED | 1 Fixed | Upgraded from 4.1.0/3.14.1 |
 | http-proxy-middleware | 2.0.9 | ✅ PATCHED | 3 Fixed | Upgraded from 2.0.7 |
 | react-router-dom | 7.9.6 | ✅ PATCHED | 2 Fixed | Upgraded from 7.4.0 |
 | form-data | 4.0.5 | ✅ PATCHED | 1 Fixed | Forced via resolutions |
