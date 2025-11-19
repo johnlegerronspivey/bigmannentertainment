@@ -287,11 +287,13 @@ cd /app/backend && pip-audit
 ## References
 
 ### Internal Documentation
+- `SECURITY_AXIOS_STATUS_2025.md` - Axios security verification (already secure)
 - `SECURITY_POSTCSS_UPDATE_2025.md` - PostCSS upgrade and input validation patches
 - `SECURITY_JS_YAML_CVE_2025.md` - js-yaml prototype pollution patches
 - `SECURITY_HTTP_PROXY_MIDDLEWARE_CVE_2025.md` - http-proxy-middleware patches
 - `SECURITY_REACT_ROUTER_CVE_2025_43864_43865.md` - react-router-dom patches
 - `SECURITY_WEBPACK_DEV_SERVER_ADVISORY.md` - Development environment security
+- `AXIOS_SECURITY_SUMMARY.md` - Quick reference
 - `POSTCSS_UPDATE_SUMMARY.md` - Quick reference
 - `JS_YAML_UPDATE_SUMMARY.md` - Quick reference
 - `HTTP_PROXY_MIDDLEWARE_UPDATE_SUMMARY.md` - Quick reference
