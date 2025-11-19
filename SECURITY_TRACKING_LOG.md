@@ -369,6 +369,48 @@
 
 ---
 
+### ⚠️ 3. ecdsa (NO FIX PLANNED - January 2025)
+
+**Current Status:** VULNERABLE (Production & Development)
+
+**CVE:** CVE-2024-23342  
+**Severity:** Low to Medium  
+**Type:** Timing Attack (Minerva attack on P-256 curve)
+
+**Description:**
+python-ecdsa has been found to be subject to a Minerva timing attack on the P-256 curve. Using the `ecdsa.SigningKey.sign_digest()` API function and timing signatures an attacker can leak the internal nonce which may allow for private key discovery.
+
+**Why Not Fixed:**
+- **Maintainer Position:** Project considers side channel attacks OUT OF SCOPE
+- **No Planned Fix:** Maintainers have explicitly stated no fix will be released
+- **Design Limitation:** Would require complete rewrite of core functionality
+
+**Risk Assessment:**
+- **Production Impact:** ⚠️ LOW (requires timing measurement access)
+- **Attack Prerequisites:**
+  - Attacker must have precise timing measurement capabilities
+  - Access to signing operations
+  - Multiple signature samples
+  - Significant computational resources
+
+**Mitigation Strategies:**
+1. ✅ Risk documented and assessed
+2. 🛡️ Use hardware security modules (HSM) for critical key operations if needed
+3. 🛡️ Implement rate limiting on signing operations
+4. 🛡️ Monitor for unusual signing patterns
+5. 🛡️ Consider alternative libraries for critical operations
+
+**Upgrade Path:**
+- Monitor maintainer for policy changes
+- Consider migration to alternative ECDSA library if critical
+- Evaluate use of HSM for sensitive operations
+
+**Impact:** ACCEPTED RISK - Side channel attacks out of scope for maintainers  
+**Documentation:** `SECURITY_BACKEND_CVE_FIXES_2025.md`  
+**Next Review:** Annual or when maintainer releases update
+
+---
+
 ## Security Audit History
 
 ### Latest Audit: January 2025
