@@ -545,6 +545,13 @@ cd /app/backend && pip-audit
 ## References
 
 ### Internal Documentation
+
+**Comprehensive Reports:**
+- `SECURITY_COMPREHENSIVE_UPGRADE_2025.md` - Complete security upgrade report
+- `SECURITY_BACKEND_CVE_FIXES_2025.md` - Detailed backend CVE analysis
+- `SECURITY_FRONTEND_CVE_FIXES_2025.md` - Detailed frontend CVE analysis
+
+**Component-Specific Reports:**
 - `SECURITY_BABEL_CVE_2025.md` - Babel helpers/runtime ReDoS patches
 - `SECURITY_BRACE_EXPANSION_CVE_2025.md` - brace-expansion ReDoS patches
 - `SECURITY_ON_HEADERS_CVE_2025.md` - on-headers data type handling fix
@@ -554,6 +561,8 @@ cd /app/backend && pip-audit
 - `SECURITY_HTTP_PROXY_MIDDLEWARE_CVE_2025.md` - http-proxy-middleware patches
 - `SECURITY_REACT_ROUTER_CVE_2025_43864_43865.md` - react-router-dom patches
 - `SECURITY_WEBPACK_DEV_SERVER_ADVISORY.md` - Development environment security
+
+**Quick Reference Guides:**
 - `BABEL_UPDATE_SUMMARY.md` - Quick reference
 - `BRACE_EXPANSION_UPDATE_SUMMARY.md` - Quick reference
 - `ON_HEADERS_UPDATE_SUMMARY.md` - Quick reference
