@@ -132,7 +132,8 @@ $ yarn why nth-check
 +   "axios": "^1.13.2"
   },
 + "resolutions": {
-+   "form-data": "^4.0.5"
++   "form-data": "^4.0.5",
++   "nth-check": "^2.1.1"
 + }
 }
 ```
