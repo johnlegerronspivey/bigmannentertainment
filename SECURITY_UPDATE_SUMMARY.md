@@ -105,11 +105,18 @@ $ yarn why nth-check
 
 ### Attack Surface
 
+**form-data (Critical):**
 | Attack Type | Before Fix | After Fix |
 |-------------|------------|-----------|
 | Parameter Pollution | 🔴 High Risk | ✅ None |
 | Request Smuggling | 🔴 Critical Risk | ✅ None |
 | Data Injection | 🔴 High Risk | ✅ None |
+
+**nth-check (Moderate):**
+| Attack Type | Before Fix | After Fix |
+|-------------|------------|-----------|
+| ReDoS (Build) | 🟡 Low Risk | ✅ None |
+| ReDoS (Runtime) | ✅ None | ✅ None |
 
 ---
 
