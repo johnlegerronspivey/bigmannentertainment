@@ -244,9 +244,11 @@ cd /app/backend && pip-audit
 ## References
 
 ### Internal Documentation
+- `SECURITY_JS_YAML_CVE_2025.md` - js-yaml prototype pollution patches
 - `SECURITY_HTTP_PROXY_MIDDLEWARE_CVE_2025.md` - http-proxy-middleware patches
 - `SECURITY_REACT_ROUTER_CVE_2025_43864_43865.md` - react-router-dom patches
 - `SECURITY_WEBPACK_DEV_SERVER_ADVISORY.md` - Development environment security
+- `JS_YAML_UPDATE_SUMMARY.md` - Quick reference
 - `HTTP_PROXY_MIDDLEWARE_UPDATE_SUMMARY.md` - Quick reference
 - `WEBPACK_DEV_SERVER_STATUS_SUMMARY.md` - Quick reference
 
