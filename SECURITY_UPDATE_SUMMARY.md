@@ -52,6 +52,46 @@ info => Found "form-data@4.0.5"  ✅ SECURE
 
 ---
 
+## 🟡 CVE-2021-3803: nth-check Vulnerability (Moderate)
+
+**Fixed**: November 19, 2025
+
+### Quick Facts
+
+| Item | Details |
+|------|---------|
+| **CVE** | CVE-2021-3803 |
+| **Severity** | Moderate (CVSS 7.5) |
+| **Package** | nth-check (npm) |
+| **Impact** | ReDoS (Regular Expression Denial of Service) |
+| **Fix** | Updated to nth-check 2.1.1 |
+| **Risk Level** | 🟡 Low (Build-time only) |
+
+### What Was Vulnerable?
+
+The nth-check package (1.0.2) used inefficient regex that could cause denial of service when parsing invalid CSS selectors.
+
+### What Was Fixed?
+
+1. ✅ **Updated nth-check**: 1.0.2 → 2.1.1
+2. ✅ **Added resolution**: Forced all dependencies to use 2.1.1
+3. ✅ **Verified**: Build-time only, no runtime impact
+
+### Why Low Risk?
+
+- ✅ Build-time dependency (Create React App)
+- ✅ Not included in production bundle
+- ✅ Only processes trusted files
+- ✅ No user input during build
+
+**Verification:**
+```bash
+$ yarn why nth-check
+✓ nth-check@2.1.1 (all instances patched)
+```
+
+---
+
 ## 📊 Impact on BME Platform
 
 ### Components Affected
