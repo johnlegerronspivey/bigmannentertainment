@@ -285,6 +285,7 @@ cd /app/backend && pip-audit
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| Jan 2025 | 1.4 | Upgraded postcss to 8.5.6 | AI Agent |
 | Jan 2025 | 1.3 | Fixed js-yaml CVE-2025-64718 | AI Agent |
 | Jan 2025 | 1.2 | Added webpack-dev-server advisory | AI Agent |
 | Jan 2025 | 1.1 | Fixed http-proxy-middleware CVEs | AI Agent |
