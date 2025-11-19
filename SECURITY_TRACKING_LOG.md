@@ -118,7 +118,7 @@
 
 ---
 
-### ✅ 4. nth-check (RESOLVED - Previous Cycle)
+### ✅ 7. nth-check (RESOLVED - Previous Cycle)
 
 **CVE Fixed:**
 - Multiple ReDoS vulnerabilities
