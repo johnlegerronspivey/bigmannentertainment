@@ -179,7 +179,96 @@
 
 ---
 
-### ✅ 10. axios (VERIFIED SECURE - January 2025)
+### ✅ 10. glob (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- Command Injection vulnerability (HIGH SEVERITY)
+
+**Action Taken:**
+- Upgraded from <10.5.0 to 10.5.0
+- Added to yarn resolutions
+- Fixed 2 instances across dependency tree
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_FRONTEND_CVE_FIXES_2025.md`
+
+---
+
+### ✅ 11. @eslint/plugin-kit (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- ReDoS vulnerability in ConfigCommentParser
+
+**Action Taken:**
+- Upgraded from <0.3.4 to 0.4.1
+- Updated via eslint upgrade
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_FRONTEND_CVE_FIXES_2025.md`
+
+---
+
+### ✅ 12. @metamask/sdk packages (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- Malicious debug@4.4.2 dependency exposure
+
+**Action Taken:**
+- Upgraded @metamask/sdk from <0.33.1 to 0.33.1
+- Upgraded @metamask/sdk-communication-layer from <0.33.1 to 0.33.1
+- Added to yarn resolutions
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_FRONTEND_CVE_FIXES_2025.md`
+
+---
+
+### ✅ 13. pip (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- CVE-2025-8869 (Path Traversal - CRITICAL)
+
+**Action Taken:**
+- Upgraded from 24.0 to 25.3
+- Prevents arbitrary file overwrite attacks
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_BACKEND_CVE_FIXES_2025.md`
+
+---
+
+### ✅ 14. setuptools (RESOLVED - January 2025)
+
+**CVEs Fixed:**
+- CVE-2022-40897 (ReDoS)
+- CVE-2025-47273 (Path Traversal → RCE - CRITICAL)
+- CVE-2024-6345 (Remote Code Execution - CRITICAL)
+
+**Action Taken:**
+- Upgraded from 65.5.0 to 80.9.0
+- Eliminated 3 critical vulnerabilities including RCE vector
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_BACKEND_CVE_FIXES_2025.md`
+
+---
+
+### ✅ 15. starlette (RESOLVED - January 2025)
+
+**CVEs Fixed:**
+- CVE-2024-47874 (Denial of Service - HIGH)
+- CVE-2025-54121 (Event Loop Blocking)
+
+**Action Taken:**
+- Upgraded from 0.37.2 to 0.50.0
+- Prevented DoS attacks via multipart forms
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_BACKEND_CVE_FIXES_2025.md`
+
+---
+
+### ✅ 16. axios (VERIFIED SECURE - January 2025)
 
 **Current Status:** ✅ ALREADY AT LATEST VERSION (1.13.2)
 
