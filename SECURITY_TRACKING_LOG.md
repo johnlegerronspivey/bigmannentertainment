@@ -83,6 +83,21 @@
 
 ---
 
+### ✅ 5. js-yaml (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- CVE-2025-64718 (CVSS 5.3)
+
+**Action Taken:**
+- Upgraded from 4.1.0 and 3.14.1 to 4.1.1
+- Added to yarn resolutions to force transitive dependencies
+- Verified all instances use patched version
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_JS_YAML_CVE_2025.md`
+
+---
+
 ## Known Vulnerabilities (Cannot Fix)
 
 ### ⚠️ 1. webpack-dev-server (DOCUMENTED - January 2025)
