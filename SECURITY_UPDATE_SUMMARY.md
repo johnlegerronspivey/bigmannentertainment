@@ -100,6 +100,7 @@ $ yarn why nth-check
 |-----------|--------|-------|--------|
 | Frontend (axios) | 1.8.4 (vulnerable) | 1.13.2 (secure) | ✅ Fixed |
 | Frontend (jsdom) | 3.0.2 (vulnerable) | 4.0.5 (secure) | ✅ Fixed |
+| Frontend (nth-check) | 1.0.2 (vulnerable) | 2.1.1 (secure) | ✅ Fixed |
 | Backend (Python) | N/A | N/A | ✅ Not affected |
 
 ### Attack Surface
