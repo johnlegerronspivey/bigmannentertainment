@@ -244,12 +244,15 @@ cd /app/backend && pip-audit
 - ✅ All fixable vulnerabilities have been patched
 
 **Actions Taken:**
-1. Updated postcss to 8.5.6 (input validation fix, latest features)
-2. Updated js-yaml to 4.1.1 (prototype pollution fix)
-3. Updated http-proxy-middleware to 2.0.9
-4. Documented webpack-dev-server limitation
-5. Created comprehensive security advisories
-6. Established mitigation strategies
+1. Updated @babel/helpers and @babel/runtime to 7.28.4 (ReDoS fix)
+2. Updated brace-expansion to 2.0.2 (ReDoS fix)
+3. Updated on-headers to 1.1.0 (data type handling fix)
+4. Updated postcss to 8.5.6 (input validation fix, latest features)
+5. Updated js-yaml to 4.1.1 (prototype pollution fix)
+6. Updated http-proxy-middleware to 2.0.9
+7. Documented webpack-dev-server limitation
+8. Created comprehensive security advisories
+9. Established mitigation strategies
 
 ---
 
