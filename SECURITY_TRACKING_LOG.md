@@ -368,6 +368,9 @@ cd /app/backend && pip-audit
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| Jan 2025 | 1.8 | Upgraded @babel/helpers & @babel/runtime to 7.28.4 | AI Agent |
+| Jan 2025 | 1.7 | Upgraded brace-expansion to 2.0.2 | AI Agent |
+| Jan 2025 | 1.6 | Upgraded on-headers to 1.1.0 | AI Agent |
 | Jan 2025 | 1.5 | Verified axios 1.13.2 secure (no action needed) | AI Agent |
 | Jan 2025 | 1.4 | Upgraded postcss to 8.5.6 | AI Agent |
 | Jan 2025 | 1.3 | Fixed js-yaml CVE-2025-64718 | AI Agent |
