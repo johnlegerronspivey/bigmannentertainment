@@ -131,7 +131,7 @@
 
 ---
 
-### ✅ 5. js-yaml (RESOLVED - January 2025)
+### ✅ 8. js-yaml (RESOLVED - January 2025)
 
 **CVE Fixed:**
 - CVE-2025-64718 (CVSS 5.3)
