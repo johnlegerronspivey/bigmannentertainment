@@ -184,8 +184,9 @@ $ yarn why nth-check
 
 ### 3. Documentation Created
 
-- ✅ `SECURITY_FORM_DATA_CVE_2025_7783.md` - form-data ReDoS analysis
-- ✅ `SECURITY_NTH_CHECK_CVE_2021_3803.md` - nth-check ReDoS analysis
+- ✅ `SECURITY_FORM_DATA_CVE_2025_7783.md` - form-data analysis
+- ✅ `SECURITY_NTH_CHECK_CVE_2021_3803.md` - nth-check analysis
+- ✅ `SECURITY_REACT_ROUTER_CVE_2025_43864_43865.md` - React Router analysis
 - ✅ `SECURITY_UPDATE_SUMMARY.md` - This file
 
 ---
