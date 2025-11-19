@@ -10,6 +10,10 @@
 
 | Component | Version | Status | CVEs | Action Taken |
 |-----------|---------|--------|------|--------------|
+| @babel/helpers | 7.28.4 | ✅ PATCHED | 1 Fixed | Upgraded from 7.26.0 |
+| @babel/runtime | 7.28.4 | ✅ PATCHED | 1 Fixed | Upgraded from 7.26.0 |
+| brace-expansion | 2.0.2 | ✅ PATCHED | 1 Fixed | Upgraded from 2.0.1 |
+| on-headers | 1.1.0 | ✅ PATCHED | 1 Fixed | Upgraded from 1.0.2 |
 | postcss | 8.5.6 | ✅ LATEST | 1 Fixed | Upgraded from 8.4.49/7.0.39 |
 | js-yaml | 4.1.1 | ✅ PATCHED | 1 Fixed | Upgraded from 4.1.0/3.14.1 |
 | http-proxy-middleware | 2.0.9 | ✅ PATCHED | 3 Fixed | Upgraded from 2.0.7 |
