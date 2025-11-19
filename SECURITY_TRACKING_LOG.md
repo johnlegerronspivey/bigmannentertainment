@@ -105,7 +105,7 @@
 
 ---
 
-### ✅ 3. form-data (RESOLVED - Previous Cycle)
+### ✅ 6. form-data (RESOLVED - Previous Cycle)
 
 **CVE Fixed:**
 - CVE-2025-7783
