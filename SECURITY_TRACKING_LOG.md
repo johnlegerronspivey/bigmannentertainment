@@ -29,7 +29,50 @@
 
 ## Resolved Vulnerabilities
 
-### ✅ 1. http-proxy-middleware (RESOLVED - January 2025)
+### ✅ 1. @babel/helpers & @babel/runtime (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- CVE-2025-27789 (ReDoS vulnerability)
+
+**Action Taken:**
+- Upgraded @babel/helpers from 7.26.0 to 7.28.4
+- Upgraded @babel/runtime from 7.26.0 to 7.28.4
+- Code recompiled (critical requirement for Babel updates)
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_BABEL_CVE_2025.md`
+
+---
+
+### ✅ 2. brace-expansion (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- CVE-2025-5889 (ReDoS vulnerability)
+
+**Action Taken:**
+- Upgraded from 2.0.1 to 2.0.2
+- Also protects against CVE-2025-59145 (malware payload)
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_BRACE_EXPANSION_CVE_2025.md`
+
+---
+
+### ✅ 3. on-headers (RESOLVED - January 2025)
+
+**CVE Fixed:**
+- CVE-2025-7339 (Improper data type handling)
+
+**Action Taken:**
+- Upgraded from 1.0.2 to 1.1.0
+- Fixes header manipulation vulnerability
+
+**Impact:** Production & Development - FULLY SECURED  
+**Documentation:** `SECURITY_ON_HEADERS_CVE_2025.md`
+
+---
+
+### ✅ 4. http-proxy-middleware (RESOLVED - January 2025)
 
 **CVEs Fixed:**
 - CVE-2025-32997 (CVSS 4.0)
