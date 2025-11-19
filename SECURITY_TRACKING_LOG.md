@@ -295,7 +295,42 @@
 
 ## Known Vulnerabilities (Cannot Fix)
 
-### ⚠️ 1. webpack-dev-server (DOCUMENTED - January 2025)
+### ⚠️ 1. fast-redact (NO PATCH AVAILABLE - January 2025)
+
+**Current Status:** VULNERABLE (Production & Development)
+
+**CVE:** Prototype Pollution  
+**Severity:** Low  
+**Instances:** 11 across dependency tree
+
+**Why Not Fixed:**
+- **No Patch Available:** Maintainers have not released a fix
+- **Transitive Dependency:** Used by @walletconnect, @web3modal packages
+- **Deep in Tree:** Multiple levels deep, difficult to replace
+
+**Risk Assessment:**
+- **Production Impact:** ⚠️ LOW (requires specific exploitation conditions)
+- **Attack Prerequisites:** Attacker must control input to redaction functions
+- **Exploitation Difficulty:** HIGH (specific configuration needed)
+
+**Mitigation Strategies:**
+1. ✅ Risk documented and assessed
+2. 🛡️ Monitor package updates from @walletconnect and @web3modal
+3. 🛡️ Review for fast-redact patches regularly
+4. 🛡️ Consider freezing affected package versions until fix available
+
+**Upgrade Path:**
+- Wait for fast-redact maintainer to release patch
+- Monitor @walletconnect and @web3modal for dependency updates
+- Check monthly for updates
+
+**Impact:** ACCEPTED RISK - Low severity with difficult exploitation  
+**Documentation:** `SECURITY_FRONTEND_CVE_FIXES_2025.md`  
+**Next Review:** Monthly or when patch becomes available
+
+---
+
+### ⚠️ 2. webpack-dev-server (DOCUMENTED - January 2025)
 
 **Current Status:** VULNERABLE (Development Only)
 
