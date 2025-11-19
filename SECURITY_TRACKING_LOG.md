@@ -89,7 +89,7 @@
 
 ---
 
-### ✅ 2. react-router-dom (RESOLVED - Previous Cycle)
+### ✅ 5. react-router-dom (RESOLVED - Previous Cycle)
 
 **CVEs Fixed:**
 - CVE-2025-43864
