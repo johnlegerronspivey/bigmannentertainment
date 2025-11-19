@@ -585,6 +585,7 @@ cd /app/backend && pip-audit
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| Jan 2025 | 2.0 | **COMPREHENSIVE SECURITY UPGRADE** - Fixed 12 CVEs across frontend & backend | AI Agent |
 | Jan 2025 | 1.8 | Upgraded @babel/helpers & @babel/runtime to 7.28.4 | AI Agent |
 | Jan 2025 | 1.7 | Upgraded brace-expansion to 2.0.2 | AI Agent |
 | Jan 2025 | 1.6 | Upgraded on-headers to 1.1.0 | AI Agent |
