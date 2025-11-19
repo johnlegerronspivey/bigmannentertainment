@@ -52,6 +52,44 @@ info => Found "form-data@4.0.5"  ✅ SECURE
 
 ---
 
+## 🔴 CVE-2025-43864 & CVE-2025-43865: React Router Vulnerabilities (High)
+
+**Fixed**: November 19, 2025
+
+### Quick Facts
+
+| Item | Details |
+|------|---------|
+| **CVEs** | CVE-2025-43865, CVE-2025-43864 |
+| **Severity** | High (CVSS 7.4-7.5) |
+| **Package** | react-router-dom |
+| **Impact** | Cache Poisoning, XSS, SSR Corruption |
+| **Fix** | Updated to react-router-dom 7.9.6 |
+| **Risk Level** | 🟡 Low (CRA without SSR) |
+
+### What Was Vulnerable?
+
+Two header manipulation vulnerabilities allowing attackers to:
+1. Spoof pre-rendered data (CVE-2025-43865)
+2. Force SPA mode (CVE-2025-43864)
+
+### What Was Fixed?
+
+1. ✅ **Updated react-router-dom**: 7.5.1 → 7.9.6
+2. ✅ **Header validation**: Malicious headers now rejected
+3. ✅ **Cache protection**: Cache poisoning prevented
+
+### Why Low Risk for BME?
+
+- ✅ Using Create React App (client-side only)
+- ✅ No server-side rendering
+- ✅ No edge caching of React Router data
+- ✅ Client-side routing only
+
+**Still fixed for defense in depth and future-proofing!**
+
+---
+
 ## 🟡 CVE-2021-3803: nth-check Vulnerability (Moderate)
 
 **Fixed**: November 19, 2025
