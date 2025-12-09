@@ -416,6 +416,12 @@ const SmartContractComponent = () => {
                 >
                     Analytics
                 </button>
+                <button 
+                    className={activeTab === 'ethereum' ? 'tab active' : 'tab'}
+                    onClick={() => setActiveTab('ethereum')}
+                >
+                    ⚡ Ethereum Status
+                </button>
             </div>
 
             <div className="tab-content">
