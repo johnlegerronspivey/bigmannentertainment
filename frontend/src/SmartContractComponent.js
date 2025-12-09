@@ -82,7 +82,9 @@ const SmartContractComponent = () => {
                 fetchProposals(), 
                 fetchTemplates(),
                 fetchNetworks(),
-                fetchAnalytics()
+                fetchAnalytics(),
+                fetchEthereumStatus(),
+                fetchWalletBalance()
             ]);
         } catch (error) {
             console.error('Error fetching initial data:', error);
