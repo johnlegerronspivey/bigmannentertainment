@@ -164,6 +164,33 @@ const SmartContractComponent = () => {
         }
     };
 
+    const fetchEthereumStatus = async () => {
+        try {
+            const response = await fetch(`${getBackendUrl()}/api/ethereum/connection-status`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                setEthereumStatus(data);
+            }
+        } catch (error) {
+            console.error('Error fetching Ethereum status:', error);
+        }
+    };
+
+    const fetchWalletBalance = async () => {
+        try {
+            const response = await fetch(`${getBackendUrl()}/api/ethereum/configured-wallet`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                setWalletBalance(data);
+            }
+        } catch (error) {
+            console.error('Error fetching wallet balance:', error);
+        }
+    };
+
+
     const deployContract = async (e) => {
         e.preventDefault();
         setLoading(true);
