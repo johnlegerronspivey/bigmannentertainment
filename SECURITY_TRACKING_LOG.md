@@ -637,6 +637,7 @@ cd /app/backend && pip-audit
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| Jan 2025 | 2.2 | Fixed backend fonttools (CRITICAL RCE) and urllib3 (HIGH DoS) - 3 CVEs | AI Agent |
 | Jan 2025 | 2.1 | Fixed node-forge critical CVEs (3 vulnerabilities) | AI Agent |
 | Jan 2025 | 2.0 | **COMPREHENSIVE SECURITY UPGRADE** - Fixed 12 CVEs across frontend & backend | AI Agent |
 | Jan 2025 | 1.8 | Upgraded @babel/helpers & @babel/runtime to 7.28.4 | AI Agent |
