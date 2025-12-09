@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/ethereum", tags=["ethereum"])
+router = APIRouter(prefix="/ethereum", tags=["ethereum"])
 
 # Initialize Web3 connection
 def get_web3_connection():
