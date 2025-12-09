@@ -269,7 +269,24 @@
 
 ---
 
-### ✅ 16. axios (VERIFIED SECURE - January 2025)
+### ✅ 16. node-forge (RESOLVED - January 2025)
+
+**CVEs Fixed:**
+- CVE-2025-66031 (ASN.1 Recursion DoS - HIGH 7.5)
+- CVE-2025-12816 (Signature Verification Bypass - CRITICAL 9.1)
+- CVE-2025-66030 (OID Integer Overflow - HIGH 7.3)
+
+**Action Taken:**
+- Upgraded from 1.3.1 to 1.3.3
+- Added to yarn resolutions
+- Fixed TLS/SSL security vulnerabilities
+
+**Impact:** Development Environment - FULLY SECURED  
+**Documentation:** `SECURITY_NODE_FORGE_CVE_FIXES_2025.md`
+
+---
+
+### ✅ 17. axios (VERIFIED SECURE - January 2025)
 
 **Current Status:** ✅ ALREADY AT LATEST VERSION (1.13.2)
 
