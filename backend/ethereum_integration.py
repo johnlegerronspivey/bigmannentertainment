@@ -44,6 +44,12 @@ class EthereumIntegration:
     
     def _get_rpc_url(self) -> str:
         """Get RPC URL based on network"""
+        # Use the configured RPC URL from environment
+        rpc_url = os.getenv('ETHEREUM_RPC_URL')
+        if rpc_url:
+            return rpc_url
+        
+        # Fallback to old configuration
         if self.network == 'mainnet':
             return os.getenv('ETHEREUM_MAINNET_RPC', 'https://eth-mainnet.alchemyapi.io/v2/your-api-key')
         else:
