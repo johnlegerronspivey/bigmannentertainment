@@ -770,6 +770,93 @@ const SmartContractComponent = () => {
                         )}
                     </div>
                 )}
+
+                {activeTab === 'ethereum' && (
+                    <div className="ethereum-section">
+                        <h2>⚡ Ethereum Network Connection</h2>
+                        
+                        {ethereumStatus ? (
+                            <div className="connection-status-grid">
+                                <div className="status-card">
+                                    <div className="status-header">
+                                        <h3>Connection Status</h3>
+                                        {ethereumStatus.connected ? (
+                                            <span className="status-badge connected">✅ Connected</span>
+                                        ) : (
+                                            <span className="status-badge disconnected">❌ Disconnected</span>
+                                        )}
+                                    </div>
+                                    <div className="status-details">
+                                        <div className="detail-row">
+                                            <span className="detail-label">Network:</span>
+                                            <span className="detail-value">{ethereumStatus.network || 'Unknown'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Chain ID:</span>
+                                            <span className="detail-value">{ethereumStatus.chain_id || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Latest Block:</span>
+                                            <span className="detail-value">{ethereumStatus.block_number?.toLocaleString() || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">RPC Provider:</span>
+                                            <span className="detail-value code-text">{ethereumStatus.rpc_url_preview}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="status-card">
+                                    <div className="status-header">
+                                        <h3>Configured Wallet</h3>
+                                    </div>
+                                    {walletBalance ? (
+                                        <div className="status-details">
+                                            <div className="detail-row">
+                                                <span className="detail-label">Address:</span>
+                                                <span className="detail-value code-text">{walletBalance.address}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Balance:</span>
+                                                <span className="detail-value balance-amount">
+                                                    {parseFloat(walletBalance.balance_eth).toFixed(6)} ETH
+                                                </span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Network:</span>
+                                                <span className="detail-value">{walletBalance.network}</span>
+                                            </div>
+                                            <button 
+                                                className="refresh-btn"
+                                                onClick={() => {
+                                                    fetchEthereumStatus();
+                                                    fetchWalletBalance();
+                                                }}
+                                            >
+                                                🔄 Refresh
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <p>Loading wallet information...</p>
+                                    )}
+                                </div>
+
+                                <div className="status-card info-card">
+                                    <h3>ℹ️ Important Information</h3>
+                                    <div className="info-content">
+                                        <p><strong>Read-Only Mode:</strong> The current configuration allows viewing blockchain data and wallet balances.</p>
+                                        <p><strong>Transactions:</strong> To send transactions, create DAO proposals, or deploy smart contracts, a private key configuration is required.</p>
+                                        <p><strong>Security:</strong> Your wallet address and RPC connection are securely configured in the backend environment.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="loading-state">
+                                <p>Loading Ethereum connection status...</p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );
