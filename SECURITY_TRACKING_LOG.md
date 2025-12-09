@@ -27,6 +27,7 @@
 | form-data | 4.0.5 | ✅ PATCHED | 1 Fixed | Forced via resolutions |
 | nth-check | 2.1.1 | ✅ PATCHED | 1 Fixed | Forced via resolutions |
 | axios | 1.13.2 | ✅ SECURE | 0 Vulnerable | Already at latest (verified Jan 2025) |
+| node-forge | 1.3.3 | ✅ PATCHED | 3 Fixed | Upgraded from 1.3.1 (CRITICAL CVEs) |
 | fast-redact | multiple | ⚠️ UNFIXABLE | 11 Instances | NO PATCH AVAILABLE (Low severity) |
 | webpack-dev-server | 4.15.2 | ⚠️ VULNERABLE | 2 Known | CANNOT UPGRADE (dev-only, see below) |
 
