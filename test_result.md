@@ -477,8 +477,9 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Comprehensive Login Flow Testing for Big Mann Entertainment"
+  stuck_tasks: 
     - "Comprehensive TikTok Integration Frontend Testing"
-  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
