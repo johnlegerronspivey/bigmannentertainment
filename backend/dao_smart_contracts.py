@@ -29,12 +29,14 @@ class DAOSmartContractManager:
     def _initialize_web3(self):
         """Initialize Web3 connection"""
         try:
-            # Try to connect to a test network (Sepolia testnet)
-            infura_url = os.getenv('ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/demo')
-            self.w3 = Web3(Web3.HTTPProvider(infura_url))
+            # Connect to Ethereum via configured RPC URL
+            rpc_url = os.getenv('ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/demo')
+            self.w3 = Web3(Web3.HTTPProvider(rpc_url))
             
             if self.w3.is_connected():
-                print("✅ Connected to Ethereum testnet")
+                network = os.getenv('ETHEREUM_NETWORK', 'unknown')
+                print(f"✅ Connected to Ethereum {network}")
+                print(f"✅ Using RPC: {rpc_url[:50]}...")
             else:
                 print("⚠️ Ethereum connection not available - using mock mode")
                 self.w3 = None
