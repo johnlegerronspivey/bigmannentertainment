@@ -39,6 +39,8 @@
 | setuptools | 80.9.0 | ✅ PATCHED | 3 Fixed | Upgraded from 65.5.0 (CRITICAL RCE) |
 | starlette | 0.50.0 | ✅ PATCHED | 2 Fixed | Upgraded from 0.37.2 (HIGH DoS) |
 | fastapi | 0.121.3 | ✅ UPDATED | Compatibility | Upgraded from 0.110.1 |
+| fonttools | 4.61.0 | ✅ PATCHED | 1 Fixed | Upgraded from 4.59.2 (CRITICAL RCE) |
+| urllib3 | 2.6.1 | ✅ PATCHED | 2 Fixed | Upgraded from 2.5.0 (HIGH DoS) |
 | pymongo | 4.15.4 | ✅ LATEST | None | Upgraded |
 | motor | 3.7.1 | ✅ LATEST | None | Upgraded |
 | ecdsa | 0.19.1 | ⚠️ UNFIXABLE | 1 Known | NO FIX PLANNED by maintainers (Low severity) |
