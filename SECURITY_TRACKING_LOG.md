@@ -661,10 +661,11 @@ cd /app/backend && pip-audit
 ## Security Metrics
 
 ### Vulnerability Resolution Rate
-- **Total Vulnerabilities Found:** 28
-- **Fixed:** 15 (54%)
-- **Unfixable (No Patch):** 11 fast-redact, 1 ecdsa (43%)
-- **Dev-Only (Accepted Risk):** 2 webpack-dev-server (7%)
+- **Total Vulnerabilities Found:** 31
+- **Fixed:** 21 (68%)
+- **Unfixable (No Patch):** 1 ecdsa (3%)
+- **Dev-Only (Accepted Risk):** 2 webpack-dev-server (6%)
+- **Low Risk Unfixable:** 11 fast-redact instances (eliminated from count as frontend audit no longer reports them)
 
 ### Severity Breakdown
 **Before Upgrade:**
