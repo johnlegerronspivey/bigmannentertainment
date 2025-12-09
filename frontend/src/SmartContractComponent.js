@@ -8,6 +8,8 @@ const SmartContractComponent = () => {
     const [templates, setTemplates] = useState({});
     const [networks, setNetworks] = useState({});
     const [analytics, setAnalytics] = useState(null);
+    const [ethereumStatus, setEthereumStatus] = useState(null);
+    const [walletBalance, setWalletBalance] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('contracts');
     
