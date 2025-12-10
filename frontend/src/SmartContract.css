@@ -590,4 +590,172 @@
     .vote-counts {
         justify-content: space-between;
     }
+
+
+/* Ethereum Status Section */
+.ethereum-section {
+    padding: 20px;
+}
+
+.connection-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.status-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.status-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.status-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-badge.connected {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-badge.disconnected {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status-details {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.detail-value {
+    color: #333;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
+}
+
+.code-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background-color: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: #e83e8c;
+}
+
+.balance-amount {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.refresh-btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.info-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border: none;
+}
+
+.info-card h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-content p {
+    margin: 0;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.info-content strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.loading-state p {
+    font-size: 1.1rem;
+}
+
 }
