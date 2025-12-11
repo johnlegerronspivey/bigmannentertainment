@@ -207,6 +207,99 @@ async def get_transaction_info(tx_hash: str):
             "gas": tx['gas'],
             "gas_price": str(tx['gasPrice']),
             "block_number": tx['blockNumber'],
+
+
+@router.get("/capabilities")
+async def get_wallet_capabilities():
+    """
+    Check what capabilities are available (read-only vs transaction signing)
+    """
+    try:
+        private_key = os.getenv('ETHEREUM_PRIVATE_KEY')
+        wallet_address = os.getenv('ETHEREUM_WALLET_ADDRESS')
+        
+        has_private_key = bool(private_key and private_key != '')
+        
+        capabilities = {
+            "read_operations": True,
+            "transaction_signing": has_private_key,
+            "wallet_configured": bool(wallet_address),
+            "features": {
+                "view_balance": True,
+                "view_transactions": True,
+                "send_transactions": has_private_key,
+                "deploy_contracts": has_private_key,
+                "sign_messages": has_private_key
+            }
+        }
+        
+        return {
+            "success": True,
+            "capabilities": capabilities,
+            "mode": "full" if has_private_key else "read-only"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking capabilities: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to check capabilities: {str(e)}"
+        )
+
+@router.post("/sign-message")
+async def sign_message(message: str):
+    """
+    Sign a message with the configured private key (proof that we can sign)
+    """
+    try:
+        private_key = os.getenv('ETHEREUM_PRIVATE_KEY')
+        
+        if not private_key:
+            raise HTTPException(
+                status_code=400,
+                detail="Private key not configured. Cannot sign messages."
+            )
+        
+        w3 = get_web3_connection()
+        
+        if not w3 or not w3.is_connected():
+            raise HTTPException(
+                status_code=503,
+                detail="Ethereum connection not available"
+            )
+        
+        # Import Account for signing
+        from eth_account import Account
+        from eth_account.messages import encode_defunct
+        
+        # Create account from private key
+        account = Account.from_key(private_key)
+        
+        # Create message to sign
+        message_to_sign = encode_defunct(text=message)
+        
+        # Sign the message
+        signed_message = account.sign_message(message_to_sign)
+        
+        return {
+            "success": True,
+            "message": message,
+            "signature": signed_message.signature.hex(),
+            "signer_address": account.address,
+            "v": signed_message.v,
+            "r": signed_message.r.to_bytes(32, 'big').hex(),
+            "s": signed_message.s.to_bytes(32, 'big').hex()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error signing message: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to sign message: {str(e)}"
+        )
+
             "status": "success" if receipt['status'] == 1 else "failed",
             "gas_used": receipt['gasUsed']
         }
