@@ -16,7 +16,7 @@
 | @babel/runtime | 7.28.4 | ✅ PATCHED | 1 Fixed | Upgraded from 7.26.0 |
 | brace-expansion | 2.0.2 | ✅ PATCHED | 1 Fixed | Upgraded from 2.0.1 |
 | on-headers | 1.1.0 | ✅ PATCHED | 1 Fixed | Upgraded from 1.0.2 |
-| glob | 10.5.0 | ✅ PATCHED | 2 Fixed | Forced via resolutions (HIGH SEVERITY) |
+| glob | 11.1.0 | ✅ PATCHED | CVE-2025-64756 | Upgraded to latest (HIGH SEVERITY) |
 | @eslint/plugin-kit | 0.4.1 | ✅ PATCHED | 1 Fixed | Upgraded via eslint |
 | @metamask/sdk | 0.33.1 | ✅ PATCHED | 1 Fixed | Forced via resolutions |
 | @metamask/sdk-communication-layer | 0.33.1 | ✅ PATCHED | 1 Fixed | Forced via resolutions |
