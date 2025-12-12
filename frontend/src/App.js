@@ -1029,15 +1029,20 @@ const Login = () => {
       return;
     }
 
+    // Set loading immediately for instant feedback
     setLoading(true);
 
-    const result = await login(formData.email, formData.password);
-    
-    if (result.success) {
-      navigate('/');
+    try {
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
+        navigate('/');
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
