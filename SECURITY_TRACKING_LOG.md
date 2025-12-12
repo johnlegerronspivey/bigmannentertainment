@@ -182,15 +182,16 @@
 
 ---
 
-### ✅ 10. glob (RESOLVED - January 2025)
+### ✅ 10. glob (RESOLVED - December 2025)
 
 **CVE Fixed:**
-- Command Injection vulnerability (HIGH SEVERITY)
+- CVE-2025-64756 (Command Injection vulnerability - HIGH SEVERITY)
 
 **Action Taken:**
-- Upgraded from <10.5.0 to 10.5.0
-- Added to yarn resolutions
-- Fixed 2 instances across dependency tree
+- Upgraded from 10.5.0 to 11.1.0
+- Executed via `yarn upgrade glob@11.1.0`
+- Verified fix using `yarn audit`
+- Fixed remaining instances across dependency tree
 
 **Impact:** Production & Development - FULLY SECURED  
 **Documentation:** `SECURITY_FRONTEND_CVE_FIXES_2025.md`
