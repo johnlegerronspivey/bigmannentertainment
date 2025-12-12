@@ -1119,7 +1119,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 flex items-center justify-center"
+              className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold py-3 px-4 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transform active:scale-[0.98]"
             >
               {loading ? (
                 <>
@@ -1130,7 +1130,7 @@ const Login = () => {
                   Signing in...
                 </>
               ) : (
-                'Sign in'
+                'Sign In'
               )}
             </button>
           </form>
