@@ -309,16 +309,3 @@ async def sign_message(message: str):
             status_code=500,
             detail=f"Failed to sign message: {str(e)}"
         )
-
-            "status": "success" if receipt['status'] == 1 else "failed",
-            "gas_used": receipt['gasUsed']
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting transaction info: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get transaction info: {str(e)}"
-        )
