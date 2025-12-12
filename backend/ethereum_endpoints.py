@@ -207,7 +207,17 @@ async def get_transaction_info(tx_hash: str):
             "gas": tx['gas'],
             "gas_price": str(tx['gasPrice']),
             "block_number": tx['blockNumber'],
-
+            "status": receipt['status'] if receipt else None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting transaction info: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get transaction: {str(e)}"
+        )
 
 @router.get("/capabilities")
 async def get_wallet_capabilities():
