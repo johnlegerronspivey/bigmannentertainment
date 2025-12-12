@@ -513,6 +513,27 @@ const Navigation = () => {
               <span>📱</span>
               <span>Social</span>
             </Link>
+
+            {/* Ethereum Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsEthereumDropdownOpen(!isEthereumDropdownOpen)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+                title="Ethereum Features"
+              >
+                <span>⚡</span>
+                <span>Ethereum</span>
+                <span className="ml-1">▼</span>
+              </button>
+              {isEthereumDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/ethereum/deploy" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">🚀 Deploy Contracts</Link>
+                  <Link to="/ethereum/transactions" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">📜 Transaction History</Link>
+                  <Link to="/ethereum/dao-voting" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">🏛️ DAO Voting</Link>
+                  <Link to="/smart-contracts" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">📋 Smart Contracts</Link>
+                </div>
+              )}
+            </div>
             
             {/* Industry Dropdown */}
             <div className="relative">
