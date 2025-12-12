@@ -1125,10 +1125,14 @@ const Login = () => {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold py-3 px-4 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transform active:scale-[0.98]"
+              disabled={loading || buttonClicked}
+              className={`w-full text-white font-bold py-3 px-4 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex items-center justify-center transform ${
+                loading || buttonClicked 
+                  ? 'bg-purple-700 scale-[0.98]' 
+                  : 'bg-purple-600 hover:bg-purple-700 active:bg-purple-800 active:scale-[0.98]'
+              }`}
             >
-              {loading ? (
+              {loading || buttonClicked ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
