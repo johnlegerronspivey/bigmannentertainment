@@ -533,7 +533,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Ethereum Connection Feature Testing on Smart Contracts Page"
+    - "Ethereum Advanced Features Frontend Testing"
   stuck_tasks: 
     - "Comprehensive TikTok Integration Frontend Testing"
   test_all: false
