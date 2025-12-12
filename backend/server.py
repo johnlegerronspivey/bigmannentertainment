@@ -7067,6 +7067,7 @@ api_router.include_router(audit_router)
 api_router.include_router(media_router)
 api_router.include_router(paypal_router)
 api_router.include_router(ethereum_router)
+api_router.include_router(ethereum_advanced_router)
 
 # Integration Hub Health Endpoints (MLC, MDE, pDOOH)
 @api_router.get("/mlc/health")
