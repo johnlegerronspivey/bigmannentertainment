@@ -309,6 +309,7 @@ const Navigation = () => {
   const [isLabelDropdownOpen, setIsLabelDropdownOpen] = useState(false);
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
   const [isBusinessDropdownOpen, setIsBusinessDropdownOpen] = useState(false);
+  const [isEthereumDropdownOpen, setIsEthereumDropdownOpen] = useState(false);
   const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
