@@ -45,6 +45,7 @@ module.exports = {
   },
   devServer: (devServerConfig) => {
     // Migrate from old webpack-dev-server v4 API to v5 API
+    
     // Replace onBeforeSetupMiddleware and onAfterSetupMiddleware with setupMiddlewares
     if (devServerConfig.onBeforeSetupMiddleware || devServerConfig.onAfterSetupMiddleware) {
       const beforeSetup = devServerConfig.onBeforeSetupMiddleware;
@@ -62,6 +63,21 @@ module.exports = {
         }
         return middlewares;
       };
+    }
+    
+    // Replace https option with server option
+    if (devServerConfig.https !== undefined) {
+      if (devServerConfig.https === true) {
+        devServerConfig.server = 'https';
+      } else if (devServerConfig.https === false) {
+        devServerConfig.server = 'http';
+      } else if (typeof devServerConfig.https === 'object') {
+        devServerConfig.server = {
+          type: 'https',
+          options: devServerConfig.https,
+        };
+      }
+      delete devServerConfig.https;
     }
     
     return devServerConfig;
