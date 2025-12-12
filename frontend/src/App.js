@@ -1018,6 +1018,9 @@ const Login = () => {
   const handlePasswordLogin = async (e) => {
     e.preventDefault();
     
+    // Immediate visual feedback
+    setButtonClicked(true);
+    
     // Validate all fields
     const newErrors = {};
     newErrors.email = validateField('email', formData.email);
@@ -1027,6 +1030,7 @@ const Login = () => {
     
     // Check if there are any errors
     if (Object.values(newErrors).some(error => error)) {
+      setButtonClicked(false);
       return;
     }
 
@@ -1040,9 +1044,11 @@ const Login = () => {
         navigate('/');
       } else {
         setLoading(false);
+        setButtonClicked(false);
       }
     } catch (error) {
       setLoading(false);
+      setButtonClicked(false);
     }
   };
 
