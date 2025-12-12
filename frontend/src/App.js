@@ -3641,6 +3641,11 @@ function App() {
             <Route path="/creator/:username" element={<CreatorProfilePage />} />
             <Route path="/dao" element={<ProtectedRoute><DAOGovernance /></ProtectedRoute>} />
             <Route path="/dao/proposal/:proposalId" element={<ProtectedRoute><ProposalDetail /></ProtectedRoute>} />
+            
+            {/* Advanced Ethereum Features */}
+            <Route path="/ethereum/deploy" element={<ProtectedRoute><ContractDeploymentUI /></ProtectedRoute>} />
+            <Route path="/ethereum/transactions" element={<ProtectedRoute><TransactionHistoryViewer /></ProtectedRoute>} />
+            <Route path="/ethereum/dao-voting" element={<ProtectedRoute><DAOVotingDashboard /></ProtectedRoute>} />
             <Route path="/social" element={<ProtectedRoute><SocialMediaDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><EnhancedUserDashboard /></ProtectedRoute>} />
             <Route path="/enhanced-features" element={<ProtectedRoute><EnhancedFeaturesDashboard token={localStorage.getItem('token')} /></ProtectedRoute>} />
