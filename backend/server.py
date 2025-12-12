@@ -65,6 +65,7 @@ from support_endpoints import router as support_router
 from uln_endpoints import uln_router
 from uln_blockchain_endpoints import router as blockchain_router
 from ethereum_endpoints import router as ethereum_router
+from ethereum_advanced_endpoints import router as ethereum_advanced_router
 
 # Import Creator Profile System endpoints
 from profile_endpoints import router as profile_router
