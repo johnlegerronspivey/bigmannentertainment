@@ -43,4 +43,27 @@ module.exports = {
       return webpackConfig;
     },
   },
+  devServer: (devServerConfig) => {
+    // Migrate from old webpack-dev-server v4 API to v5 API
+    // Replace onBeforeSetupMiddleware and onAfterSetupMiddleware with setupMiddlewares
+    if (devServerConfig.onBeforeSetupMiddleware || devServerConfig.onAfterSetupMiddleware) {
+      const beforeSetup = devServerConfig.onBeforeSetupMiddleware;
+      const afterSetup = devServerConfig.onAfterSetupMiddleware;
+      
+      delete devServerConfig.onBeforeSetupMiddleware;
+      delete devServerConfig.onAfterSetupMiddleware;
+      
+      devServerConfig.setupMiddlewares = (middlewares, devServer) => {
+        if (beforeSetup) {
+          beforeSetup(devServer);
+        }
+        if (afterSetup) {
+          afterSetup(devServer);
+        }
+        return middlewares;
+      };
+    }
+    
+    return devServerConfig;
+  },
 };
