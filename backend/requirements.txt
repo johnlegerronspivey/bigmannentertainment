@@ -37,7 +37,6 @@ defusedxml==0.7.1
 distro==1.9.0
 dnspython==2.7.0
 docutils==0.19
-ecdsa==0.19.1
 elementpath==5.0.4
 email_validator==2.2.0
 emergent-plugins @ file:///wheelhouse/emergent_plugins-1.0.0-py3-none-any.whl#sha256=c0f704b1f3e22b0bfa65048252154d4524b82184a05034acfd677391e1d02c6e
@@ -151,7 +150,6 @@ pyparsing==3.2.3
 pytest==8.4.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
-python-jose==3.5.0
 python-multipart==0.0.20
 python-xmp-toolkit==2.0.2
 pytz==2025.2
