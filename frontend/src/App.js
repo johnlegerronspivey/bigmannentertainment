@@ -3792,7 +3792,7 @@ function App() {
                 </p>
                 <div className="border-t border-gray-700 pt-4">
                   <p className="text-sm text-gray-500">
-                    © 2025 Big Mann Entertainment. All rights reserved. Owned and operated by John LeGerron Spivey.
+                    © 2026 Big Mann Entertainment. All rights reserved. Owned and operated by John LeGerron Spivey.
                   </p>
                 </div>
               </div>

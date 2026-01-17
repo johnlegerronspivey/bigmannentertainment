@@ -301,7 +301,7 @@ const AuthWrapper = ({ children }) => {
           return (
             <div className="text-center mt-8">
               <p className="text-xs text-gray-500">
-                © 2025 Big Mann Entertainment. All rights reserved.
+                © 2026 Big Mann Entertainment. All rights reserved.
               </p>
             </div>
           );
