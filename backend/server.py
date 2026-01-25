@@ -85,6 +85,10 @@ from digital_twin_endpoints import router as digital_twin_router
 # Import Royalty Marketplace endpoints
 from royalty_marketplace_endpoints import router as royalty_marketplace_router
 
+# Import AWS Enterprise Mapping endpoints
+from aws_enterprise_mapping_endpoints import router as aws_enterprise_mapping_router
+from aws_enterprise_mapping_service import initialize_enterprise_mapping
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
