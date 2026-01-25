@@ -723,7 +723,7 @@ class RoyaltyMarketplaceService:
                 price_alert=price_alert
             )
             
-            await self.watchlists.insert_one(watchlist.dict())
+            await self.watchlists.insert_one(serialize_for_mongo(watchlist.dict()))
             
             # Increment watchlist count
             await self.listings.update_one(
