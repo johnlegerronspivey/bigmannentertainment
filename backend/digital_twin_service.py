@@ -516,7 +516,7 @@ class DigitalTwinService:
         twin: DigitalTwinProfile
     ) -> VirtualPhotoshoot:
         """
-        Execute a virtual photoshoot by generating images.
+        Execute a virtual photoshoot by generating images using Gemini.
         """
         photoshoot.status = "generating"
         
@@ -535,17 +535,15 @@ class DigitalTwinService:
             prompt = f"{base_prompt}, Pose: {pose}"
             
             try:
-                images = await self.image_generator.generate_images(
-                    prompt=prompt,
-                    model="gpt-image-1",
-                    number_of_images=1
+                image_url = await self._generate_image(
+                    prompt, 
+                    f"photoshoot-{photoshoot.photoshoot_id}-{i}"
                 )
                 
-                if images:
-                    image_base64 = base64.b64encode(images[0]).decode('utf-8')
+                if image_url:
                     generated_images.append({
                         "image_id": str(uuid.uuid4()),
-                        "image_url": f"data:image/png;base64,{image_base64}",
+                        "image_url": image_url,
                         "pose": pose,
                         "index": i,
                         "generated_at": datetime.now(timezone.utc).isoformat()
@@ -554,13 +552,13 @@ class DigitalTwinService:
             except Exception as e:
                 generated_images.append({
                     "image_id": str(uuid.uuid4()),
-                    "error": str(e),
+                    "error": str(e)[:100],
                     "pose": pose,
                     "index": i
                 })
         
         photoshoot.images = generated_images
-        photoshoot.images_generated = len([i for i in generated_images if "image_url" in i])
+        photoshoot.images_generated = len([img for img in generated_images if "image_url" in img])
         photoshoot.status = "completed" if photoshoot.images_generated > 0 else "failed"
         photoshoot.completed_at = datetime.now(timezone.utc)
         
