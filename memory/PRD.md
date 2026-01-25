@@ -286,5 +286,10 @@ MONGO_URL=mongodb://...
 - **Email**: enterprise@test.com
 - **Password**: TestPass123!
 
+## AWS Account
+- **Account ID**: 314108682794
+- **Default Region**: us-east-1
+- **Credentials**: Configured in environment
+
 ## Last Updated
 January 25, 2026
