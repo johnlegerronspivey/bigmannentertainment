@@ -222,7 +222,7 @@ async def get_twin_licenses(twin_id: str, status: Optional[str] = Query(default=
         if status:
             query["status"] = status
         licenses = await licenses_collection.find(query).sort("created_at", -1).to_list(100)
-        return [{k: v for k, v in l.items() if k != "_id"} for l in licenses]
+        return [{k: v for k, v in lic.items() if k != "_id"} for lic in licenses]
     except Exception:
         return []
 

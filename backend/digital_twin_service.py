@@ -738,8 +738,8 @@ class DigitalTwinService:
         try:
             licenses_collection = self.db["twin_licenses"]
             licenses = await licenses_collection.find({"twin_id": twin_id}).to_list(100)
-            active_licenses = len([l for l in licenses if l.get("status") == "active"])
-            total_license_revenue = sum(l.get("license_fee", 0) for l in licenses)
+            active_licenses = len([lic for lic in licenses if lic.get("status") == "active"])
+            total_license_revenue = sum(lic.get("license_fee", 0) for lic in licenses)
         except Exception:
             active_licenses = 0
             total_license_revenue = 0
