@@ -43,6 +43,7 @@ import { SupportSystemDashboard } from './SupportSystemComponents';
 import EnhancedFeaturesDashboard from './EnhancedFeaturesComponents';
 import EnterprisePhase1Dashboard from './EnterprisePhase1Components';
 import DigitalTwinDashboard from './DigitalTwinComponents';
+import RoyaltyMarketplaceDashboard, { ListingDetailPage } from './RoyaltyMarketplaceComponents';
 import CreatorProfilePage from './CreatorProfile';
 import ProfileSettings from './ProfileSettings';
 import DAOGovernance from './DAOGovernance';
