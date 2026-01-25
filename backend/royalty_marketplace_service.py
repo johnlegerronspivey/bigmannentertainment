@@ -468,7 +468,7 @@ class RoyaltyMarketplaceService:
                 )
             
             # Store the bid
-            await self.bids.insert_one(bid.dict())
+            await self.bids.insert_one(serialize_for_mongo(bid.dict()))
             
             # Update listing with new highest bid
             await self.listings.update_one(
