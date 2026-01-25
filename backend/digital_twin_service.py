@@ -210,17 +210,16 @@ class DigitalTwinService:
     Service for creating and managing digital twins of real models.
     Enables virtual campaigns, AR try-ons, and metaverse presence.
     Uses Google Gemini (Nano Banana) for image generation.
-    Falls back to Emergent LLM key if Google API quota is exceeded.
     """
     
     def __init__(self, db):
         self.db = db
-        # Primary: Google API key, Fallback: Emergent LLM key
+        # Use Google API key for image generation (user's preference)
         self.google_api_key = os.environ.get("GOOGLE_API_KEY")
         self.emergent_api_key = os.environ.get("EMERGENT_LLM_KEY")
-        # For image generation, prefer Emergent key (higher quotas)
-        self.image_api_key = self.emergent_api_key or self.google_api_key
-        # For text generation, use Emergent key
+        # Image generation: Google API key (with billing enabled)
+        self.image_api_key = self.google_api_key
+        # Text generation: Emergent key or Google key
         self.text_api_key = self.emergent_api_key or self.google_api_key
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
