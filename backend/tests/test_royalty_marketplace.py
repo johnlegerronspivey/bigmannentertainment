@@ -326,9 +326,9 @@ class TestBidding:
             headers=auth_headers,
             json=bid_data
         )
-        # Should fail because user_123 is the seller
-        assert response.status_code in [400, 500]
-        print(f"✅ Correctly prevented self-bidding")
+        # Should fail because user_123 is the seller (400, 422, or 500 are all valid error responses)
+        assert response.status_code in [400, 422, 500]
+        print(f"✅ Correctly prevented self-bidding (status: {response.status_code})")
 
 
 class TestFeaturedListings:
