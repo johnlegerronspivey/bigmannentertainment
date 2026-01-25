@@ -1,0 +1,121 @@
+{
+  "summary": "Completed comprehensive testing of Dynamic Royalty Marketplace feature. All 18 backend API tests pass (100%). Frontend marketplace dashboard, listing cards, create listing modal, tab navigation, and listing detail page all work correctly. Fixed one bug in ending-soon endpoint (datetime timezone comparison).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/marketplace/listings/ending-soon",
+        "issue": "Datetime comparison failed between offset-naive and offset-aware datetimes - FIXED",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_royalty_marketplace.py",
+    "/app/test_reports/pytest/marketplace_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "serialize_for_mongo helper function properly handles Decimal and Enum conversion for MongoDB storage",
+    "All marketplace endpoints properly exclude MongoDB _id from responses",
+    "Bidding system correctly prevents self-bidding",
+    "Watchlist operations work correctly with proper count updates"
+  ],
+  "updated_files": [
+    "/app/backend/royalty_marketplace_endpoints.py - Fixed datetime timezone handling in ending-soon endpoint",
+    "/app/backend/tests/test_royalty_marketplace.py - Created comprehensive test suite"
+  ],
+  "success_rate": {
+    "backend": "100% (18/18 tests passed)",
+    "frontend": "100% (all features working)"
+  },
+  "test_credentials": {
+    "email": "enterprise@test.com",
+    "password": "TestPass123!"
+  },
+  "seed_data_creation": "Two test listings exist in database (one fixed-price, one auction). Test listings created by pytest have TEST_ prefix.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Royalty Marketplace is fully functional. Access via /marketplace route after login. Features tested: health check, stats, listing search/filter, listing details, create listing, publish listing, watchlist add, my-listings, my-bids, my-stats, featured listings, ending-soon listings. Frontend tabs (Browse, My Listings, My Bids, Watchlist, Transactions) all work correctly.",
+  "tests_performed": {
+    "backend_api_tests": {
+      "health_check": {
+        "test_health_endpoint": "PASS - Returns healthy status"
+      },
+      "marketplace_stats": {
+        "test_get_stats": "PASS - Returns active_listings, total_volume, total_sales, average_sale_price"
+      },
+      "listings_search": {
+        "test_search_listings_default": "PASS",
+        "test_search_listings_with_sort": "PASS",
+        "test_search_listings_by_type": "PASS",
+        "test_search_listings_by_auction_type": "PASS",
+        "test_pagination": "PASS"
+      },
+      "listing_details": {
+        "test_get_listing_details": "PASS - Returns listing with recent_bids and price_history",
+        "test_get_listing_not_found": "PASS - Returns 404"
+      },
+      "authenticated_endpoints": {
+        "test_get_my_listings": "PASS",
+        "test_get_my_bids": "PASS",
+        "test_get_watchlist": "PASS",
+        "test_get_my_stats": "PASS"
+      },
+      "create_listing": {
+        "test_create_listing": "PASS - Creates listing with pricing_recommendation"
+      },
+      "watchlist_operations": {
+        "test_add_to_watchlist": "PASS"
+      },
+      "bidding": {
+        "test_place_bid_on_own_listing": "PASS - Correctly prevents self-bidding (422)"
+      },
+      "featured_listings": {
+        "test_get_featured_listings": "PASS"
+      },
+      "ending_soon_listings": {
+        "test_get_ending_soon_listings": "PASS (after fix)"
+      }
+    },
+    "frontend_ui_tests": {
+      "marketplace_dashboard": "PASS - Loads with header, stats cards, tabs, and listing cards",
+      "create_listing_modal": "PASS - Opens with all form fields (Title, Description, Artist, Genre, Sale Type, Royalty Type, Percentage, Revenue, Price, Tags)",
+      "tab_navigation": {
+        "browse_tab": "PASS - Shows listings grid with search and filters",
+        "my_listings_tab": "PASS - Shows user's listings with stats cards",
+        "my_bids_tab": "PASS - Shows user's bids",
+        "watchlist_tab": "PASS - Shows watched listings",
+        "transactions_tab": "PASS - Shows transactions with filter buttons"
+      },
+      "listing_detail_page": "PASS - Shows full listing details with royalty info, auction details, and action buttons",
+      "listing_cards": "PASS - Display title, artist, royalty share, revenue, price, and action buttons"
+    }
+  },
+  "bug_fix_applied": {
+    "file": "/app/backend/royalty_marketplace_endpoints.py",
+    "issue": "Datetime comparison in ending-soon endpoint failed with 'can't compare offset-naive and offset-aware datetimes'",
+    "fix": "Added timezone handling for naive datetimes by assuming UTC: if auction_end.tzinfo is None: auction_end = auction_end.replace(tzinfo=timezone.utc)",
+    "lines_changed": "137-138"
+  },
+  "existing_test_data": {
+    "fixed_price_listing": {
+      "id": "26603c1d-2ca4-4208-a1e6-a0214029c0e3",
+      "title": "Test Royalty Listing - Summer Hits Album",
+      "type": "fixed_price",
+      "price": "$5,000.00"
+    },
+    "auction_listing": {
+      "id": "307797ea-178c-4b5b-bec7-0e395f26330e",
+      "title": "Premium Royalty Auction - Platinum Catalog",
+      "type": "auction",
+      "current_bid": "$10,000.00",
+      "buy_now_price": "$50,000.00"
+    }
+  }
+}
