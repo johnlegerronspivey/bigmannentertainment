@@ -781,18 +781,26 @@ const AWSEnterpriseMapping = () => {
     loadData();
   }, [fetchHealthStatus, fetchMetrics, fetchInfraMap, fetchCostBreakdown]);
 
-  // Load tab-specific data
+  // Load tab-specific data when tab changes
+  const handleTabChange = useCallback((newTab) => {
+    setActiveTab(newTab);
+  }, []);
+
   useEffect(() => {
-    if (activeTab === 'ec2') {
-      fetchEc2Instances();
-    } else if (activeTab === 's3') {
-      fetchS3Buckets();
-    } else if (activeTab === 'rds') {
-      fetchRdsInstances();
-    } else if (activeTab === 'lambda') {
-      fetchLambdaFunctions();
-    }
-  }, [activeTab, fetchEc2Instances, fetchS3Buckets, fetchRdsInstances, fetchLambdaFunctions]);
+    const loadTabData = async () => {
+      if (activeTab === 'ec2') {
+        await fetchEc2Instances();
+      } else if (activeTab === 's3') {
+        await fetchS3Buckets();
+      } else if (activeTab === 'rds') {
+        await fetchRdsInstances();
+      } else if (activeTab === 'lambda') {
+        await fetchLambdaFunctions();
+      }
+    };
+    loadTabData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
