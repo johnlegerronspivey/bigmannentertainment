@@ -82,6 +82,9 @@ from enterprise_phase1_endpoints import router as enterprise_phase1_router
 # Import Digital Twin endpoints
 from digital_twin_endpoints import router as digital_twin_router
 
+# Import Royalty Marketplace endpoints
+from royalty_marketplace_endpoints import router as royalty_marketplace_router
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
