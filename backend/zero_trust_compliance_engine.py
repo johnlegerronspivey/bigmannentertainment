@@ -519,13 +519,9 @@ Provide JSON response:
     ) -> FraudDetectionResult:
         """
         Detect potentially fraudulent uploads using AI analysis.
+        Falls back to rule-based detection if AI is unavailable.
         """
-        system_message = """You are a fraud detection specialist for a media platform.
-        Analyze uploads for signs of fraud, duplication, or policy violations."""
-        
-        chat = self._get_chat(f"fraud-detect-{upload_id}", system_message)
-        
-        # Check for duplicates in database
+        # Check for duplicates in database first
         is_duplicate = False
         duplicate_of = None
         
@@ -540,7 +536,14 @@ Provide JSON response:
         except Exception:
             pass
         
-        prompt = f"""Analyze this upload for fraud indicators:
+        # Try AI-powered analysis first
+        try:
+            system_message = """You are a fraud detection specialist for a media platform.
+            Analyze uploads for signs of fraud, duplication, or policy violations."""
+            
+            chat = self._get_chat(f"fraud-detect-{upload_id}", system_message)
+            
+            prompt = f"""Analyze this upload for fraud indicators:
 
 Upload Data:
 {json.dumps(upload_data, indent=2, default=str)}
@@ -567,10 +570,9 @@ Provide JSON response:
     "recommended_action": "action to take"
 }}"""
 
-        user_message = UserMessage(text=prompt)
-        response = await chat.send_message(user_message)
-        
-        try:
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
+            
             json_str = response
             if "```json" in response:
                 json_str = response.split("```json")[1].split("```")[0]
@@ -592,28 +594,65 @@ Provide JSON response:
                 recommended_action=result.get("recommended_action", "")
             )
             
-            await self._log_audit_entry(
-                action_type="fraud_detection",
-                entity_type="upload",
-                entity_id=upload_id,
-                actor_id=actor_id,
-                changes={
-                    "risk_level": detection.risk_level.value,
-                    "is_duplicate": detection.is_duplicate,
-                    "flags": detection.flags
-                },
-                compliance_relevant=True
-            )
+        except Exception:
+            # Fallback to rule-based fraud detection
+            flags = []
+            risk_level = FraudRiskLevel.NONE
             
-            return detection
-        except (json.JSONDecodeError, KeyError, ValueError):
-            return FraudDetectionResult(
+            # Check for duplicates
+            if is_duplicate:
+                flags.append("Duplicate content detected")
+                risk_level = FraudRiskLevel.HIGH
+            
+            # Check file size anomalies
+            file_size = upload_data.get("file_size", 0)
+            if file_size == 0:
+                flags.append("Zero-size file submitted")
+                risk_level = FraudRiskLevel.MEDIUM
+            elif file_size > 500 * 1024 * 1024:  # >500MB
+                flags.append("Unusually large file size")
+            
+            # Check upload source
+            upload_source = upload_data.get("upload_source", "")
+            if upload_source == "api" or upload_source == "bulk":
+                flags.append("Automated upload source - verify authenticity")
+            
+            # Check for missing metadata
+            if not upload_data.get("file_name"):
+                flags.append("Missing file name")
+                risk_level = FraudRiskLevel.MEDIUM if risk_level == FraudRiskLevel.NONE else risk_level
+            
+            recommended_action = "Approve" if risk_level == FraudRiskLevel.NONE else "Manual review required"
+            if risk_level == FraudRiskLevel.HIGH:
+                recommended_action = "Flag for immediate review - potential policy violation"
+            
+            detection = FraudDetectionResult(
                 upload_id=upload_id,
-                risk_level=FraudRiskLevel.LOW,
+                risk_level=risk_level,
                 is_duplicate=is_duplicate,
                 duplicate_of=duplicate_of,
-                recommended_action="Manual review recommended"
+                similarity_score=100 if is_duplicate else 0,
+                ai_generated_probability=0,
+                metadata_tampering_detected=False,
+                copyright_match=None,
+                flags=flags if flags else ["Rule-based check passed (AI unavailable)"],
+                recommended_action=recommended_action
             )
+        
+        await self._log_audit_entry(
+            action_type="fraud_detection",
+            entity_type="upload",
+            entity_id=upload_id,
+            actor_id=actor_id,
+            changes={
+                "risk_level": detection.risk_level.value,
+                "is_duplicate": detection.is_duplicate,
+                "flags": detection.flags
+            },
+            compliance_relevant=True
+        )
+        
+        return detection
     
     async def check_privacy_compliance(
         self,
