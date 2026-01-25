@@ -621,7 +621,7 @@ class RoyaltyMarketplaceService:
                 status="pending"
             )
             
-            await self.transactions.insert_one(transaction.dict())
+            await self.transactions.insert_one(serialize_for_mongo(transaction.dict()))
             
             # Update bid status
             await self.bids.update_one(
