@@ -627,7 +627,7 @@ class DigitalTwinService:
         product_data: Dict[str, Any]
     ) -> ARTryOnAsset:
         """
-        Create an AR try-on compatible asset for the digital twin.
+        Create an AR try-on compatible asset for the digital twin using Gemini.
         """
         twin = await self.get_twin(twin_id)
         if not twin or not twin.ar_compatible:
@@ -640,18 +640,7 @@ class DigitalTwinService:
         Clean product shot, transparent background, high quality
         """
         
-        preview_url = None
-        try:
-            images = await self.image_generator.generate_images(
-                prompt=prompt,
-                model="gpt-image-1",
-                number_of_images=1
-            )
-            if images:
-                image_base64 = base64.b64encode(images[0]).decode('utf-8')
-                preview_url = f"data:image/png;base64,{image_base64}"
-        except Exception:
-            pass
+        preview_url = await self._generate_image(prompt, f"ar-asset-{twin_id}-{asset_name[:10]}")
         
         asset = ARTryOnAsset(
             asset_id=str(uuid.uuid4()),
