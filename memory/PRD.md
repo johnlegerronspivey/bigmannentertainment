@@ -147,6 +147,8 @@ Build a professional music distribution and talent management platform for Big M
 ### Routes & Navigation
 - `/enterprise` - Enterprise Command Center (with Compliance Dashboard)
 - `/digital-twins` - Digital Twin Studio
+- `/marketplace` - Dynamic Royalty Marketplace
+- `/marketplace/listing/:id` - Listing Detail Page
 
 ## Configuration
 
