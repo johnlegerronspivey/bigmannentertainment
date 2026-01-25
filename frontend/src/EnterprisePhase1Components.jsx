@@ -882,22 +882,19 @@ export const FraudDetectionPanel = ({ onDetect }) => {
     try {
       const token = localStorage.getItem('token');
       const uploadId = formData.upload_id || `upload-${Date.now()}`;
-      const response = await fetch(`${API}/enterprise/compliance/detect-fraud/${uploadId}`, {
+      const response = await fetch(`${API}/enterprise/compliance/detect-fraud/${uploadId}?actor_id=current-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          upload_data: {
-            file_name: formData.file_name,
-            file_hash: formData.file_hash,
-            file_size: formData.file_size,
-            uploader_id: formData.uploader_id,
-            upload_source: formData.upload_source,
-            metadata: formData.metadata
-          },
-          actor_id: 'current-user'
+          file_name: formData.file_name,
+          file_hash: formData.file_hash,
+          file_size: formData.file_size,
+          uploader_id: formData.uploader_id,
+          upload_source: formData.upload_source,
+          metadata: formData.metadata
         })
       });
       const data = await response.json();
