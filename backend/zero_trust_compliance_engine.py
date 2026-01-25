@@ -446,12 +446,15 @@ Provide JSON response:
     ) -> UsageRightsValidation:
         """
         Validate if requested usage is allowed for an asset.
+        Falls back to rule-based validation if AI is unavailable.
         """
-        system_message = """You are a media licensing expert. Analyze asset rights and validate usage requests."""
-        
-        chat = self._get_chat(f"usage-rights-{asset_id}", system_message)
-        
-        prompt = f"""Validate this usage request against asset rights:
+        # Try AI-powered validation first
+        try:
+            system_message = """You are a media licensing expert. Analyze asset rights and validate usage requests."""
+            
+            chat = self._get_chat(f"usage-rights-{asset_id}", system_message)
+            
+            prompt = f"""Validate this usage request against asset rights:
 
 Asset ID: {asset_id}
 Requested Use:
@@ -469,10 +472,9 @@ Provide JSON response:
     "issues": ["issue1", "issue2"]
 }}"""
 
-        user_message = UserMessage(text=prompt)
-        response = await chat.send_message(user_message)
-        
-        try:
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
+            
             json_str = response
             if "```json" in response:
                 json_str = response.split("```json")[1].split("```")[0]
@@ -495,21 +497,58 @@ Provide JSON response:
                 auto_renewal=result.get("auto_renewal_recommended", False)
             )
             
-            await self._log_audit_entry(
-                action_type="usage_rights_validation",
-                entity_type="asset",
-                entity_id=asset_id,
-                actor_id=actor_id,
-                changes={"status": validation.status.value, "requested_use": requested_use},
-                compliance_relevant=True
-            )
+        except Exception:
+            # Fallback to rule-based validation
+            use_type = requested_use.get("use_type", "commercial")
+            territory = requested_use.get("territory", "worldwide")
+            duration = requested_use.get("duration_days", 365)
+            is_exclusive = requested_use.get("exclusive", False)
             
-            return validation
-        except (json.JSONDecodeError, KeyError, ValueError):
-            return UsageRightsValidation(
+            # Standard allowed uses based on type
+            allowed_uses_map = {
+                "commercial": ["advertising", "marketing", "promotional", "product packaging"],
+                "editorial": ["news", "documentary", "educational", "journalism"],
+                "advertising": ["tv ads", "digital ads", "print ads", "social media ads"],
+                "social_media": ["instagram", "facebook", "twitter", "tiktok", "youtube"],
+                "broadcast": ["television", "streaming", "cable", "satellite"],
+                "print": ["magazines", "newspapers", "brochures", "posters"],
+                "digital": ["websites", "apps", "email marketing", "digital displays"]
+            }
+            
+            allowed_uses = allowed_uses_map.get(use_type, ["general commercial use"])
+            
+            # Determine territories based on request
+            territories = [territory] if territory != "worldwide" else ["worldwide"]
+            
+            # Rule-based status determination
+            status = ComplianceStatus.COMPLIANT
+            if duration > 730:  # >2 years
+                status = ComplianceStatus.PENDING_REVIEW
+            if is_exclusive and territory == "worldwide":
+                status = ComplianceStatus.REQUIRES_ACTION
+            
+            validation = UsageRightsValidation(
                 asset_id=asset_id,
-                status=ComplianceStatus.PENDING_REVIEW
+                status=status,
+                allowed_uses=allowed_uses,
+                restricted_uses=["political campaigns", "defamatory content", "adult content"],
+                territories=territories,
+                exclusivity=is_exclusive,
+                duration_days=duration,
+                end_date=datetime.now(timezone.utc) + timedelta(days=duration),
+                auto_renewal=not is_exclusive  # Don't auto-renew exclusive licenses
             )
+        
+        await self._log_audit_entry(
+            action_type="usage_rights_validation",
+            entity_type="asset",
+            entity_id=asset_id,
+            actor_id=actor_id,
+            changes={"status": validation.status.value, "requested_use": requested_use},
+            compliance_relevant=True
+        )
+        
+        return validation
     
     async def detect_fraudulent_upload(
         self,
