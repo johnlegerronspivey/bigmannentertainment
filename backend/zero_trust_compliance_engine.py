@@ -244,13 +244,16 @@ class ZeroTrustComplianceEngine:
     ) -> ReleaseVerification:
         """
         Verify all necessary releases and consents for an asset.
+        Falls back to rule-based verification if AI is unavailable.
         """
-        system_message = """You are a legal compliance expert specializing in model releases and media rights.
-        Analyze release documents and verify all necessary consents are in place."""
-        
-        chat = self._get_chat(f"release-verify-{release_id}", system_message)
-        
-        prompt = f"""Analyze this release documentation and verify compliance:
+        # Try AI-powered verification first
+        try:
+            system_message = """You are a legal compliance expert specializing in model releases and media rights.
+            Analyze release documents and verify all necessary consents are in place."""
+            
+            chat = self._get_chat(f"release-verify-{release_id}", system_message)
+            
+            prompt = f"""Analyze this release documentation and verify compliance:
 
 Release Data:
 {json.dumps(release_data, indent=2, default=str)}
@@ -277,10 +280,9 @@ Provide JSON response:
     "expiry_days": <number of days until expiry>
 }}"""
 
-        user_message = UserMessage(text=prompt)
-        response = await chat.send_message(user_message)
-        
-        try:
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
+            
             json_str = response
             if "```json" in response:
                 json_str = response.split("```json")[1].split("```")[0]
@@ -304,23 +306,61 @@ Provide JSON response:
                 verified_by="ai_compliance_engine"
             )
             
-            # Log audit entry
-            await self._log_audit_entry(
-                action_type="release_verification",
-                entity_type="release",
-                entity_id=release_id,
-                actor_id=actor_id,
-                changes={"status": verification.status.value, "issues": verification.issues},
-                compliance_relevant=True
-            )
+        except Exception as e:
+            # Fallback to rule-based verification
+            model_consent = release_data.get("has_model_consent", False)
+            photographer_consent = release_data.get("has_photographer_consent", False)
+            brand_clearance = release_data.get("has_brand_clearance", True)
+            location_clearance = release_data.get("has_location_clearance", True)
+            is_minor = release_data.get("is_minor", False)
+            guardian_consent = release_data.get("has_guardian_consent", True) if not is_minor else release_data.get("has_guardian_consent", False)
             
-            return verification
-        except (json.JSONDecodeError, KeyError, ValueError):
-            return ReleaseVerification(
+            issues = []
+            if not model_consent:
+                issues.append("Model consent/release not confirmed")
+            if not photographer_consent:
+                issues.append("Photographer consent not confirmed")
+            if not brand_clearance:
+                issues.append("Brand/trademark clearance required")
+            if not location_clearance:
+                issues.append("Location permission required")
+            if is_minor and not guardian_consent:
+                issues.append("Guardian consent required for minor")
+            
+            # Determine status based on rule checks
+            if model_consent and photographer_consent and (not is_minor or guardian_consent):
+                status = VerificationStatus.VERIFIED
+            elif len(issues) > 2:
+                status = VerificationStatus.FAILED
+            else:
+                status = VerificationStatus.PENDING
+            
+            expiry_days = release_data.get("duration_days", 365)
+            
+            verification = ReleaseVerification(
                 release_id=release_id,
-                status=VerificationStatus.PENDING,
-                issues=["Verification analysis failed - manual review required"]
+                status=status,
+                model_consent=model_consent,
+                photographer_consent=photographer_consent,
+                brand_clearance=brand_clearance,
+                location_clearance=location_clearance,
+                minor_consent_if_applicable=guardian_consent if is_minor else True,
+                expiry_date=datetime.now(timezone.utc) + timedelta(days=expiry_days),
+                issues=issues if issues else ["Verified using rule-based system (AI unavailable)"],
+                verified_by="rule_based_engine"
             )
+        
+        # Log audit entry
+        await self._log_audit_entry(
+            action_type="release_verification",
+            entity_type="release",
+            entity_id=release_id,
+            actor_id=actor_id,
+            changes={"status": verification.status.value, "issues": verification.issues},
+            compliance_relevant=True
+        )
+        
+        return verification
     
     async def verify_identity(
         self,
