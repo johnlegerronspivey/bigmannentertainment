@@ -770,13 +770,18 @@ const AWSEnterpriseMapping = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([
-        fetchHealthStatus(),
-        fetchMetrics(),
-        fetchInfraMap(),
-        fetchCostBreakdown()
-      ]);
-      setLoading(false);
+      try {
+        await Promise.all([
+          fetchHealthStatus(),
+          fetchMetrics(),
+          fetchInfraMap(),
+          fetchCostBreakdown()
+        ]);
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
   }, [fetchHealthStatus, fetchMetrics, fetchInfraMap, fetchCostBreakdown]);
