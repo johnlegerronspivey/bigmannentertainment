@@ -569,6 +569,16 @@ const Navigation = () => {
               <span>💰</span>
               <span>Marketplace</span>
             </Link>
+
+            {/* AWS Enterprise Mapping */}
+            <Link 
+              to="/aws-enterprise" 
+              className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="AWS Enterprise Mapping"
+            >
+              <span>☁️</span>
+              <span>AWS</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
