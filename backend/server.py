@@ -7423,6 +7423,9 @@ api_router.include_router(enterprise_phase1_router)
 # Include Digital Twin router
 api_router.include_router(digital_twin_router)
 
+# Include Royalty Marketplace router
+app.include_router(royalty_marketplace_router)
+
 # CORS configuration for multi-environment setup
 cors_origins = [
     "http://localhost:3000",  # Local development
