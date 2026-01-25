@@ -558,6 +558,16 @@ const Navigation = () => {
               <span>👤</span>
               <span>Digital Twins</span>
             </Link>
+
+            {/* Royalty Marketplace */}
+            <Link 
+              to="/marketplace" 
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="Royalty Marketplace"
+            >
+              <span>💰</span>
+              <span>Marketplace</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
