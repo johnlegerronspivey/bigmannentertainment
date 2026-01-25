@@ -322,7 +322,7 @@ class DigitalTwinService:
         model_data: Dict[str, Any]
     ) -> DigitalTwinProfile:
         """
-        Generate the AI avatar for a digital twin.
+        Generate the AI avatar for a digital twin using Gemini Nano Banana.
         """
         twin.status = TwinStatus.GENERATING
         
@@ -330,26 +330,17 @@ class DigitalTwinService:
         prompt = self._build_avatar_prompt(twin, model_data)
         
         try:
-            # Generate main avatar
-            images = await self.image_generator.generate_images(
-                prompt=prompt,
-                model="gpt-image-1",
-                number_of_images=1
-            )
+            # Generate main avatar using Gemini
+            avatar_url = await self._generate_image(prompt, f"twin-avatar-{twin.twin_id}")
             
-            if images and len(images) > 0:
-                # Convert to base64 for storage
-                image_base64 = base64.b64encode(images[0]).decode('utf-8')
-                
-                # Store the avatar (in production, upload to S3)
-                avatar_url = f"data:image/png;base64,{image_base64}"
+            if avatar_url:
                 twin.base_avatar_url = avatar_url
                 twin.thumbnail_url = avatar_url
                 twin.status = TwinStatus.ACTIVE
                 
                 twin.generation_metadata = {
                     "prompt": prompt,
-                    "model": "gpt-image-1",
+                    "model": "gemini-3-pro-image-preview",
                     "generated_at": datetime.now(timezone.utc).isoformat(),
                     "style": twin.style.value,
                     "type": twin.twin_type.value
