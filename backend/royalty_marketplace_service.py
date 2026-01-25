@@ -828,7 +828,7 @@ class RoyaltyMarketplaceService:
                 bid_id=bid_id,
                 change_type=change_type
             )
-            await self.price_history.insert_one(record.dict())
+            await self.price_history.insert_one(serialize_for_mongo(record.dict()))
         except Exception as e:
             logger.error(f"Failed to record price change: {str(e)}")
     
