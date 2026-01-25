@@ -219,6 +219,16 @@ async def startup_event():
     print("🔧 Creating database indexes for optimal performance...")
     await DatabaseOptimizer.ensure_indexes(db)
     
+    # Initialize AWS Enterprise Mapping service
+    try:
+        enterprise_mapping_svc = initialize_enterprise_mapping(db)
+        if enterprise_mapping_svc:
+            print("☁️  AWS Enterprise Mapping service initialized")
+        else:
+            print("⚠️  AWS Enterprise Mapping service not available (check credentials)")
+    except Exception as e:
+        print(f"⚠️  AWS Enterprise Mapping initialization failed: {str(e)}")
+    
     # Initialize cache service
     print("💾 Cache service initialized")
     print(f"⚡ Performance monitoring active")
