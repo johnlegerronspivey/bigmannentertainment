@@ -781,7 +781,7 @@ export const IdentityVerificationForm = ({ onVerify }) => {
               className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white"
             >
               <option value="passport">Passport</option>
-              <option value="drivers_license">Driver's License</option>
+              <option value="drivers_license">Drivers License</option>
               <option value="national_id">National ID</option>
               <option value="state_id">State ID</option>
             </select>
