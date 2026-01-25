@@ -269,18 +269,18 @@ MONGO_URL=mongodb://...
 
 ## Backlog / Future Tasks
 
-### Phase 4 (Remaining Enterprise Features)
+### Phase 5 (Remaining Enterprise Features)
 - **P0**: DAO 2.0 Governance (weighted voting, reputation scoring, arbitration)
+- **P0**: Agency Success Automation workflows
 
-### Phase 5 (AWS Integration)
+### Phase 6 (Advanced AWS)
 - **P1**: AWS Bedrock integration for advanced AI
 - **P1**: AWS Macie for PII detection
 - **P1**: AWS GuardDuty for threat detection
 - **P1**: AWS QLDB for dispute ledger
 
-### Phase 6 (Creative Tools)
+### Phase 7 (Creative Tools)
 - **P2**: Creative Studio (AI background replacement, virtual lighting, pose correction)
-- **P2**: Agency Success Automation workflows
 
 ## Test Credentials
 - **Email**: enterprise@test.com
