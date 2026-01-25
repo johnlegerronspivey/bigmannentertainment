@@ -79,6 +79,9 @@ from aws_organizations_service import initialize_service as init_org_service
 # Import Enterprise Phase 1 endpoints (Talent Intelligence, Executive Dashboard, Compliance, Workspaces)
 from enterprise_phase1_endpoints import router as enterprise_phase1_router
 
+# Import Digital Twin endpoints
+from digital_twin_endpoints import router as digital_twin_router
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
