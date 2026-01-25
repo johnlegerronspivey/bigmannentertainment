@@ -29,8 +29,7 @@ import hashlib
 load_dotenv()
 
 # AI Integrations
-from emergentintegrations.llm.chat import LlmChat, UserMessage
-from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 
 
 class TwinStatus(str, Enum):
