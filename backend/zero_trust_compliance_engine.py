@@ -703,6 +703,7 @@ Provide JSON response:
     ) -> PrivacyComplianceCheck:
         """
         Check compliance with regional privacy regulations.
+        Falls back to rule-based checking if AI is unavailable.
         """
         # Determine applicable regulations based on regions
         regulations = []
@@ -722,12 +723,14 @@ Provide JSON response:
         if not regulations:
             regulations = [PrivacyRegulation.GDPR]  # Default to GDPR as baseline
         
-        system_message = """You are a privacy compliance expert specializing in GDPR, CCPA, COPPA, and other regulations.
-        Analyze data practices and verify compliance with applicable laws."""
-        
-        chat = self._get_chat(f"privacy-{entity_id}", system_message)
-        
-        prompt = f"""Check privacy compliance for this entity:
+        # Try AI-powered compliance check first
+        try:
+            system_message = """You are a privacy compliance expert specializing in GDPR, CCPA, COPPA, and other regulations.
+            Analyze data practices and verify compliance with applicable laws."""
+            
+            chat = self._get_chat(f"privacy-{entity_id}", system_message)
+            
+            prompt = f"""Check privacy compliance for this entity:
 
 Entity Type: {entity_type}
 Entity Data:
@@ -759,10 +762,9 @@ Provide JSON response:
     "remediation_steps": ["step1", "step2"]
 }}"""
 
-        user_message = UserMessage(text=prompt)
-        response = await chat.send_message(user_message)
-        
-        try:
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
+            
             json_str = response
             if "```json" in response:
                 json_str = response.split("```json")[1].split("```")[0]
@@ -787,28 +789,84 @@ Provide JSON response:
                 remediation_steps=result.get("remediation_steps", [])
             )
             
-            await self._log_audit_entry(
-                action_type="privacy_compliance_check",
-                entity_type=entity_type,
-                entity_id=entity_id,
-                actor_id=actor_id,
-                changes={
-                    "status": check.status.value,
-                    "regulations": [r.value for r in regulations],
-                    "issues": check.issues
-                },
-                compliance_relevant=True
-            )
+        except Exception:
+            # Fallback to rule-based privacy compliance check
+            consent_collected = entity_data.get("consent_collected", False)
+            erasure_supported = entity_data.get("right_to_erasure_supported", False)
+            portability_supported = entity_data.get("data_portability_supported", False)
             
-            return check
-        except (json.JSONDecodeError, KeyError, ValueError):
-            return PrivacyComplianceCheck(
+            issues = []
+            remediation_steps = []
+            
+            # Check GDPR requirements
+            gdpr_compliant = True
+            if PrivacyRegulation.GDPR in regulations:
+                if not consent_collected:
+                    issues.append("GDPR: Explicit consent not documented")
+                    remediation_steps.append("Implement consent collection mechanism with clear opt-in")
+                    gdpr_compliant = False
+                if not erasure_supported:
+                    issues.append("GDPR: Right to erasure (Article 17) not implemented")
+                    remediation_steps.append("Add data deletion functionality for user requests")
+                    gdpr_compliant = False
+                if not portability_supported:
+                    issues.append("GDPR: Data portability (Article 20) not supported")
+                    remediation_steps.append("Implement data export in machine-readable format")
+            
+            # Check CCPA requirements
+            ccpa_compliant = True
+            if PrivacyRegulation.CCPA in regulations:
+                if not consent_collected:
+                    issues.append("CCPA: Do Not Sell opt-out not implemented")
+                    remediation_steps.append("Add 'Do Not Sell My Personal Information' link")
+                    ccpa_compliant = False
+            
+            # Check COPPA requirements
+            coppa_compliant = True
+            if PrivacyRegulation.COPPA in regulations:
+                issues.append("COPPA: Parental consent verification required for minors")
+                remediation_steps.append("Implement verifiable parental consent mechanism")
+                coppa_compliant = False
+            
+            # Determine overall status
+            if not issues:
+                status = ComplianceStatus.COMPLIANT
+                issues = ["Rule-based compliance check passed (AI unavailable)"]
+            elif len(issues) <= 2:
+                status = ComplianceStatus.REQUIRES_ACTION
+            else:
+                status = ComplianceStatus.NON_COMPLIANT
+            
+            check = PrivacyComplianceCheck(
                 entity_id=entity_id,
                 entity_type=entity_type,
                 regulations_checked=regulations,
-                status=ComplianceStatus.PENDING_REVIEW,
-                issues=["Compliance check failed - manual review required"]
+                status=status,
+                gdpr_compliant=gdpr_compliant,
+                ccpa_compliant=ccpa_compliant,
+                coppa_compliant=coppa_compliant,
+                data_retention_compliant=True,  # Assume compliant without specific data
+                consent_collected=consent_collected,
+                right_to_erasure_supported=erasure_supported,
+                data_portability_supported=portability_supported,
+                issues=issues,
+                remediation_steps=remediation_steps
             )
+        
+        await self._log_audit_entry(
+            action_type="privacy_compliance_check",
+            entity_type=entity_type,
+            entity_id=entity_id,
+            actor_id=actor_id,
+            changes={
+                "status": check.status.value,
+                "regulations": [r.value for r in regulations],
+                "issues": check.issues
+            },
+            compliance_relevant=True
+        )
+        
+        return check
     
     async def check_expiring_licenses(self, days_ahead: int = 30) -> List[LicenseExpiryNotification]:
         """
