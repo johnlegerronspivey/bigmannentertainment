@@ -1082,8 +1082,8 @@ export const PrivacyComplianceChecker = ({ onCheck }) => {
     try {
       const token = localStorage.getItem('token');
       const entityId = formData.entity_id || `entity-${Date.now()}`;
-      const regionsParam = formData.regions.join(',');
-      const response = await fetch(`${API}/enterprise/compliance/check-privacy/${entityId}?actor_id=current-user&entity_type=${formData.entity_type}&regions=${regionsParam}`, {
+      const regionsParams = formData.regions.map(r => `regions=${encodeURIComponent(r)}`).join('&');
+      const response = await fetch(`${API}/enterprise/compliance/check-privacy/${entityId}?actor_id=current-user&entity_type=${formData.entity_type}&${regionsParams}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
