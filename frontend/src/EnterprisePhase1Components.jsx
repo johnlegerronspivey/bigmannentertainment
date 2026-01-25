@@ -2085,10 +2085,7 @@ export const EnterprisePhase1Dashboard = () => {
           )}
 
           {activeTab === 'compliance' && (
-            <div className="grid md:grid-cols-2 gap-6">
-              <ComplianceAuditTrail />
-              <LicenseExpiryTracker />
-            </div>
+            <ZeroTrustComplianceDashboard />
           )}
 
           {activeTab === 'workspace' && (
