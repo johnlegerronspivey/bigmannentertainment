@@ -536,6 +536,16 @@ const Navigation = () => {
                 </div>
               )}
             </div>
+
+            {/* Enterprise Command Center */}
+            <Link 
+              to="/enterprise" 
+              className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="Enterprise Command Center"
+            >
+              <span>🧠</span>
+              <span>Enterprise</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
