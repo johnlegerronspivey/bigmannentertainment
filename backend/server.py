@@ -7430,6 +7430,9 @@ api_router.include_router(digital_twin_router)
 # Include Royalty Marketplace router
 app.include_router(royalty_marketplace_router)
 
+# Include AWS Enterprise Mapping router
+app.include_router(aws_enterprise_mapping_router)
+
 # CORS configuration for multi-environment setup
 cors_origins = [
     "http://localhost:3000",  # Local development
