@@ -383,7 +383,13 @@ Provide JSON response:
         if dob:
             try:
                 if isinstance(dob, str):
-                    dob = datetime.fromisoformat(dob.replace("Z", "+00:00"))
+                    # Handle various date formats
+                    dob_str = dob.replace("Z", "+00:00")
+                    if "T" not in dob_str and "+" not in dob_str:
+                        # Simple date format like "2015-01-01"
+                        dob = datetime.strptime(dob_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                    else:
+                        dob = datetime.fromisoformat(dob_str)
                 age = (datetime.now(timezone.utc) - dob).days // 365
                 is_minor = age < 18
             except Exception:
