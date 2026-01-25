@@ -1295,22 +1295,19 @@ export const UsageRightsValidator = ({ onValidate }) => {
     try {
       const token = localStorage.getItem('token');
       const assetId = formData.asset_id || `asset-${Date.now()}`;
-      const response = await fetch(`${API}/enterprise/compliance/validate-usage-rights/${assetId}`, {
+      const response = await fetch(`${API}/enterprise/compliance/validate-usage-rights/${assetId}?actor_id=current-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          requested_use: {
-            use_type: formData.requested_use,
-            territory: formData.requested_territory,
-            duration_days: formData.requested_duration,
-            exclusive: formData.is_exclusive,
-            platform: formData.intended_platform,
-            asset_name: formData.asset_name
-          },
-          actor_id: 'current-user'
+          use_type: formData.requested_use,
+          territory: formData.requested_territory,
+          duration_days: formData.requested_duration,
+          exclusive: formData.is_exclusive,
+          platform: formData.intended_platform,
+          asset_name: formData.asset_name
         })
       });
       const data = await response.json();
