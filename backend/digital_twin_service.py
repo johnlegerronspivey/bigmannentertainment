@@ -407,7 +407,7 @@ class DigitalTwinService:
         count_per_style: int = 1
     ) -> List[str]:
         """
-        Generate multiple style variants of a digital twin.
+        Generate multiple style variants of a digital twin using Gemini.
         """
         twin = await self.get_twin(twin_id)
         if not twin:
@@ -415,23 +415,19 @@ class DigitalTwinService:
         
         variant_urls = []
         
-        for style_desc in variant_styles:
+        for idx, style_desc in enumerate(variant_styles):
             prompt = f"{self._build_avatar_prompt(twin, {})} in {style_desc} style"
             
-            try:
-                images = await self.image_generator.generate_images(
-                    prompt=prompt,
-                    model="gpt-image-1",
-                    number_of_images=count_per_style
-                )
-                
-                for img in images:
-                    image_base64 = base64.b64encode(img).decode('utf-8')
-                    variant_url = f"data:image/png;base64,{image_base64}"
-                    variant_urls.append(variant_url)
-                    
-            except Exception as e:
-                print(f"Error generating variant: {e}")
+            for i in range(count_per_style):
+                try:
+                    variant_url = await self._generate_image(
+                        prompt, 
+                        f"variant-{twin_id}-{idx}-{i}"
+                    )
+                    if variant_url:
+                        variant_urls.append(variant_url)
+                except Exception as e:
+                    print(f"Error generating variant: {str(e)[:50]}")
         
         # Update twin with variants
         if variant_urls:
