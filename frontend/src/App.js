@@ -547,6 +547,16 @@ const Navigation = () => {
               <span>🧠</span>
               <span>Enterprise</span>
             </Link>
+
+            {/* Digital Twins */}
+            <Link 
+              to="/digital-twins" 
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="Digital Twin Studio"
+            >
+              <span>👤</span>
+              <span>Digital Twins</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
