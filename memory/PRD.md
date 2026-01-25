@@ -236,22 +236,28 @@ MONGO_URL=mongodb://...
 │   ├── digital_twin_endpoints.py          # Phase 2 - Digital Twin API
 │   ├── royalty_marketplace_service.py     # Phase 3 - Marketplace Service ✅
 │   ├── royalty_marketplace_endpoints.py   # Phase 3 - Marketplace API ✅
+│   ├── aws_enterprise_mapping_models.py   # Phase 4 - AWS Models ✅
+│   ├── aws_enterprise_mapping_service.py  # Phase 4 - AWS Service ✅
+│   ├── aws_enterprise_mapping_endpoints.py # Phase 4 - AWS API ✅
 │   ├── tests/
 │   │   ├── test_zero_trust_compliance.py  # Compliance test suite
-│   │   └── test_royalty_marketplace.py    # Marketplace test suite
+│   │   ├── test_royalty_marketplace.py    # Marketplace test suite
+│   │   └── test_aws_enterprise_mapping.py # AWS Enterprise test suite ✅
 ├── frontend/
 │   ├── package.json
 │   └── src/
 │       ├── App.js
 │       ├── EnterprisePhase1Components.jsx  # Includes ZeroTrustComplianceDashboard
 │       ├── DigitalTwinComponents.jsx
-│       ├── RoyaltyMarketplaceComponents.jsx # ✅ NEW
+│       ├── RoyaltyMarketplaceComponents.jsx # ✅
+│       ├── AWSEnterpriseMappingComponents.jsx # ✅ NEW
 ├── memory/
 │   └── PRD.md
 ├── test_reports/
 │   ├── iteration_1.json
 │   ├── iteration_2.json
-│   └── iteration_3.json
+│   ├── iteration_3.json
+│   └── iteration_4.json  # AWS Enterprise Mapping tests
 ```
 
 ## Tech Stack
