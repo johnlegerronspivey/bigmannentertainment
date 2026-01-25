@@ -214,11 +214,14 @@ class DigitalTwinService:
     
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get("GOOGLE_API_KEY")
-        self.text_api_key = os.environ.get("EMERGENT_LLM_KEY")
+        # Use Google API key if available, otherwise fallback to Emergent LLM key
+        self.google_api_key = os.environ.get("GOOGLE_API_KEY")
+        self.emergent_api_key = os.environ.get("EMERGENT_LLM_KEY")
+        self.api_key = self.google_api_key or self.emergent_api_key
+        self.text_api_key = self.emergent_api_key or self.google_api_key
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
-        self.image_model = "gemini-3-pro-image-preview"
+        self.image_model = "gemini-2.5-flash-image"  # Nano Banana
     
     def _get_chat(self, session_id: str, system_message: str) -> LlmChat:
         chat = LlmChat(
@@ -230,13 +233,14 @@ class DigitalTwinService:
         return chat
     
     def _get_image_chat(self, session_id: str) -> LlmChat:
-        """Create a Gemini chat configured for image generation."""
+        """Create a Gemini chat configured for image generation (Nano Banana)."""
         chat = LlmChat(
             api_key=self.api_key,
             session_id=session_id,
             system_message="You are an expert fashion photographer creating high-quality digital avatars and portraits."
         )
-        chat.with_model("gemini", self.image_model).with_params(modalities=["image", "text"])
+        chat.with_model("gemini", self.image_model)
+        chat.with_params(modalities=["image", "text"])
         return chat
     
     async def _generate_image(self, prompt: str, session_id: str) -> Optional[str]:
@@ -244,16 +248,26 @@ class DigitalTwinService:
         try:
             chat = self._get_image_chat(session_id)
             msg = UserMessage(text=prompt)
-            text_response, images = await chat.send_message_multimodal_response(msg)
+            response = await chat.send_message(msg)
             
-            if images and len(images) > 0:
-                # Images are already base64 encoded from Gemini
-                image_data = images[0].get('data', '')
-                mime_type = images[0].get('mime_type', 'image/png')
-                return f"data:{mime_type};base64,{image_data}"
+            # Check if response contains image data (base64)
+            if response:
+                # If the response starts with base64 image data markers
+                if response.startswith("data:image"):
+                    return response
+                # If it's raw base64
+                elif len(response) > 1000 and not response.startswith("{"):
+                    return f"data:image/png;base64,{response}"
+                # Log for debugging
+                print(f"Image gen response type: {type(response)}, len: {len(response)}")
             return None
         except Exception as e:
-            print(f"Image generation error: {str(e)[:100]}")
+            error_msg = str(e)
+            # Handle quota errors gracefully
+            if "429" in error_msg or "quota" in error_msg.lower():
+                print(f"Image generation quota exceeded. Consider adding balance.")
+            else:
+                print(f"Image generation error: {error_msg[:150]}")
             return None
     
     async def create_digital_twin(
