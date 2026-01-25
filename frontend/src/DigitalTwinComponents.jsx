@@ -159,7 +159,7 @@ export const CreateDigitalTwin = ({ modelId, modelData, onCreated }) => {
                 value={formData.height}
                 onChange={(e) => setFormData({...formData, height: e.target.value})}
                 className="w-full bg-slate-700 text-white px-3 py-2 rounded-lg border border-slate-600"
-                placeholder="e.g., 5'10\""
+                placeholder="e.g., 5ft 10in"
               />
             </div>
             <div>
