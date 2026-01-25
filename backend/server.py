@@ -7411,6 +7411,9 @@ api_router.include_router(agency_aws_router)
 api_router.include_router(snapchat_router)
 app.include_router(aws_organizations_router)
 
+# Include Enterprise Phase 1 router (Talent Intelligence, Executive Dashboard, Compliance, Workspaces)
+api_router.include_router(enterprise_phase1_router)
+
 # CORS configuration for multi-environment setup
 cors_origins = [
     "http://localhost:3000",  # Local development
