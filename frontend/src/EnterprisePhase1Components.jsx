@@ -700,22 +700,19 @@ export const IdentityVerificationForm = ({ onVerify }) => {
     try {
       const token = localStorage.getItem('token');
       const userId = formData.user_id || `user-${Date.now()}`;
-      const response = await fetch(`${API}/enterprise/compliance/verify-identity/${userId}`, {
+      const response = await fetch(`${API}/enterprise/compliance/verify-identity/${userId}?actor_id=current-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          identity_data: {
-            full_name: formData.full_name,
-            id_type: formData.id_type,
-            id_number: formData.id_number,
-            date_of_birth: formData.date_of_birth,
-            id_document: formData.has_id_document,
-            selfie: formData.has_selfie
-          },
-          actor_id: 'current-user'
+          full_name: formData.full_name,
+          id_type: formData.id_type,
+          id_number: formData.id_number,
+          date_of_birth: formData.date_of_birth,
+          id_document: formData.has_id_document,
+          selfie: formData.has_selfie
         })
       });
       const data = await response.json();
