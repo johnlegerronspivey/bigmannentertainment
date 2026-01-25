@@ -50,6 +50,7 @@ import DAOGovernance from './DAOGovernance';
 import SocialMediaDashboard from './SocialMediaDashboardEnhanced';
 import ProposalDetail from './ProposalDetail';
 import AWSOrganizationsComponent from './AWSOrganizationsComponent';
+import AWSEnterpriseMapping from './AWSEnterpriseMappingComponents';
 import { ContractDeploymentUI, TransactionHistoryViewer, DAOVotingDashboard } from './EthereumAdvancedFeatures';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
