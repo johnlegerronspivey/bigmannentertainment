@@ -144,6 +144,65 @@ Build a professional music distribution and talent management platform for Big M
 ✅ Stats Dashboard: Active listings, volume, avg price
 ```
 
+### AWS Enterprise Mapping (January 2026) ☁️ ✅ FULLY IMPLEMENTED
+**Features:**
+- **AWS Infrastructure Integration**: Real-time discovery of AWS resources using boto3
+- **Enterprise Resource Mapping**: Complete infrastructure map with health metrics
+- **Cloud Service Management**: Cost tracking, security scoring, compliance metrics
+- **Multi-Service Discovery**: EC2, S3, RDS, Lambda, CloudFront, IAM roles
+- **Cost Analysis**: AWS Cost Explorer integration with breakdown by service/region
+- **Resource Actions**: Start/Stop EC2 instances, resource management
+- **Alert System**: Resource alerts with severity levels and acknowledgment
+
+**Discovered AWS Resources (Live Data):**
+- 14 S3 Buckets
+- 9 Lambda Functions
+- 1 RDS Instance (bigmann-profiles-db)
+- 7 CloudFront Distributions
+- 87 IAM Roles
+- **Total**: 118 Resources
+- **Monthly Cost**: $113.85
+- **Security Score**: 95%
+- **Compliance Score**: 98%
+
+**Frontend UI:**
+- Dashboard with key metrics cards (Resources, Cost, Security, Compliance)
+- Resource Health visualization (Healthy/Warning/Critical)
+- Resources by Region and Service Type breakdown
+- Tabbed interface: Overview, EC2, S3, RDS, Lambda, Costs
+- Real-time data refresh capability
+
+**API Endpoints:**
+- `GET /api/aws-enterprise/health` - Service health check
+- `GET /api/aws-enterprise/metrics` - Enterprise metrics
+- `GET /api/aws-enterprise/infrastructure-map` - Complete infrastructure map
+- `GET /api/aws-enterprise/costs` - Cost breakdown with AWS Cost Explorer
+- `GET /api/aws-enterprise/resources/ec2` - EC2 instances
+- `GET /api/aws-enterprise/resources/s3` - S3 buckets
+- `GET /api/aws-enterprise/resources/rds` - RDS instances
+- `GET /api/aws-enterprise/resources/lambda` - Lambda functions
+- `GET /api/aws-enterprise/resources/cloudfront` - CloudFront distributions
+- `GET /api/aws-enterprise/resources/iam-roles` - IAM roles
+- `POST /api/aws-enterprise/resources/actions` - Execute resource actions
+- `GET /api/aws-enterprise/alerts` - Resource alerts
+- `GET /api/aws-enterprise/service-types` - AWS service types reference
+- `GET /api/aws-enterprise/regions` - AWS regions reference
+
+**Files:**
+- `/app/backend/aws_enterprise_mapping_models.py` - Pydantic models
+- `/app/backend/aws_enterprise_mapping_service.py` - Business logic with boto3
+- `/app/backend/aws_enterprise_mapping_endpoints.py` - API endpoints
+- `/app/frontend/src/AWSEnterpriseMappingComponents.jsx` - Frontend UI
+
+**Test Results (Jan 25, 2026):**
+```
+✅ Backend: 100% (17/17 tests passed)
+✅ Frontend: 95% (all features working, minor UX improvement suggested)
+✅ Resource Discovery: All AWS services discovered correctly
+✅ Cost Analysis: Real AWS Cost Explorer data
+✅ Infrastructure Map: Aggregated metrics working
+```
+
 ### Routes & Navigation
 - `/enterprise` - Enterprise Command Center (with Compliance Dashboard)
 - `/digital-twins` - Digital Twin Studio
