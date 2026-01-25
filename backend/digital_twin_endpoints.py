@@ -123,19 +123,25 @@ async def create_virtual_photoshoot(
     twin_id: str,
     client_id: str = Query(...),
     client_name: str = Query(...),
-    concept: str = Body(..., embed=True),
+    photoshoot_data: Dict[str, Any] = Body(default={}),
     style: TwinStyle = Query(default=TwinStyle.FASHION_EDITORIAL),
     background_setting: str = Query(default="professional studio"),
     outfit_description: str = Query(default="elegant fashion attire"),
-    poses: List[str] = Body(default=["confident stance", "natural smile", "profile view", "dynamic pose", "relaxed pose"]),
     num_images: int = Query(default=5, ge=1, le=10),
     db=Depends(get_db)
 ):
     """
     Create a virtual photoshoot with a digital twin.
     Zero travel costs, instant delivery.
+    
+    Body can include: {"concept": "...", "poses": ["pose1", "pose2"]}
     """
     service = get_digital_twin_service(db)
+    
+    # Extract from body or use defaults
+    concept = photoshoot_data.get("concept", "Professional fashion photoshoot")
+    poses = photoshoot_data.get("poses", ["confident stance", "natural smile", "profile view", "dynamic pose", "relaxed pose"])
+    
     try:
         photoshoot = await service.create_virtual_photoshoot(
             twin_id=twin_id,
