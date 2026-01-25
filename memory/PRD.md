@@ -203,17 +203,16 @@ MONGO_URL=mongodb://...
 
 ## Backlog / Future Tasks
 
-### Phase 3 (Remaining Enterprise Features)
-- **P0**: Dynamic Royalty Marketplace (auctions, bidding, smart contract pricing)
+### Phase 4 (Remaining Enterprise Features)
 - **P0**: DAO 2.0 Governance (weighted voting, reputation scoring, arbitration)
 
-### Phase 4 (AWS Integration)
+### Phase 5 (AWS Integration)
 - **P1**: AWS Bedrock integration for advanced AI
 - **P1**: AWS Macie for PII detection
 - **P1**: AWS GuardDuty for threat detection
 - **P1**: AWS QLDB for dispute ledger
 
-### Phase 5 (Creative Tools)
+### Phase 6 (Creative Tools)
 - **P2**: Creative Studio (AI background replacement, virtual lighting, pose correction)
 - **P2**: Agency Success Automation workflows
 
