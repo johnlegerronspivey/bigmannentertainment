@@ -209,23 +209,52 @@ class DigitalTwinService:
     """
     Service for creating and managing digital twins of real models.
     Enables virtual campaigns, AR try-ons, and metaverse presence.
+    Uses Google Gemini (Nano Banana) for image generation.
     """
     
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get("EMERGENT_LLM_KEY")
-        self.image_generator = OpenAIImageGeneration(api_key=self.api_key)
+        self.api_key = os.environ.get("GOOGLE_API_KEY")
+        self.text_api_key = os.environ.get("EMERGENT_LLM_KEY")
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
+        self.image_model = "gemini-3-pro-image-preview"
     
     def _get_chat(self, session_id: str, system_message: str) -> LlmChat:
         chat = LlmChat(
-            api_key=self.api_key,
+            api_key=self.text_api_key,
             session_id=session_id,
             system_message=system_message
         )
         chat.with_model(self.model_provider, self.model_name)
         return chat
+    
+    def _get_image_chat(self, session_id: str) -> LlmChat:
+        """Create a Gemini chat configured for image generation."""
+        chat = LlmChat(
+            api_key=self.api_key,
+            session_id=session_id,
+            system_message="You are an expert fashion photographer creating high-quality digital avatars and portraits."
+        )
+        chat.with_model("gemini", self.image_model).with_params(modalities=["image", "text"])
+        return chat
+    
+    async def _generate_image(self, prompt: str, session_id: str) -> Optional[str]:
+        """Generate an image using Gemini Nano Banana and return base64 data URL."""
+        try:
+            chat = self._get_image_chat(session_id)
+            msg = UserMessage(text=prompt)
+            text_response, images = await chat.send_message_multimodal_response(msg)
+            
+            if images and len(images) > 0:
+                # Images are already base64 encoded from Gemini
+                image_data = images[0].get('data', '')
+                mime_type = images[0].get('mime_type', 'image/png')
+                return f"data:{mime_type};base64,{image_data}"
+            return None
+        except Exception as e:
+            print(f"Image generation error: {str(e)[:100]}")
+            return None
     
     async def create_digital_twin(
         self,
