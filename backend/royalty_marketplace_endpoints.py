@@ -134,6 +134,9 @@ async def get_listings_ending_soon(
                 auction_end = listing["auction_end"]
                 if isinstance(auction_end, str):
                     auction_end = datetime.fromisoformat(auction_end.replace('Z', '+00:00'))
+                # Handle naive datetime by assuming UTC
+                if auction_end.tzinfo is None:
+                    auction_end = auction_end.replace(tzinfo=timezone.utc)
                 if auction_end <= cutoff:
                     filtered.append(listing)
         
