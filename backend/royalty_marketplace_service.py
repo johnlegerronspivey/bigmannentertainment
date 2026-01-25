@@ -201,6 +201,21 @@ class PriceHistory(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+def serialize_for_mongo(obj):
+    """Convert a dict to MongoDB-compatible format (handle Decimal, Enum, etc.)"""
+    if isinstance(obj, dict):
+        return {k: serialize_for_mongo(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_for_mongo(item) for item in obj]
+    elif isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, Enum):
+        return obj.value
+    elif hasattr(obj, 'value'):  # Handle any Enum-like objects
+        return obj.value
+    return obj
+
+
 class RoyaltyMarketplaceService:
     """Core marketplace service for royalty trading"""
     
@@ -222,8 +237,8 @@ class RoyaltyMarketplaceService:
             # Calculate smart pricing recommendation
             pricing_recommendation = await self._calculate_pricing(listing)
             
-            # Store the listing
-            listing_dict = listing.dict()
+            # Store the listing - serialize for MongoDB
+            listing_dict = serialize_for_mongo(listing.dict())
             listing_dict["pricing_recommendation"] = pricing_recommendation
             await self.listings.insert_one(listing_dict)
             
