@@ -76,6 +76,9 @@ from social_integration_endpoints import router as social_integration_router
 from aws_organizations_endpoints import router as aws_organizations_router
 from aws_organizations_service import initialize_service as init_org_service
 
+# Import Enterprise Phase 1 endpoints (Talent Intelligence, Executive Dashboard, Compliance, Workspaces)
+from enterprise_phase1_endpoints import router as enterprise_phase1_router
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
