@@ -845,7 +845,7 @@ const AWSEnterpriseMapping = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="bg-slate-800 border border-slate-700 p-1">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
               <Activity className="w-4 h-4 mr-2" />
