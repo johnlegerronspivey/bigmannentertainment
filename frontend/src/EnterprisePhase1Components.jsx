@@ -462,16 +462,13 @@ export const ReleaseVerificationForm = ({ onVerify }) => {
     try {
       const token = localStorage.getItem('token');
       const releaseId = formData.release_id || `release-${Date.now()}`;
-      const response = await fetch(`${API}/enterprise/compliance/verify-release/${releaseId}`, {
+      const response = await fetch(`${API}/enterprise/compliance/verify-release/${releaseId}?actor_id=current-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          release_data: formData,
-          actor_id: 'current-user'
-        })
+        body: JSON.stringify(formData)
       });
       const data = await response.json();
       setResult(data);
