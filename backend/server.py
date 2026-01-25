@@ -7417,6 +7417,9 @@ app.include_router(aws_organizations_router)
 # Include Enterprise Phase 1 router (Talent Intelligence, Executive Dashboard, Compliance, Workspaces)
 api_router.include_router(enterprise_phase1_router)
 
+# Include Digital Twin router
+api_router.include_router(digital_twin_router)
+
 # CORS configuration for multi-environment setup
 cors_origins = [
     "http://localhost:3000",  # Local development
