@@ -68,7 +68,7 @@ class RoyaltyListing(BaseModel):
     """Marketplace listing for royalty rights"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     asset_id: str
-    seller_id: str
+    seller_id: str = ""  # Will be set by the endpoint
     title: str
     description: str
     
