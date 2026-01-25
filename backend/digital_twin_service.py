@@ -210,14 +210,17 @@ class DigitalTwinService:
     Service for creating and managing digital twins of real models.
     Enables virtual campaigns, AR try-ons, and metaverse presence.
     Uses Google Gemini (Nano Banana) for image generation.
+    Falls back to Emergent LLM key if Google API quota is exceeded.
     """
     
     def __init__(self, db):
         self.db = db
-        # Use Google API key if available, otherwise fallback to Emergent LLM key
+        # Primary: Google API key, Fallback: Emergent LLM key
         self.google_api_key = os.environ.get("GOOGLE_API_KEY")
         self.emergent_api_key = os.environ.get("EMERGENT_LLM_KEY")
-        self.api_key = self.google_api_key or self.emergent_api_key
+        # For image generation, prefer Emergent key (higher quotas)
+        self.image_api_key = self.emergent_api_key or self.google_api_key
+        # For text generation, use Emergent key
         self.text_api_key = self.emergent_api_key or self.google_api_key
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
@@ -235,7 +238,7 @@ class DigitalTwinService:
     def _get_image_chat(self, session_id: str) -> LlmChat:
         """Create a Gemini chat configured for image generation (Nano Banana)."""
         chat = LlmChat(
-            api_key=self.api_key,
+            api_key=self.image_api_key,
             session_id=session_id,
             system_message="You are an expert fashion photographer creating high-quality digital avatars and portraits."
         )
@@ -265,7 +268,7 @@ class DigitalTwinService:
             error_msg = str(e)
             # Handle quota errors gracefully
             if "429" in error_msg or "quota" in error_msg.lower():
-                print(f"Image generation quota exceeded. Consider adding balance.")
+                print(f"Image generation quota exceeded. Using Emergent key or wait for quota reset.")
             else:
                 print(f"Image generation error: {error_msg[:150]}")
             return None
