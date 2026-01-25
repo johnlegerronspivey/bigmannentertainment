@@ -3672,6 +3672,7 @@ function App() {
             <Route path="/social" element={<ProtectedRoute><SocialMediaDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><EnhancedUserDashboard /></ProtectedRoute>} />
             <Route path="/enhanced-features" element={<ProtectedRoute><EnhancedFeaturesDashboard token={localStorage.getItem('token')} /></ProtectedRoute>} />
+            <Route path="/enterprise" element={<ProtectedRoute><EnterprisePhase1Dashboard /></ProtectedRoute>} />
             <Route path="/aws-organizations" element={<ProtectedRoute><AWSOrganizationsComponent /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
