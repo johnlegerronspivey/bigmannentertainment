@@ -199,7 +199,7 @@ Consider:
                 predicted_bookings_30d=scores.get("predicted_bookings_30d", 0),
                 recommended_rate_adjustment=scores.get("recommended_rate_adjustment", 0.0)
             )
-        except (json.JSONDecodeError, KeyError) as e:
+        except (json.JSONDecodeError, KeyError):
             # Return default scores if parsing fails
             return TalentScore(
                 model_id=model_id,
@@ -523,7 +523,7 @@ Consider:
                             }
                         }
                     )
-            except Exception as e:
+            except Exception:
                 results[asset_id] = []
         
         return results
