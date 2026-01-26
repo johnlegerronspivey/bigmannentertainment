@@ -577,9 +577,9 @@ class TestEdgeCases:
             f"{BASE_URL}/api/agency-automation/bookings",
             json=payload
         )
-        # Should return 500 or 422 for invalid enum value
-        assert response.status_code in [422, 500]
-        print("✅ Invalid booking type correctly returns error")
+        # Should return error for invalid enum value (422, 500, or 520 via proxy)
+        assert response.status_code in [422, 500, 520]
+        print(f"✅ Invalid booking type correctly returns error ({response.status_code})")
     
     def test_invalid_contract_type(self):
         """Test that invalid contract type returns error"""
@@ -596,9 +596,9 @@ class TestEdgeCases:
             f"{BASE_URL}/api/agency-automation/contracts",
             json=payload
         )
-        # Should return 500 or 422 for invalid enum value
-        assert response.status_code in [422, 500]
-        print("✅ Invalid contract type correctly returns error")
+        # Should return error for invalid enum value (422, 500, or 520 via proxy)
+        assert response.status_code in [422, 500, 520]
+        print(f"✅ Invalid contract type correctly returns error ({response.status_code})")
 
 
 # Run tests if executed directly
