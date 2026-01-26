@@ -93,6 +93,10 @@ from aws_enterprise_mapping_service import initialize_enterprise_mapping
 from agency_success_automation_endpoints import router as agency_automation_router
 from agency_success_automation_service import initialize_automation_service
 
+# Import DAO Governance V2 endpoints
+from dao_governance_v2_endpoints import router as dao_v2_router
+from dao_governance_v2_service import initialize_dao_v2_service
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
