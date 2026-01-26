@@ -233,6 +233,16 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  AWS Enterprise Mapping initialization failed: {str(e)}")
     
+    # Initialize Agency Success Automation service
+    try:
+        automation_svc = initialize_automation_service(db)
+        if automation_svc:
+            print("🚀 Agency Success Automation service initialized")
+        else:
+            print("⚠️  Agency Success Automation service not available")
+    except Exception as e:
+        print(f"⚠️  Agency Success Automation initialization failed: {str(e)}")
+    
     # Initialize cache service
     print("💾 Cache service initialized")
     print(f"⚡ Performance monitoring active")
