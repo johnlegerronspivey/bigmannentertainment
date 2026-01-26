@@ -587,7 +587,7 @@ class DAOGovernanceV2Service:
             self.votes_cache[vote.id] = vote
             
             # Store in database if available
-            if self.db:
+            if self.db is not None:
                 await self.db.dao_votes_v2.insert_one(vote.model_dump())
             
             logger.info(f"Vote cast on proposal {proposal.proposal_number} by {wallet_address}: {request.choice.value}")
