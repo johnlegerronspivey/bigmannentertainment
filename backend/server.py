@@ -7472,10 +7472,10 @@ app.include_router(royalty_marketplace_router)
 app.include_router(aws_enterprise_mapping_router)
 
 # Include Agency Success Automation router
-app.include_router(agency_automation_router)
+api_router.include_router(agency_automation_router)
 
 # Include DAO Governance V2 router
-app.include_router(dao_v2_router)
+api_router.include_router(dao_v2_router)
 
 # CORS configuration for multi-environment setup
 cors_origins = [
