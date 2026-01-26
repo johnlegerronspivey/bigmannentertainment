@@ -3732,6 +3732,7 @@ function App() {
             <Route path="/marketplace/listing/:listingId" element={<ProtectedRoute><ListingDetailPage /></ProtectedRoute>} />
             <Route path="/aws-organizations" element={<ProtectedRoute><AWSOrganizationsComponent /></ProtectedRoute>} />
             <Route path="/aws-enterprise" element={<ProtectedRoute><AWSEnterpriseMapping /></ProtectedRoute>} />
+            <Route path="/agency-automation" element={<ProtectedRoute><AgencySuccessAutomationDashboard /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
             <Route path="/image-upload" element={<ProtectedRoute><ImageUploadComponent /></ProtectedRoute>} />
