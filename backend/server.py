@@ -247,6 +247,16 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Agency Success Automation initialization failed: {str(e)}")
     
+    # Initialize DAO Governance V2 service
+    try:
+        dao_v2_svc = initialize_dao_v2_service(db)
+        if dao_v2_svc:
+            print("🏛️ DAO Governance V2 service initialized")
+        else:
+            print("⚠️  DAO Governance V2 service not available")
+    except Exception as e:
+        print(f"⚠️  DAO Governance V2 initialization failed: {str(e)}")
+    
     # Initialize cache service
     print("💾 Cache service initialized")
     print(f"⚡ Performance monitoring active")
