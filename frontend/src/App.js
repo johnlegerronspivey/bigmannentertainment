@@ -580,6 +580,16 @@ const Navigation = () => {
               <span>☁️</span>
               <span>AWS</span>
             </Link>
+
+            {/* Agency Success Automation */}
+            <Link 
+              to="/agency-automation" 
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="Agency Success Automation"
+            >
+              <span>🚀</span>
+              <span>Automation</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
