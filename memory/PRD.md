@@ -388,6 +388,7 @@ Build a professional music distribution and talent management platform for Big M
 - `/marketplace/listing/:id` - Listing Detail Page
 - `/aws-enterprise` - AWS Enterprise Mapping Dashboard
 - `/agency-automation` - Agency Success Automation Dashboard
+- `/dao-v2` - DAO 2.0 Governance Dashboard
 
 ## Configuration
 
