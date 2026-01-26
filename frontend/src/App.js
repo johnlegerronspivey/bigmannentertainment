@@ -53,6 +53,7 @@ import AWSOrganizationsComponent from './AWSOrganizationsComponent';
 import AWSEnterpriseMapping from './AWSEnterpriseMappingComponents';
 import AgencySuccessAutomationDashboard from './AgencySuccessAutomationComponents';
 import { ContractDeploymentUI, TransactionHistoryViewer, DAOVotingDashboard } from './EthereumAdvancedFeatures';
+import DAOGovernanceV2Dashboard from './DAOGovernanceV2Components';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
