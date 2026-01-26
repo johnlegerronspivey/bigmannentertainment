@@ -51,6 +51,7 @@ import SocialMediaDashboard from './SocialMediaDashboardEnhanced';
 import ProposalDetail from './ProposalDetail';
 import AWSOrganizationsComponent from './AWSOrganizationsComponent';
 import AWSEnterpriseMapping from './AWSEnterpriseMappingComponents';
+import AgencySuccessAutomationDashboard from './AgencySuccessAutomationComponents';
 import { ContractDeploymentUI, TransactionHistoryViewer, DAOVotingDashboard } from './EthereumAdvancedFeatures';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
