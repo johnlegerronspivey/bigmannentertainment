@@ -89,6 +89,10 @@ from royalty_marketplace_endpoints import router as royalty_marketplace_router
 from aws_enterprise_mapping_endpoints import router as aws_enterprise_mapping_router
 from aws_enterprise_mapping_service import initialize_enterprise_mapping
 
+# Import Agency Success Automation endpoints
+from agency_success_automation_endpoints import router as agency_automation_router
+from agency_success_automation_service import initialize_automation_service
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
