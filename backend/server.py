@@ -7457,6 +7457,9 @@ app.include_router(royalty_marketplace_router)
 # Include AWS Enterprise Mapping router
 app.include_router(aws_enterprise_mapping_router)
 
+# Include Agency Success Automation router
+app.include_router(agency_automation_router)
+
 # CORS configuration for multi-environment setup
 cors_origins = [
     "http://localhost:3000",  # Local development
