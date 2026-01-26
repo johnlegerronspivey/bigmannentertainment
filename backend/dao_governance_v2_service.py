@@ -418,7 +418,7 @@ class DAOGovernanceV2Service:
             member.last_active = now
             
             # Store in database if available
-            if self.db:
+            if self.db is not None:
                 await self.db.dao_proposals_v2.insert_one(proposal.model_dump())
             
             logger.info(f"Created proposal #{proposal.proposal_number}: {proposal.title}")
