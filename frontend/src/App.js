@@ -591,6 +591,16 @@ const Navigation = () => {
               <span>🚀</span>
               <span>Automation</span>
             </Link>
+
+            {/* DAO 2.0 Governance */}
+            <Link 
+              to="/dao-v2" 
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="DAO 2.0 Governance"
+            >
+              <span>🏛️</span>
+              <span>DAO 2.0</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
