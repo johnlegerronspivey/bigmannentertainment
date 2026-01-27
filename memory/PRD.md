@@ -389,12 +389,13 @@ Build a professional music distribution and talent management platform for Big M
 - `/aws-enterprise` - AWS Enterprise Mapping Dashboard
 - `/agency-automation` - Agency Success Automation Dashboard
 - `/dao-v2` - DAO 2.0 Governance Dashboard
+- `/creative-studio` - Creative Studio for Agencies
 
 ## Configuration
 
 ### Environment Variables (backend/.env)
 ```
-GOOGLE_API_KEY=AIzaSy...  # For Gemini image generation
+GOOGLE_API_KEY=AIzaSy...  # For Gemini image generation (Creative Studio)
 EMERGENT_LLM_KEY=sk-...   # For text AI features
 MONGO_URL=mongodb://...
 ```
