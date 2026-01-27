@@ -7491,6 +7491,9 @@ api_router.include_router(agency_automation_router)
 # Include DAO Governance V2 router
 api_router.include_router(dao_v2_router)
 
+# Include Creative Studio router
+api_router.include_router(creative_studio_router)
+
 # CORS configuration for multi-environment setup
 cors_origins = [
     "http://localhost:3000",  # Local development
