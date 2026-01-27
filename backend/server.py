@@ -261,6 +261,16 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  DAO Governance V2 initialization failed: {str(e)}")
     
+    # Initialize Creative Studio service
+    try:
+        creative_studio_svc = initialize_creative_studio_service(db)
+        if creative_studio_svc:
+            print("🎨 Creative Studio service initialized")
+        else:
+            print("⚠️  Creative Studio service not available")
+    except Exception as e:
+        print(f"⚠️  Creative Studio initialization failed: {str(e)}")
+    
     # Initialize cache service
     print("💾 Cache service initialized")
     print(f"⚡ Performance monitoring active")
