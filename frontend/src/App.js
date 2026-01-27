@@ -602,6 +602,16 @@ const Navigation = () => {
               <span>🏛️</span>
               <span>DAO 2.0</span>
             </Link>
+
+            {/* Creative Studio */}
+            <Link 
+              to="/creative-studio" 
+              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="Creative Studio for Agencies"
+            >
+              <span>🎨</span>
+              <span>Studio</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
