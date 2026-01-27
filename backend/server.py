@@ -97,6 +97,10 @@ from agency_success_automation_service import initialize_automation_service
 from dao_governance_v2_endpoints import router as dao_v2_router
 from dao_governance_v2_service import initialize_dao_v2_service
 
+# Import Creative Studio endpoints
+from creative_studio_endpoints import router as creative_studio_router
+from creative_studio_service import initialize_creative_studio_service
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
