@@ -8,6 +8,8 @@ local MongoDB-backed immutable ledger models.
 import pytest
 from httpx import AsyncClient
 
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from server import app, db
 from qldb_service import initialize_qldb_service
 
