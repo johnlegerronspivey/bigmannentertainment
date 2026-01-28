@@ -275,6 +275,16 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Creative Studio initialization failed: {str(e)}")
     
+    # Initialize Macie service
+    try:
+        macie_svc = initialize_macie_service(db)
+        if macie_svc:
+            print("🔒 AWS Macie PII Detection service initialized")
+        else:
+            print("⚠️  Macie service not available")
+    except Exception as e:
+        print(f"⚠️  Macie initialization failed: {str(e)}")
+    
     # Initialize cache service
     print("💾 Cache service initialized")
     print(f"⚡ Performance monitoring active")
