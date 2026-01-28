@@ -30,12 +30,6 @@ const QLDBDashboard = () => {
       toast.error('Failed to load QLDB dashboard');
     }
   };
-
-  const fetchDisputes = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/api/qldb/disputes`);
-      if (res.ok) {
   useEffect(() => {
     fetchDashboard();
     fetchDisputes();
@@ -43,6 +37,12 @@ const QLDBDashboard = () => {
   }, []);
 
 
+
+  const fetchDisputes = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/qldb/disputes`);
+      if (res.ok) {
         const data = await res.json();
         setDisputes(data.disputes || []);
       }

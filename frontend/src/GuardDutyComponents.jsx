@@ -22,15 +22,15 @@ const GuardDutyDashboard = () => {
     }
   };
 
-  const fetchFindings = async () => {
-    setLoading(true);
-    try {
   useEffect(() => {
     fetchDashboard();
     fetchFindings();
   }, []);
 
 
+  const fetchFindings = async () => {
+    setLoading(true);
+    try {
       const params = new URLSearchParams();
       if (filters.severity) params.append('severity', filters.severity);
       if (filters.status) params.append('status', filters.status);
