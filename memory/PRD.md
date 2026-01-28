@@ -390,6 +390,7 @@ Build a professional music distribution and talent management platform for Big M
 - `/agency-automation` - Agency Success Automation Dashboard
 - `/dao-v2` - DAO 2.0 Governance Dashboard
 - `/creative-studio` - Creative Studio for Agencies
+- `/macie` - AWS Macie PII Detection Dashboard
 
 ## Configuration
 
