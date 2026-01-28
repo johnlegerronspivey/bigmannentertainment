@@ -30,13 +30,6 @@ const QLDBDashboard = () => {
       toast.error('Failed to load QLDB dashboard');
     }
   };
-  useEffect(() => {
-    fetchDashboard();
-    fetchDisputes();
-    fetchAudit();
-  }, []);
-
-
 
   const fetchDisputes = async () => {
     setLoading(true);
@@ -65,6 +58,12 @@ const QLDBDashboard = () => {
       toast.error('Failed to load audit trail');
     }
   };
+
+  useEffect(() => {
+    fetchDashboard();
+    fetchDisputes();
+    fetchAudit();
+  }, []);
 
   const handleCreateDispute = async (e) => {
     e.preventDefault();
