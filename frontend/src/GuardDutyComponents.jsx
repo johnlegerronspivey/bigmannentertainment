@@ -43,7 +43,6 @@ const GuardDutyDashboard = () => {
   useEffect(() => {
     fetchDashboard();
     fetchFindings();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleStatusChange = async (findingId, action) => {
