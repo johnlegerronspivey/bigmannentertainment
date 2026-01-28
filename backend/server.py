@@ -105,6 +105,14 @@ from creative_studio_service import initialize_creative_studio_service
 from macie_endpoints import router as macie_router
 from macie_service import initialize_macie_service
 
+# Import GuardDuty endpoints
+from guardduty_endpoints import router as guardduty_router
+from guardduty_service import initialize_guardduty_service
+
+# Import QLDB endpoints
+from qldb_endpoints import router as qldb_router
+from qldb_service import initialize_qldb_service
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
@@ -284,6 +292,26 @@ async def startup_event():
             print("⚠️  Macie service not available")
     except Exception as e:
         print(f"⚠️  Macie initialization failed: {str(e)}")
+    
+    # Initialize GuardDuty service
+    try:
+        guardduty_svc = initialize_guardduty_service(db)
+        if guardduty_svc:
+            print("🛡️  AWS GuardDuty Threat Detection service initialized")
+        else:
+            print("⚠️  GuardDuty service not available")
+    except Exception as e:
+        print(f"⚠️  GuardDuty initialization failed: {str(e)}")
+    
+    # Initialize QLDB service
+    try:
+        qldb_svc = initialize_qldb_service(db)
+        if qldb_svc:
+            print("📘 AWS QLDB Dispute Ledger service initialized")
+        else:
+            print("⚠️  QLDB service not available")
+    except Exception as e:
+        print(f"⚠️  QLDB initialization failed: {str(e)}")
     
     # Initialize cache service
     print("💾 Cache service initialized")
@@ -7510,6 +7538,12 @@ api_router.include_router(creative_studio_router)
 
 # Include Macie router
 api_router.include_router(macie_router)
+
+# Include GuardDuty router
+api_router.include_router(guardduty_router)
+
+# Include QLDB router
+api_router.include_router(qldb_router)
 
 # CORS configuration for multi-environment setup
 cors_origins = [
