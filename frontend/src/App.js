@@ -56,6 +56,8 @@ import { ContractDeploymentUI, TransactionHistoryViewer, DAOVotingDashboard } fr
 import DAOGovernanceV2Dashboard from './DAOGovernanceV2Components';
 import CreativeStudioDashboard from './CreativeStudioComponents';
 import MacieDashboard from './MacieComponents';
+import GuardDutyDashboard from './GuardDutyComponents';
+import QLDBDashboard from './QLDBComponents';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -3769,6 +3771,8 @@ function App() {
             <Route path="/dao-v2" element={<ProtectedRoute><DAOGovernanceV2Dashboard /></ProtectedRoute>} />
             <Route path="/creative-studio" element={<ProtectedRoute><CreativeStudioDashboard /></ProtectedRoute>} />
             <Route path="/macie" element={<ProtectedRoute><MacieDashboard /></ProtectedRoute>} />
+            <Route path="/guardduty" element={<ProtectedRoute><GuardDutyDashboard /></ProtectedRoute>} />
+            <Route path="/qldb" element={<ProtectedRoute><QLDBDashboard /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
             <Route path="/image-upload" element={<ProtectedRoute><ImageUploadComponent /></ProtectedRoute>} />
