@@ -63,7 +63,6 @@ const QLDBDashboard = () => {
     fetchDashboard();
     fetchDisputes();
     fetchAudit();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreateDispute = async (e) => {
