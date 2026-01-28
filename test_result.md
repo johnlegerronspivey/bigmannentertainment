@@ -584,7 +584,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Ethereum Advanced Features Frontend Testing"
+    - "GuardDuty Dashboard Frontend"
+    - "QLDB Dashboard Frontend"
   stuck_tasks: 
     - "Comprehensive TikTok Integration Frontend Testing"
   test_all: false
