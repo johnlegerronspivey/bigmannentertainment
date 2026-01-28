@@ -55,6 +55,7 @@ import AgencySuccessAutomationDashboard from './AgencySuccessAutomationComponent
 import { ContractDeploymentUI, TransactionHistoryViewer, DAOVotingDashboard } from './EthereumAdvancedFeatures';
 import DAOGovernanceV2Dashboard from './DAOGovernanceV2Components';
 import CreativeStudioDashboard from './CreativeStudioComponents';
+import MacieDashboard from './MacieComponents';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
