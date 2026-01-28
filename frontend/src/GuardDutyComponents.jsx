@@ -10,11 +10,6 @@ const GuardDutyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ severity: '', status: '' });
 
-  useEffect(() => {
-    fetchDashboard();
-    fetchFindings();
-  }, []);
-
   const fetchDashboard = async () => {
     try {
       const res = await fetch(`${API}/api/guardduty/dashboard`);
@@ -30,6 +25,12 @@ const GuardDutyDashboard = () => {
   const fetchFindings = async () => {
     setLoading(true);
     try {
+  useEffect(() => {
+    fetchDashboard();
+    fetchFindings();
+  }, []);
+
+
       const params = new URLSearchParams();
       if (filters.severity) params.append('severity', filters.severity);
       if (filters.status) params.append('status', filters.status);

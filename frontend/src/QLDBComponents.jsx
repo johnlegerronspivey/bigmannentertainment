@@ -19,12 +19,6 @@ const QLDBDashboard = () => {
     claimant_email: '',
   });
 
-  useEffect(() => {
-    fetchDashboard();
-    fetchDisputes();
-    fetchAudit();
-  }, []);
-
   const fetchDashboard = async () => {
     try {
       const res = await fetch(`${API}/api/qldb/dashboard`);
@@ -42,6 +36,13 @@ const QLDBDashboard = () => {
     try {
       const res = await fetch(`${API}/api/qldb/disputes`);
       if (res.ok) {
+  useEffect(() => {
+    fetchDashboard();
+    fetchDisputes();
+    fetchAudit();
+  }, []);
+
+
         const data = await res.json();
         setDisputes(data.disputes || []);
       }
