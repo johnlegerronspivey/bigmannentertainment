@@ -1,0 +1,48 @@
+"""
+AWS QLDB Dispute Ledger - Backend Tests
+
+These tests validate the core QLDB service and API endpoints using the
+local MongoDB-backed immutable ledger models.
+"""
+
+import pytest
+from httpx import AsyncClient
+
+from server import app, db
+from qldb_service import initialize_qldb_service
+
+
+@pytest.fixture(scope="module", autouse=True)
+async def init_qldb_service():
+  """Ensure QLDB service is initialized before tests"""
+  initialize_qldb_service(db)
+  yield
+
+
+@pytest.mark.asyncio
+async def test_qldb_health_endpoint():
+  async with AsyncClient(app=app, base_url="http://test") as ac:
+    resp = await ac.get("/api/qldb/health")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "healthy"
+    assert data["service"] == "AWS QLDB Dispute Ledger"
+
+
+@pytest.mark.asyncio
+async def test_qldb_list_disputes():
+  async with AsyncClient(app=app, base_url="http://test") as ac:
+    resp = await ac.get("/api/qldb/disputes")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "disputes" in data
+    assert data["total"] >= 0
+
+
+@pytest.mark.asyncio
+async def test_qldb_chain_verification():
+  async with AsyncClient(app=app, base_url="http://test") as ac:
+    resp = await ac.get("/api/qldb/audit/chain/verify")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "chain_valid" in data
