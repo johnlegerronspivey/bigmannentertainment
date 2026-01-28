@@ -3758,6 +3758,7 @@ function App() {
             <Route path="/agency-automation" element={<ProtectedRoute><AgencySuccessAutomationDashboard /></ProtectedRoute>} />
             <Route path="/dao-v2" element={<ProtectedRoute><DAOGovernanceV2Dashboard /></ProtectedRoute>} />
             <Route path="/creative-studio" element={<ProtectedRoute><CreativeStudioDashboard /></ProtectedRoute>} />
+            <Route path="/macie" element={<ProtectedRoute><MacieDashboard /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
             <Route path="/image-upload" element={<ProtectedRoute><ImageUploadComponent /></ProtectedRoute>} />
