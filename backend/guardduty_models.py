@@ -1,6 +1,6 @@
 """
 AWS GuardDuty Integration - Pydantic Models
-Real-time threat detection for AWS infrastructure
+Real-time threat detection and security monitoring
 """
 
 from pydantic import BaseModel, Field
@@ -10,316 +10,319 @@ from enum import Enum
 import uuid
 
 
-class ThreatSeverity(str, Enum):
-    LOW = "Low"
-    MEDIUM = "Medium"
-    HIGH = "High"
-    CRITICAL = "Critical"
+class SeverityLevel(str, Enum):
+    CRITICAL = "CRITICAL"
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 
 
+class FindingStatus(str, Enum):
+    NEW = "NEW"
+    ARCHIVED = "ARCHIVED"
+    ACKNOWLEDGED = "ACKNOWLEDGED"
+    RESOLVED = "RESOLVED"
+
+
+class ThreatCategory(str, Enum):
+    BACKDOOR = "Backdoor"
+    BEHAVIOR = "Behavior"
+    CRYPTOCURRENCY = "CryptoCurrency"
+    DEFENSE_EVASION = "DefenseEvasion"
+    DISCOVERY = "Discovery"
+    EXECUTION = "Execution"
+    EXFILTRATION = "Exfiltration"
+    IMPACT = "Impact"
+    INITIAL_ACCESS = "InitialAccess"
+    PENTEST = "PenTest"
+    PERSISTENCE = "Persistence"
+    POLICY = "Policy"
+    PRIVILEGE_ESCALATION = "PrivilegeEscalation"
+    RECON = "Recon"
+    STEALTH = "Stealth"
+    TROJAN = "Trojan"
+    UNAUTHORIZED_ACCESS = "UnauthorizedAccess"
+
+
+class ResourceType(str, Enum):
+    INSTANCE = "Instance"
+    ACCESS_KEY = "AccessKey"
+    S3_BUCKET = "S3Bucket"
+    IAM_USER = "IAMUser"
+    EKS_CLUSTER = "EKSCluster"
+    ECS_CLUSTER = "ECSCluster"
+    LAMBDA_FUNCTION = "Lambda"
+    RDS_DATABASE = "RDSDBInstance"
+    CONTAINER = "Container"
+
+
+# Detector Models
 class DetectorStatus(str, Enum):
     ENABLED = "ENABLED"
     DISABLED = "DISABLED"
 
 
-class FindingType(str, Enum):
-    # EC2 Finding Types
-    UNAUTHORIZED_ACCESS_EC2 = "UnauthorizedAccess:EC2"
-    RECON_EC2 = "Recon:EC2"
-    TROJAN_EC2 = "Trojan:EC2"
-    BACKDOOR_EC2 = "Backdoor:EC2"
-    CRYPTOMINING_EC2 = "CryptoCurrency:EC2"
-    
-    # IAM Finding Types
-    UNAUTHORIZED_ACCESS_IAM = "UnauthorizedAccess:IAM"
-    PERSISTENCE_IAM = "Persistence:IAM"
-    POLICY_IAM = "Policy:IAM"
-    STEALTH_IAM = "Stealth:IAM"
-    
-    # S3 Finding Types
-    UNAUTHORIZED_ACCESS_S3 = "UnauthorizedAccess:S3"
-    POLICY_S3 = "Policy:S3"
-    EXFILTRATION_S3 = "Exfiltration:S3"
-    IMPACT_S3 = "Impact:S3"
-    
-    # Other
-    PENTEST = "PenTest"
-    MALWARE = "Malware"
-    UNKNOWN = "Unknown"
-
-
-class ResourceType(str, Enum):
-    EC2_INSTANCE = "Instance"
-    EC2_NETWORK_INTERFACE = "NetworkInterface"
-    S3_BUCKET = "S3Bucket"
-    IAM_ACCESS_KEY = "AccessKey"
-    IAM_USER = "IamUser"
-    IAM_ROLE = "IamRole"
-    EKS_CLUSTER = "EksCluster"
-    CONTAINER = "Container"
-    LAMBDA_FUNCTION = "LambdaFunction"
-
-
-# Detector Models
-class DetectorFeature(BaseModel):
-    """GuardDuty detector feature configuration"""
-    name: str
-    status: str = "ENABLED"
-    additional_configuration: Optional[Dict[str, Any]] = None
-
-
 class Detector(BaseModel):
-    """GuardDuty detector configuration"""
+    """GuardDuty Detector"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     detector_id: Optional[str] = None  # AWS detector ID
     account_id: str
     region: str = "us-east-1"
     status: DetectorStatus = DetectorStatus.ENABLED
     
-    # Features
-    s3_protection_enabled: bool = True
-    eks_protection_enabled: bool = True
-    malware_protection_enabled: bool = True
-    runtime_monitoring_enabled: bool = True
-    
-    # Publishing
+    # Configuration
     finding_publishing_frequency: str = "FIFTEEN_MINUTES"
+    s3_logs_enabled: bool = True
+    kubernetes_audit_logs_enabled: bool = True
+    malware_protection_enabled: bool = True
     
-    # Stats
+    # Statistics
     findings_count: int = 0
-    last_finding_time: Optional[datetime] = None
+    last_checked: Optional[datetime] = None
     
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
-class CreateDetectorRequest(BaseModel):
-    enable_s3_protection: bool = True
-    enable_eks_protection: bool = True
-    enable_malware_protection: bool = True
-    enable_runtime_monitoring: bool = True
-    finding_publishing_frequency: str = "FIFTEEN_MINUTES"
-
-
 # Finding Models
-class AffectedResource(BaseModel):
-    """Resource affected by a finding"""
+class ResourceDetails(BaseModel):
+    """Details about the affected resource"""
     resource_type: ResourceType
-    resource_id: str
-    resource_name: Optional[str] = None
-    region: str = "us-east-1"
-    
-    # EC2 specific
     instance_id: Optional[str] = None
-    instance_type: Optional[str] = None
-    image_id: Optional[str] = None
-    availability_zone: Optional[str] = None
-    
-    # S3 specific
-    bucket_name: Optional[str] = None
-    bucket_arn: Optional[str] = None
-    
-    # IAM specific
-    user_name: Optional[str] = None
     access_key_id: Optional[str] = None
-    principal_id: Optional[str] = None
+    bucket_name: Optional[str] = None
+    user_name: Optional[str] = None
+    cluster_name: Optional[str] = None
+    function_name: Optional[str] = None
+    database_instance: Optional[str] = None
     
-    # Network
+    # Network details
     public_ip: Optional[str] = None
     private_ip: Optional[str] = None
-    security_groups: List[str] = []
     
+    # Additional details
     tags: Dict[str, str] = {}
+    extra_details: Dict[str, Any] = {}
 
 
 class ThreatIntelligence(BaseModel):
-    """Threat intelligence information"""
-    threat_name: Optional[str] = None
+    """Threat intelligence details"""
     threat_list_name: Optional[str] = None
+    threat_names: List[str] = []
+    ip_addresses: List[str] = []
+    domain_details: List[Dict[str, Any]] = []
 
 
 class NetworkConnection(BaseModel):
-    """Network connection information"""
-    direction: str  # INBOUND, OUTBOUND
-    protocol: str  # TCP, UDP
+    """Network connection details for network-based threats"""
     local_ip: Optional[str] = None
     local_port: Optional[int] = None
     remote_ip: Optional[str] = None
     remote_port: Optional[int] = None
+    protocol: Optional[str] = None
+    direction: Optional[str] = None  # INBOUND, OUTBOUND
     blocked: bool = False
 
 
 class Finding(BaseModel):
-    """GuardDuty security finding"""
+    """GuardDuty Security Finding"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     finding_id: Optional[str] = None  # AWS finding ID
-    detector_id: str
+    
+    # Core details
     account_id: str
     region: str = "us-east-1"
-    
-    # Finding details
-    type: str  # Full finding type (e.g., "UnauthorizedAccess:EC2/TorClient")
+    type: str  # e.g., "Backdoor:EC2/DenialOfService.Tcp"
     title: str
     description: str
     
     # Severity
     severity: float  # 0.0 - 10.0
-    severity_label: ThreatSeverity = ThreatSeverity.LOW
-    confidence: float = 0.0  # 0.0 - 100.0
+    severity_level: SeverityLevel = SeverityLevel.MEDIUM
     
-    # Resource affected
-    resource: Optional[AffectedResource] = None
+    # Classification
+    category: Optional[ThreatCategory] = None
+    resource: Optional[ResourceDetails] = None
     
-    # Network info
-    network_connections: List[NetworkConnection] = []
-    
-    # Threat intelligence
+    # Threat details
     threat_intelligence: Optional[ThreatIntelligence] = None
+    network_connection: Optional[NetworkConnection] = None
+    evidence: Optional[Dict[str, Any]] = None
     
-    # Status
-    is_archived: bool = False
-    is_acknowledged: bool = False
+    # Status tracking
+    status: FindingStatus = FindingStatus.NEW
+    archived: bool = False
+    user_feedback: Optional[str] = None  # USEFUL, NOT_USEFUL
+    
+    # Acknowledgement
     acknowledged_by: Optional[str] = None
     acknowledged_at: Optional[datetime] = None
+    resolved_by: Optional[str] = None
+    resolved_at: Optional[datetime] = None
+    notes: Optional[str] = None
     
     # Timestamps
-    first_seen_at: datetime = Field(default_factory=datetime.utcnow)
-    last_seen_at: datetime = Field(default_factory=datetime.utcnow)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    # Additional context
-    service_name: str = "guardduty"
-    event_first_seen: Optional[str] = None
-    event_last_seen: Optional[str] = None
-    count: int = 1
-    
-    raw_finding: Optional[Dict[str, Any]] = None
 
 
-# Threat Intelligence Set Models
-class ThreatIntelSet(BaseModel):
-    """Custom threat intelligence set"""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    threat_intel_set_id: Optional[str] = None  # AWS threat intel set ID
-    detector_id: str
-    name: str
-    description: Optional[str] = None
-    
-    # Location (S3 URI)
-    s3_location: str
-    format: str = "TXT"  # TXT, STIX, OTX_CSV, ALIEN_VAULT, PROOF_POINT, FIRE_EYE
-    
-    # Status
-    is_active: bool = True
-    status: str = "ACTIVE"
-    
-    # Stats
-    ip_count: int = 0
-    last_updated: Optional[datetime] = None
-    
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+class FindingUpdate(BaseModel):
+    """Update request for a finding"""
+    status: Optional[FindingStatus] = None
+    user_feedback: Optional[str] = None
+    archived: Optional[bool] = None
+    notes: Optional[str] = None
 
 
-class CreateThreatIntelSetRequest(BaseModel):
-    name: str
-    description: Optional[str] = None
-    s3_location: str
-    format: str = "TXT"
-    activate: bool = True
+# Dashboard Statistics Models
+class SeveritySummary(BaseModel):
+    """Summary of findings by severity"""
+    critical: int = 0
+    high: int = 0
+    medium: int = 0
+    low: int = 0
 
 
-# Filter Models
-class FindingFilter(BaseModel):
-    """Filter for findings"""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
-    description: Optional[str] = None
-    
-    # Filter criteria
-    criteria: Dict[str, Any] = {}
-    
-    # Action
-    action: str = "NOOP"  # NOOP or ARCHIVE
-    
-    # Rank
-    rank: int = 1
-    
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+class StatusSummary(BaseModel):
+    """Summary of findings by status"""
+    new: int = 0
+    acknowledged: int = 0
+    resolved: int = 0
+    archived: int = 0
 
 
-class CreateFilterRequest(BaseModel):
-    name: str
-    description: Optional[str] = None
-    criteria: Dict[str, Any]
-    action: str = "NOOP"
-    rank: int = 1
-
-
-# Dashboard Stats Models
-class ThreatStatsByType(BaseModel):
-    """Statistics grouped by finding type"""
-    finding_type: str
+class ThreatSummary(BaseModel):
+    """Summary of threats by category"""
+    category: str
     count: int
-    high_severity_count: int
-    medium_severity_count: int
-    low_severity_count: int
+    severity_avg: float
 
 
-class ThreatStatsByResource(BaseModel):
-    """Statistics grouped by resource"""
+class ResourceSummary(BaseModel):
+    """Summary of affected resources"""
     resource_type: str
-    resource_id: str
-    finding_count: int
-    most_severe_finding: str
+    count: int
+    critical_count: int
 
 
 class GuardDutyDashboardStats(BaseModel):
     """Complete dashboard statistics"""
-    # Finding counts
+    # Detector stats
+    total_detectors: int = 0
+    active_detectors: int = 0
+    
+    # Finding totals
     total_findings: int = 0
-    active_findings: int = 0
-    archived_findings: int = 0
+    new_findings: int = 0
     
-    # By severity
-    critical_findings: int = 0
-    high_findings: int = 0
-    medium_findings: int = 0
-    low_findings: int = 0
+    # Severity breakdown
+    severity_summary: SeveritySummary = SeveritySummary()
     
-    # By category
-    ec2_findings: int = 0
-    s3_findings: int = 0
-    iam_findings: int = 0
-    other_findings: int = 0
+    # Status breakdown
+    status_summary: StatusSummary = StatusSummary()
     
-    # Detector info
-    detector_status: str = "ENABLED"
-    detector_id: Optional[str] = None
+    # Threat analysis
+    threats_by_category: List[ThreatSummary] = []
+    top_threat_types: List[Dict[str, Any]] = []
     
-    # Threat intel
-    active_threat_intel_sets: int = 0
+    # Resource analysis
+    resources_by_type: List[ResourceSummary] = []
+    most_targeted_resources: List[Dict[str, Any]] = []
     
-    # Recent activity
+    # Time-based analysis
     findings_last_24h: int = 0
     findings_last_7d: int = 0
+    findings_last_30d: int = 0
     
-    # Top threats
-    top_finding_types: List[ThreatStatsByType] = []
-    most_targeted_resources: List[ThreatStatsByResource] = []
+    # Trend data
+    trend_data: List[Dict[str, Any]] = []
     
-    # Timestamps
-    last_finding_time: Optional[datetime] = None
+    # Last update
     last_sync_time: Optional[datetime] = None
 
 
-# Health Response
+# API Response Models
+class FindingsResponse(BaseModel):
+    """Paginated findings response"""
+    success: bool = True
+    findings: List[Finding] = []
+    total: int = 0
+    limit: int = 50
+    offset: int = 0
+    has_more: bool = False
+
+
+class DetectorsResponse(BaseModel):
+    """Detectors list response"""
+    success: bool = True
+    detectors: List[Detector] = []
+    total: int = 0
+
+
 class GuardDutyHealthResponse(BaseModel):
     """Health check response"""
     status: str = "healthy"
     service: str = "AWS GuardDuty Threat Detection"
     version: str = "1.0.0"
-    detector_enabled: bool = False
+    guardduty_enabled: bool = False
     aws_connected: bool = False
     aws_region: str = "us-east-1"
     features: List[str] = []
+
+
+# Threat Types Reference
+THREAT_TYPES = {
+    "Backdoor": {
+        "description": "EC2 instance communicating with known malicious IPs",
+        "severity_range": "High to Critical",
+        "examples": [
+            "Backdoor:EC2/DenialOfService.Tcp",
+            "Backdoor:EC2/DenialOfService.Udp",
+            "Backdoor:EC2/Spambot",
+            "Backdoor:EC2/C&CActivity.B"
+        ]
+    },
+    "CryptoCurrency": {
+        "description": "Cryptocurrency mining activity detected",
+        "severity_range": "High",
+        "examples": [
+            "CryptoCurrency:EC2/BitcoinTool.B",
+            "CryptoCurrency:EC2/BitcoinTool.B!DNS"
+        ]
+    },
+    "Trojan": {
+        "description": "Trojan malware activity detected",
+        "severity_range": "High to Critical",
+        "examples": [
+            "Trojan:EC2/BlackholeTraffic",
+            "Trojan:EC2/DropPoint",
+            "Trojan:EC2/PhishingDomainRequest"
+        ]
+    },
+    "UnauthorizedAccess": {
+        "description": "Unauthorized access attempts detected",
+        "severity_range": "Medium to High",
+        "examples": [
+            "UnauthorizedAccess:EC2/SSHBruteForce",
+            "UnauthorizedAccess:EC2/RDPBruteForce",
+            "UnauthorizedAccess:IAMUser/ConsoleLoginSuccess.B"
+        ]
+    },
+    "Recon": {
+        "description": "Reconnaissance activity detected",
+        "severity_range": "Low to Medium",
+        "examples": [
+            "Recon:EC2/PortProbeUnprotectedPort",
+            "Recon:EC2/Portscan",
+            "Recon:IAMUser/NetworkPermissions"
+        ]
+    },
+    "Policy": {
+        "description": "Policy violations detected",
+        "severity_range": "Low to Medium",
+        "examples": [
+            "Policy:IAMUser/RootCredentialUsage",
+            "Policy:S3/BucketAnonymousAccessGranted"
+        ]
+    }
+}
