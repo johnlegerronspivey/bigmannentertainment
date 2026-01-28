@@ -613,6 +613,16 @@ const Navigation = () => {
               <span>🎨</span>
               <span>Studio</span>
             </Link>
+
+            {/* AWS Macie PII Detection */}
+            <Link 
+              to="/macie" 
+              className="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="AWS Macie PII Detection"
+            >
+              <span>🔒</span>
+              <span>Macie</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
