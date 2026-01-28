@@ -22,13 +22,29 @@ const GuardDutyDashboard = () => {
     }
   };
 
+  const fetchFindings = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filters.severity) params.append('severity', filters.severity);
+      if (filters.status) params.append('status', filters.status);
+      const res = await fetch(`${API}/api/guardduty/findings?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFindings(data.findings || []);
+      }
+    } catch (err) {
+      console.error('Error loading GuardDuty findings', err);
+      toast.error('Failed to load GuardDuty findings');
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     fetchDashboard();
     fetchFindings();
   }, []);
 
-
-  const fetchFindings = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
