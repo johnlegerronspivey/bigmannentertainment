@@ -59,11 +59,11 @@ const QLDBDashboard = () => {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => {
     fetchDashboard();
     fetchDisputes();
     fetchAudit();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreateDispute = async (e) => {
