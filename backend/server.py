@@ -7508,6 +7508,9 @@ api_router.include_router(dao_v2_router)
 # Include Creative Studio router
 api_router.include_router(creative_studio_router)
 
+# Include Macie router
+api_router.include_router(macie_router)
+
 # CORS configuration for multi-environment setup
 cors_origins = [
     "http://localhost:3000",  # Local development
