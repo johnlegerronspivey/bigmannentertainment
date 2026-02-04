@@ -332,6 +332,7 @@ async def shutdown_event():
 # Create a router with the /api prefix
 
 # Models
+api_router = APIRouter(prefix="/api")
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
@@ -7463,8 +7464,9 @@ async def get_phase2_status():
     }
 
 
-from router_setup import api_router
+from router_setup import api_router as sub_routers
 app.include_router(api_router)
+app.include_router(sub_routers)
 app.include_router(workflow_integration_router)
 app.include_router(support_router)
 app.include_router(social_strategy_router)
@@ -8042,8 +8044,9 @@ lambda_service = LambdaProcessingService()
 rekognition_service = RekognitionService()
 
 # Include the main api_router in the app
-from router_setup import api_router
+from router_setup import api_router as sub_routers
 app.include_router(api_router)
+app.include_router(sub_routers)
 
 # Global Health Check Endpoints (outside /api prefix)
 @app.get("/")
