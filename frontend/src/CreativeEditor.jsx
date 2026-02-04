@@ -4,7 +4,7 @@ import {
   Type, Square, Circle, Image as ImageIcon, 
   Move, Trash2, Save, X, Download, 
   AlignLeft, AlignCenter, AlignRight,
-  Bold, Italic, Palette
+  Bold, Italic, Palette, Layers, ChevronUp, ChevronDown
 } from 'lucide-react';
 
 const CreativeEditor = ({ project, onClose, onSave }) => {
@@ -95,6 +95,27 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
   const deleteElement = (id) => {
     setElements(elements.filter(el => el.id !== id));
     setSelectedId(null);
+  };
+
+  const moveLayer = (id, direction) => {
+    const index = elements.findIndex(el => el.id === id);
+    if (index === -1) return;
+    
+    const newElements = [...elements];
+    const element = newElements[index];
+    newElements.splice(index, 1);
+    
+    if (direction === 'front') {
+      newElements.push(element);
+    } else if (direction === 'back') {
+      newElements.unshift(element);
+    } else if (direction === 'forward') {
+      newElements.splice(Math.min(index + 1, newElements.length), 0, element);
+    } else if (direction === 'backward') {
+      newElements.splice(Math.max(index - 1, 0), 0, element);
+    }
+    
+    setElements(newElements);
   };
 
   // --- Drag & Drop Logic ---
@@ -305,6 +326,22 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
               )}
 
               <div className="pt-4 border-t border-slate-700">
+                <label className="text-gray-400 text-xs block mb-2">Layering</label>
+                <div className="flex gap-2 mb-4">
+                  <button onClick={() => moveLayer(selectedElement.id, 'back')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Send to Back">
+                    <Layers size={16} />
+                  </button>
+                  <button onClick={() => moveLayer(selectedElement.id, 'backward')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Send Backward">
+                    <ChevronDown size={16} />
+                  </button>
+                  <button onClick={() => moveLayer(selectedElement.id, 'forward')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Bring Forward">
+                    <ChevronUp size={16} />
+                  </button>
+                  <button onClick={() => moveLayer(selectedElement.id, 'front')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Bring to Front">
+                    <Layers size={16} className="rotate-180" />
+                  </button>
+                </div>
+
                 <button 
                   onClick={() => deleteElement(selectedElement.id)}
                   className="w-full py-2 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 flex items-center justify-center gap-2"
