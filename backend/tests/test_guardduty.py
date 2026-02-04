@@ -31,7 +31,7 @@ def client():
 
 
 
-def test_guardduty_health_endpoint():
+def test_guardduty_health_endpoint(client):
     resp = client.get("/api/guardduty/health")
     assert resp.status_code == 200
     data = resp.json()
