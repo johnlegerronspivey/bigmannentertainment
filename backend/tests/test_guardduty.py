@@ -39,7 +39,7 @@ def test_guardduty_health_endpoint(client):
     assert data["service"] == "AWS GuardDuty Threat Detection"
 
 
-def test_guardduty_list_findings():
+def test_guardduty_list_findings(client):
     resp = client.get("/api/guardduty/findings")
     assert resp.status_code == 200
     data = resp.json()
@@ -48,7 +48,7 @@ def test_guardduty_list_findings():
     assert data["total"] >= 0
 
 
-def test_guardduty_dashboard_stats():
+def test_guardduty_dashboard_stats(client):
     resp = client.get("/api/guardduty/dashboard")
     assert resp.status_code == 200
     data = resp.json()
