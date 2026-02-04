@@ -16,7 +16,7 @@ from qldb_service import initialize_qldb_service
 
 
 @pytest.fixture(scope="module", autouse=True)
-async def init_qldb_service():
+def init_qldb_service():
   """Ensure QLDB service is initialized before tests"""
   initialize_qldb_service(db)
   yield

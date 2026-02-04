@@ -17,7 +17,7 @@ from guardduty_service import initialize_guardduty_service
 
 
 @pytest.fixture(scope="module", autouse=True)
-async def init_guardduty_service():
+def init_guardduty_service():
   """Ensure GuardDuty service is initialized before tests"""
   initialize_guardduty_service(db)
   yield
