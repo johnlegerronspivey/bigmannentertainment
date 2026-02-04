@@ -42,11 +42,8 @@ class QldbManager:
         if not driver:
             raise Exception("QLDB Driver not available")
         
-        session = driver.get_session()
-        try:
-            return session.execute_lambda(transaction_lambda)
-        finally:
-            session.close()
+        # driver.execute_lambda manages the session and retries automatically
+        return driver.execute_lambda(transaction_lambda)
 
 # Global instance
 qldb_manager = QldbManager()
