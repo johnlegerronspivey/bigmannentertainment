@@ -17,15 +17,17 @@ from server import app, db  # type: ignore  # noqa: E402
 from qldb_service import initialize_qldb_service  # type: ignore  # noqa: E402
 
 
-@pytest.fixture(scope="module", autouse=True)
-def init_qldb_service():
-    """Ensure QLDB service is initialized before tests.
+@pytest.fixture(scope="session")
+def client():
+    """Return a TestClient with QLDB service initialized.
 
-    Mirrors the FastAPI startup behaviour but keeps tests explicit and
-    independent of lifecycle hooks.
+    Session scope keeps the same app/event loop open across tests,
+    preventing Motor from hitting a closed loop.
     """
     initialize_qldb_service(db)
-    yield
+    test_client = TestClient(app)
+    yield test_client
+
 
 
 def test_qldb_health_endpoint():
