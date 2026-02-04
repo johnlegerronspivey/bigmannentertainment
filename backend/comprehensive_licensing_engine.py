@@ -183,8 +183,12 @@ class ComprehensiveLicensingEngine:
             }
         }
         
-        # Initialize collections
-        asyncio.create_task(self._initialize_collections())
+        # Initialize collections (only schedule if an event loop is running)
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._initialize_collections())
+        except RuntimeError:
+            logger.warning("ComprehensiveLicensingEngine initialization skipped: no running event loop available")
     
     async def _initialize_collections(self):
         """Initialize database collections with indexes"""
