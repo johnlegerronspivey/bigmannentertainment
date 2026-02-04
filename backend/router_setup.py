@@ -1,65 +1,65 @@
 from fastapi import APIRouter
 
 # Router Imports
-from content_removal_endpoints import router as content_removal_router
-from workflow_integration_endpoints_simple import router as workflow_integration_router
-from support_endpoints import router as support_router
-from uln_endpoints import uln_router
-from uln_blockchain_endpoints import router as blockchain_router
-from ethereum_endpoints import router as ethereum_router
-from ethereum_advanced_endpoints import router as ethereum_advanced_router
-from profile_endpoints import router as profile_router
-from social_oauth_service import router as oauth_router
-from social_integration_endpoints import router as social_integration_router
-from aws_organizations_endpoints import router as aws_organizations_router
-from enterprise_phase1_endpoints import router as enterprise_phase1_router
-from digital_twin_endpoints import router as digital_twin_router
-from royalty_marketplace_endpoints import router as royalty_marketplace_router
-from aws_enterprise_mapping_endpoints import router as aws_enterprise_mapping_router
-from agency_success_automation_endpoints import router as agency_automation_router
-from dao_governance_v2_endpoints import router as dao_v2_router
-from creative_studio_endpoints import router as creative_studio_router
-from macie_endpoints import router as macie_router
-from guardduty_endpoints import router as guardduty_router
-from qldb_endpoints import router as qldb_router
-from agency_onboarding_endpoints import agency_router
-from social_media_strategy_endpoints import router as social_strategy_router
-from social_media_phases_5_10_endpoints import router as social_phases_5_10_router
-from royalty_engine_endpoints import router as royalty_engine_router
-from social_media_royalty_endpoints import router as social_media_royalty_router
-from content_ingestion_endpoints import router as content_ingestion_router
-from comprehensive_platform_endpoints import router as comprehensive_platform_router
-from content_workflow_endpoints import router as content_workflow_router
-from transcoding_endpoints import router as transcoding_router
-from distribution_endpoints import router as distribution_router
-from premium_features_endpoints import router as premium_router
-from mlc_endpoints import router as mlc_router
-from mde_endpoints import router as mde_router
-from gs1_endpoints import router as gs1_router
-from analytics_endpoints import router as analytics_router
-from lifecycle_endpoints import router as lifecycle_router
-from enhanced_features_endpoints import router as enhanced_features_router
-from agency_aws_endpoints import router as agency_aws_router
-from snapchat_endpoints import router as snapchat_router
-from ddex_endpoints import ddex_router
-from music_reports_endpoints import music_reports_router
-from workflow_enhancement_endpoints import workflow_router
-from sponsorship_endpoints import sponsorship_router
-from tax_endpoints import tax_router
-from industry_endpoints import industry_router
-from label_endpoints import label_router
-from stripe_endpoints import stripe_router
-from licensing_endpoints import licensing_router
-from comprehensive_licensing_endpoints import comprehensive_licensing_router
-from pdooh_endpoints import router as pdooh_router
-from metadata_endpoints import router as metadata_router
-from batch_endpoints import router as batch_router
-from reporting_endpoints import router as reporting_router
-from rights_endpoints import router as rights_router
-from smart_contract_endpoints import router as contracts_router
-from audit_endpoints import router as audit_router
-from media_upload_endpoints import media_router
-from paypal_endpoints import paypal_router
+from backend.content_removal_endpoints import router as content_removal_router
+from backend.workflow_integration_endpoints_simple import router as workflow_integration_router
+from backend.support_endpoints import router as support_router
+from backend.uln_endpoints import uln_router
+from backend.uln_blockchain_endpoints import router as blockchain_router
+from backend.ethereum_endpoints import router as ethereum_router
+from backend.ethereum_advanced_endpoints import router as ethereum_advanced_router
+from backend.profile_endpoints import router as profile_router
+from backend.social_oauth_service import router as oauth_router
+from backend.social_integration_endpoints import router as social_integration_router
+from backend.aws_organizations_endpoints import router as aws_organizations_router
+from backend.enterprise_phase1_endpoints import router as enterprise_phase1_router
+from backend.digital_twin_endpoints import router as digital_twin_router
+from backend.royalty_marketplace_endpoints import router as royalty_marketplace_router
+from backend.aws_enterprise_mapping_endpoints import router as aws_enterprise_mapping_router
+from backend.agency_success_automation_endpoints import router as agency_automation_router
+from backend.dao_governance_v2_endpoints import router as dao_v2_router
+from backend.creative_studio_endpoints import router as creative_studio_router
+from backend.macie_endpoints import router as macie_router
+from backend.guardduty_endpoints import router as guardduty_router
+from backend.qldb_endpoints import router as qldb_router
+from backend.agency_onboarding_endpoints import agency_router
+from backend.social_media_strategy_endpoints import router as social_strategy_router
+from backend.social_media_phases_5_10_endpoints import router as social_phases_5_10_router
+from backend.royalty_engine_endpoints import router as royalty_engine_router
+from backend.social_media_royalty_endpoints import router as social_media_royalty_router
+from backend.content_ingestion_endpoints import router as content_ingestion_router
+from backend.comprehensive_platform_endpoints import router as comprehensive_platform_router
+from backend.content_workflow_endpoints import router as content_workflow_router
+from backend.transcoding_endpoints import router as transcoding_router
+from backend.distribution_endpoints import router as distribution_router
+from backend.premium_features_endpoints import router as premium_router
+from backend.mlc_endpoints import router as mlc_router
+from backend.mde_endpoints import router as mde_router
+from backend.gs1_endpoints import router as gs1_router
+from backend.analytics_endpoints import router as analytics_router
+from backend.lifecycle_endpoints import router as lifecycle_router
+from backend.enhanced_features_endpoints import router as enhanced_features_router
+from backend.agency_aws_endpoints import router as agency_aws_router
+from backend.snapchat_endpoints import router as snapchat_router
+from backend.ddex_endpoints import ddex_router
+from backend.music_reports_endpoints import music_reports_router
+from backend.workflow_enhancement_endpoints import workflow_router
+from backend.sponsorship_endpoints import sponsorship_router
+from backend.tax_endpoints import tax_router
+from backend.industry_endpoints import industry_router
+from backend.label_endpoints import label_router
+from backend.stripe_endpoints import stripe_router
+from backend.licensing_endpoints import licensing_router
+from backend.comprehensive_licensing_endpoints import comprehensive_licensing_router
+from backend.pdooh_endpoints import router as pdooh_router
+from backend.metadata_endpoints import router as metadata_router
+from backend.batch_endpoints import router as batch_router
+from backend.reporting_endpoints import router as reporting_router
+from backend.rights_endpoints import router as rights_router
+from backend.smart_contract_endpoints import router as contracts_router
+from backend.audit_endpoints import router as audit_router
+from backend.media_upload_endpoints import media_router
+from backend.paypal_endpoints import paypal_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
