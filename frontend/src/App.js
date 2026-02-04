@@ -114,6 +114,7 @@ const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUserProfile = async () => {
@@ -1269,7 +1270,7 @@ const Login = () => {
             </div>
             <div>
               <Link to="/register" className="text-purple-600 hover:text-purple-500">
-                Don't have an account? Sign up
+                Don&apos;t have an account? Sign up
               </Link>
             </div>
           </div>
@@ -1861,7 +1862,8 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (!token) {
-      setError('Invalid reset link');
+      const timer = setTimeout(() => setError('Invalid reset link'), 0);
+      return () => clearTimeout(timer);
     }
   }, [token]);
 
@@ -2209,7 +2211,7 @@ const NotFound = () => {
         <h1 className="text-6xl font-bold text-purple-600 mb-4">404</h1>
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Page Not Found</h2>
         <p className="text-gray-600 mb-8">
-          The page you're looking for doesn't exist or has been moved.
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <div className="space-y-4">
           <Link 
@@ -2243,9 +2245,10 @@ const Library = () => {
 
   useEffect(() => {
     loadMedia();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadMedia = async () => {
+  async function loadMedia() {
     setLoading(true);
     setError(null);
     
@@ -2675,9 +2678,10 @@ const Distribute = () => {
         title: decodeURIComponent(mediaTitle || 'Selected Media')
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
 
-  const loadUserMedia = async () => {
+  async function loadUserMedia() {
     setLoadingMedia(true);
     setError(null);
     
