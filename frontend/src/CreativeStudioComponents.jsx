@@ -298,7 +298,7 @@ const OverviewTab = ({ stats, projects, templates }) => {
 };
 
 // Projects Tab
-const ProjectsTab = ({ projects, onRefresh, onCreateNew }) => {
+const ProjectsTab = ({ projects, onRefresh, onCreateNew, onEdit }) => {
   const [filter, setFilter] = useState('all');
   
   const filteredProjects = projects?.filter(p => 
