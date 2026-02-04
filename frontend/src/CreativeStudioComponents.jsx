@@ -53,6 +53,7 @@ const CreativeStudioDashboard = () => {
     { id: 'templates', label: 'Templates', icon: '📋' },
     { id: 'brand-kits', label: 'Brand Kits', icon: '🎯' },
     { id: 'ai-studio', label: 'AI Studio', icon: '🤖' },
+    { id: 'moderation', label: 'Moderation', icon: '🛡️' },
     { id: 'publish', label: 'Publish', icon: '🚀' }
   ];
 
