@@ -25,7 +25,8 @@ async def init_guardduty_service():
 
 @pytest.mark.asyncio
 async def test_guardduty_health_endpoint():
-  async with AsyncClient(app=app, base_url="http://test") as ac:
+  transport = ASGITransport(app=app)
+  async with AsyncClient(transport=transport, base_url="http://test") as ac:
     resp = await ac.get("/api/guardduty/health")
     assert resp.status_code == 200
     data = resp.json()
@@ -35,7 +36,8 @@ async def test_guardduty_health_endpoint():
 
 @pytest.mark.asyncio
 async def test_guardduty_list_findings():
-  async with AsyncClient(app=app, base_url="http://test") as ac:
+  transport = ASGITransport(app=app)
+  async with AsyncClient(transport=transport, base_url="http://test") as ac:
     resp = await ac.get("/api/guardduty/findings")
     assert resp.status_code == 200
     data = resp.json()
@@ -46,7 +48,8 @@ async def test_guardduty_list_findings():
 
 @pytest.mark.asyncio
 async def test_guardduty_dashboard_stats():
-  async with AsyncClient(app=app, base_url="http://test") as ac:
+  transport = ASGITransport(app=app)
+  async with AsyncClient(transport=transport, base_url="http://test") as ac:
     resp = await ac.get("/api/guardduty/dashboard")
     assert resp.status_code == 200
     data = resp.json()
