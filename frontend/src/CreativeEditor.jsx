@@ -18,7 +18,40 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
   // Added missing state variables
   const [dragState, setDragState] = useState(null);
   const [zoom, setZoom] = useState(1);
-  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Create an image element
+        const id = Date.now().toString();
+        const aspectRatio = img.width / img.height;
+        const newElement = {
+          id,
+          type: 'image',
+          x: canvasSize.width / 2 - 100,
+          y: canvasSize.height / 2 - (100 / aspectRatio),
+          width: 200,
+          height: 200 / aspectRatio,
+          content: event.target.result, // Data URL
+          style: {
+            borderWidth: 0,
+            borderColor: 'transparent'
+          }
+        };
+        setElements([...elements, newElement]);
+        setSelectedId(id);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ''; // Reset input
+  };
 
   // --- Element Management ---
 
@@ -135,7 +168,14 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
           <ToolButton icon={<Type size={24} />} label="Text" onClick={() => addElement('text', 'Double click to edit')} />
           <ToolButton icon={<Square size={24} />} label="Box" onClick={() => addElement('rect')} />
           <ToolButton icon={<Circle size={24} />} label="Circle" onClick={() => addElement('circle')} />
-          <ToolButton icon={<ImageIcon size={24} />} label="Image" onClick={() => toast.info('Image upload coming soon')} />
+          <ToolButton icon={<ImageIcon size={24} />} label="Image" onClick={() => fileInputRef.current?.click()} />
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="image/*" 
+            onChange={handleImageUpload} 
+          />
         </div>
 
         {/* Canvas Area */}
@@ -169,6 +209,14 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
                 }}
                 onMouseDown={(e) => handleMouseDown(e, el.id)}
               >
+                {el.type === 'image' && (
+                  <img 
+                    src={el.content} 
+                    alt="element" 
+                    className="w-full h-full object-contain pointer-events-none"
+                    style={{ borderRadius: el.style.borderRadius }} 
+                  />
+                )}
                 {el.type === 'text' ? (
                   <div 
                     contentEditable={selectedId === el.id}
