@@ -24,6 +24,7 @@ from qldb_models import (  # type: ignore  # noqa: E402
     Priority,
     DisputesResponse,
     VerificationResponse,
+    DisputeParty,
 )
 
 
@@ -46,6 +47,11 @@ class FakeQLDBService:
 
     async def get_disputes(self, *_, **__):
         """Return a single fake dispute plus total count."""
+        claimant = DisputeParty(
+            party_id="artist-test",
+            party_type="claimant",
+            name="Test Artist",
+        )
         dispute = Dispute(
             dispute_number="DISP-TEST-001",
             type=DisputeType.ROYALTY_DISPUTE,
@@ -53,6 +59,7 @@ class FakeQLDBService:
             priority=Priority.MEDIUM,
             title="Test Dispute",
             description="Test dispute for automated backend checks.",
+            claimant=claimant,
         )
         # Endpoint wraps this into DisputesResponse
         return [dispute], 1
