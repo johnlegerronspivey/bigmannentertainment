@@ -725,7 +725,7 @@ const QuickActionCard = ({ title, icon, dims }) => (
   </button>
 );
 
-const ProjectCard = ({ project, compact = false }) => {
+const ProjectCard = ({ project, compact = false, onClick }) => {
   const statusColors = {
     draft: 'bg-gray-500',
     in_progress: 'bg-yellow-500',
