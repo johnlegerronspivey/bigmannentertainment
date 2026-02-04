@@ -106,8 +106,7 @@ class MockTransaction:
                     except Exception as e:
                          logger.error(f"Failed to parse doc: {r[0]} - {e}")
 
-                # Naive WHERE implementation
- for "id = ?" and "dispute_number = ?" and "status = ?"
+                # Naive WHERE implementation for "id = ?" and "dispute_number = ?" and "status = ?"
                 if where_index != -1:
                     # Reconstruct WHERE clause for basic matching
                     where_clause = " ".join(words[where_index+1:])
