@@ -42,8 +42,12 @@ class GuardDutyService:
         self.sts_client = None
         self._initialize_aws_clients()
         
-        # Initialize sample data
-        asyncio.create_task(self._initialize_sample_data())
+        # Initialize sample data (only schedule if an event loop is running)
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._initialize_sample_data())
+        except RuntimeError:
+            logger.warning("GuardDutyService sample data initialization skipped: no running event loop available")
     
     def _initialize_aws_clients(self):
         """Initialize AWS clients with credentials"""

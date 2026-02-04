@@ -42,8 +42,12 @@ class QLDBService:
         # Track the last hash for chain integrity
         self._last_audit_hash = "GENESIS"
         
-        # Initialize sample data
-        asyncio.create_task(self._initialize_sample_data())
+        # Initialize sample data (only schedule if an event loop is running)
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._initialize_sample_data())
+        except RuntimeError:
+            logger.warning("QLDBService sample data initialization skipped: no running event loop available")
     
     async def _initialize_sample_data(self):
         """Initialize sample data for demonstration"""

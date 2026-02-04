@@ -43,8 +43,16 @@ class GS1Service:
         self.legal_entity_gln = "0860004340201"  # Legal Entity Global Location Number
         self.base_uri = "https://social-profile-sync.preview.emergentagent.com"
         
-        # Initialize collections
-        asyncio.create_task(self._initialize_collections())
+        # Initialize collections (only schedule if an event loop is running)
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._initialize_collections())
+        except RuntimeError:
+            # When imported in non-ASGI contexts (e.g. pytest import of server.py),
+            # there may be no running event loop. In that case, we skip background
+            # initialization; collections will be created lazily when the service
+            # is used under a real event loop.
+            logger.warning("GS1Service initialization skipped: no running event loop available")
     
     async def _initialize_collections(self):
         """Initialize database collections with indexes"""
