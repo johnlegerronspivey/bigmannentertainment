@@ -14,7 +14,11 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
     width: project?.width || 800, 
     height: project?.height || 600 
   });
-  // Removed useEffect for canvasSize to avoid cascading renders
+  
+  // Added missing state variables
+  const [dragState, setDragState] = useState(null);
+  const [zoom, setZoom] = useState(1);
+  const canvasRef = useRef(null);
 
   // --- Element Management ---
 
