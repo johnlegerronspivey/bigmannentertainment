@@ -10,19 +10,11 @@ import {
 const CreativeEditor = ({ project, onClose, onSave }) => {
   const [elements, setElements] = useState(project?.elements || []);
   const [selectedId, setSelectedId] = useState(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
-  const [zoom, setZoom] = useState(1);
-  const canvasRef = useRef(null);
-  
-  // Drag state
-  const [dragState, setDragState] = useState(null); // { id, startX, startY, initialX, initialY }
-
-  useEffect(() => {
-    // Load project dimensions if available
-    if (project?.width && project?.height) {
-      setCanvasSize({ width: project.width, height: project.height });
-    }
-  }, [project]);
+  const [canvasSize, setCanvasSize] = useState({ 
+    width: project?.width || 800, 
+    height: project?.height || 600 
+  });
+  // Removed useEffect for canvasSize to avoid cascading renders
 
   // --- Element Management ---
 
