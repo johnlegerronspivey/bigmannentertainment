@@ -18,15 +18,17 @@ from server import app, db  # type: ignore  # noqa: E402
 from guardduty_service import initialize_guardduty_service  # type: ignore  # noqa: E402
 
 
-@pytest.fixture(scope="module", autouse=True)
-def init_guardduty_service():
-    """Ensure GuardDuty service is initialized before tests.
+@pytest.fixture(scope="session")
+def client():
+    """Return a TestClient with GuardDuty service initialized.
 
-    This mirrors what the FastAPI startup event does in production,
-    but we call it explicitly here so tests don't depend on startup hooks.
+    Session scope keeps the same app/event loop open across tests,
+    preventing Motor from hitting a closed loop.
     """
     initialize_guardduty_service(db)
-    yield
+    test_client = TestClient(app)
+    yield test_client
+
 
 
 def test_guardduty_health_endpoint():
