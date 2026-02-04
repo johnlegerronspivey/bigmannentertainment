@@ -21,6 +21,8 @@ class MockCursor:
 class MockTransaction:
     def __init__(self, connection):
         self.conn = connection
+        self.cursor = self.conn.cursor()
+
     def clean_ion(self, obj):
         if isinstance(obj, dict) or hasattr(obj, 'keys'):
             return {k: self.clean_ion(v) for k, v in obj.items()}
@@ -31,9 +33,6 @@ class MockTransaction:
         elif 'Ion' in str(type(obj)):
             return str(obj)
         return obj
-
-
-        self.cursor = self.conn.cursor()
 
     def execute_statement(self, statement: str, *parameters) -> MockCursor:
         statement = statement.strip()
