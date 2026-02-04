@@ -7221,11 +7221,6 @@ async def pdooh_integration_health():
         }
 
 # Include routers that already have full /api/prefix paths directly in app
-app.include_router(gs1_router)
-app.include_router(premium_router)
-app.include_router(mlc_router)
-app.include_router(mde_router)  
-app.include_router(pdooh_router)
 
 # Include the main api_router in the app
 
@@ -7408,37 +7403,18 @@ async def get_phase2_status():
 from router_setup import api_router as sub_routers
 app.include_router(api_router)
 app.include_router(sub_routers)
-app.include_router(workflow_integration_router)
-app.include_router(support_router)
-app.include_router(social_strategy_router)
-app.include_router(social_phases_5_10_router)
-app.include_router(royalty_engine_router)
-app.include_router(social_media_royalty_router)
-app.include_router(content_ingestion_router)
 
 # Include Creator Profile System routers
-app.include_router(profile_router)
-app.include_router(oauth_router)
-app.include_router(social_integration_router)
 
 # Include comprehensive platform router
-app.include_router(comprehensive_platform_router)
-app.include_router(content_workflow_router)
-app.include_router(transcoding_router)
-app.include_router(distribution_router)
-app.include_router(analytics_router)
-app.include_router(lifecycle_router)
-app.include_router(aws_organizations_router)
 
 # Include Enterprise Phase 1 router (Talent Intelligence, Executive Dashboard, Compliance, Workspaces)
 
 # Include Digital Twin router
 
 # Include Royalty Marketplace router
-app.include_router(royalty_marketplace_router)
 
 # Include AWS Enterprise Mapping router
-app.include_router(aws_enterprise_mapping_router)
 
 # Include Agency Success Automation router
 
