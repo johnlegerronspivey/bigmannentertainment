@@ -737,7 +737,7 @@ const ProjectCard = ({ project, compact = false, onClick }) => {
 
   if (compact) {
     return (
-      <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all cursor-pointer">
+      <div onClick={onClick} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all cursor-pointer">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold">
             {project.name?.charAt(0) || 'P'}
