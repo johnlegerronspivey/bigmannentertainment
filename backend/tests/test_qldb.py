@@ -22,7 +22,6 @@ from qldb_models import (  # type: ignore  # noqa: E402
     DisputeStatus,
     DisputeType,
     Priority,
-    DisputesResponse,
     VerificationResponse,
     DisputeParty,
 )
