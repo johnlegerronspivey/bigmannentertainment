@@ -92,9 +92,22 @@ class MockTransaction:
                     (table_name,)
                 )
                 rows = self.cursor.fetchall()
-                docs = [json.loads(row[0]) for row in rows]
-                
-                # Naive WHERE implementation for "id = ?" and "dispute_number = ?" and "status = ?"
+                docs = []
+                for r in rows:
+                    try:
+                        d = json.loads(r[0])
+                        if isinstance(d, str):
+                             # Handle double encoding if it happens
+                             try:
+                                 d = json.loads(d)
+                             except:
+                                 pass
+                        docs.append(d)
+                    except Exception as e:
+                         logger.error(f"Failed to parse doc: {r[0]} - {e}")
+
+                # Naive WHERE implementation
+ for "id = ?" and "dispute_number = ?" and "status = ?"
                 if where_index != -1:
                     # Reconstruct WHERE clause for basic matching
                     where_clause = " ".join(words[where_index+1:])
