@@ -93,6 +93,9 @@ from guardduty_service import initialize_guardduty_service
 # Import QLDB endpoints
 from qldb_service import initialize_qldb_service
 
+# Import Content Moderation endpoints
+from moderation_endpoints import router as moderation_router
+
 # Create uploads directory
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
@@ -310,6 +313,8 @@ async def shutdown_event():
             print(f"⚠️  PostgreSQL shutdown error: {str(e)}")
 
 # Create a router with the /api prefix
+
+api_router.include_router(moderation_router)
 
 # Models
 api_router = APIRouter(prefix="/api")
