@@ -53,64 +53,44 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Import content removal modules
-from content_removal_endpoints import router as content_removal_router, init_removal_service
+from content_removal_endpoints import init_removal_service
 
 # Import workflow integration endpoints (simplified version)
-from workflow_integration_endpoints_simple import router as workflow_integration_router
 
 # Import comprehensive support system
-from support_endpoints import router as support_router
 
 # Import ULN (Unified Label Network) endpoints
-from uln_endpoints import uln_router
-from uln_blockchain_endpoints import router as blockchain_router
-from ethereum_endpoints import router as ethereum_router
-from ethereum_advanced_endpoints import router as ethereum_advanced_router
 
 # Import Creator Profile System endpoints
-from profile_endpoints import router as profile_router
-from social_oauth_service import router as oauth_router
-from social_integration_endpoints import router as social_integration_router
 
 # Import AWS Organizations management
-from aws_organizations_endpoints import router as aws_organizations_router
 from aws_organizations_service import initialize_service as init_org_service
 
 # Import Enterprise Phase 1 endpoints (Talent Intelligence, Executive Dashboard, Compliance, Workspaces)
-from enterprise_phase1_endpoints import router as enterprise_phase1_router
 
 # Import Digital Twin endpoints
-from digital_twin_endpoints import router as digital_twin_router
 
 # Import Royalty Marketplace endpoints
-from royalty_marketplace_endpoints import router as royalty_marketplace_router
 
 # Import AWS Enterprise Mapping endpoints
-from aws_enterprise_mapping_endpoints import router as aws_enterprise_mapping_router
 from aws_enterprise_mapping_service import initialize_enterprise_mapping
 
 # Import Agency Success Automation endpoints
-from agency_success_automation_endpoints import router as agency_automation_router
 from agency_success_automation_service import initialize_automation_service
 
 # Import DAO Governance V2 endpoints
-from dao_governance_v2_endpoints import router as dao_v2_router
 from dao_governance_v2_service import initialize_dao_v2_service
 
 # Import Creative Studio endpoints
-from creative_studio_endpoints import router as creative_studio_router
 from creative_studio_service import initialize_creative_studio_service
 
 # Import Macie endpoints
-from macie_endpoints import router as macie_router
 from macie_service import initialize_macie_service
 
 # Import GuardDuty endpoints
-from guardduty_endpoints import router as guardduty_router
 from guardduty_service import initialize_guardduty_service
 
 # Import QLDB endpoints
-from qldb_endpoints import router as qldb_router
 from qldb_service import initialize_qldb_service
 
 # Create uploads directory
@@ -1713,7 +1693,6 @@ DISTRIBUTION_PLATFORMS = {
 }
 
 try:
-    from agency_onboarding_endpoints import agency_router
 except ImportError:
     # If agency onboarding module is not available, create a dummy router
     from fastapi import APIRouter
@@ -1724,61 +1703,43 @@ except ImportError:
         return {"status": "Agency onboarding module not available"}
 
 # Import social media strategy endpoints
-from social_media_strategy_endpoints import router as social_strategy_router
 
 # Import social media phases 5-10 endpoints
-from social_media_phases_5_10_endpoints import router as social_phases_5_10_router
 
 # Import royalty engine endpoints
-from royalty_engine_endpoints import router as royalty_engine_router
 
 # Import social media royalty integration endpoints
-from social_media_royalty_endpoints import router as social_media_royalty_router
 
 # Import content ingestion endpoints
-from content_ingestion_endpoints import router as content_ingestion_router
 
 # Import comprehensive platform endpoints
-from comprehensive_platform_endpoints import router as comprehensive_platform_router
 
 # Import content workflow endpoints
-from content_workflow_endpoints import router as content_workflow_router
 
 # Import transcoding endpoints
-from transcoding_endpoints import router as transcoding_router
 
 # Import distribution endpoints (Function 3)
-from distribution_endpoints import router as distribution_router
 
 # Import premium features endpoints
-from premium_features_endpoints import router as premium_router
 
 # Import MLC endpoints
-from mlc_endpoints import router as mlc_router
 
 # Import MDE endpoints
-from mde_endpoints import router as mde_router
 
 # Import GS1 endpoints
-from gs1_endpoints import router as gs1_router
 
 # Import analytics endpoints (Function 4)
-from analytics_endpoints import router as analytics_router
 
 # Import lifecycle endpoints (Function 5)
-from lifecycle_endpoints import router as lifecycle_router
 
 # Import DAO smart contracts service
 from dao_smart_contracts import dao_contract_manager
 
 # Import Enhanced Features endpoints
-from enhanced_features_endpoints import router as enhanced_features_router
 
 # Import AWS Agency Platform endpoints
-from agency_aws_endpoints import router as agency_aws_router
 
 # Import Snapchat Integration endpoints
-from snapchat_endpoints import router as snapchat_router
 
 # Missing Service Health Endpoints Implementation
 @api_router.get("/licensing/health")
@@ -7080,27 +7041,6 @@ async def get_admin_analytics(current_user: User = Depends(get_current_admin_use
     }
 
 # Include other endpoint routers
-from ddex_endpoints import ddex_router
-from music_reports_endpoints import music_reports_router
-from workflow_enhancement_endpoints import workflow_router
-from sponsorship_endpoints import sponsorship_router
-from tax_endpoints import tax_router
-from industry_endpoints import industry_router
-from label_endpoints import label_router
-# from payment_endpoints import payment_router
-from stripe_endpoints import stripe_router
-from licensing_endpoints import licensing_router
-from comprehensive_licensing_endpoints import comprehensive_licensing_router
-from pdooh_endpoints import router as pdooh_router
-from gs1_endpoints import router as gs1_router
-from metadata_endpoints import router as metadata_router
-from batch_endpoints import router as batch_router
-from reporting_endpoints import router as reporting_router
-from rights_endpoints import router as rights_router
-from smart_contract_endpoints import router as contracts_router
-from audit_endpoints import router as audit_router
-from media_upload_endpoints import media_router
-from paypal_endpoints import paypal_router
 
 # Initialize Payment Service
 try:
