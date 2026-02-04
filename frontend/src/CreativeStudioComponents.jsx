@@ -148,6 +148,7 @@ const CreativeStudioDashboard = () => {
             projects={projects} 
             onRefresh={fetchData}
             onCreateNew={() => setShowCreateModal(true)}
+            onEdit={(project) => setEditingProject(project)}
           />
         )}
         {activeTab === 'templates' && (
