@@ -1692,8 +1692,8 @@ DISTRIBUTION_PLATFORMS = {
     }
 }
 
-try:
-except ImportError:
+if False: pass
+if True:
     # If agency onboarding module is not available, create a dummy router
     from fastapi import APIRouter
     agency_router = APIRouter(prefix="/agency", tags=["Agency Onboarding"])
