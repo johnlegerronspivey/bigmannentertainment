@@ -17,9 +17,6 @@ from server import app, db  # type: ignore  # noqa: E402
 from qldb_service import initialize_qldb_service  # type: ignore  # noqa: E402
 
 
-client = TestClient(app)
-
-
 @pytest.fixture(scope="module", autouse=True)
 def init_qldb_service():
     """Ensure QLDB service is initialized before tests.

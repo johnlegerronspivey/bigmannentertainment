@@ -18,10 +18,6 @@ from server import app, db  # type: ignore  # noqa: E402
 from guardduty_service import initialize_guardduty_service  # type: ignore  # noqa: E402
 
 
-# Use a single TestClient instance for this module
-client = TestClient(app)
-
-
 @pytest.fixture(scope="module", autouse=True)
 def init_guardduty_service():
     """Ensure GuardDuty service is initialized before tests.
