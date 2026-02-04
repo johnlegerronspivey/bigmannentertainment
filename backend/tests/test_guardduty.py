@@ -8,6 +8,7 @@ sample data initialized by GuardDutyService.
 
 import pytest
 from httpx import AsyncClient
+from httpx import ASGITransport
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
