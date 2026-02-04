@@ -30,7 +30,7 @@ def client():
 
 
 
-def test_qldb_health_endpoint():
+def test_qldb_health_endpoint(client):
     resp = client.get("/api/qldb/health")
     assert resp.status_code == 200
     data = resp.json()
@@ -38,7 +38,7 @@ def test_qldb_health_endpoint():
     assert data["service"] == "AWS QLDB Dispute Ledger"
 
 
-def test_qldb_list_disputes():
+def test_qldb_list_disputes(client):
     resp = client.get("/api/qldb/disputes")
     assert resp.status_code == 200
     data = resp.json()
@@ -46,7 +46,7 @@ def test_qldb_list_disputes():
     assert data["total"] >= 0
 
 
-def test_qldb_chain_verification():
+def test_qldb_chain_verification(client):
     resp = client.get("/api/qldb/audit/chain/verify")
     assert resp.status_code == 200
     data = resp.json()
