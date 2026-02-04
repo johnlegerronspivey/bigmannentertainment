@@ -10,7 +10,8 @@ import os
 import sys
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
+from httpx import ASGITransport
 
 # Ensure we can import the FastAPI app
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -18,29 +19,32 @@ from server import app, db  # type: ignore  # noqa: E402
 from guardduty_service import initialize_guardduty_service  # type: ignore  # noqa: E402
 
 
-@pytest.fixture(scope="session")
-def client():
-    """Return a TestClient with GuardDuty service initialized.
+@pytest.fixture(scope="module", autouse=True)
+def init_guardduty_service():
+    """Ensure GuardDuty service is initialized before tests.
 
-    Session scope keeps the same app/event loop open across tests,
-    preventing Motor from hitting a closed loop.
+    This mirrors what the FastAPI startup event does in production,
+    but we call it explicitly here so tests don't depend on startup hooks.
     """
     initialize_guardduty_service(db)
-    test_client = TestClient(app)
-    yield test_client
 
 
-
-def test_guardduty_health_endpoint(client):
-    resp = client.get("/api/guardduty/health")
+@pytest.mark.asyncio
+async def test_guardduty_health_endpoint():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.get("/api/guardduty/health")
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "healthy"
     assert data["service"] == "AWS GuardDuty Threat Detection"
 
 
-def test_guardduty_list_findings(client):
-    resp = client.get("/api/guardduty/findings")
+@pytest.mark.asyncio
+async def test_guardduty_list_findings():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.get("/api/guardduty/findings")
     assert resp.status_code == 200
     data = resp.json()
     assert "findings" in data
@@ -48,8 +52,11 @@ def test_guardduty_list_findings(client):
     assert data["total"] >= 0
 
 
-def test_guardduty_dashboard_stats(client):
-    resp = client.get("/api/guardduty/dashboard")
+@pytest.mark.asyncio
+async def test_guardduty_dashboard_stats():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.get("/api/guardduty/dashboard")
     assert resp.status_code == 200
     data = resp.json()
     assert "total_detectors" in data
