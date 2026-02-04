@@ -334,7 +334,7 @@ const ProjectsTab = ({ projects, onRefresh, onCreateNew, onEdit }) => {
       {filteredProjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredProjects.map(project => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard key={project.id} project={project} onClick={() => onEdit && onEdit(project)} />
           ))}
         </div>
       ) : (
