@@ -7,6 +7,7 @@ local MongoDB-backed immutable ledger models.
 
 import pytest
 from httpx import AsyncClient
+from httpx import ASGITransport
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -23,7 +24,8 @@ async def init_qldb_service():
 
 @pytest.mark.asyncio
 async def test_qldb_health_endpoint():
-  async with AsyncClient(app=app, base_url="http://test") as ac:
+  transport = ASGITransport(app=app)
+  async with AsyncClient(transport=transport, base_url="http://test") as ac:
     resp = await ac.get("/api/qldb/health")
     assert resp.status_code == 200
     data = resp.json()
@@ -33,7 +35,8 @@ async def test_qldb_health_endpoint():
 
 @pytest.mark.asyncio
 async def test_qldb_list_disputes():
-  async with AsyncClient(app=app, base_url="http://test") as ac:
+  transport = ASGITransport(app=app)
+  async with AsyncClient(transport=transport, base_url="http://test") as ac:
     resp = await ac.get("/api/qldb/disputes")
     assert resp.status_code == 200
     data = resp.json()
@@ -43,7 +46,8 @@ async def test_qldb_list_disputes():
 
 @pytest.mark.asyncio
 async def test_qldb_chain_verification():
-  async with AsyncClient(app=app, base_url="http://test") as ac:
+  transport = ASGITransport(app=app)
+  async with AsyncClient(transport=transport, base_url="http://test") as ac:
     resp = await ac.get("/api/qldb/audit/chain/verify")
     assert resp.status_code == 200
     data = resp.json()
