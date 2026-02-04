@@ -313,12 +313,13 @@ async def shutdown_event():
             print(f"⚠️  PostgreSQL shutdown error: {str(e)}")
 
 # Create a router with the /api prefix
+api_router = APIRouter(prefix="/api")
+print(f"DEBUG: api_router defined: {api_router}")
 
+# Include moderation router
 api_router.include_router(moderation_router)
 
 # Models
-api_router = APIRouter(prefix="/api")
-print(f"DEBUG: api_router defined: {api_router}")
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
