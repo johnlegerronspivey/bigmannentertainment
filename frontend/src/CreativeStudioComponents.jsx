@@ -68,6 +68,22 @@ const CreativeStudioDashboard = () => {
         </div>
       </div>
     );
+  if (editingProject) {
+    return (
+      <CreativeEditor 
+        project={editingProject} 
+        onClose={() => {
+          setEditingProject(null);
+          fetchData();
+        }}
+        onSave={(elements) => {
+          toast.success('Project saved locally');
+          setEditingProject(null);
+        }}
+      />
+    );
+  }
+
   }
 
   return (
