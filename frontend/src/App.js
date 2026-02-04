@@ -114,7 +114,7 @@ const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, []);
 
   const fetchUserProfile = async () => {
@@ -2245,7 +2245,7 @@ const Library = () => {
 
   useEffect(() => {
     loadMedia();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, []);
 
   async function loadMedia() {
@@ -2678,7 +2678,7 @@ const Distribute = () => {
         title: decodeURIComponent(mediaTitle || 'Selected Media')
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [location.search]);
 
   async function loadUserMedia() {
