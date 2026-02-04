@@ -2,6 +2,8 @@ import sqlite3
 import json
 import logging
 from typing import Any, List, Dict, Union
+import collections.abc
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,18 @@ class MockCursor:
 class MockTransaction:
     def __init__(self, connection):
         self.conn = connection
+    def clean_ion(self, obj):
+        if isinstance(obj, dict) or hasattr(obj, 'keys'):
+            return {k: self.clean_ion(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self.clean_ion(v) for v in obj]
+        elif hasattr(obj, 'text'): # Ion types often have .text
+            return obj.text
+        elif 'Ion' in str(type(obj)):
+            return str(obj)
+        return obj
+
+
         self.cursor = self.conn.cursor()
 
     def execute_statement(self, statement: str, *parameters) -> MockCursor:
@@ -46,8 +60,9 @@ class MockTransaction:
             elif command == "INSERT":
                 # INSERT INTO Table ?
                 table_name = words[2]
-                doc = parameters[0]
-                doc_id = doc.get('id') or doc.get('dispute_number') or str(hash(json.dumps(doc)))
+                raw_doc = parameters[0]
+                doc = self.clean_ion(raw_doc)
+                doc_id = doc.get('id') or doc.get('dispute_number') or str(hash(json.dumps(doc, default=str)))
                 
                 # Check if exists (idempotency check often done in qldb apps?) 
                 # QLDB inserts new docs with unique document IDs.
