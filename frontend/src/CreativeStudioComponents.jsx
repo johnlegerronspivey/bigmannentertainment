@@ -154,6 +154,9 @@ const CreativeStudioDashboard = () => {
             setAiHistory={setAiHistory}
           />
         )}
+        {activeTab === 'moderation' && (
+          <ContentModerationComponent />
+        )}
         {activeTab === 'publish' && (
           <PublishTab projects={projects} />
         )}
