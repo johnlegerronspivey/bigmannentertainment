@@ -117,10 +117,7 @@ class MockTransaction:
                              except:
                                  pass
                         docs.append(d)
-                        logger.error(f"DEBUG MOCK: Type: {type(d)}, Value: {d}")
-                        if isinstance(d, str):
-                            d = json.loads(d)
-                            logger.error(f"DEBUG MOCK RE-PARSED: Type: {type(d)}")
+                        # Logs removed
 
                     except Exception as e:
                          logger.error(f"Failed to parse doc: {r[0]} - {e}")
