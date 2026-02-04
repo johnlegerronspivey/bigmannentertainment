@@ -19,6 +19,7 @@ const CreativeStudioDashboard = () => {
   const [showAIModal, setShowAIModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
+  const [editingProject, setEditingProject] = useState(null);
 
   useEffect(() => {
     fetchData();
