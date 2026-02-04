@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import ContentModerationComponent from './ContentModerationComponent';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 // Creative Studio Dashboard Component
