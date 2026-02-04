@@ -1,31 +1,79 @@
 """
 AWS QLDB Dispute Ledger - Backend Tests
 
-These tests validate the core QLDB service and API endpoints using the
-local MongoDB-backed immutable ledger models (no real AWS QLDB needed).
+These tests validate the core QLDB API endpoints using a FAKE service
+wired via FastAPI dependency overrides, so no real MongoDB or AWS
+QLDB is touched. We still verify routing and response contracts.
 """
 
 import os
 import sys
 
 import pytest
-from httpx import AsyncClient
-from httpx import ASGITransport
+from httpx import AsyncClient, ASGITransport
 
-# Ensure we can import the FastAPI app
+# Ensure we can import the FastAPI app and endpoint dependencies
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from server import app, db  # type: ignore  # noqa: E402
-from qldb_service import initialize_qldb_service  # type: ignore  # noqa: E402
+from server import app  # type: ignore  # noqa: E402
+from qldb_endpoints import get_service as get_qldb_dep  # type: ignore  # noqa: E402
+from qldb_models import (  # type: ignore  # noqa: E402
+    QLDBHealthResponse,
+    Dispute,
+    DisputeStatus,
+    DisputeType,
+    Priority,
+    DisputesResponse,
+    VerificationResponse,
+)
+
+
+class FakeQLDBService:
+    """Minimal fake QLDB service for testing.
+
+    Implements only the methods used by the endpoints under test.
+    """
+
+    async def check_health(self) -> QLDBHealthResponse:
+        return QLDBHealthResponse(
+            status="healthy",
+            service="AWS QLDB Dispute Ledger",
+            version="1.0.0",
+            ledger_active=True,
+            chain_integrity=True,
+            aws_region="us-east-1",
+            features=["immutable_ledger", "audit_trail"],
+        )
+
+    async def get_disputes(self, *_, **__):
+        """Return a single fake dispute plus total count."""
+        dispute = Dispute(
+            dispute_number="DISP-TEST-001",
+            type=DisputeType.ROYALTY_DISPUTE,
+            status=DisputeStatus.OPEN,
+            priority=Priority.MEDIUM,
+            title="Test Dispute",
+            description="Test dispute for automated backend checks.",
+        )
+        # Endpoint wraps this into DisputesResponse
+        return [dispute], 1
+
+    async def verify_chain_integrity(self) -> VerificationResponse:
+        return VerificationResponse(
+            document_id="CHAIN",
+            verified=True,
+            content_hash=None,
+            chain_valid=True,
+        )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def init_qldb_service():
-    """Ensure QLDB service is initialized before tests.
-
-    Mirrors the FastAPI startup behaviour but keeps tests explicit and
-    independent of lifecycle hooks.
-    """
-    initialize_qldb_service(db)
+def override_qldb_service():
+    """Override QLDB service dependency with a fake implementation."""
+    app.dependency_overrides[get_qldb_dep] = lambda: FakeQLDBService()
+    try:
+        yield
+    finally:
+        app.dependency_overrides.pop(get_qldb_dep, None)
 
 
 @pytest.mark.asyncio
@@ -37,6 +85,8 @@ async def test_qldb_health_endpoint():
     data = resp.json()
     assert data["status"] == "healthy"
     assert data["service"] == "AWS QLDB Dispute Ledger"
+    assert data["ledger_active"] is True
+    assert data["chain_integrity"] is True
 
 
 @pytest.mark.asyncio
@@ -47,7 +97,8 @@ async def test_qldb_list_disputes():
     assert resp.status_code == 200
     data = resp.json()
     assert "disputes" in data
-    assert data["total"] >= 0
+    assert data["total"] == 1
+    assert len(data["disputes"]) == 1
 
 
 @pytest.mark.asyncio
@@ -58,3 +109,4 @@ async def test_qldb_chain_verification():
     assert resp.status_code == 200
     data = resp.json()
     assert "chain_valid" in data
+    assert data["chain_valid"] is True
