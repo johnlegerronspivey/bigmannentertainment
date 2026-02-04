@@ -24,7 +24,7 @@ class QldbManager:
                 self.driver = QldbDriver(
                     ledger_name=self.ledger_name,
                     region_name=self.region_name,
-                    boto_config=config
+                    config=config
                 )
                 logger.info(f"Initialized QLDB driver for ledger: {self.ledger_name}")
             except Exception as e:
