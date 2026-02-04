@@ -3868,7 +3868,7 @@ function App() {
 
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-            <Route path="/admin/content" element={<AdminRoute><AdminContent /></AdminRoute>} />
+            <Route path="/admin/content" element={<AdminRoute><ContentModerationComponent /></AdminRoute>} />
             <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
             <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
             <Route path="/admin/ddex" element={<AdminRoute><DDEXAdminDashboard /></AdminRoute>} />
