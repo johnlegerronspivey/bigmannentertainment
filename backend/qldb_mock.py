@@ -176,7 +176,8 @@ class MockTransaction:
                 # Our service uses: "UPDATE Disputes AS d SET d = ? WHERE d.id = ?"
                 # Params: [full_doc, id]
                 if len(parameters) == 2:
-                    new_doc = parameters[0]
+                    raw_new_doc = parameters[0]
+                    new_doc = self.clean_ion(raw_new_doc)
                     doc_id = parameters[1]
                     
                     self.cursor.execute(
