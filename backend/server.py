@@ -7403,6 +7403,7 @@ async def get_phase2_status():
 from router_setup import api_router as sub_routers
 app.include_router(api_router)
 app.include_router(sub_routers)
+api_router.include_router(agency_router)
 
 # Include Creator Profile System routers
 
@@ -7964,6 +7965,7 @@ rekognition_service = RekognitionService()
 from router_setup import api_router as sub_routers
 app.include_router(api_router)
 app.include_router(sub_routers)
+api_router.include_router(agency_router)
 
 # Global Health Check Endpoints (outside /api prefix)
 @app.get("/")
