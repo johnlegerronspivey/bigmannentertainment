@@ -7,9 +7,10 @@ load_dotenv()
 
 class ModerationService:
     def __init__(self):
-        self.api_key = os.getenv("EMERGENT_LLM_KEY")
+        # Changed to use GOOGLE_API_KEY as requested by user
+        self.api_key = os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
-            print("⚠️ EMERGENT_LLM_KEY not found in environment variables")
+            print("⚠️ GOOGLE_API_KEY not found in environment variables")
         
     async def moderate_text(self, text: str) -> dict:
         if not self.api_key:
@@ -24,8 +25,6 @@ class ModerationService:
         try:
             user_msg = UserMessage(text=f"Analyze this text for moderation: {text}")
             response = await chat.send_message(user_msg)
-            # In a real app, parse the JSON from response.text
-            # For now, just return the raw response content
             return {"result": response, "status": "processed"}
         except Exception as e:
             print(f"Moderation error: {e}")
