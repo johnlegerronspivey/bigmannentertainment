@@ -30,6 +30,8 @@ class MockTransaction:
             return [self.clean_ion(v) for v in obj]
         elif hasattr(obj, 'text'): # Ion types often have .text
             return obj.text
+        elif 'IonPyNull' in str(type(obj)):
+            return None
         elif 'Ion' in str(type(obj)):
             return str(obj)
         return obj
