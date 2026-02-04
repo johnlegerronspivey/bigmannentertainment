@@ -2,53 +2,53 @@
 AWS QLDB Dispute Ledger - Backend Tests
 
 These tests validate the core QLDB service and API endpoints using the
-local MongoDB-backed immutable ledger models.
+local MongoDB-backed immutable ledger models (no real AWS QLDB needed).
 """
 
-import pytest
-from httpx import AsyncClient
-from httpx import ASGITransport
+import os
+import sys
 
-import sys, os
+import pytest
+from fastapi.testclient import TestClient
+
+# Ensure we can import the FastAPI app
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from server import app, db
-from qldb_service import initialize_qldb_service
+from server import app, db  # type: ignore  # noqa: E402
+from qldb_service import initialize_qldb_service  # type: ignore  # noqa: E402
+
+
+client = TestClient(app)
 
 
 @pytest.fixture(scope="module", autouse=True)
 def init_qldb_service():
-  """Ensure QLDB service is initialized before tests"""
-  initialize_qldb_service(db)
-  yield
+    """Ensure QLDB service is initialized before tests.
+
+    Mirrors the FastAPI startup behaviour but keeps tests explicit and
+    independent of lifecycle hooks.
+    """
+    initialize_qldb_service(db)
+    yield
 
 
-@pytest.mark.asyncio
-async def test_qldb_health_endpoint():
-  transport = ASGITransport(app=app)
-  async with AsyncClient(transport=transport, base_url="http://test") as ac:
-    resp = await ac.get("/api/qldb/health")
+def test_qldb_health_endpoint():
+    resp = client.get("/api/qldb/health")
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "healthy"
     assert data["service"] == "AWS QLDB Dispute Ledger"
 
 
-@pytest.mark.asyncio
-async def test_qldb_list_disputes():
-  transport = ASGITransport(app=app)
-  async with AsyncClient(transport=transport, base_url="http://test") as ac:
-    resp = await ac.get("/api/qldb/disputes")
+def test_qldb_list_disputes():
+    resp = client.get("/api/qldb/disputes")
     assert resp.status_code == 200
     data = resp.json()
     assert "disputes" in data
     assert data["total"] >= 0
 
 
-@pytest.mark.asyncio
-async def test_qldb_chain_verification():
-  transport = ASGITransport(app=app)
-  async with AsyncClient(transport=transport, base_url="http://test") as ac:
-    resp = await ac.get("/api/qldb/audit/chain/verify")
+def test_qldb_chain_verification():
+    resp = client.get("/api/qldb/audit/chain/verify")
     assert resp.status_code == 200
     data = resp.json()
     assert "chain_valid" in data
