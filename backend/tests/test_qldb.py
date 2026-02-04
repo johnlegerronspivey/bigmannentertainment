@@ -71,6 +71,19 @@ class FakeQLDBService:
             chain_valid=True,
         )
 
+    async def verify_audit_entry(self, entry_id: str) -> VerificationResponse:
+        """Minimal stub to satisfy /audit/{entry_id}/verify path in middleware.
+
+        Tests don't hit this endpoint directly; we just need it so that any
+        internal calls (e.g., from other endpoints or middleware) don't fail.
+        """
+        return VerificationResponse(
+            document_id=entry_id,
+            verified=True,
+            content_hash=None,
+            chain_valid=True,
+        )
+
 
 @pytest.fixture(scope="module", autouse=True)
 def override_qldb_service():
