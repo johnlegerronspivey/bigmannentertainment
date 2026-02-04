@@ -330,7 +330,6 @@ async def shutdown_event():
             print(f"⚠️  PostgreSQL shutdown error: {str(e)}")
 
 # Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
 
 # Models
 class User(BaseModel):
@@ -7152,29 +7151,6 @@ except ImportError as e:
     print(f"⚠️ GS1 service not available: {e}")
 
 # Include all routers in the api_router to get /api prefix
-api_router.include_router(ddex_router)
-api_router.include_router(music_reports_router)
-api_router.include_router(agency_router)
-api_router.include_router(workflow_router)
-api_router.include_router(sponsorship_router)
-api_router.include_router(tax_router)
-api_router.include_router(industry_router)
-api_router.include_router(label_router)
-# api_router.include_router(payment_router)
-api_router.include_router(stripe_router)
-api_router.include_router(licensing_router)
-api_router.include_router(comprehensive_licensing_router)
-api_router.include_router(content_removal_router)
-api_router.include_router(metadata_router)
-api_router.include_router(batch_router)
-api_router.include_router(reporting_router)
-api_router.include_router(rights_router)
-api_router.include_router(contracts_router)
-api_router.include_router(audit_router)
-api_router.include_router(media_router)
-api_router.include_router(paypal_router)
-api_router.include_router(ethereum_router)
-api_router.include_router(ethereum_advanced_router)
 
 # Integration Hub Health Endpoints (MLC, MDE, pDOOH)
 @api_router.get("/mlc/health")
@@ -7487,11 +7463,10 @@ async def get_phase2_status():
     }
 
 
+from router_setup import api_router
 app.include_router(api_router)
 app.include_router(workflow_integration_router)
 app.include_router(support_router)
-api_router.include_router(uln_router)
-api_router.include_router(blockchain_router)
 app.include_router(social_strategy_router)
 app.include_router(social_phases_5_10_router)
 app.include_router(royalty_engine_router)
@@ -7510,16 +7485,11 @@ app.include_router(transcoding_router)
 app.include_router(distribution_router)
 app.include_router(analytics_router)
 app.include_router(lifecycle_router)
-api_router.include_router(enhanced_features_router)
-api_router.include_router(agency_aws_router)
-api_router.include_router(snapchat_router)
 app.include_router(aws_organizations_router)
 
 # Include Enterprise Phase 1 router (Talent Intelligence, Executive Dashboard, Compliance, Workspaces)
-api_router.include_router(enterprise_phase1_router)
 
 # Include Digital Twin router
-api_router.include_router(digital_twin_router)
 
 # Include Royalty Marketplace router
 app.include_router(royalty_marketplace_router)
@@ -7528,22 +7498,16 @@ app.include_router(royalty_marketplace_router)
 app.include_router(aws_enterprise_mapping_router)
 
 # Include Agency Success Automation router
-api_router.include_router(agency_automation_router)
 
 # Include DAO Governance V2 router
-api_router.include_router(dao_v2_router)
 
 # Include Creative Studio router
-api_router.include_router(creative_studio_router)
 
 # Include Macie router
-api_router.include_router(macie_router)
 
 # Include GuardDuty router
-api_router.include_router(guardduty_router)
 
 # Include QLDB router
-api_router.include_router(qldb_router)
 
 # CORS configuration for multi-environment setup
 cors_origins = [
@@ -8078,6 +8042,7 @@ lambda_service = LambdaProcessingService()
 rekognition_service = RekognitionService()
 
 # Include the main api_router in the app
+from router_setup import api_router
 app.include_router(api_router)
 
 # Global Health Check Endpoints (outside /api prefix)
