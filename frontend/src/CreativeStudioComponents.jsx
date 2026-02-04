@@ -755,7 +755,7 @@ const ProjectCard = ({ project, compact = false, onClick }) => {
   }
 
   return (
-    <div className="bg-white/5 rounded-xl border border-purple-500/20 overflow-hidden hover:border-purple-500/40 transition-all cursor-pointer">
+    <div onClick={onClick} className="bg-white/5 rounded-xl border border-purple-500/20 overflow-hidden hover:border-purple-500/40 transition-all cursor-pointer">
       <div className="aspect-video bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
         <div className="text-5xl opacity-50">🎨</div>
       </div>
