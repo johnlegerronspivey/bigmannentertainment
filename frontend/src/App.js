@@ -59,6 +59,7 @@ import MacieDashboard from './MacieComponents';
 import GuardDutyDashboard from './GuardDutyComponents';
 import QLDBDashboard from './QLDBComponents';
 
+import ContentModerationComponent from './ContentModerationComponent';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
