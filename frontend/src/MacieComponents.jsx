@@ -141,6 +141,9 @@ const MacieDashboard = () => {
         {activeTab === 'buckets' && (
           <BucketsTab buckets={buckets} onRefresh={fetchData} />
         )}
+        {activeTab === 'notifications' && (
+          <NotificationsTab />
+        )}
       </div>
 
       {/* Modals */}
