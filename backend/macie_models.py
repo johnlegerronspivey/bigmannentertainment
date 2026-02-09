@@ -331,3 +331,74 @@ class MacieHealthResponse(BaseModel):
     macie_enabled: bool = False
     aws_region: str = "us-east-1"
     features: List[str] = []
+
+
+
+# --- SNS/EventBridge Notification Models ---
+
+class NotificationChannel(str, Enum):
+    SNS = "SNS"
+    EVENTBRIDGE = "EVENTBRIDGE"
+    EMAIL = "EMAIL"
+    SLACK = "SLACK"
+
+class NotificationStatus(str, Enum):
+    SENT = "SENT"
+    FAILED = "FAILED"
+    PENDING = "PENDING"
+
+class NotificationRule(BaseModel):
+    """Notification rule for Macie findings via SNS/EventBridge"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    channel: NotificationChannel = NotificationChannel.SNS
+    is_enabled: bool = True
+    
+    # Filters
+    min_severity: SeverityLevel = SeverityLevel.HIGH
+    pii_types: List[str] = []
+    bucket_names: List[str] = []
+    
+    # Channel config
+    sns_topic_arn: Optional[str] = None
+    eventbridge_bus_name: Optional[str] = None
+    email_recipients: List[str] = []
+    slack_webhook_url: Optional[str] = None
+    
+    # Stats
+    notifications_sent: int = 0
+    last_triggered: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CreateNotificationRuleRequest(BaseModel):
+    name: str
+    description: Optional[str] = None
+    channel: NotificationChannel = NotificationChannel.SNS
+    min_severity: SeverityLevel = SeverityLevel.HIGH
+    pii_types: List[str] = []
+    bucket_names: List[str] = []
+    sns_topic_arn: Optional[str] = None
+    eventbridge_bus_name: Optional[str] = None
+    email_recipients: List[str] = []
+
+class NotificationLog(BaseModel):
+    """Log entry for a sent notification"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    rule_id: str
+    rule_name: str
+    channel: NotificationChannel
+    status: NotificationStatus = NotificationStatus.SENT
+    
+    # What triggered it
+    finding_id: Optional[str] = None
+    severity: Optional[SeverityLevel] = None
+    pii_type: Optional[str] = None
+    bucket_name: Optional[str] = None
+    message: str = ""
+    
+    # Response
+    message_id: Optional[str] = None
+    error: Optional[str] = None
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
