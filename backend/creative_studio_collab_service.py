@@ -206,7 +206,7 @@ class CollaborationService:
         save_version = {
             "id": str(uuid.uuid4()),
             "version_number": current_version_num + 1,
-            "name": f"Auto-save before restore",
+            "name": "Auto-save before restore",
             "elements_snapshot": doc.get("elements", []),
             "created_by": "system",
             "created_at": datetime.now(timezone.utc).isoformat()
