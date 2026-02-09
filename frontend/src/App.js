@@ -627,6 +627,17 @@ const Navigation = () => {
               <span>🔒</span>
               <span>Macie</span>
             </Link>
+
+            {/* Dispute Ledger */}
+            <Link 
+              to="/qldb" 
+              className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="Dispute Ledger (PostgreSQL)"
+              data-testid="nav-ledger-link"
+            >
+              <span>📘</span>
+              <span>Ledger</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">

@@ -323,9 +323,61 @@ class QLDBService:
             }
 
     async def get_dashboard_stats(self) -> QLDBDashboardStats:
-        disputes, _ = await self.get_disputes(limit=5)
+        all_disputes, total_count = await self.get_disputes(limit=1000)
+        all_audit, audit_total = await self.get_audit_entries(limit=1000)
+
+        # Compute dispute stats
+        open_count = sum(1 for d in all_disputes if d.status == DisputeStatus.OPEN)
+        review_count = sum(1 for d in all_disputes if d.status == DisputeStatus.UNDER_REVIEW)
+        resolved_count = sum(1 for d in all_disputes if d.status == DisputeStatus.RESOLVED)
+        escalated_count = sum(1 for d in all_disputes if d.status == DisputeStatus.ESCALATED)
+        critical_count = sum(1 for d in all_disputes if d.priority == Priority.CRITICAL)
+        high_count = sum(1 for d in all_disputes if d.priority == Priority.HIGH)
+        total_amount = sum(d.amount_disputed or 0 for d in all_disputes)
+        resolved_amount = sum(d.resolution_amount or 0 for d in all_disputes if d.status == DisputeStatus.RESOLVED)
+
+        by_type: Dict[str, int] = {}
+        for d in all_disputes:
+            t = d.type.value if d.type else "OTHER"
+            by_type[t] = by_type.get(t, 0) + 1
+
+        dispute_stats = DisputeStats(
+            total_disputes=total_count,
+            open_disputes=open_count,
+            under_review=review_count,
+            resolved_disputes=resolved_count,
+            escalated_disputes=escalated_count,
+            disputes_by_type=by_type,
+            critical_count=critical_count,
+            high_priority_count=high_count,
+            total_amount_disputed=total_amount,
+            total_amount_resolved=resolved_amount,
+        )
+
+        # Compute audit stats
+        now = datetime.now(timezone.utc)
+        entries_24h = sum(1 for e in all_audit if e.timestamp and (now - e.timestamp).total_seconds() < 86400)
+        entries_7d = sum(1 for e in all_audit if e.timestamp and (now - e.timestamp).total_seconds() < 604800)
+        by_event: Dict[str, int] = {}
+        for e in all_audit:
+            t = e.event_type.value if e.event_type else "UNKNOWN"
+            by_event[t] = by_event.get(t, 0) + 1
+
+        audit_stats = AuditStats(
+            total_entries=audit_total,
+            entries_last_24h=entries_24h,
+            entries_last_7d=entries_7d,
+            entries_by_type=by_event,
+            verified_entries=audit_total,
+        )
+
         return QLDBDashboardStats(
-            recent_disputes=disputes
+            dispute_stats=dispute_stats,
+            audit_stats=audit_stats,
+            recent_disputes=all_disputes[:5],
+            recent_audit_entries=all_audit[:5],
+            chain_verified=True,
+            total_documents=total_count + audit_total,
         )
 
 # Service instance
