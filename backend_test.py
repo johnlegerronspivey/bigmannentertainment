@@ -153,31 +153,31 @@ def test_content_moderation_api():
 
 def main():
     """Main test execution"""
-    print("🔍 AWS GuardDuty and QLDB Backend Integration Testing")
+    print("🔍 Emergent Ledger (QLDB replacement) API Testing")
     print(f"🌐 Backend URL: {BACKEND_URL}")
     print(f"📡 API Base: {API_BASE}")
     
-    # Test GuardDuty Integration
-    guardduty_results = test_guardduty_integration()
+    # Test Emergent Ledger API
+    ledger_results = test_emergent_ledger_api()
     
-    # Test QLDB Integration
-    qldb_results = test_qldb_integration()
+    # Test Content Moderation API
+    moderation_results = test_content_moderation_api()
     
     # Combined Results
     print("\n" + "="*60)
     print("📊 COMPREHENSIVE TEST RESULTS")
     print("="*60)
     
-    print("\n🛡️  GuardDuty Integration:")
-    gd_passed, gd_failed, gd_total = guardduty_results.summary()
+    print("\n📘 Emergent Ledger API:")
+    ledger_passed, ledger_failed, ledger_total = ledger_results.summary()
     
-    print("\n📘 QLDB Integration:")
-    qldb_passed, qldb_failed, qldb_total = qldb_results.summary()
+    print("\n🛡️ Content Moderation API:")
+    mod_passed, mod_failed, mod_total = moderation_results.summary()
     
     # Overall Summary
-    total_passed = gd_passed + qldb_passed
-    total_failed = gd_failed + qldb_failed
-    total_tests = gd_total + qldb_total
+    total_passed = ledger_passed + mod_passed
+    total_failed = ledger_failed + mod_failed
+    total_tests = ledger_total + mod_total
     
     print(f"\n🎯 OVERALL RESULTS:")
     print(f"   Total Tests: {total_tests}")
@@ -188,13 +188,13 @@ def main():
     # Detailed Results for Failed Tests
     if total_failed > 0:
         print(f"\n❌ FAILED TESTS DETAILS:")
-        for result in guardduty_results.results + qldb_results.results:
+        for result in ledger_results.results + moderation_results.results:
             if not result["passed"]:
                 print(f"   • {result['test']}: {result['details']}")
     
     # Test Status
     if total_failed == 0:
-        print(f"\n🎉 ALL TESTS PASSED! Both GuardDuty and QLDB integrations are fully operational.")
+        print(f"\n🎉 ALL TESTS PASSED! Emergent Ledger and Content Moderation APIs are fully operational.")
         return 0
     else:
         print(f"\n⚠️  {total_failed} tests failed. Review the issues above.")
