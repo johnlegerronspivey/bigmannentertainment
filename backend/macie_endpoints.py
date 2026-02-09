@@ -296,3 +296,77 @@ async def get_severity_levels():
             }
         ]
     }
+
+
+
+# ==================== SNS/EventBridge Notifications ====================
+
+from macie_models import (
+    NotificationRule, CreateNotificationRuleRequest,
+    NotificationLog, NotificationChannel, NotificationStatus
+)
+
+@router.get("/notifications/rules")
+async def list_notification_rules(service: MacieService = Depends(get_service)):
+    """List all notification rules"""
+    rules = await service.get_notification_rules()
+    return {"rules": rules, "total": len(rules)}
+
+@router.post("/notifications/rules", response_model=NotificationRule)
+async def create_notification_rule(
+    request: CreateNotificationRuleRequest,
+    service: MacieService = Depends(get_service)
+):
+    """Create a notification rule for Macie findings"""
+    return await service.create_notification_rule(request)
+
+@router.put("/notifications/rules/{rule_id}/toggle")
+async def toggle_notification_rule(
+    rule_id: str,
+    service: MacieService = Depends(get_service)
+):
+    """Enable or disable a notification rule"""
+    rule = await service.toggle_notification_rule(rule_id)
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    return rule
+
+@router.delete("/notifications/rules/{rule_id}")
+async def delete_notification_rule(
+    rule_id: str,
+    service: MacieService = Depends(get_service)
+):
+    """Delete a notification rule"""
+    success = await service.delete_notification_rule(rule_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    return {"success": True, "message": "Rule deleted"}
+
+@router.get("/notifications/logs")
+async def list_notification_logs(
+    rule_id: Optional[str] = Query(None),
+    channel: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    service: MacieService = Depends(get_service)
+):
+    """Get notification history/logs"""
+    channel_enum = NotificationChannel(channel) if channel else None
+    logs, total = await service.get_notification_logs(rule_id=rule_id, channel=channel_enum, limit=limit, offset=offset)
+    return {"logs": logs, "total": total, "limit": limit, "offset": offset}
+
+@router.post("/notifications/test/{rule_id}")
+async def test_notification_rule(
+    rule_id: str,
+    service: MacieService = Depends(get_service)
+):
+    """Send a test notification for a rule"""
+    result = await service.send_test_notification(rule_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    return result
+
+@router.get("/notifications/stats")
+async def get_notification_stats(service: MacieService = Depends(get_service)):
+    """Get notification statistics"""
+    return await service.get_notification_stats()
