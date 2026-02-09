@@ -268,6 +268,14 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Creative Studio initialization failed: {str(e)}")
     
+    # Initialize Collaboration & AI Assets services
+    try:
+        collab_svc = initialize_collab_service(db)
+        ai_assets_svc = initialize_ai_assets_service(db)
+        print("🤝 Collaboration & AI Assets services initialized")
+    except Exception as e:
+        print(f"⚠️  Collaboration/AI Assets initialization failed: {str(e)}")
+    
     # Initialize Macie service
     try:
         macie_svc = initialize_macie_service(db)
