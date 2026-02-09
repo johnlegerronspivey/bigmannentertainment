@@ -770,8 +770,217 @@ class MacieService:
                 "Classification Jobs",
                 "S3 Bucket Monitoring",
                 "Finding Management",
-                "Dashboard Analytics"
+                "Dashboard Analytics",
+                "SNS/EventBridge Notifications"
             ]
+        }
+
+    # ==================== SNS/EventBridge Notification Methods ====================
+
+    async def get_notification_rules(self) -> List[Dict]:
+        """Get all notification rules"""
+        rules = []
+        async for doc in self.db.macie_notification_rules.find():
+            doc.pop('_id', None)
+            rules.append(doc)
+        
+        if not rules:
+            await self._initialize_sample_notification_rules()
+            async for doc in self.db.macie_notification_rules.find():
+                doc.pop('_id', None)
+                rules.append(doc)
+        return rules
+
+    async def _initialize_sample_notification_rules(self):
+        """Create sample notification rules"""
+        from macie_models import NotificationRule, NotificationChannel, SeverityLevel
+        
+        count = await self.db.macie_notification_rules.count_documents({})
+        if count > 0:
+            return
+        
+        sample_rules = [
+            NotificationRule(
+                name="High Severity Alert - SNS",
+                description="Send SNS notification for all high severity findings",
+                channel=NotificationChannel.SNS,
+                min_severity=SeverityLevel.HIGH,
+                sns_topic_arn="arn:aws:sns:us-east-1:314108682794:macie-high-severity-alerts",
+                is_enabled=True,
+                notifications_sent=12,
+                last_triggered=datetime.now(timezone.utc) - timedelta(hours=2)
+            ),
+            NotificationRule(
+                name="Credit Card Detection - EventBridge",
+                description="EventBridge event for credit card number detections",
+                channel=NotificationChannel.EVENTBRIDGE,
+                min_severity=SeverityLevel.MEDIUM,
+                pii_types=["CREDIT_CARD_NUMBER", "BANK_ACCOUNT_NUMBER"],
+                eventbridge_bus_name="macie-findings-bus",
+                is_enabled=True,
+                notifications_sent=5,
+                last_triggered=datetime.now(timezone.utc) - timedelta(hours=6)
+            ),
+            NotificationRule(
+                name="PII in Public Buckets - Email",
+                description="Email alert when PII is found in publicly accessible buckets",
+                channel=NotificationChannel.EMAIL,
+                min_severity=SeverityLevel.LOW,
+                email_recipients=["security@bigmann.com", "compliance@bigmann.com"],
+                is_enabled=True,
+                notifications_sent=8,
+                last_triggered=datetime.now(timezone.utc) - timedelta(days=1)
+            ),
+        ]
+        
+        for rule in sample_rules:
+            await self.db.macie_notification_rules.insert_one(rule.dict())
+        
+        # Also create sample notification logs
+        from macie_models import NotificationLog, NotificationStatus
+        sample_logs = [
+            NotificationLog(
+                rule_id=sample_rules[0].id, rule_name=sample_rules[0].name,
+                channel=NotificationChannel.SNS, status=NotificationStatus.SENT,
+                severity=SeverityLevel.HIGH, pii_type="USA_SOCIAL_SECURITY_NUMBER",
+                bucket_name="bigmann-user-uploads",
+                message="High severity finding: SSN detected in bigmann-user-uploads/profiles/user_data.csv",
+                message_id="sns-msg-" + str(uuid.uuid4())[:8]
+            ),
+            NotificationLog(
+                rule_id=sample_rules[1].id, rule_name=sample_rules[1].name,
+                channel=NotificationChannel.EVENTBRIDGE, status=NotificationStatus.SENT,
+                severity=SeverityLevel.MEDIUM, pii_type="CREDIT_CARD_NUMBER",
+                bucket_name="bigmann-payment-logs",
+                message="Credit card number detected in payment log file",
+                message_id="eb-" + str(uuid.uuid4())[:8]
+            ),
+            NotificationLog(
+                rule_id=sample_rules[0].id, rule_name=sample_rules[0].name,
+                channel=NotificationChannel.SNS, status=NotificationStatus.FAILED,
+                severity=SeverityLevel.HIGH, pii_type="AWS_SECRET_ACCESS_KEY",
+                bucket_name="bigmann-config-backup",
+                message="AWS credentials detected in config backup",
+                error="SNS topic not reachable (simulated)"
+            ),
+            NotificationLog(
+                rule_id=sample_rules[2].id, rule_name=sample_rules[2].name,
+                channel=NotificationChannel.EMAIL, status=NotificationStatus.SENT,
+                severity=SeverityLevel.MEDIUM, pii_type="EMAIL_ADDRESS",
+                bucket_name="bigmann-marketing-data",
+                message="Email addresses found in public marketing bucket",
+                message_id="email-" + str(uuid.uuid4())[:8]
+            ),
+        ]
+        for log in sample_logs:
+            await self.db.macie_notification_logs.insert_one(log.dict())
+
+    async def create_notification_rule(self, request) -> Dict:
+        """Create a notification rule"""
+        from macie_models import NotificationRule
+        rule = NotificationRule(
+            name=request.name,
+            description=request.description,
+            channel=request.channel,
+            min_severity=request.min_severity,
+            pii_types=request.pii_types,
+            bucket_names=request.bucket_names,
+            sns_topic_arn=request.sns_topic_arn,
+            eventbridge_bus_name=request.eventbridge_bus_name,
+            email_recipients=request.email_recipients,
+        )
+        doc = rule.dict()
+        await self.db.macie_notification_rules.insert_one(doc)
+        doc.pop('_id', None)
+        return doc
+
+    async def toggle_notification_rule(self, rule_id: str) -> Optional[Dict]:
+        """Toggle a notification rule on/off"""
+        doc = await self.db.macie_notification_rules.find_one({"id": rule_id})
+        if not doc:
+            return None
+        new_val = not doc.get("is_enabled", True)
+        await self.db.macie_notification_rules.update_one({"id": rule_id}, {"$set": {"is_enabled": new_val}})
+        doc["is_enabled"] = new_val
+        doc.pop('_id', None)
+        return doc
+
+    async def delete_notification_rule(self, rule_id: str) -> bool:
+        """Delete a notification rule"""
+        result = await self.db.macie_notification_rules.delete_one({"id": rule_id})
+        return result.deleted_count > 0
+
+    async def get_notification_logs(self, rule_id: Optional[str] = None, channel=None, limit: int = 50, offset: int = 0):
+        """Get notification logs"""
+        query = {}
+        if rule_id:
+            query["rule_id"] = rule_id
+        if channel:
+            query["channel"] = channel.value if hasattr(channel, 'value') else channel
+        
+        total = await self.db.macie_notification_logs.count_documents(query)
+        cursor = self.db.macie_notification_logs.find(query).sort("created_at", -1).skip(offset).limit(limit)
+        logs = []
+        async for doc in cursor:
+            doc.pop('_id', None)
+            logs.append(doc)
+        return logs, total
+
+    async def send_test_notification(self, rule_id: str) -> Optional[Dict]:
+        """Send a test notification (simulated)"""
+        import uuid as uuid_mod
+        doc = await self.db.macie_notification_rules.find_one({"id": rule_id})
+        if not doc:
+            return None
+        doc.pop('_id', None)
+        
+        from macie_models import NotificationLog, NotificationStatus, NotificationChannel, SeverityLevel
+        
+        log = NotificationLog(
+            rule_id=rule_id,
+            rule_name=doc["name"],
+            channel=NotificationChannel(doc["channel"]),
+            status=NotificationStatus.SENT,
+            severity=SeverityLevel(doc.get("min_severity", "High")),
+            message=f"[TEST] Test notification from rule: {doc['name']}",
+            message_id="test-" + str(uuid_mod.uuid4())[:8]
+        )
+        log_dict = log.dict()
+        await self.db.macie_notification_logs.insert_one(log_dict)
+        log_dict.pop('_id', None)
+        
+        # Update rule stats
+        await self.db.macie_notification_rules.update_one(
+            {"id": rule_id},
+            {"$inc": {"notifications_sent": 1}, "$set": {"last_triggered": datetime.now(timezone.utc)}}
+        )
+        
+        return {"success": True, "message": "Test notification sent (simulated)", "log": log_dict}
+
+    async def get_notification_stats(self) -> Dict:
+        """Get notification statistics"""
+        rules = await self.get_notification_rules()
+        total_rules = len(rules)
+        active_rules = sum(1 for r in rules if r.get("is_enabled"))
+        total_sent = sum(r.get("notifications_sent", 0) for r in rules)
+        
+        # Channel breakdown
+        by_channel = {}
+        for r in rules:
+            ch = r.get("channel", "SNS")
+            by_channel[ch] = by_channel.get(ch, 0) + 1
+        
+        # Log stats
+        total_logs = await self.db.macie_notification_logs.count_documents({})
+        failed_logs = await self.db.macie_notification_logs.count_documents({"status": "FAILED"})
+        
+        return {
+            "total_rules": total_rules,
+            "active_rules": active_rules,
+            "total_notifications_sent": total_sent,
+            "by_channel": by_channel,
+            "total_log_entries": total_logs,
+            "failed_notifications": failed_logs,
         }
 
 
