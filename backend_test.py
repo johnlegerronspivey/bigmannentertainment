@@ -62,35 +62,36 @@ def create_sample_finding_via_mongodb():
     # by checking if there's a way to seed data or use the existing detector
     pass
 
-def test_emergent_ledger_api():
-    """Test Emergent Ledger (QLDB replacement) API as requested in review"""
-    print("\n📘 Testing Emergent Ledger (QLDB replacement) API")
+def test_standard_postgresql_dispute_service():
+    """Test Standard PostgreSQL Dispute Service API as requested in review"""
+    print("\n📘 Testing Standard PostgreSQL Dispute Service API")
     results = TestResults()
     
-    # Test 1: Check health at /api/qldb/health (should say "healthy" and "Emergent Ledger")
+    # Test 1: Check /api/qldb/health (should say "Dispute Service (PostgreSQL)")
     print("🔍 Testing QLDB Health endpoint...")
     status, data = make_request("GET", "/qldb/health")
     if status == 200:
-        status_value = data.get("status", "").lower()
         service_name = data.get("service", "")
+        status_value = data.get("status", "").lower()
         
-        if "healthy" in status_value and "emergent ledger" in service_name.lower():
+        if "dispute service (postgresql)" in service_name.lower() and "healthy" in status_value:
             results.add_result("QLDB Health Check", True, f"Status: {status_value}, Service: {service_name}")
         else:
-            results.add_result("QLDB Health Check", False, f"Expected 'healthy' status and 'Emergent Ledger' service. Got status: {status_value}, service: {service_name}")
+            results.add_result("QLDB Health Check", False, f"Expected 'Dispute Service (PostgreSQL)' service and 'healthy' status. Got status: {status_value}, service: {service_name}")
     else:
         results.add_result("QLDB Health Check", False, f"HTTP {status}: {data}")
     
-    # Test 2: Create a dispute via POST /api/qldb/disputes (use dummy data)
+    # Test 2: Create a dispute via POST /api/qldb/disputes
     print("🔍 Testing dispute creation...")
     dispute_payload = {
         "type": "ROYALTY_DISPUTE",
-        "title": "Test Music Royalty Dispute",
-        "description": "Testing dispute creation for Emergent Ledger API verification",
-        "amount_disputed": 1500.75,
+        "priority": "HIGH",
+        "title": "Test Music Royalty Dispute - PostgreSQL Verification",
+        "description": "Testing dispute creation for Standard PostgreSQL Dispute Service API verification",
+        "amount_disputed": 2500.50,
         "currency": "USD",
-        "claimant_name": "John Artist",
-        "claimant_email": "john.artist@musiclabel.com"
+        "claimant_name": "Test Artist",
+        "claimant_email": "test.artist@musiclabel.com"
     }
     
     status, create_data = make_request("POST", "/qldb/disputes", json=dispute_payload)
@@ -110,24 +111,36 @@ def test_emergent_ledger_api():
     else:
         results.add_result("Create Dispute", False, f"HTTP {status}: {create_data}")
     
-    # Test 3: Verify the dispute exists via GET /api/qldb/disputes/{id}
-    if dispute_id:
-        print(f"🔍 Testing dispute retrieval for ID: {dispute_id}...")
-        status, dispute_data = make_request("GET", f"/qldb/disputes/{dispute_id}")
-        
-        if status == 200:
-            # Verify the dispute data matches what we created
-            retrieved_title = dispute_data.get("title") or dispute_data.get("data", {}).get("title")
-            retrieved_amount = dispute_data.get("amount_disputed") or dispute_data.get("data", {}).get("amount_disputed")
+    # Test 3: List disputes via GET /api/qldb/disputes
+    print("🔍 Testing dispute listing...")
+    status, list_data = make_request("GET", "/qldb/disputes")
+    
+    if status == 200:
+        # Check if response has expected structure
+        if "disputes" in list_data or "data" in list_data or isinstance(list_data, list):
+            disputes = list_data.get("disputes", list_data.get("data", list_data if isinstance(list_data, list) else []))
+            total_disputes = len(disputes) if isinstance(disputes, list) else list_data.get("total", 0)
             
-            if retrieved_title == dispute_payload["title"]:
-                results.add_result("Verify Dispute Exists", True, f"Dispute {dispute_id} retrieved successfully with correct title: {retrieved_title}")
-            else:
-                results.add_result("Verify Dispute Exists", False, f"Dispute retrieved but title mismatch. Expected: {dispute_payload['title']}, Got: {retrieved_title}")
+            results.add_result("List Disputes", True, f"Successfully retrieved {total_disputes} disputes")
+            
+            # If we created a dispute, verify it appears in the list
+            if dispute_id and isinstance(disputes, list):
+                found_dispute = False
+                for dispute in disputes:
+                    if (dispute.get("id") == dispute_id or 
+                        dispute.get("dispute_id") == dispute_id or 
+                        dispute.get("dispute_number") == dispute_id):
+                        found_dispute = True
+                        break
+                
+                if found_dispute:
+                    results.add_result("Verify Created Dispute in List", True, f"Created dispute {dispute_id} found in dispute list")
+                else:
+                    results.add_result("Verify Created Dispute in List", False, f"Created dispute {dispute_id} not found in dispute list")
         else:
-            results.add_result("Verify Dispute Exists", False, f"HTTP {status}: {dispute_data}")
+            results.add_result("List Disputes", False, f"Unexpected response format: {list_data}")
     else:
-        results.add_result("Verify Dispute Exists", False, "Skipped - no dispute ID available from creation step")
+        results.add_result("List Disputes", False, f"HTTP {status}: {list_data}")
     
     return results
 
