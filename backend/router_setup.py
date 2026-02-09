@@ -61,6 +61,7 @@ from audit_endpoints import router as audit_router
 from media_upload_endpoints import media_router
 from paypal_endpoints import paypal_router
 from moderation_endpoints import router as moderation_router
+from creative_studio_collab_endpoints import router as collab_router, ai_router as ai_assets_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
