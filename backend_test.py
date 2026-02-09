@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-AWS GuardDuty and QLDB Backend Integration Testing - Enhanced Version
-Testing with manual finding creation for GuardDuty operations
+Emergent Ledger (QLDB replacement) API Testing
+Testing the specific endpoints requested in the review
 """
 
 import requests
@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://threat-audit-app.preview.emergentagent.com"
+BACKEND_URL = "https://aws-qldb-sync.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class TestResults:
