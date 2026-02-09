@@ -44,6 +44,8 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [showCollabPanel, setShowCollabPanel] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
