@@ -68,6 +68,8 @@ const CreativeStudioDashboard = () => {
         </div>
       </div>
     );
+  }
+
   if (editingProject) {
     return (
       <CreativeEditor 
@@ -82,8 +84,6 @@ const CreativeStudioDashboard = () => {
         }}
       />
     );
-  }
-
   }
 
   return (
