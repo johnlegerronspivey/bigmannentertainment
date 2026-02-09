@@ -58,193 +58,96 @@ def create_sample_finding_via_mongodb():
     # by checking if there's a way to seed data or use the existing detector
     pass
 
-def test_guardduty_integration():
-    """Test AWS GuardDuty integration endpoints"""
-    print("\n🛡️  Testing AWS GuardDuty Integration")
+def test_emergent_ledger_api():
+    """Test Emergent Ledger (QLDB replacement) API as requested in review"""
+    print("\n📘 Testing Emergent Ledger (QLDB replacement) API")
     results = TestResults()
     
-    # Test 1: GuardDuty Health Check
-    status, data = make_request("GET", "/guardduty/health")
-    if status == 200:
-        required_keys = ["status", "service", "version", "guardduty_enabled", "aws_connected", "aws_region", "features"]
-        missing_keys = [key for key in required_keys if key not in data]
-        if not missing_keys:
-            results.add_result("GuardDuty Health Check", True, f"All required keys present: {required_keys}")
-        else:
-            results.add_result("GuardDuty Health Check", False, f"Missing keys: {missing_keys}")
-    else:
-        results.add_result("GuardDuty Health Check", False, f"HTTP {status}: {data}")
-    
-    # Test 2: GuardDuty Dashboard
-    status, data = make_request("GET", "/guardduty/dashboard")
-    if status == 200:
-        required_keys = ["total_detectors", "active_detectors", "total_findings", "new_findings", "severity_summary", "status_summary"]
-        missing_keys = [key for key in required_keys if key not in data]
-        if not missing_keys:
-            results.add_result("GuardDuty Dashboard", True, f"Dashboard stats available: {list(data.keys())}")
-        else:
-            results.add_result("GuardDuty Dashboard", False, f"Missing dashboard keys: {missing_keys}")
-    else:
-        results.add_result("GuardDuty Dashboard", False, f"HTTP {status}: {data}")
-    
-    # Test 3: List Findings
-    status, data = make_request("GET", "/guardduty/findings")
-    if status == 200:
-        required_keys = ["success", "findings", "total", "limit", "offset", "has_more"]
-        missing_keys = [key for key in required_keys if key not in data]
-        if not missing_keys:
-            findings_count = len(data.get("findings", []))
-            results.add_result("GuardDuty List Findings", True, f"Found {findings_count} findings with proper structure")
-            
-            # Since there are no findings, let's test the endpoints with mock IDs to verify they exist
-            # Test 4: Test Individual Finding Operations with Mock ID (should return 404)
-            mock_finding_id = "test-finding-001"
-            
-            # Test 4: Get Individual Finding (expect 404)
-            status, finding_data = make_request("GET", f"/guardduty/findings/{mock_finding_id}")
-            if status == 404:
-                results.add_result("Get Individual Finding Endpoint", True, f"Endpoint exists, correctly returns 404 for non-existent finding")
-            else:
-                results.add_result("Get Individual Finding Endpoint", False, f"Unexpected status {status}: {finding_data}")
-            
-            # Test 5: Acknowledge Finding (expect 404)
-            status, ack_data = make_request("POST", f"/guardduty/findings/{mock_finding_id}/acknowledge")
-            if status == 404:
-                results.add_result("Acknowledge Finding Endpoint", True, f"Endpoint exists, correctly returns 404 for non-existent finding")
-            else:
-                results.add_result("Acknowledge Finding Endpoint", False, f"Unexpected status {status}: {ack_data}")
-            
-            # Test 6: Resolve Finding with Notes (expect 404)
-            status, resolve_data = make_request("POST", f"/guardduty/findings/{mock_finding_id}/resolve", 
-                                              params={"notes": "Test resolution notes"})
-            if status == 404:
-                results.add_result("Resolve Finding Endpoint", True, f"Endpoint exists, correctly returns 404 for non-existent finding")
-            else:
-                results.add_result("Resolve Finding Endpoint", False, f"Unexpected status {status}: {resolve_data}")
-            
-            # Test 7: Archive Finding (expect 404)
-            status, archive_data = make_request("POST", f"/guardduty/findings/{mock_finding_id}/archive")
-            if status == 404:
-                results.add_result("Archive Finding Endpoint", True, f"Endpoint exists, correctly returns 404 for non-existent finding")
-            else:
-                results.add_result("Archive Finding Endpoint", False, f"Unexpected status {status}: {archive_data}")
-                
-        else:
-            results.add_result("GuardDuty List Findings", False, f"Missing response keys: {missing_keys}")
-    else:
-        results.add_result("GuardDuty List Findings", False, f"HTTP {status}: {data}")
-    
-    return results
-
-def test_qldb_integration():
-    """Test AWS QLDB integration endpoints"""
-    print("\n📘 Testing AWS QLDB Integration")
-    results = TestResults()
-    
-    # Test 1: QLDB Health Check
+    # Test 1: Check health at /api/qldb/health (should say "healthy" and "Emergent Ledger")
+    print("🔍 Testing QLDB Health endpoint...")
     status, data = make_request("GET", "/qldb/health")
     if status == 200:
-        required_keys = ["status", "service", "version", "ledger_active", "chain_integrity", "aws_region", "features"]
-        missing_keys = [key for key in required_keys if key not in data]
-        if not missing_keys:
-            results.add_result("QLDB Health Check", True, f"All required keys present: {required_keys}")
+        status_value = data.get("status", "").lower()
+        service_name = data.get("service", "")
+        
+        if "healthy" in status_value and "emergent ledger" in service_name.lower():
+            results.add_result("QLDB Health Check", True, f"Status: {status_value}, Service: {service_name}")
         else:
-            results.add_result("QLDB Health Check", False, f"Missing keys: {missing_keys}")
+            results.add_result("QLDB Health Check", False, f"Expected 'healthy' status and 'Emergent Ledger' service. Got status: {status_value}, service: {service_name}")
     else:
         results.add_result("QLDB Health Check", False, f"HTTP {status}: {data}")
     
-    # Test 2: QLDB Dashboard
-    status, data = make_request("GET", "/qldb/dashboard")
-    if status == 200:
-        required_keys = ["dispute_stats", "audit_stats", "chain_verified", "total_documents"]
-        missing_keys = [key for key in required_keys if key not in data]
-        if not missing_keys:
-            results.add_result("QLDB Dashboard", True, f"Dashboard stats available: {list(data.keys())}")
-        else:
-            results.add_result("QLDB Dashboard", False, f"Missing dashboard keys: {missing_keys}")
-    else:
-        results.add_result("QLDB Dashboard", False, f"HTTP {status}: {data}")
-    
-    # Test 3: List Disputes
-    status, data = make_request("GET", "/qldb/disputes")
-    if status == 200:
-        required_keys = ["success", "disputes", "total", "limit", "offset"]
-        missing_keys = [key for key in required_keys if key not in data]
-        if not missing_keys:
-            disputes_count = len(data.get("disputes", []))
-            results.add_result("QLDB List Disputes", True, f"Found {disputes_count} disputes with proper structure")
-        else:
-            results.add_result("QLDB List Disputes", False, f"Missing response keys: {missing_keys}")
-    else:
-        results.add_result("QLDB List Disputes", False, f"HTTP {status}: {data}")
-    
-    # Test 4: Create New Dispute
+    # Test 2: Create a dispute via POST /api/qldb/disputes (use dummy data)
+    print("🔍 Testing dispute creation...")
     dispute_payload = {
         "type": "ROYALTY_DISPUTE",
-        "title": "Test Royalty Dispute - Backend Testing",
-        "description": "Testing dispute creation functionality for backend integration testing",
-        "amount_disputed": 2500.00,
+        "title": "Test Music Royalty Dispute",
+        "description": "Testing dispute creation for Emergent Ledger API verification",
+        "amount_disputed": 1500.75,
         "currency": "USD",
-        "claimant_name": "Backend Test User",
-        "claimant_email": "backend.test@example.com"
+        "claimant_name": "John Artist",
+        "claimant_email": "john.artist@musiclabel.com"
     }
     
     status, create_data = make_request("POST", "/qldb/disputes", json=dispute_payload)
-    if status == 200:
-        dispute_id = create_data.get("id") or create_data.get("dispute_id") or create_data.get("dispute_number")
-        if dispute_id:
-            results.add_result("Create New Dispute", True, f"Created dispute {dispute_id}")
-            
-            # Test 5: Verify dispute appears in list
-            status, list_data = make_request("GET", "/qldb/disputes")
-            if status == 200:
-                dispute_found = any(d.get("id") == dispute_id or d.get("dispute_id") == dispute_id 
-                                  for d in list_data.get("disputes", []))
-                if dispute_found:
-                    results.add_result("Verify Dispute in List", True, f"Dispute {dispute_id} found in list")
-                else:
-                    results.add_result("Verify Dispute in List", False, f"Dispute {dispute_id} not found in list")
-            else:
-                results.add_result("Verify Dispute in List", False, f"HTTP {status}: {list_data}")
-            
-            # Test 6: Get Individual Dispute
-            status, dispute_data = make_request("GET", f"/qldb/disputes/{dispute_id}")
-            if status == 200:
-                results.add_result("Get Individual Dispute", True, f"Retrieved dispute {dispute_id}")
-                
-                # Test 7: Update Dispute Status
-                update_payload = {"status": "RESOLVED"}
-                status, update_data = make_request("PATCH", f"/qldb/disputes/{dispute_id}", json=update_payload)
-                if status == 200:
-                    results.add_result("Update Dispute Status", True, f"Updated dispute {dispute_id} to RESOLVED")
-                else:
-                    results.add_result("Update Dispute Status", False, f"HTTP {status}: {update_data}")
-                
-                # Test 8: Get Dispute Audit Trail
-                status, audit_data = make_request("GET", f"/qldb/disputes/{dispute_id}/audit")
-                if status == 200:
-                    audit_entries = audit_data.get("entries", [])
-                    results.add_result("Get Dispute Audit Trail", True, f"Retrieved {len(audit_entries)} audit entries")
-                else:
-                    results.add_result("Get Dispute Audit Trail", False, f"HTTP {status}: {audit_data}")
-            else:
-                results.add_result("Get Individual Dispute", False, f"HTTP {status}: {dispute_data}")
-                results.add_result("Update Dispute Status", False, "Skipped - could not retrieve dispute")
-                results.add_result("Get Dispute Audit Trail", False, "Skipped - could not retrieve dispute")
-        else:
-            results.add_result("Create New Dispute", False, f"No dispute ID in response: {create_data}")
-    else:
-        results.add_result("Create New Dispute", False, f"HTTP {status}: {create_data}")
+    dispute_id = None
     
-    # Test 9: Chain Integrity Verification
-    status, verify_data = make_request("GET", "/qldb/audit/chain/verify")
-    if status == 200:
-        if "chain_valid" in verify_data:
-            results.add_result("Chain Integrity Verification", True, f"Chain verification: {verify_data}")
+    if status == 200 or status == 201:
+        # Try different possible field names for the dispute ID
+        dispute_id = (create_data.get("id") or 
+                     create_data.get("dispute_id") or 
+                     create_data.get("dispute_number") or
+                     create_data.get("data", {}).get("id"))
+        
+        if dispute_id:
+            results.add_result("Create Dispute", True, f"Successfully created dispute with ID: {dispute_id}")
         else:
-            results.add_result("Chain Integrity Verification", False, f"Missing chain_valid field: {verify_data}")
+            results.add_result("Create Dispute", False, f"Dispute created but no ID found in response: {create_data}")
     else:
-        results.add_result("Chain Integrity Verification", False, f"HTTP {status}: {verify_data}")
+        results.add_result("Create Dispute", False, f"HTTP {status}: {create_data}")
+    
+    # Test 3: Verify the dispute exists via GET /api/qldb/disputes/{id}
+    if dispute_id:
+        print(f"🔍 Testing dispute retrieval for ID: {dispute_id}...")
+        status, dispute_data = make_request("GET", f"/qldb/disputes/{dispute_id}")
+        
+        if status == 200:
+            # Verify the dispute data matches what we created
+            retrieved_title = dispute_data.get("title") or dispute_data.get("data", {}).get("title")
+            retrieved_amount = dispute_data.get("amount_disputed") or dispute_data.get("data", {}).get("amount_disputed")
+            
+            if retrieved_title == dispute_payload["title"]:
+                results.add_result("Verify Dispute Exists", True, f"Dispute {dispute_id} retrieved successfully with correct title: {retrieved_title}")
+            else:
+                results.add_result("Verify Dispute Exists", False, f"Dispute retrieved but title mismatch. Expected: {dispute_payload['title']}, Got: {retrieved_title}")
+        else:
+            results.add_result("Verify Dispute Exists", False, f"HTTP {status}: {dispute_data}")
+    else:
+        results.add_result("Verify Dispute Exists", False, "Skipped - no dispute ID available from creation step")
+    
+    return results
+
+def test_content_moderation_api():
+    """Test Content Moderation API to ensure other services weren't broken"""
+    print("\n🛡️ Testing Content Moderation API")
+    results = TestResults()
+    
+    # Test 4: Verify the Content Moderation API /api/moderation/text with text "hello world"
+    print("🔍 Testing content moderation with 'hello world'...")
+    moderation_payload = {
+        "text": "hello world"
+    }
+    
+    status, mod_data = make_request("POST", "/moderation/text", json=moderation_payload)
+    
+    if status == 200:
+        # Check if the response has expected moderation fields
+        if "safe" in mod_data or "classification" in mod_data or "result" in mod_data:
+            results.add_result("Content Moderation API", True, f"Moderation API working correctly: {mod_data}")
+        else:
+            results.add_result("Content Moderation API", False, f"Unexpected response format: {mod_data}")
+    else:
+        results.add_result("Content Moderation API", False, f"HTTP {status}: {mod_data}")
     
     return results
 
