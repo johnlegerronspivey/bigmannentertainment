@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
-Emergent Ledger (QLDB replacement) API Testing
-Testing the specific endpoints requested in the review
+Standard PostgreSQL Dispute Service API Testing
+Testing the specific endpoints requested in the review:
+1. Check /api/qldb/health (should say "Dispute Service (PostgreSQL)")
+2. Create a dispute via POST /api/qldb/disputes
+3. List disputes via GET /api/qldb/disputes
+4. Verify the Content Moderation API /api/moderation/text with "test" to ensure stability
 """
 
 import requests
