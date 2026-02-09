@@ -54,8 +54,8 @@ class PostgresLedgerDriver:
                 await conn.run_sync(Base.metadata.create_all)
             logger.info("PostgreSQL Ledger table initialized")
         except Exception as e:
-            logger.error(f"Failed to initialize table: {e}")
-            # If initialization fails (e.g. connection error), log it but don't crash app start
+            logger.error(f"Failed to initialize table: {repr(e)}") # Changed to repr
+            raise e # Re-raise to fail fast
 
     def _calculate_hash(self, data, previous_hash, metadata):
         """Calculates SHA-256 hash of the record to ensure immutability"""
@@ -159,8 +159,6 @@ class PostgresLedgerDriver:
                          stmt = select(LedgerTransaction).where(LedgerTransaction.table_name == table_name)
                          result = await session.execute(stmt)
                          rows = result.scalars().all()
-                         # Ideally we should deduplicate to get only latest version per document_id
-                         # But for basic testing, returning all history is okay-ish, or better:
                          
                          # Improve: Deduplicate in python for now
                          latest_docs = {}
