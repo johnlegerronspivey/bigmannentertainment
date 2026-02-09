@@ -111,20 +111,21 @@ const QLDBDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-sky-900 to-slate-900">
+    <div data-testid="qldb-dashboard" className="min-h-screen bg-gradient-to-br from-slate-900 via-sky-900 to-slate-900">
       <div className="bg-black/30 border-b border-sky-500/30">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                 <span className="text-4xl">📘</span>
-                AWS QLDB Dispute Ledger
+                Dispute Ledger
               </h1>
-              <p className="text-sky-300 mt-1">Immutable dispute records and cryptographic audit trail</p>
+              <p className="text-sky-300 mt-1">Dispute records and audit trail powered by PostgreSQL</p>
             </div>
             <div className="flex gap-3">
               <button
-                onClick={fetchDashboard}
+                data-testid="refresh-dashboard-btn"
+                onClick={() => { fetchDashboard(); fetchDisputes(); fetchAudit(); }}
                 className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
               >
                 ↻ Refresh
@@ -140,6 +141,7 @@ const QLDBDashboard = () => {
             ].map(tab => (
               <button
                 key={tab.id}
+                data-testid={`tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === tab.id
@@ -157,7 +159,7 @@ const QLDBDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === 'disputes' && (
-          <div className="space-y-4">
+          <div data-testid="disputes-tab-content" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <StatCard
                 title="Open Disputes"
@@ -277,11 +279,11 @@ const QLDBDashboard = () => {
         )}
 
         {activeTab === 'create' && (
-          <div className="max-w-2xl bg-white/5 rounded-xl p-6 border border-sky-500/20">
+          <div data-testid="create-dispute-form-container" className="max-w-2xl bg-white/5 rounded-xl p-6 border border-sky-500/20">
             <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <span>➕</span> Create New Dispute
             </h2>
-            <form onSubmit={handleCreateDispute} className="space-y-4">
+            <form data-testid="create-dispute-form" onSubmit={handleCreateDispute} className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-300 mb-1">Title</label>
                 <input
@@ -351,6 +353,7 @@ const QLDBDashboard = () => {
               </div>
               <button
                 type="submit"
+                data-testid="submit-dispute-btn"
                 className="w-full px-4 py-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-lg hover:from-sky-600 hover:to-blue-700"
               >
                 Create Dispute
