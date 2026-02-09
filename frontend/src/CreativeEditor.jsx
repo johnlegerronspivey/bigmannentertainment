@@ -676,6 +676,59 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
             </Section>
           </div>
         )}
+
+        {/* Collaboration Panel */}
+        {showCollabPanel && (
+          <div className="w-64 bg-slate-800 border-l border-slate-700 shrink-0 flex flex-col overflow-hidden" data-testid="collab-panel-container">
+            <CollaborationPanel
+              projectId={project?.id}
+              onVersionRestore={(restoredElements) => {
+                if (restoredElements) {
+                  setElements(restoredElements);
+                  pushHistory(restoredElements);
+                  toast.success('Version restored');
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {/* AI Assistant Panel */}
+        {showAIAssistant && (
+          <div className="w-64 bg-slate-800 border-l border-slate-700 shrink-0 flex flex-col overflow-hidden" data-testid="ai-panel-container">
+            <AIAssistantPanel
+              projectId={project?.id}
+              canvasSize={canvasSize}
+              onApplyLayout={(layout) => {
+                if (layout?.elements) {
+                  const newEls = layout.elements.map((el, i) => ({
+                    id: `layout_${Date.now()}_${i}`,
+                    type: el.type === 'rect' ? 'rect' : el.type,
+                    x: el.x || 0, y: el.y || 0,
+                    width: el.width || 100, height: el.height || 100,
+                    content: el.content || '',
+                    style: {
+                      backgroundColor: el.style?.backgroundColor || '#6366f1',
+                      color: el.style?.color || '#000',
+                      fontSize: el.style?.fontSize || 24,
+                      fontWeight: el.style?.fontWeight || 'normal',
+                      fontStyle: 'normal',
+                      textAlign: el.style?.textAlign || 'center',
+                      borderWidth: 0, borderColor: 'transparent',
+                      opacity: 1, borderRadius: '0px'
+                    }
+                  }));
+                  setElements(newEls);
+                  pushHistory(newEls);
+                  toast.success(`Applied "${layout.name}" layout`);
+                }
+              }}
+              onApplyPalette={(colors) => {
+                toast.success(`Palette with ${colors.length} colors copied`);
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
