@@ -356,8 +356,15 @@ class QLDBService:
 
         # Compute audit stats
         now = datetime.now(timezone.utc)
-        entries_24h = sum(1 for e in all_audit if e.timestamp and (now - e.timestamp).total_seconds() < 86400)
-        entries_7d = sum(1 for e in all_audit if e.timestamp and (now - e.timestamp).total_seconds() < 604800)
+        def safe_age_seconds(ts):
+            if not ts:
+                return float('inf')
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            return (now - ts).total_seconds()
+
+        entries_24h = sum(1 for e in all_audit if safe_age_seconds(e.timestamp) < 86400)
+        entries_7d = sum(1 for e in all_audit if safe_age_seconds(e.timestamp) < 604800)
         by_event: Dict[str, int] = {}
         for e in all_audit:
             t = e.event_type.value if e.event_type else "UNKNOWN"
