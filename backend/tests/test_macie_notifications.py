@@ -62,7 +62,7 @@ class TestMacieNotificationRules:
             "name": "TEST_SNS_Rule_AutoTest",
             "description": "Test SNS notification rule for automated testing",
             "channel": "SNS",
-            "min_severity": "HIGH",
+            "min_severity": "High",
             "pii_types": ["CREDIT_CARD_NUMBER"],
             "sns_topic_arn": "arn:aws:sns:us-east-1:123456789:test-topic"
         }
@@ -76,7 +76,7 @@ class TestMacieNotificationRules:
         data = response.json()
         assert data["name"] == payload["name"], "Rule name should match"
         assert data["channel"] == "SNS", "Channel should be SNS"
-        assert data["min_severity"] == "HIGH", "Severity should be HIGH"
+        assert data["min_severity"] == "High", "Severity should be High"
         assert "id" in data, "Response should have rule ID"
         
         # Store for cleanup
@@ -91,7 +91,7 @@ class TestMacieNotificationRules:
             "name": "TEST_EventBridge_Rule_AutoTest",
             "description": "Test EventBridge notification rule",
             "channel": "EVENTBRIDGE",
-            "min_severity": "MEDIUM",
+            "min_severity": "Medium",
             "eventbridge_bus_name": "test-macie-bus"
         }
         
@@ -116,7 +116,7 @@ class TestMacieNotificationRules:
             "name": "TEST_Email_Rule_AutoTest",
             "description": "Test Email notification rule",
             "channel": "EMAIL",
-            "min_severity": "LOW",
+            "min_severity": "Low",
             "email_recipients": ["test@example.com", "test2@example.com"]
         }
         
@@ -316,7 +316,7 @@ class TestMacieNotificationDelete:
         payload = {
             "name": "TEST_DeleteMe_Rule",
             "channel": "SNS",
-            "min_severity": "LOW",
+            "min_severity": "Low",
             "sns_topic_arn": "arn:aws:sns:us-east-1:123:delete-test"
         }
         
