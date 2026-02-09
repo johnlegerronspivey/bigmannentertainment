@@ -722,9 +722,11 @@ MONGO_URL=mongodb://...
 
 ### Backlog / Future Ideas
 - Real AWS SNS/EventBridge integration (currently simulated)
-- Collaborative editing in Creative Studio
 - Advanced template gallery with categories
 - Drag-and-drop template elements
+- Public API for programmatic access to disputes and creative assets
+- Mobile-Responsive Design
+- Advanced Analytics Dashboard
 
 ## Test Credentials
 - **Email**: enterprise@test.com
