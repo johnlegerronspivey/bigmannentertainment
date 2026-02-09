@@ -7,8 +7,10 @@ import {
   Bold, Italic, Layers, ChevronUp, ChevronDown,
   Undo2, Redo2, Grid3x3, Minus, Plus,
   Triangle, Star, Hexagon, ArrowRight,
-  Sparkles
+  Sparkles, Users, MessageCircle, Wand2
 } from 'lucide-react';
+import { CollaborationPanel } from './CollaborationPanel';
+import { AIAssistantPanel } from './AIAssistantPanel';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
