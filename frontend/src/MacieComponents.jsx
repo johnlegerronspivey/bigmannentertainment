@@ -53,7 +53,8 @@ const MacieDashboard = () => {
     { id: 'findings', label: 'Findings', icon: '🔍' },
     { id: 'jobs', label: 'Scan Jobs', icon: '⚙️' },
     { id: 'identifiers', label: 'Custom Identifiers', icon: '🎯' },
-    { id: 'buckets', label: 'S3 Buckets', icon: '🪣' }
+    { id: 'buckets', label: 'S3 Buckets', icon: '🪣' },
+    { id: 'notifications', label: 'Notifications', icon: '🔔' }
   ];
 
   if (loading) {
