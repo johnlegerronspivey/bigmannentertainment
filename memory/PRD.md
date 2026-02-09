@@ -465,9 +465,15 @@ MONGO_URL=mongodb://...
 
 ### Phase 6 (Security & Compliance) - COMPLETED ✅
 - **P0**: DAO 2.0 Governance (multi-chain, token-based voting, treasury) ✅ DONE
-- **P1**: AWS Macie for PII detection
-- **P1**: AWS GuardDuty for threat detection
-- **P1**: AWS QLDB for dispute ledger
+- **P1**: AWS Macie for PII detection ✅ DONE
+- **P1**: AWS GuardDuty for threat detection ✅ DONE
+- **P1**: Dispute Ledger (PostgreSQL via AWS Aurora) ✅ DONE (Feb 2026)
+  - Migrated from discontinued AWS QLDB to AWS Aurora PostgreSQL
+  - Full CRUD for disputes with audit trail
+  - Dashboard stats, navigation link, frontend component integrated
+  - Backend: `/app/backend/postgres_client.py`, `/app/backend/qldb_service.py`
+  - Frontend: `/app/frontend/src/QLDBComponents.jsx`
+  - Route: `/qldb`
 
 ### Phase 7 (Creative Tools) - COMPLETED ✅
 - **P0**: Creative Studio for Agencies ✅ DONE
