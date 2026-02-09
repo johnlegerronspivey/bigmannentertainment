@@ -14,11 +14,39 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
     width: project?.width || 800, 
     height: project?.height || 600 
   });
-  
-  // Added missing state variables
   const [dragState, setDragState] = useState(null);
   const [zoom, setZoom] = useState(1);
   const fileInputRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // --- Element Management ---
+
+  const addElement = (type, content = '') => {
+    const id = Date.now().toString();
+    const newElement = {
+      id,
+      type,
+      x: canvasSize.width / 2 - (type === 'text' ? 100 : 50),
+      y: canvasSize.height / 2 - (type === 'text' ? 25 : 50),
+      width: type === 'text' ? 200 : 100,
+      height: type === 'text' ? 50 : 100,
+      content,
+      style: {
+        backgroundColor: type === 'rect' ? '#6366f1' : type === 'circle' ? '#ec4899' : 'transparent',
+        color: '#000000',
+        fontSize: 24,
+        borderRadius: type === 'circle' ? '50%' : '0px',
+        borderWidth: 0,
+        borderColor: '#000000',
+        textAlign: 'center',
+        fontWeight: 'normal',
+        fontStyle: 'normal'
+      }
+    };
+    
+    setElements([...elements, newElement]);
+    setSelectedId(id);
+  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -28,17 +56,19 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        // Create an image element
         const id = Date.now().toString();
         const aspectRatio = img.width / img.height;
+        const width = 300;
+        const height = width / aspectRatio;
+        
         const newElement = {
           id,
           type: 'image',
-          x: canvasSize.width / 2 - 100,
-          y: canvasSize.height / 2 - (100 / aspectRatio),
-          width: 200,
-          height: 200 / aspectRatio,
-          content: event.target.result, // Data URL
+          x: canvasSize.width / 2 - width / 2,
+          y: canvasSize.height / 2 - height / 2,
+          width,
+          height,
+          content: event.target.result,
           style: {
             borderWidth: 0,
             borderColor: 'transparent'
@@ -50,36 +80,7 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
       img.src = event.target.result;
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; // Reset input
-  };
-
-  // --- Element Management ---
-
-  const addElement = (type, content = '') => {
-    const id = Date.now().toString();
-    const newElement = {
-      id,
-      type,
-      x: canvasSize.width / 2 - 50,
-      y: canvasSize.height / 2 - 50,
-      width: type === 'text' ? 200 : 100,
-      height: type === 'text' ? 50 : 100,
-      content,
-      style: {
-        backgroundColor: type === 'rect' ? '#6366f1' : type === 'circle' ? '#ec4899' : 'transparent',
-        color: '#ffffff',
-        fontSize: 24,
-        borderRadius: type === 'circle' ? '50%' : '0px',
-        borderWidth: 0,
-        borderColor: '#ffffff',
-        textAlign: 'center',
-        fontWeight: 'normal',
-        fontStyle: 'normal'
-      }
-    };
-    
-    setElements([...elements, newElement]);
-    setSelectedId(id);
+    e.target.value = '';
   };
 
   const updateElement = (id, updates) => {
@@ -174,6 +175,20 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
         </div>
 
         <div className="flex items-center gap-2">
+           <button 
+            className="p-2 hover:bg-slate-700 rounded text-gray-400"
+            onClick={() => setZoom(z => Math.max(0.1, z - 0.1))}
+          >
+            -
+          </button>
+          <span className="text-gray-400 text-sm">{Math.round(zoom * 100)}%</span>
+          <button 
+            className="p-2 hover:bg-slate-700 rounded text-gray-400"
+            onClick={() => setZoom(z => Math.min(3, z + 0.1))}
+          >
+            +
+          </button>
+          <div className="h-6 w-px bg-slate-700 mx-2" />
           <button 
             onClick={() => onSave && onSave(elements)}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
@@ -200,7 +215,7 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 bg-slate-900 overflow-auto flex items-center justify-center p-8 relative">
+        <div className="flex-1 bg-slate-900 overflow-auto flex items-center justify-center p-8 relative" onClick={() => setSelectedId(null)}>
           <div 
             className="bg-white shadow-2xl relative overflow-hidden transition-transform duration-200"
             style={{ 
@@ -210,7 +225,7 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
               backgroundColor: '#ffffff' 
             }}
             ref={canvasRef}
-            onClick={() => setSelectedId(null)}
+            onClick={(e) => e.stopPropagation()} 
           >
             {elements.map(el => (
               <div
@@ -220,7 +235,7 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
                   left: el.x,
                   top: el.y,
                   width: el.width,
-                  height: el.height, // Allow auto height for text later
+                  height: el.height,
                   cursor: dragState?.id === el.id ? 'grabbing' : 'grab',
                   border: selectedId === el.id ? '2px solid #8b5cf6' : '1px dashed transparent',
                   display: 'flex',
@@ -243,7 +258,13 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
                     contentEditable={selectedId === el.id}
                     suppressContentEditableWarning
                     className="outline-none w-full h-full flex items-center justify-center"
+                    style={{
+                      cursor: selectedId === el.id ? 'text' : 'inherit'
+                    }}
                     onBlur={(e) => updateElement(el.id, { content: e.target.innerText })}
+                    onMouseDown={(e) => {
+                       if(selectedId === el.id) e.stopPropagation();
+                    }}
                   >
                     {el.content}
                   </div>
@@ -251,102 +272,165 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
               </div>
             ))}
           </div>
-          
-          {/* Zoom Controls */}
-          <div className="absolute bottom-4 right-4 bg-slate-800 rounded-lg p-2 flex gap-2">
-            <button onClick={() => setZoom(z => Math.max(0.1, z - 0.1))} className="text-white px-2 hover:bg-slate-700 rounded">-</button>
-            <span className="text-white text-sm py-1 min-w-[3ch] text-center">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(3, z + 0.1))} className="text-white px-2 hover:bg-slate-700 rounded">+</button>
-          </div>
         </div>
 
         {/* Properties Panel */}
         {selectedElement && (
-          <div className="w-64 bg-slate-800 border-l border-slate-700 p-4">
+          <div className="w-64 bg-slate-800 border-l border-slate-700 p-4 overflow-y-auto">
             <h3 className="text-white font-semibold mb-4 border-b border-slate-700 pb-2">Properties</h3>
             
-            <div className="space-y-4">
-              {/* Common Properties */}
+            <div className="space-y-6">
+              {/* Position */}
               <div>
-                <label className="text-gray-400 text-xs block mb-1">Position</label>
+                <label className="text-gray-400 text-xs uppercase font-bold block mb-2">Dimensions & Position</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <input 
-                    type="number" 
-                    value={Math.round(selectedElement.x)} 
-                    onChange={(e) => updateElement(selectedElement.id, { x: parseInt(e.target.value) })}
-                    className="bg-slate-700 text-white rounded px-2 py-1 text-sm"
-                  />
-                  <input 
-                    type="number" 
-                    value={Math.round(selectedElement.y)} 
-                    onChange={(e) => updateElement(selectedElement.id, { y: parseInt(e.target.value) })}
-                    className="bg-slate-700 text-white rounded px-2 py-1 text-sm"
-                  />
+                  <div>
+                    <span className="text-gray-500 text-[10px] block">X</span>
+                    <input 
+                      type="number" 
+                      value={Math.round(selectedElement.x)} 
+                      onChange={(e) => updateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })}
+                      className="bg-slate-700 text-white rounded px-2 py-1 text-sm w-full"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-[10px] block">Y</span>
+                    <input 
+                      type="number" 
+                      value={Math.round(selectedElement.y)} 
+                      onChange={(e) => updateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })}
+                      className="bg-slate-700 text-white rounded px-2 py-1 text-sm w-full"
+                    />
+                  </div>
+                   <div>
+                    <span className="text-gray-500 text-[10px] block">W</span>
+                    <input 
+                      type="number" 
+                      value={Math.round(selectedElement.width)} 
+                      onChange={(e) => updateElement(selectedElement.id, { width: parseInt(e.target.value) || 10 })}
+                      className="bg-slate-700 text-white rounded px-2 py-1 text-sm w-full"
+                    />
+                  </div>
+                   <div>
+                    <span className="text-gray-500 text-[10px] block">H</span>
+                    <input 
+                      type="number" 
+                      value={Math.round(selectedElement.height)} 
+                      onChange={(e) => updateElement(selectedElement.id, { height: parseInt(e.target.value) || 10 })}
+                      className="bg-slate-700 text-white rounded px-2 py-1 text-sm w-full"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Style Properties */}
+              {/* Style */}
               <div>
-                <label className="text-gray-400 text-xs block mb-1">Background</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="color" 
-                    value={selectedElement.style.backgroundColor} 
-                    onChange={(e) => updateStyle(selectedElement.id, { backgroundColor: e.target.value })}
-                    className="w-8 h-8 rounded cursor-pointer"
-                  />
-                  <span className="text-white text-sm py-1">{selectedElement.style.backgroundColor}</span>
-                </div>
+                <label className="text-gray-400 text-xs uppercase font-bold block mb-2">Appearance</label>
+                
+                {selectedElement.type !== 'image' && (
+                  <div className="mb-3">
+                    <label className="text-gray-500 text-[10px] block mb-1">Fill Color</label>
+                    <div className="flex gap-2 items-center">
+                      <input 
+                        type="color" 
+                        value={selectedElement.style.backgroundColor} 
+                        onChange={(e) => updateStyle(selectedElement.id, { backgroundColor: e.target.value })}
+                        className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                      />
+                      <span className="text-gray-400 text-xs font-mono">{selectedElement.style.backgroundColor}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {selectedElement.type === 'text' && (
-                <>
-                  <div>
-                    <label className="text-gray-400 text-xs block mb-1">Text Color</label>
-                    <input 
-                      type="color" 
-                      value={selectedElement.style.color} 
-                      onChange={(e) => updateStyle(selectedElement.id, { color: e.target.value })}
-                      className="w-full h-8 rounded cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-xs block mb-1">Font Size</label>
-                    <input 
-                      type="range" 
-                      min="12" 
-                      max="72" 
-                      value={selectedElement.style.fontSize} 
-                      onChange={(e) => updateStyle(selectedElement.id, { fontSize: parseInt(e.target.value) })}
-                      className="w-full"
-                    />
-                    <div className="text-right text-gray-400 text-xs">{selectedElement.style.fontSize}px</div>
-                  </div>
-                </>
+                <div>
+                   <label className="text-gray-400 text-xs uppercase font-bold block mb-2">Typography</label>
+                   
+                   <div className="space-y-3">
+                      <div>
+                        <label className="text-gray-500 text-[10px] block mb-1">Color</label>
+                        <div className="flex gap-2 items-center">
+                          <input 
+                            type="color" 
+                            value={selectedElement.style.color} 
+                            onChange={(e) => updateStyle(selectedElement.id, { color: e.target.value })}
+                            className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                          />
+                          <span className="text-gray-400 text-xs font-mono">{selectedElement.style.color}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-gray-500 text-[10px] block mb-1">Font Size: {selectedElement.style.fontSize}px</label>
+                        <input 
+                          type="range" 
+                          min="12" 
+                          max="120" 
+                          value={selectedElement.style.fontSize} 
+                          onChange={(e) => updateStyle(selectedElement.id, { fontSize: parseInt(e.target.value) })}
+                          className="w-full h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => updateStyle(selectedElement.id, { fontWeight: selectedElement.style.fontWeight === 'bold' ? 'normal' : 'bold' })}
+                          className={`p-2 rounded ${selectedElement.style.fontWeight === 'bold' ? 'bg-purple-600 text-white' : 'bg-slate-700 text-gray-400'}`}
+                        >
+                          <Bold size={16} />
+                        </button>
+                        <button 
+                          onClick={() => updateStyle(selectedElement.id, { fontStyle: selectedElement.style.fontStyle === 'italic' ? 'normal' : 'italic' })}
+                          className={`p-2 rounded ${selectedElement.style.fontStyle === 'italic' ? 'bg-purple-600 text-white' : 'bg-slate-700 text-gray-400'}`}
+                        >
+                          <Italic size={16} />
+                        </button>
+                        <button 
+                           onClick={() => updateStyle(selectedElement.id, { textAlign: 'left' })}
+                           className={`p-2 rounded ${selectedElement.style.textAlign === 'left' ? 'bg-purple-600 text-white' : 'bg-slate-700 text-gray-400'}`}
+                        >
+                          <AlignLeft size={16} />
+                        </button>
+                        <button 
+                           onClick={() => updateStyle(selectedElement.id, { textAlign: 'center' })}
+                           className={`p-2 rounded ${selectedElement.style.textAlign === 'center' ? 'bg-purple-600 text-white' : 'bg-slate-700 text-gray-400'}`}
+                        >
+                          <AlignCenter size={16} />
+                        </button>
+                         <button 
+                           onClick={() => updateStyle(selectedElement.id, { textAlign: 'right' })}
+                           className={`p-2 rounded ${selectedElement.style.textAlign === 'right' ? 'bg-purple-600 text-white' : 'bg-slate-700 text-gray-400'}`}
+                        >
+                          <AlignRight size={16} />
+                        </button>
+                      </div>
+                   </div>
+                </div>
               )}
 
               <div className="pt-4 border-t border-slate-700">
-                <label className="text-gray-400 text-xs block mb-2">Layering</label>
-                <div className="flex gap-2 mb-4">
-                  <button onClick={() => moveLayer(selectedElement.id, 'back')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Send to Back">
+                <label className="text-gray-400 text-xs uppercase font-bold block mb-2">Actions</label>
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  <button onClick={() => moveLayer(selectedElement.id, 'back')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white flex justify-center" title="Send to Back">
                     <Layers size={16} />
                   </button>
-                  <button onClick={() => moveLayer(selectedElement.id, 'backward')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Send Backward">
+                  <button onClick={() => moveLayer(selectedElement.id, 'backward')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white flex justify-center" title="Send Backward">
                     <ChevronDown size={16} />
                   </button>
-                  <button onClick={() => moveLayer(selectedElement.id, 'forward')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Bring Forward">
+                  <button onClick={() => moveLayer(selectedElement.id, 'forward')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white flex justify-center" title="Bring Forward">
                     <ChevronUp size={16} />
                   </button>
-                  <button onClick={() => moveLayer(selectedElement.id, 'front')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white" title="Bring to Front">
+                  <button onClick={() => moveLayer(selectedElement.id, 'front')} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white flex justify-center" title="Bring to Front">
                     <Layers size={16} className="rotate-180" />
                   </button>
                 </div>
 
                 <button 
                   onClick={() => deleteElement(selectedElement.id)}
-                  className="w-full py-2 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 flex items-center justify-center gap-2"
+                  className="w-full py-2 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 flex items-center justify-center gap-2 border border-red-500/30"
                 >
-                  <Trash2 size={16} /> Delete
+                  <Trash2 size={16} /> Delete Element
                 </button>
               </div>
             </div>
