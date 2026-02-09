@@ -471,9 +471,20 @@ MONGO_URL=mongodb://...
   - Migrated from discontinued AWS QLDB to AWS Aurora PostgreSQL
   - Full CRUD for disputes with audit trail
   - Dashboard stats, navigation link, frontend component integrated
+  - **P1a: Enhanced Dispute Creation Form** ✅ DONE (Feb 2026)
+    - Priority selector (LOW/MEDIUM/HIGH/CRITICAL)
+    - Respondent name/email fields
+    - All 8 dispute types, 5 currency options (USD/EUR/GBP/ETH/BTC)
+    - Form validation, loading states, data-testid attributes
+  - **P2: Enhanced Audit Trail View** ✅ DONE (Feb 2026)
+    - Event type filter dropdown
+    - Color-coded event type badges (Created, Updated, Resolved, etc.)
+    - Expandable rows with metadata/change summary detail view
+    - Color-coded status and priority badges on Disputes tab
   - Backend: `/app/backend/postgres_client.py`, `/app/backend/qldb_service.py`
   - Frontend: `/app/frontend/src/QLDBComponents.jsx`
   - Route: `/qldb`
+  - Test Results: 25/25 backend + frontend tests passed (iteration_10.json)
 
 ### Phase 7 (Creative Tools) - COMPLETED ✅
 - **P0**: Creative Studio for Agencies ✅ DONE
