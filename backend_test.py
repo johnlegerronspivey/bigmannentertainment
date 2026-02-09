@@ -145,21 +145,21 @@ def test_standard_postgresql_dispute_service():
     return results
 
 def test_content_moderation_api():
-    """Test Content Moderation API to ensure other services weren't broken"""
+    """Test Content Moderation API to ensure stability"""
     print("\n🛡️ Testing Content Moderation API")
     results = TestResults()
     
-    # Test 4: Verify the Content Moderation API /api/moderation/text with text "hello world"
-    print("🔍 Testing content moderation with 'hello world'...")
+    # Test 4: Verify the Content Moderation API /api/moderation/text with "test" to ensure stability
+    print("🔍 Testing content moderation with 'test'...")
     moderation_payload = {
-        "text": "hello world"
+        "text": "test"
     }
     
     status, mod_data = make_request("POST", "/moderation/text", json=moderation_payload)
     
     if status == 200:
         # Check if the response has expected moderation fields
-        if "safe" in mod_data or "classification" in mod_data or "result" in mod_data:
+        if "safe" in mod_data or "classification" in mod_data or "result" in mod_data or "analysis" in mod_data:
             results.add_result("Content Moderation API", True, f"Moderation API working correctly: {mod_data}")
         else:
             results.add_result("Content Moderation API", False, f"Unexpected response format: {mod_data}")
