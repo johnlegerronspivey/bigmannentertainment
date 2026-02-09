@@ -1029,4 +1029,295 @@ const CreateIdentifierModal = ({ onClose, onSuccess }) => {
   );
 };
 
+// ==================== Notifications Tab ====================
+
+const CHANNEL_STYLES = {
+  SNS: { bg: 'bg-orange-500/20', text: 'text-orange-300', label: 'SNS' },
+  EVENTBRIDGE: { bg: 'bg-blue-500/20', text: 'text-blue-300', label: 'EventBridge' },
+  EMAIL: { bg: 'bg-green-500/20', text: 'text-green-300', label: 'Email' },
+  SLACK: { bg: 'bg-purple-500/20', text: 'text-purple-300', label: 'Slack' },
+};
+
+const STATUS_STYLES = {
+  SENT: { bg: 'bg-emerald-500/20', text: 'text-emerald-300' },
+  FAILED: { bg: 'bg-red-500/20', text: 'text-red-300' },
+  PENDING: { bg: 'bg-yellow-500/20', text: 'text-yellow-300' },
+};
+
+const NotificationsTab = () => {
+  const [rules, setRules] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [notifStats, setNotifStats] = useState(null);
+  const [subTab, setSubTab] = useState('rules');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [channelFilter, setChannelFilter] = useState('');
+  const [loadingData, setLoadingData] = useState(true);
+
+  const fetchNotifData = async () => {
+    setLoadingData(true);
+    try {
+      const [rulesRes, logsRes, statsRes] = await Promise.all([
+        fetch(`${API}/api/macie/notifications/rules`),
+        fetch(`${API}/api/macie/notifications/logs?limit=50`),
+        fetch(`${API}/api/macie/notifications/stats`),
+      ]);
+      if (rulesRes.ok) { const d = await rulesRes.json(); setRules(d.rules || []); }
+      if (logsRes.ok) { const d = await logsRes.json(); setLogs(d.logs || []); }
+      if (statsRes.ok) setNotifStats(await statsRes.json());
+    } catch (err) { console.error('Notification data fetch error', err); }
+    setLoadingData(false);
+  };
+
+  useEffect(() => { fetchNotifData(); }, []);
+
+  const toggleRule = async (ruleId) => {
+    try {
+      const res = await fetch(`${API}/api/macie/notifications/rules/${ruleId}/toggle`, { method: 'PUT' });
+      if (res.ok) { fetchNotifData(); toast.success('Rule updated'); }
+    } catch { toast.error('Failed to toggle rule'); }
+  };
+
+  const deleteRule = async (ruleId) => {
+    try {
+      const res = await fetch(`${API}/api/macie/notifications/rules/${ruleId}`, { method: 'DELETE' });
+      if (res.ok) { fetchNotifData(); toast.success('Rule deleted'); }
+    } catch { toast.error('Failed to delete'); }
+  };
+
+  const testRule = async (ruleId) => {
+    try {
+      const res = await fetch(`${API}/api/macie/notifications/test/${ruleId}`, { method: 'POST' });
+      if (res.ok) { toast.success('Test notification sent!'); fetchNotifData(); }
+      else toast.error('Test failed');
+    } catch { toast.error('Test failed'); }
+  };
+
+  const filteredLogs = channelFilter ? logs.filter(l => l.channel === channelFilter) : logs;
+
+  if (loadingData) {
+    return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-red-500"></div></div>;
+  }
+
+  return (
+    <div data-testid="notifications-tab" className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatBox label="Active Rules" value={notifStats?.active_rules || 0} color="from-orange-500 to-red-500" />
+        <StatBox label="Notifications Sent" value={notifStats?.total_notifications_sent || 0} color="from-emerald-500 to-teal-500" />
+        <StatBox label="Failed" value={notifStats?.failed_notifications || 0} color="from-red-500 to-pink-500" />
+        <StatBox label="Log Entries" value={notifStats?.total_log_entries || 0} color="from-blue-500 to-indigo-500" />
+      </div>
+
+      {/* Sub tabs */}
+      <div className="flex gap-2 items-center">
+        <button onClick={() => setSubTab('rules')} data-testid="notif-subtab-rules"
+          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${subTab === 'rules' ? 'bg-red-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+        >Alert Rules ({rules.length})</button>
+        <button onClick={() => setSubTab('logs')} data-testid="notif-subtab-logs"
+          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${subTab === 'logs' ? 'bg-red-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+        >Notification Log ({logs.length})</button>
+        <div className="flex-1" />
+        {subTab === 'rules' && (
+          <button onClick={() => setShowCreateModal(true)} data-testid="create-rule-btn" className="px-4 py-1.5 bg-gradient-to-r from-red-500 to-orange-600 text-white rounded-lg text-sm hover:from-red-600 hover:to-orange-700">
+            + New Rule
+          </button>
+        )}
+      </div>
+
+      {/* Rules */}
+      {subTab === 'rules' && (
+        <div className="space-y-3">
+          {rules.map(rule => {
+            const ch = CHANNEL_STYLES[rule.channel] || CHANNEL_STYLES.SNS;
+            return (
+              <div key={rule.id} data-testid={`rule-card-${rule.id}`} className="bg-white/5 border border-red-500/20 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="text-white font-medium text-sm">{rule.name}</h4>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${ch.bg} ${ch.text}`}>{ch.label}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${rule.is_enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-500/20 text-gray-400'}`}>
+                        {rule.is_enabled ? 'Active' : 'Disabled'}
+                      </span>
+                    </div>
+                    {rule.description && <p className="text-gray-400 text-xs mb-2">{rule.description}</p>}
+                    <div className="flex gap-4 text-xs text-gray-500">
+                      <span>Min Severity: <span className="text-gray-300">{rule.min_severity}</span></span>
+                      <span>Sent: <span className="text-gray-300">{rule.notifications_sent || 0}</span></span>
+                      {rule.last_triggered && <span>Last: <span className="text-gray-300">{new Date(rule.last_triggered).toLocaleString()}</span></span>}
+                    </div>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <button onClick={() => testRule(rule.id)} className="px-2 py-1 bg-slate-700 text-gray-300 rounded text-xs hover:bg-slate-600" data-testid={`test-rule-${rule.id}`}>Test</button>
+                    <button onClick={() => toggleRule(rule.id)} className="px-2 py-1 bg-slate-700 text-gray-300 rounded text-xs hover:bg-slate-600" data-testid={`toggle-rule-${rule.id}`}>
+                      {rule.is_enabled ? 'Disable' : 'Enable'}
+                    </button>
+                    <button onClick={() => deleteRule(rule.id)} className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs hover:bg-red-500/30 border border-red-500/30" data-testid={`delete-rule-${rule.id}`}>Del</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {rules.length === 0 && <p className="text-center text-gray-400 py-8">No notification rules configured.</p>}
+        </div>
+      )}
+
+      {/* Logs */}
+      {subTab === 'logs' && (
+        <div className="space-y-3">
+          <div className="flex gap-2 items-center mb-2">
+            <span className="text-gray-400 text-sm">Filter:</span>
+            <select data-testid="log-channel-filter" value={channelFilter} onChange={e => setChannelFilter(e.target.value)} className="bg-white/10 text-white border border-red-500/30 rounded-lg px-3 py-1 text-sm">
+              <option value="" className="bg-slate-900">All Channels</option>
+              <option value="SNS" className="bg-slate-900">SNS</option>
+              <option value="EVENTBRIDGE" className="bg-slate-900">EventBridge</option>
+              <option value="EMAIL" className="bg-slate-900">Email</option>
+            </select>
+            <span className="text-xs text-gray-500">{filteredLogs.length} entries</span>
+          </div>
+          <div className="bg-white/5 border border-red-500/20 rounded-xl overflow-hidden">
+            <table data-testid="notification-logs-table" className="min-w-full text-sm text-left text-gray-300">
+              <thead>
+                <tr className="border-b border-red-500/20 text-xs text-gray-400">
+                  <th className="py-2 px-3">Channel</th>
+                  <th className="py-2 px-3">Status</th>
+                  <th className="py-2 px-3">Rule</th>
+                  <th className="py-2 px-3">Message</th>
+                  <th className="py-2 px-3">Severity</th>
+                  <th className="py-2 px-3">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLogs.map(log => {
+                  const ch = CHANNEL_STYLES[log.channel] || CHANNEL_STYLES.SNS;
+                  const st = STATUS_STYLES[log.status] || STATUS_STYLES.PENDING;
+                  return (
+                    <tr key={log.id} data-testid={`log-row-${log.id}`} className="border-b border-white/5 hover:bg-white/5">
+                      <td className="py-2 px-3"><span className={`px-1.5 py-0.5 rounded text-[10px] ${ch.bg} ${ch.text}`}>{ch.label}</span></td>
+                      <td className="py-2 px-3"><span className={`px-1.5 py-0.5 rounded text-[10px] ${st.bg} ${st.text}`}>{log.status}</span></td>
+                      <td className="py-2 px-3 text-xs">{log.rule_name}</td>
+                      <td className="py-2 px-3 text-xs max-w-xs truncate">{log.message}</td>
+                      <td className="py-2 px-3 text-xs">{log.severity}</td>
+                      <td className="py-2 px-3 text-xs text-gray-400">{log.created_at ? new Date(log.created_at).toLocaleString() : ''}</td>
+                    </tr>
+                  );
+                })}
+                {filteredLogs.length === 0 && (
+                  <tr><td colSpan={6} className="py-8 text-center text-gray-400">No notification logs found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Create Rule Modal */}
+      {showCreateModal && (
+        <CreateNotificationRuleModal onClose={() => setShowCreateModal(false)} onSuccess={() => { setShowCreateModal(false); fetchNotifData(); toast.success('Rule created!'); }} />
+      )}
+    </div>
+  );
+};
+
+const StatBox = ({ label, value, color }) => (
+  <div className={`bg-gradient-to-br ${color} rounded-xl p-4 text-white`}>
+    <p className="text-sm text-white/80">{label}</p>
+    <p className="text-2xl font-bold mt-1">{value}</p>
+  </div>
+);
+
+const CreateNotificationRuleModal = ({ onClose, onSuccess }) => {
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({
+    name: '', description: '', channel: 'SNS', min_severity: 'HIGH',
+    pii_types: '', sns_topic_arn: '', eventbridge_bus_name: '', email_recipients: ''
+  });
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const payload = {
+        ...form,
+        pii_types: form.pii_types ? form.pii_types.split(',').map(s => s.trim()).filter(Boolean) : [],
+        email_recipients: form.email_recipients ? form.email_recipients.split(',').map(s => s.trim()).filter(Boolean) : [],
+      };
+      const res = await fetch(`${API}/api/macie/notifications/rules`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (res.ok) onSuccess();
+      else toast.error('Failed to create rule');
+    } catch { toast.error('Error creating rule'); }
+    setCreating(false);
+  };
+
+  const inputClass = "w-full bg-slate-700 text-white border border-slate-600 rounded-lg px-3 py-2 text-sm placeholder-gray-500 focus:border-red-400 focus:outline-none";
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-slate-800 rounded-xl max-w-lg w-full p-6 border border-red-500/30 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-xl font-semibold text-white mb-4">Create Notification Rule</h3>
+        <form onSubmit={handleSubmit} className="space-y-4" data-testid="create-rule-form">
+          <div>
+            <label className="text-gray-300 text-sm block mb-1">Name *</label>
+            <input data-testid="rule-name-input" className={inputClass} value={form.name} onChange={e => set('name', e.target.value)} required placeholder="Rule name" />
+          </div>
+          <div>
+            <label className="text-gray-300 text-sm block mb-1">Description</label>
+            <input className={inputClass} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Optional description" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-gray-300 text-sm block mb-1">Channel</label>
+              <select data-testid="rule-channel-select" className={inputClass} value={form.channel} onChange={e => set('channel', e.target.value)}>
+                <option value="SNS">AWS SNS</option>
+                <option value="EVENTBRIDGE">EventBridge</option>
+                <option value="EMAIL">Email</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-gray-300 text-sm block mb-1">Min Severity</label>
+              <select data-testid="rule-severity-select" className={inputClass} value={form.min_severity} onChange={e => set('min_severity', e.target.value)}>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="CRITICAL">Critical</option>
+              </select>
+            </div>
+          </div>
+          {form.channel === 'SNS' && (
+            <div>
+              <label className="text-gray-300 text-sm block mb-1">SNS Topic ARN</label>
+              <input className={inputClass} value={form.sns_topic_arn} onChange={e => set('sns_topic_arn', e.target.value)} placeholder="arn:aws:sns:us-east-1:..." />
+            </div>
+          )}
+          {form.channel === 'EVENTBRIDGE' && (
+            <div>
+              <label className="text-gray-300 text-sm block mb-1">EventBridge Bus Name</label>
+              <input className={inputClass} value={form.eventbridge_bus_name} onChange={e => set('eventbridge_bus_name', e.target.value)} placeholder="my-event-bus" />
+            </div>
+          )}
+          {form.channel === 'EMAIL' && (
+            <div>
+              <label className="text-gray-300 text-sm block mb-1">Email Recipients (comma-separated)</label>
+              <input className={inputClass} value={form.email_recipients} onChange={e => set('email_recipients', e.target.value)} placeholder="a@test.com, b@test.com" />
+            </div>
+          )}
+          <div>
+            <label className="text-gray-300 text-sm block mb-1">PII Types (comma-separated, optional)</label>
+            <input className={inputClass} value={form.pii_types} onChange={e => set('pii_types', e.target.value)} placeholder="CREDIT_CARD_NUMBER, SSN" />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600">Cancel</button>
+            <button type="submit" disabled={creating} data-testid="submit-rule-btn" className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+              {creating ? 'Creating...' : 'Create Rule'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export default MacieDashboard;
