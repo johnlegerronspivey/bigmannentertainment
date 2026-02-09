@@ -6,6 +6,7 @@ Business logic for automated sensitive data discovery and PII detection
 import os
 import boto3
 import asyncio
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any, Tuple
 from motor.motor_asyncio import AsyncIOMotorDatabase
