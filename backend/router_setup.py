@@ -82,7 +82,8 @@ routers = [
     workflow_router, sponsorship_router, tax_router, industry_router, label_router,
     stripe_router, licensing_router, comprehensive_licensing_router, pdooh_router,
     metadata_router, batch_router, reporting_router, rights_router, contracts_router,
-    audit_router, media_router, paypal_router, moderation_router
+    audit_router, media_router, paypal_router, moderation_router,
+    collab_router, ai_assets_router
 ]
 
 for router in routers:
