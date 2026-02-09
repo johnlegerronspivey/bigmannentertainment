@@ -410,6 +410,16 @@ const CreativeEditor = ({ project, onClose, onSave }) => {
           <button className="p-1.5 hover:bg-slate-700 rounded text-gray-400" onClick={() => setZoom(z => Math.min(3, z + 0.1))}><Plus size={14} /></button>
           <div className="h-5 w-px bg-slate-700 mx-1" />
           <button data-testid="export-btn" onClick={exportCanvas} className="px-3 py-1.5 bg-slate-700 text-gray-300 rounded hover:bg-slate-600 flex items-center gap-1.5 text-xs"><Download size={14} /> Export PNG</button>
+          <div className="h-5 w-px bg-slate-700 mx-0.5" />
+          <button data-testid="collab-toggle-btn" onClick={() => { setShowCollabPanel(!showCollabPanel); setShowAIAssistant(false); }}
+                  className={`px-2.5 py-1.5 rounded flex items-center gap-1.5 text-xs transition-colors ${showCollabPanel ? 'bg-blue-600 text-white' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'}`}>
+            <Users size={14} /> Collaborate
+          </button>
+          <button data-testid="ai-assistant-toggle-btn" onClick={() => { setShowAIAssistant(!showAIAssistant); setShowCollabPanel(false); }}
+                  className={`px-2.5 py-1.5 rounded flex items-center gap-1.5 text-xs transition-colors ${showAIAssistant ? 'bg-amber-600 text-white' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'}`}>
+            <Wand2 size={14} /> AI Tools
+          </button>
+          <div className="h-5 w-px bg-slate-700 mx-0.5" />
           <button data-testid="save-btn" onClick={() => onSave && onSave(elements)} className="px-3 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center gap-1.5 text-xs"><Save size={14} /> Save</button>
         </div>
       </div>
