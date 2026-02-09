@@ -35,7 +35,7 @@ async def test_qldb_service():
     # 3. Create Dispute
     print("Creating Dispute...")
     req = CreateDisputeRequest(
-        type=DisputeType.COPYRIGHT,
+        type=DisputeType.COPYRIGHT_CLAIM,
         priority=Priority.HIGH,
         title="Test Dispute from Script",
         description="Testing the new Postgres Ledger driver",
