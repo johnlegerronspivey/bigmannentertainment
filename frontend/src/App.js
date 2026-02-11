@@ -651,6 +651,17 @@ const Navigation = () => {
               <span>📊</span>
               <span>Analytics</span>
             </Link>
+
+            {/* AWS CloudWatch Monitoring */}
+            <Link 
+              to="/cloudwatch" 
+              className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="AWS CloudWatch Monitoring"
+              data-testid="nav-cloudwatch-link"
+            >
+              <span>📈</span>
+              <span>CloudWatch</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
