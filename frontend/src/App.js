@@ -3790,6 +3790,7 @@ function App() {
             <Route path="/macie" element={<ProtectedRoute><MacieDashboard /></ProtectedRoute>} />
             <Route path="/guardduty" element={<ProtectedRoute><GuardDutyDashboard /></ProtectedRoute>} />
             <Route path="/qldb" element={<ProtectedRoute><QLDBDashboard /></ProtectedRoute>} />
+            <Route path="/usage-analytics" element={<ProtectedRoute><UsageAnalyticsDashboard /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
             <Route path="/image-upload" element={<ProtectedRoute><ImageUploadComponent /></ProtectedRoute>} />
