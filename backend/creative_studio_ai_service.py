@@ -194,7 +194,7 @@ Only output the JSON array, nothing else."""
 
     async def suggest_layouts(self, content_type: str, platform: str = "instagram_post",
                               element_count: int = 3) -> Dict[str, Any]:
-        """Suggest design layouts based on content type and platform"""
+        """Suggest design layouts based on content type and platform, using AI when available"""
         platform_sizes = {
             "instagram_post": {"width": 1080, "height": 1080},
             "instagram_story": {"width": 1080, "height": 1920},
@@ -202,11 +202,36 @@ Only output the JSON array, nothing else."""
             "facebook_post": {"width": 1200, "height": 630},
             "youtube_thumbnail": {"width": 1280, "height": 720},
             "linkedin_post": {"width": 1200, "height": 627},
+            "linkedin_banner": {"width": 1584, "height": 396},
+            "pinterest_pin": {"width": 1000, "height": 1500},
+            "tiktok_video": {"width": 1080, "height": 1920},
+            "twitter_header": {"width": 1500, "height": 500},
         }
         size = platform_sizes.get(platform, {"width": 1080, "height": 1080})
         w, h = size["width"], size["height"]
 
-        layouts = self._generate_layouts(content_type, w, h, element_count)
+        # Try AI-powered layout suggestions first
+        model = _get_gemini_model()
+        ai_layouts = None
+        if model and content_type:
+            try:
+                ai_prompt = f"""Suggest 2 creative layout ideas for a {content_type} design on {platform.replace('_',' ')} ({w}x{h}px).
+For each layout, give: name, description (1 sentence), and a color scheme (3 hex colors).
+Return JSON array: [{{"name":"...", "description":"...", "colors":["#hex1","#hex2","#hex3"]}}]
+Only output the JSON array."""
+                response = model.generate_content(ai_prompt)
+                text = response.text.strip()
+                if text.startswith("```"):
+                    text = text.split("```")[1]
+                    if text.startswith("json"):
+                        text = text[4:]
+                ai_data = json.loads(text.strip())
+                if isinstance(ai_data, list) and len(ai_data) > 0:
+                    ai_layouts = ai_data[:2]
+            except Exception as e:
+                print(f"AI layout suggestion error: {e}")
+
+        layouts = self._generate_layouts(content_type, w, h, element_count, ai_hints=ai_layouts)
         return {"layouts": layouts, "platform": platform, "canvas": size}
 
     def _generate_layouts(self, content_type: str, w: int, h: int, element_count: int) -> List[Dict]:
