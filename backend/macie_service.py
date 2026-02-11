@@ -927,7 +927,7 @@ class MacieService:
         return logs, total
 
     async def send_test_notification(self, rule_id: str) -> Optional[Dict]:
-        """Send a test notification (simulated)"""
+        """Send a test notification - uses real AWS SNS when available"""
         import uuid as uuid_mod
         doc = await self.db.macie_notification_rules.find_one({"id": rule_id})
         if not doc:
@@ -936,14 +936,39 @@ class MacieService:
         
         from macie_models import NotificationLog, NotificationStatus, NotificationChannel, SeverityLevel
         
+        channel = NotificationChannel(doc["channel"])
+        status = NotificationStatus.SENT
+        message_text = f"[TEST] Test notification from rule: {doc['name']}"
+        message_id = "test-" + str(uuid_mod.uuid4())[:8]
+        delivery_note = "simulated"
+
+        # Try real SNS if channel is SNS and topic ARN exists
+        if channel == NotificationChannel.SNS and doc.get("sns_topic_arn"):
+            try:
+                if self.s3_client:
+                    sns_client = boto3.client("sns", region_name=AWS_REGION,
+                        aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+                    resp = sns_client.publish(
+                        TopicArn=doc["sns_topic_arn"],
+                        Subject=f"Macie Alert: {doc['name']}",
+                        Message=message_text
+                    )
+                    message_id = resp.get("MessageId", message_id)
+                    delivery_note = "delivered via AWS SNS"
+                    logger.info(f"Real SNS notification sent: {message_id}")
+            except Exception as e:
+                logger.warning(f"Real SNS failed, using simulated: {e}")
+                delivery_note = "simulated (SNS unavailable)"
+
         log = NotificationLog(
             rule_id=rule_id,
             rule_name=doc["name"],
-            channel=NotificationChannel(doc["channel"]),
-            status=NotificationStatus.SENT,
+            channel=channel,
+            status=status,
             severity=SeverityLevel(doc.get("min_severity", "High")),
-            message=f"[TEST] Test notification from rule: {doc['name']}",
-            message_id="test-" + str(uuid_mod.uuid4())[:8]
+            message=message_text,
+            message_id=message_id
         )
         log_dict = log.dict()
         await self.db.macie_notification_logs.insert_one(log_dict)
@@ -955,7 +980,7 @@ class MacieService:
             {"$inc": {"notifications_sent": 1}, "$set": {"last_triggered": datetime.now(timezone.utc)}}
         )
         
-        return {"success": True, "message": "Test notification sent (simulated)", "log": log_dict}
+        return {"success": True, "message": f"Test notification sent ({delivery_note})", "log": log_dict}
 
     async def get_notification_stats(self) -> Dict:
         """Get notification statistics"""
