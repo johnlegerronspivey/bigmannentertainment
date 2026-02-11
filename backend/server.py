@@ -276,6 +276,13 @@ async def startup_event():
         print("🤝 Collaboration & AI Assets services initialized")
     except Exception as e:
         print(f"⚠️  Collaboration/AI Assets initialization failed: {str(e)}")
+
+    # Initialize Usage Analytics service
+    try:
+        analytics_tracking_svc = initialize_analytics_tracking(db)
+        print("📊 Usage Analytics tracking service initialized")
+    except Exception as e:
+        print(f"⚠️  Usage Analytics initialization failed: {str(e)}")
     
     # Initialize Macie service
     try:
