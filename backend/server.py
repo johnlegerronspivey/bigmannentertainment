@@ -87,6 +87,9 @@ from creative_studio_collab_service import initialize_collab_service
 from creative_studio_ai_service import initialize_ai_assets_service
 from usage_analytics_service import initialize_analytics_tracking
 
+# Import CloudWatch monitoring
+from aws_cloudwatch_service import initialize_cloudwatch_service
+
 # Import Macie endpoints
 from macie_service import initialize_macie_service
 
