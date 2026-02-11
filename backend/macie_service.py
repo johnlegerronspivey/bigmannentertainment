@@ -309,78 +309,77 @@ class MacieService:
             await self.jobs_collection.insert_one(job.dict())
     
     async def _create_sample_buckets(self):
-        """Create sample S3 bucket info"""
+        """Populate with real S3 bucket data from AWS, fallback to samples"""
+        real_buckets = await self._fetch_real_s3_buckets()
+        if real_buckets:
+            for bucket in real_buckets:
+                await self.buckets_collection.insert_one(bucket.dict())
+            logger.info(f"Macie: loaded {len(real_buckets)} real S3 buckets")
+            return
+
+        # Fallback to sample data
         sample_buckets = [
             S3BucketInfo(
-                name="bme-artist-contracts",
-                account_id=self._get_account_id(),
-                public_access_blocked=True,
-                versioning_enabled=True,
-                encryption_type="AES256",
-                object_count=2450,
-                total_size_bytes=536870912,
-                is_monitored=True,
-                findings_count=1
+                name="bme-artist-contracts", account_id=self._get_account_id(),
+                public_access_blocked=True, versioning_enabled=True,
+                encryption_type="AES256", object_count=2450,
+                total_size_bytes=536870912, is_monitored=True, findings_count=0
             ),
             S3BucketInfo(
-                name="bme-royalty-data",
-                account_id=self._get_account_id(),
-                public_access_blocked=True,
-                versioning_enabled=True,
-                encryption_type="aws:kms",
-                object_count=8900,
-                total_size_bytes=2147483648,
-                is_monitored=True,
-                findings_count=1
-            ),
-            S3BucketInfo(
-                name="bme-hr-records",
-                account_id=self._get_account_id(),
-                public_access_blocked=True,
-                versioning_enabled=True,
-                encryption_type="aws:kms",
-                object_count=1200,
-                total_size_bytes=1073741824,
-                is_monitored=True,
-                findings_count=1
-            ),
-            S3BucketInfo(
-                name="bme-marketing",
-                account_id=self._get_account_id(),
-                public_access_blocked=True,
-                versioning_enabled=False,
-                encryption_type="AES256",
-                object_count=5600,
-                total_size_bytes=10737418240,
-                is_monitored=True,
-                findings_count=1
-            ),
-            S3BucketInfo(
-                name="bme-dev-backups",
-                account_id=self._get_account_id(),
-                public_access_blocked=False,  # Security issue!
-                versioning_enabled=False,
-                encryption_type=None,
-                object_count=890,
-                total_size_bytes=268435456,
-                is_monitored=True,
-                findings_count=1
-            ),
-            S3BucketInfo(
-                name="bme-public-assets",
-                account_id=self._get_account_id(),
-                public_access_blocked=False,
-                versioning_enabled=False,
-                encryption_type="AES256",
-                object_count=12500,
-                total_size_bytes=53687091200,
-                is_monitored=True,
-                findings_count=1
+                name="bme-public-assets", account_id=self._get_account_id(),
+                public_access_blocked=False, versioning_enabled=False,
+                encryption_type="AES256", object_count=12500,
+                total_size_bytes=53687091200, is_monitored=True, findings_count=0
             )
         ]
-        
         for bucket in sample_buckets:
             await self.buckets_collection.insert_one(bucket.dict())
+
+    async def _fetch_real_s3_buckets(self):
+        """Fetch real S3 bucket info from AWS"""
+        if not self.s3_client:
+            return None
+        try:
+            resp = self.s3_client.list_buckets()
+            buckets = []
+            account_id = self._get_account_id()
+            for b in resp.get("Buckets", []):
+                name = b["Name"]
+                # Get encryption
+                enc_type = None
+                try:
+                    enc = self.s3_client.get_bucket_encryption(Bucket=name)
+                    enc_type = enc["ServerSideEncryptionConfiguration"]["Rules"][0]["ApplyServerSideEncryptionByDefault"]["SSEAlgorithm"]
+                except Exception:
+                    pass
+                # Get versioning
+                versioning = False
+                try:
+                    v = self.s3_client.get_bucket_versioning(Bucket=name)
+                    versioning = v.get("Status") == "Enabled"
+                except Exception:
+                    pass
+                # Get public access
+                public_blocked = True
+                try:
+                    pa = self.s3_client.get_public_access_block(Bucket=name)
+                    cfg = pa.get("PublicAccessBlockConfiguration", {})
+                    public_blocked = cfg.get("BlockPublicAcls", False) and cfg.get("BlockPublicPolicy", False)
+                except Exception:
+                    pass
+
+                buckets.append(S3BucketInfo(
+                    name=name, account_id=account_id,
+                    public_access_blocked=public_blocked,
+                    versioning_enabled=versioning,
+                    encryption_type=enc_type,
+                    object_count=0, total_size_bytes=0,
+                    is_monitored=True, findings_count=0
+                ))
+            return buckets if buckets else None
+        except Exception as e:
+            logger.warning(f"Failed to fetch real S3 buckets: {e}")
+            return None
     
     # ==================== Custom Data Identifiers ====================
     

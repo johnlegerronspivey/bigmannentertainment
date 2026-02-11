@@ -111,9 +111,14 @@ class GuardDutyService:
         return None
     
     async def _initialize_sample_data(self):
-        """Initialize sample data for demonstration"""
+        """Initialize data - sync from real AWS if available, else use samples"""
         try:
-            # Check if data already exists
+            synced = await self._sync_from_aws()
+            if synced:
+                logger.info("GuardDuty: synced real data from AWS")
+                return
+
+            # Fallback to sample data
             findings_count = await self.findings_collection.count_documents({})
             if findings_count == 0:
                 await self._create_sample_findings()
@@ -123,7 +128,86 @@ class GuardDutyService:
                 await self._create_sample_detectors()
                 
         except Exception as e:
-            logger.error(f"Error initializing sample data: {e}")
+            logger.error(f"Error initializing data: {e}")
+
+    async def _sync_from_aws(self) -> bool:
+        """Sync real findings and detectors from AWS GuardDuty"""
+        if not self.guardduty_client:
+            return False
+        try:
+            # Get real detectors
+            detector_resp = self.guardduty_client.list_detectors()
+            detector_ids = detector_resp.get("DetectorIds", [])
+            if not detector_ids:
+                return False
+
+            account_id = self._get_account_id()
+
+            for det_id in detector_ids:
+                det_info = self.guardduty_client.get_detector(DetectorId=det_id)
+                detector = Detector(
+                    detector_id=det_id,
+                    account_id=account_id,
+                    region=AWS_REGION,
+                    status=DetectorStatus.ENABLED if det_info.get("Status") == "ENABLED" else DetectorStatus.DISABLED,
+                    finding_publishing_frequency=det_info.get("FindingPublishingFrequency", "FIFTEEN_MINUTES"),
+                    s3_logs_enabled=True,
+                    kubernetes_audit_logs_enabled=True,
+                    malware_protection_enabled=True,
+                    last_checked=datetime.now(timezone.utc)
+                )
+                await self.detectors_collection.update_one(
+                    {"detector_id": det_id},
+                    {"$set": detector.dict()},
+                    upsert=True
+                )
+
+                # Get real findings
+                findings_resp = self.guardduty_client.list_findings(DetectorId=det_id, MaxResults=50)
+                finding_ids = findings_resp.get("FindingIds", [])
+
+                if finding_ids:
+                    details_resp = self.guardduty_client.get_findings(
+                        DetectorId=det_id, FindingIds=finding_ids
+                    )
+                    for f in details_resp.get("Findings", []):
+                        severity_val = f.get("Severity", 2.0)
+                        finding = Finding(
+                            finding_id=f["Id"],
+                            account_id=f.get("AccountId", account_id),
+                            region=f.get("Region", AWS_REGION),
+                            type=f.get("Type", "Unknown"),
+                            title=f.get("Title", ""),
+                            description=f.get("Description", ""),
+                            severity=severity_val,
+                            severity_level=self._classify_severity(severity_val),
+                            category=self._extract_category(f.get("Type", "")),
+                            resource=ResourceDetails(
+                                resource_type=ResourceType.INSTANCE if "EC2" in f.get("Type", "") else ResourceType.ACCESS_KEY,
+                                tags={}
+                            ),
+                            created_at=f.get("CreatedAt", datetime.now(timezone.utc).isoformat()),
+                            updated_at=f.get("UpdatedAt", datetime.now(timezone.utc).isoformat()),
+                            status=FindingStatus.NEW
+                        )
+                        await self.findings_collection.update_one(
+                            {"finding_id": f["Id"]},
+                            {"$set": finding.dict()},
+                            upsert=True
+                        )
+
+                # Update detector finding count
+                real_count = await self.findings_collection.count_documents({"account_id": account_id})
+                await self.detectors_collection.update_one(
+                    {"detector_id": det_id},
+                    {"$set": {"findings_count": real_count}}
+                )
+
+            logger.info(f"Synced {len(detector_ids)} detectors and {len(finding_ids) if detector_ids else 0} findings from AWS")
+            return True
+        except Exception as e:
+            logger.warning(f"AWS GuardDuty sync failed, using sample data: {e}")
+            return False
     
     async def _create_sample_detectors(self):
         """Create sample GuardDuty detectors"""
