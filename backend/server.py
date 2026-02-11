@@ -85,6 +85,7 @@ from dao_governance_v2_service import initialize_dao_v2_service
 from creative_studio_service import initialize_creative_studio_service
 from creative_studio_collab_service import initialize_collab_service
 from creative_studio_ai_service import initialize_ai_assets_service
+from usage_analytics_service import initialize_analytics_tracking
 
 # Import Macie endpoints
 from macie_service import initialize_macie_service
