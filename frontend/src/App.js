@@ -639,6 +639,17 @@ const Navigation = () => {
               <span>📘</span>
               <span>Ledger</span>
             </Link>
+
+            {/* Usage Analytics */}
+            <Link 
+              to="/usage-analytics" 
+              className="bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
+              title="Usage Analytics Dashboard"
+              data-testid="nav-analytics-link"
+            >
+              <span>📊</span>
+              <span>Analytics</span>
+            </Link>
             
             {/* Industry Dropdown */}
             <div className="relative">
