@@ -116,7 +116,7 @@ export const AIAssistantPanel = ({ projectId, canvasSize, onApplyLayout, onApply
       const res = await fetch(`${API}/api/creative-studio/ai-assets/suggest-layouts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content_type: 'promotional', platform: layoutPlatform })
+        body: JSON.stringify({ content_type: layoutContentType, platform: layoutPlatform })
       });
       if (res.ok) {
         const data = await res.json();
