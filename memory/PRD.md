@@ -430,6 +430,8 @@ MONGO_URL=mongodb://...
 │   ├── creative_studio_collab_service.py  # Phase 11 - Collaboration Service ✅
 │   ├── creative_studio_ai_service.py      # Phase 11 - AI Assets Service ✅
 │   ├── creative_studio_collab_endpoints.py # Phase 11 - Collab + AI Endpoints ✅
+│   ├── usage_analytics_service.py          # Phase 12 - Analytics Service ✅
+│   ├── usage_analytics_endpoints.py        # Phase 12 - Analytics API ✅
 │   ├── tests/
 │   │   ├── test_zero_trust_compliance.py  # Compliance test suite
 │   │   ├── test_royalty_marketplace.py    # Marketplace test suite
