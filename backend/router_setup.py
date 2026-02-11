@@ -63,6 +63,7 @@ from paypal_endpoints import paypal_router
 from moderation_endpoints import router as moderation_router
 from creative_studio_collab_endpoints import router as collab_router, ai_router as ai_assets_router
 from usage_analytics_endpoints import router as usage_analytics_router
+from aws_cloudwatch_endpoints import router as cloudwatch_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -85,7 +86,8 @@ routers = [
     metadata_router, batch_router, reporting_router, rights_router, contracts_router,
     audit_router, media_router, paypal_router, moderation_router,
     collab_router, ai_assets_router,
-    usage_analytics_router
+    usage_analytics_router,
+    cloudwatch_router
 ]
 
 for router in routers:
