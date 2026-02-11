@@ -44,13 +44,27 @@ export const AIAssistantPanel = ({ projectId, canvasSize, onApplyLayout, onApply
   const tones = ['professional', 'casual', 'playful', 'bold', 'luxury', 'minimal'];
   const moods = ['modern', 'warm', 'cool', 'luxury'];
   const platforms = [
-    { id: 'instagram_post', label: 'Instagram Post' },
-    { id: 'instagram_story', label: 'Instagram Story' },
-    { id: 'twitter_post', label: 'Twitter Post' },
-    { id: 'facebook_post', label: 'Facebook Post' },
-    { id: 'youtube_thumbnail', label: 'YouTube Thumbnail' },
-    { id: 'linkedin_post', label: 'LinkedIn Post' }
+    { id: 'instagram_post', label: 'Instagram Post', size: '1080x1080' },
+    { id: 'instagram_story', label: 'Instagram Story', size: '1080x1920' },
+    { id: 'twitter_post', label: 'Twitter Post', size: '1200x675' },
+    { id: 'facebook_post', label: 'Facebook Post', size: '1200x630' },
+    { id: 'youtube_thumbnail', label: 'YouTube Thumbnail', size: '1280x720' },
+    { id: 'linkedin_post', label: 'LinkedIn Post', size: '1200x627' },
+    { id: 'linkedin_banner', label: 'LinkedIn Banner', size: '1584x396' },
+    { id: 'pinterest_pin', label: 'Pinterest Pin', size: '1000x1500' },
+    { id: 'tiktok_video', label: 'TikTok Video', size: '1080x1920' },
+    { id: 'twitter_header', label: 'Twitter Header', size: '1500x500' }
   ];
+
+  const contentTypes = [
+    { id: 'promotional', label: 'Promotional' },
+    { id: 'product', label: 'Product' },
+    { id: 'event', label: 'Event' },
+    { id: 'announcement', label: 'Announcement' },
+    { id: 'portfolio', label: 'Portfolio' },
+    { id: 'quote', label: 'Quote' }
+  ];
+  const [layoutContentType, setLayoutContentType] = useState('promotional');
 
   // ==================== Handlers ====================
   const handleGenerateText = async () => {
