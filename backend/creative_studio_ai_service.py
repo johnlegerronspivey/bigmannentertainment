@@ -234,9 +234,35 @@ Only output the JSON array."""
         layouts = self._generate_layouts(content_type, w, h, element_count, ai_hints=ai_layouts)
         return {"layouts": layouts, "platform": platform, "canvas": size}
 
-    def _generate_layouts(self, content_type: str, w: int, h: int, element_count: int) -> List[Dict]:
-        """Generate layout suggestions"""
+    def _generate_layouts(self, content_type: str, w: int, h: int,
+                          element_count: int, ai_hints: list = None) -> List[Dict]:
+        """Generate layout suggestions with optional AI-generated hints"""
         layouts = []
+
+        # If AI gave us hints, use them as the first layouts
+        if ai_hints:
+            for hint in ai_hints:
+                colors = hint.get("colors", ["#1a1a2e", "#8b5cf6", "#ffffff"])
+                bg = colors[0] if len(colors) > 0 else "#1a1a2e"
+                accent = colors[1] if len(colors) > 1 else "#8b5cf6"
+                text_c = colors[2] if len(colors) > 2 else "#ffffff"
+                layouts.append({
+                    "name": hint.get("name", "AI Layout"),
+                    "description": hint.get("description", "AI-suggested layout"),
+                    "ai_generated": True,
+                    "elements": [
+                        {"type": "rect", "x": 0, "y": 0, "width": w, "height": h,
+                         "style": {"backgroundColor": bg}},
+                        {"type": "rect", "x": w * 0.08, "y": h * 0.12, "width": w * 0.35, "height": h * 0.04,
+                         "style": {"backgroundColor": accent}},
+                        {"type": "text", "x": w * 0.08, "y": h * 0.22, "width": w * 0.84, "height": h * 0.18,
+                         "content": hint.get("name", "Headline"),
+                         "style": {"fontSize": 48, "fontWeight": "bold", "color": text_c, "textAlign": "left"}},
+                        {"type": "text", "x": w * 0.08, "y": h * 0.45, "width": w * 0.6, "height": h * 0.1,
+                         "content": hint.get("description", "Description text"),
+                         "style": {"fontSize": 20, "color": text_c, "textAlign": "left"}}
+                    ]
+                })
 
         # Layout 1: Centered Hero
         layouts.append({
@@ -306,6 +332,46 @@ Only output the JSON array."""
                 {"type": "text", "x": w * 0.18, "y": h * 0.5, "width": w * 0.65, "height": h * 0.15,
                  "content": "Simple and elegant layouts that let your content shine.",
                  "style": {"fontSize": 18, "color": "#64748b", "textAlign": "left"}}
+            ]
+        })
+
+        # Layout 5: Gradient Overlay
+        layouts.append({
+            "name": "Gradient Overlay",
+            "description": "Text over a gradient background — great for stories",
+            "elements": [
+                {"type": "rect", "x": 0, "y": 0, "width": w, "height": h,
+                 "style": {"backgroundColor": "#0ea5e9"}},
+                {"type": "rect", "x": 0, "y": h * 0.5, "width": w, "height": h * 0.5,
+                 "style": {"backgroundColor": "#1e293b", "opacity": 0.7}},
+                {"type": "text", "x": w * 0.08, "y": h * 0.6, "width": w * 0.84, "height": h * 0.12,
+                 "content": "Your Story",
+                 "style": {"fontSize": 52, "fontWeight": "bold", "color": "#ffffff", "textAlign": "left"}},
+                {"type": "text", "x": w * 0.08, "y": h * 0.75, "width": w * 0.7, "height": h * 0.08,
+                 "content": "Tap to explore more",
+                 "style": {"fontSize": 18, "color": "#cbd5e1", "textAlign": "left"}}
+            ]
+        })
+
+        # Layout 6: Grid Showcase
+        layouts.append({
+            "name": "Grid Showcase",
+            "description": "Multi-panel grid for product/portfolio display",
+            "elements": [
+                {"type": "rect", "x": 0, "y": 0, "width": w, "height": h,
+                 "style": {"backgroundColor": "#f1f5f9"}},
+                {"type": "rect", "x": w * 0.04, "y": h * 0.04, "width": w * 0.44, "height": h * 0.44,
+                 "style": {"backgroundColor": "#e2e8f0", "borderRadius": 8}},
+                {"type": "rect", "x": w * 0.52, "y": h * 0.04, "width": w * 0.44, "height": h * 0.44,
+                 "style": {"backgroundColor": "#e2e8f0", "borderRadius": 8}},
+                {"type": "rect", "x": w * 0.04, "y": h * 0.52, "width": w * 0.92, "height": h * 0.18,
+                 "style": {"backgroundColor": "#1e293b", "borderRadius": 8}},
+                {"type": "text", "x": w * 0.1, "y": h * 0.56, "width": w * 0.8, "height": h * 0.1,
+                 "content": "Featured Collection",
+                 "style": {"fontSize": 32, "fontWeight": "bold", "color": "#ffffff", "textAlign": "center"}},
+                {"type": "text", "x": w * 0.08, "y": h * 0.78, "width": w * 0.84, "height": h * 0.06,
+                 "content": "Shop the look — Limited edition",
+                 "style": {"fontSize": 16, "color": "#64748b", "textAlign": "center"}}
             ]
         })
 
