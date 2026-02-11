@@ -321,6 +321,16 @@ async def startup_event():
     print("💾 Cache service initialized")
     print(f"⚡ Performance monitoring active")
 
+    # Initialize CloudWatch monitoring service
+    try:
+        cw_svc = initialize_cloudwatch_service()
+        if cw_svc and cw_svc.aws_connected:
+            print("📈 AWS CloudWatch Monitoring service initialized (LIVE)")
+        else:
+            print("⚠️  CloudWatch monitoring: AWS not connected")
+    except Exception as e:
+        print(f"⚠️  CloudWatch initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
