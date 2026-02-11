@@ -385,19 +385,25 @@ export const AIAssistantPanel = ({ projectId, canvasSize, onApplyLayout, onApply
         {activeTab === 'resize' && (
           <div data-testid="ai-resize-section">
             <p className="text-gray-400 text-[10px] uppercase font-bold mb-1.5">Smart Resize</p>
-            <p className="text-gray-500 text-[10px] mb-2">Adapt your design for multiple platforms</p>
+            <p className="text-gray-500 text-[10px] mb-2">Adapt your design for multiple platforms in one click</p>
 
             <div className="space-y-1 mb-2">
               {platforms.map(p => (
-                <label key={p.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-slate-700/30 cursor-pointer"
+                <label key={p.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors
+                  ${resizePlatforms.includes(p.id) ? 'bg-amber-500/10 border border-amber-500/20' : 'hover:bg-slate-700/30 border border-transparent'}`}
                        data-testid={`resize-platform-${p.id}`}>
                   <input type="checkbox" checked={resizePlatforms.includes(p.id)}
                          onChange={() => toggleResizePlatform(p.id)}
                          className="accent-amber-500 w-3 h-3" />
-                  <span className="text-gray-300 text-xs">{p.label}</span>
+                  <span className="text-gray-300 text-xs flex-1">{p.label}</span>
+                  <span className="text-gray-600 text-[9px] font-mono">{p.size}</span>
                 </label>
               ))}
             </div>
+
+            {resizePlatforms.length > 0 && (
+              <p className="text-amber-300 text-[10px] mb-1.5">{resizePlatforms.length} platform{resizePlatforms.length !== 1 ? 's' : ''} selected</p>
+            )}
 
             <button onClick={handleSmartResize}
                     disabled={loading || !projectId || resizePlatforms.length === 0}
@@ -407,17 +413,22 @@ export const AIAssistantPanel = ({ projectId, canvasSize, onApplyLayout, onApply
               Resize for {resizePlatforms.length} Platform{resizePlatforms.length !== 1 ? 's' : ''}
             </button>
 
+            {!projectId && (
+              <p className="text-gray-600 text-[10px] mt-1 text-center">Select a project first to use Smart Resize</p>
+            )}
+
             {/* Resize Results */}
             {resizeResults.length > 0 && (
               <div className="mt-2 space-y-1.5" data-testid="resize-results">
+                <p className="text-emerald-400 text-[10px] font-medium">Generated {resizeResults.length} version{resizeResults.length !== 1 ? 's' : ''}</p>
                 {resizeResults.map((r, i) => (
-                  <div key={i} className="bg-slate-700/50 rounded p-2 border border-slate-600/30"
+                  <div key={i} className="bg-slate-700/50 rounded p-2 border border-emerald-500/20"
                        data-testid={`resize-result-${i}`}>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-200 text-xs capitalize">{r.platform?.replace(/_/g, ' ')}</span>
-                      <span className="text-gray-500 text-[10px]">{r.width}x{r.height}</span>
+                      <span className="text-gray-200 text-xs capitalize font-medium">{r.platform?.replace(/_/g, ' ')}</span>
+                      <span className="text-emerald-400 text-[10px] font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded">{r.width}x{r.height}</span>
                     </div>
-                    <p className="text-gray-500 text-[10px]">{r.elements?.length || 0} elements adapted</p>
+                    <p className="text-gray-500 text-[10px] mt-0.5">{r.elements?.length || 0} elements adapted</p>
                   </div>
                 ))}
               </div>
