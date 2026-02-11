@@ -321,11 +321,23 @@ export const AIAssistantPanel = ({ projectId, canvasSize, onApplyLayout, onApply
           <div data-testid="ai-layout-section">
             <p className="text-gray-400 text-[10px] uppercase font-bold mb-1.5">Layout Suggestions</p>
 
+            {/* Content type selector */}
+            <div className="flex flex-wrap gap-1 mb-2">
+              {contentTypes.map(ct => (
+                <button key={ct.id} onClick={() => setLayoutContentType(ct.id)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full transition-colors
+                          ${layoutContentType === ct.id ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-slate-700 text-gray-400 border border-transparent hover:bg-slate-600'}`}
+                        data-testid={`content-type-${ct.id}`}>
+                  {ct.label}
+                </button>
+              ))}
+            </div>
+
             <select value={layoutPlatform} onChange={e => setLayoutPlatform(e.target.value)}
                     className="w-full bg-slate-700 text-white text-xs rounded px-2 py-1.5 border border-slate-600 mb-1.5"
                     data-testid="layout-platform-select">
               {platforms.map(p => (
-                <option key={p.id} value={p.id}>{p.label}</option>
+                <option key={p.id} value={p.id}>{p.label} ({p.size})</option>
               ))}
             </select>
 
@@ -340,12 +352,15 @@ export const AIAssistantPanel = ({ projectId, canvasSize, onApplyLayout, onApply
             {layoutResults.length > 0 && (
               <div className="mt-2 space-y-2" data-testid="layout-results">
                 {layoutResults.map((layout, i) => (
-                  <div key={i} className="bg-slate-700/50 rounded-lg p-2 border border-slate-600/30 hover:border-purple-500/30 cursor-pointer"
+                  <div key={i} className={`bg-slate-700/50 rounded-lg p-2 border cursor-pointer ${layout.ai_generated ? 'border-amber-500/40 hover:border-amber-400/60' : 'border-slate-600/30 hover:border-purple-500/30'}`}
                        onClick={() => onApplyLayout && onApplyLayout(layout)}
                        data-testid={`layout-option-${i}`}>
+                    {layout.ai_generated && (
+                      <span className="text-[8px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full mb-1 inline-block">AI Generated</span>
+                    )}
                     {/* Mini preview */}
                     <div className="w-full h-16 rounded mb-1.5 relative overflow-hidden bg-slate-800">
-                      {layout.elements?.slice(0, 3).map((el, j) => (
+                      {layout.elements?.slice(0, 4).map((el, j) => (
                         <div key={j} className="absolute rounded-sm"
                              style={{
                                left: `${(el.x / 1080) * 100}%`,
