@@ -943,7 +943,22 @@ Testing: 100% backend (9/9) + 100% frontend (all features verified)
 - **Issue**: Prototype pollution in `mergeConfig` allows DoS via `__proto__` key in JSON payloads
 - **Affected**: axios <= 1.13.4
 - **Fix**: Upgraded axios from 1.13.2 → 1.13.5
-- **File**: `/app/frontend/package.json`
+
+### Full Dependency Audit (Feb 2026) ✅ COMPLETED
+**Before:** 1 High, 1 Moderate, 5 Low vulnerabilities
+**After:** 0 High, 0 Moderate, 2 Low (unfixable)
+
+| Package | Severity | Before | After | Status |
+|---------|----------|--------|-------|--------|
+| axios | High | 1.13.2 | 1.13.5 | ✅ Fixed |
+| @isaacs/brace-expansion | High | 5.0.0 | 5.0.1 | ✅ Fixed |
+| lodash | Moderate | 4.17.21 | 4.17.23 | ✅ Fixed |
+| diff | Low | 4.0.2 | 4.0.4 | ✅ Fixed |
+| webpack | Low | 5.97.1 | 5.105.1 | ✅ Fixed |
+| @smithy/config-resolver | Low | 3.0.13 | 3.0.13 | ⚠️ Needs major bump (4.x), would break AWS SDK |
+| elliptic | Low | 6.6.1 | 6.6.1 | ⚠️ No upstream fix available |
+
+**File**: `/app/frontend/package.json` (resolutions block)
 
 ## Last Updated
 February 2026
