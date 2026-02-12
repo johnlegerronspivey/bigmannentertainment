@@ -331,6 +331,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  CloudWatch initialization failed: {str(e)}")
 
+    # Initialize CVE Monitor (auto-start if previously enabled)
+    try:
+        from security_audit_service import get_security_audit_service
+        cve_svc = get_security_audit_service()
+        await cve_svc.start_if_enabled()
+        print("🛡️  CVE Monitor service initialized")
+    except Exception as e:
+        print(f"⚠️  CVE Monitor initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
