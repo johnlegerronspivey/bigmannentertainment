@@ -60,6 +60,7 @@ import GuardDutyDashboard from './GuardDutyComponents';
 import QLDBDashboard from './QLDBComponents';
 import UsageAnalyticsDashboard from './UsageAnalyticsDashboard';
 import AWSCloudWatchDashboard from './AWSCloudWatchComponents';
+import SecurityAuditDashboard from './SecurityAuditDashboard';
 
 import ContentModerationComponent from './ContentModerationComponent';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
