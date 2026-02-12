@@ -936,5 +936,14 @@ Testing: 100% backend (9/9) + 100% frontend (all features verified)
 - **Credentials**: Configured in environment
 - **Services Connected**: CloudWatch, GuardDuty, SNS, EventBridge, S3
 
+## Security Fixes
+
+### CVE-2026-25639 - Axios Prototype Pollution (Feb 2026) ✅ FIXED
+- **Severity**: High (CVSS 7.5)
+- **Issue**: Prototype pollution in `mergeConfig` allows DoS via `__proto__` key in JSON payloads
+- **Affected**: axios <= 1.13.4
+- **Fix**: Upgraded axios from 1.13.2 → 1.13.5
+- **File**: `/app/frontend/package.json`
+
 ## Last Updated
 February 2026
