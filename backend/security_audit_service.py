@@ -100,9 +100,10 @@ class SecurityAuditService:
 
     async def run_backend_audit(self) -> Dict[str, Any]:
         """Run pip-audit on backend Python dependencies."""
+        pip_audit_path = "/root/.venv/bin/pip-audit"
         try:
             proc = await asyncio.create_subprocess_exec(
-                "pip-audit", "--format", "json", "--progress-spinner", "off",
+                pip_audit_path, "--format", "json", "--progress-spinner", "off",
                 cwd=BACKEND_DIR,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
