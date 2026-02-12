@@ -1,12 +1,12 @@
 """
-Security Audit Service - Automated dependency vulnerability monitoring
+Security Audit Service - Automated dependency vulnerability monitoring with CVE alerting
 """
 
 import asyncio
 import json
 import logging
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -33,13 +33,213 @@ def get_security_audit_service():
 class SecurityAuditService:
     def __init__(self, db):
         self.db = db
-        self.collection = db["security_audits"]
+        self.audits_col = db["security_audits"]
+        self.alerts_col = db["security_alerts"]
+        self.config_col = db["security_monitor_config"]
         self._cache: Optional[Dict[str, Any]] = None
         self._cache_time: Optional[datetime] = None
-        self._cache_ttl = 300  # 5 min cache
+        self._cache_ttl = 300
+        self._monitor_task: Optional[asyncio.Task] = None
+        self._monitor_running = False
+
+    # ─── Monitoring Scheduler ──────────────────────────────────────
+
+    async def get_monitor_config(self) -> Dict[str, Any]:
+        config = await self.config_col.find_one({"type": "monitor"}, {"_id": 0})
+        if not config:
+            config = {
+                "type": "monitor",
+                "enabled": False,
+                "interval_hours": 24,
+                "alert_on_critical": True,
+                "alert_on_high": True,
+                "alert_on_moderate": False,
+                "alert_on_low": False,
+                "last_scan": None,
+                "next_scan": None,
+                "total_scans": 0,
+            }
+            await self.config_col.insert_one({**config})
+        return {k: v for k, v in config.items() if k != "_id"}
+
+    async def update_monitor_config(self, updates: Dict[str, Any]) -> Dict[str, Any]:
+        allowed = {"enabled", "interval_hours", "alert_on_critical", "alert_on_high", "alert_on_moderate", "alert_on_low"}
+        clean = {k: v for k, v in updates.items() if k in allowed}
+        if not clean:
+            return await self.get_monitor_config()
+
+        await self.config_col.update_one(
+            {"type": "monitor"},
+            {"$set": clean},
+            upsert=True,
+        )
+
+        config = await self.get_monitor_config()
+        if config.get("enabled") and not self._monitor_running:
+            self._start_monitor(config["interval_hours"])
+        elif not config.get("enabled") and self._monitor_running:
+            self._stop_monitor()
+
+        return config
+
+    def _start_monitor(self, interval_hours: int):
+        if self._monitor_task and not self._monitor_task.done():
+            self._monitor_task.cancel()
+        self._monitor_running = True
+        self._monitor_task = asyncio.create_task(self._monitor_loop(interval_hours))
+        logger.info(f"CVE monitor started with {interval_hours}h interval")
+
+    def _stop_monitor(self):
+        self._monitor_running = False
+        if self._monitor_task and not self._monitor_task.done():
+            self._monitor_task.cancel()
+        logger.info("CVE monitor stopped")
+
+    async def _monitor_loop(self, interval_hours: int):
+        while self._monitor_running:
+            try:
+                logger.info("Automated CVE scan starting...")
+                result = await self.run_full_audit(force=True, is_scheduled=True)
+                await self._check_and_alert(result)
+
+                next_scan = datetime.now(timezone.utc) + timedelta(hours=interval_hours)
+                await self.config_col.update_one(
+                    {"type": "monitor"},
+                    {"$set": {
+                        "last_scan": datetime.now(timezone.utc).isoformat(),
+                        "next_scan": next_scan.isoformat(),
+                    }, "$inc": {"total_scans": 1}},
+                )
+                logger.info(f"Scan complete. Next scan at {next_scan.isoformat()}")
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Monitor scan error: {e}")
+
+            try:
+                await asyncio.sleep(interval_hours * 3600)
+            except asyncio.CancelledError:
+                break
+
+    async def start_if_enabled(self):
+        config = await self.get_monitor_config()
+        if config.get("enabled"):
+            self._start_monitor(config["interval_hours"])
+
+    # ─── Alert System ──────────────────────────────────────────────
+
+    async def _check_and_alert(self, scan_result: Dict[str, Any]):
+        config = await self.get_monitor_config()
+        fe_vulns = scan_result.get("frontend", {}).get("vulnerabilities", [])
+        be_vulns = scan_result.get("backend", {}).get("vulnerabilities", [])
+        all_vulns = fe_vulns + be_vulns
+
+        if not all_vulns:
+            return
+
+        # Get previous scan's vulnerability signatures
+        previous = await self.audits_col.find_one(
+            {"is_scheduled": True},
+            {"_id": 0, "vuln_signatures": 1},
+            sort=[("timestamp", -1)],
+            skip=1,
+        )
+        prev_sigs = set(previous.get("vuln_signatures", [])) if previous else set()
+
+        severity_filter = set()
+        if config.get("alert_on_critical"):
+            severity_filter.add("critical")
+        if config.get("alert_on_high"):
+            severity_filter.add("high")
+        if config.get("alert_on_moderate"):
+            severity_filter.add("moderate")
+        if config.get("alert_on_low"):
+            severity_filter.add("low")
+
+        now = datetime.now(timezone.utc).isoformat()
+        new_alerts = []
+
+        for v in all_vulns:
+            sig = f"{v.get('module', '')}|{v.get('title', '')}"
+            sev = v.get("severity", "unknown").lower()
+            if sig not in prev_sigs and sev in severity_filter:
+                alert = {
+                    "type": "new_vulnerability",
+                    "severity": sev,
+                    "module": v.get("module", "unknown"),
+                    "title": v.get("title", ""),
+                    "description": v.get("description", v.get("recommendation", "")),
+                    "url": v.get("url", ""),
+                    "stack": "frontend" if v in fe_vulns else "backend",
+                    "timestamp": now,
+                    "read": False,
+                    "dismissed": False,
+                }
+                new_alerts.append(alert)
+
+        if new_alerts:
+            await self.alerts_col.insert_many(new_alerts)
+            logger.info(f"Generated {len(new_alerts)} new vulnerability alerts")
+
+        # Also generate summary alert if total vulns changed
+        total = scan_result.get("total_vulnerabilities", 0)
+        sb = scan_result.get("severity_breakdown", {})
+        if total > 0 and not prev_sigs:
+            summary_alert = {
+                "type": "scan_summary",
+                "severity": "critical" if sb.get("critical", 0) > 0 else "high" if sb.get("high", 0) > 0 else "moderate",
+                "module": "System",
+                "title": f"Scan detected {total} vulnerabilities",
+                "description": f"Critical: {sb.get('critical', 0)}, High: {sb.get('high', 0)}, Moderate: {sb.get('moderate', 0)}, Low: {sb.get('low', 0)}",
+                "url": "",
+                "stack": "all",
+                "timestamp": now,
+                "read": False,
+                "dismissed": False,
+            }
+            await self.alerts_col.insert_one(summary_alert)
+
+    async def get_alerts(self, limit: int = 50, unread_only: bool = False) -> List[Dict[str, Any]]:
+        query = {"dismissed": False}
+        if unread_only:
+            query["read"] = False
+        cursor = self.alerts_col.find(query, {"_id": 0}).sort("timestamp", -1).limit(limit)
+        return await cursor.to_list(length=limit)
+
+    async def get_alert_count(self) -> Dict[str, int]:
+        unread = await self.alerts_col.count_documents({"read": False, "dismissed": False})
+        total = await self.alerts_col.count_documents({"dismissed": False})
+        return {"unread": unread, "total": total}
+
+    async def mark_alerts_read(self, alert_ids: Optional[List[str]] = None) -> int:
+        if alert_ids:
+            result = await self.alerts_col.update_many(
+                {"timestamp": {"$in": alert_ids}, "read": False},
+                {"$set": {"read": True}},
+            )
+        else:
+            result = await self.alerts_col.update_many(
+                {"read": False},
+                {"$set": {"read": True}},
+            )
+        return result.modified_count
+
+    async def dismiss_alerts(self, alert_ids: Optional[List[str]] = None) -> int:
+        if alert_ids:
+            result = await self.alerts_col.update_many(
+                {"timestamp": {"$in": alert_ids}},
+                {"$set": {"dismissed": True}},
+            )
+        else:
+            result = await self.alerts_col.update_many(
+                {},
+                {"$set": {"dismissed": True}},
+            )
+        return result.modified_count
+
+    # ─── Core Audit Methods ────────────────────────────────────────
 
     async def run_frontend_audit(self) -> Dict[str, Any]:
-        """Run yarn audit on frontend dependencies."""
         try:
             proc = await asyncio.create_subprocess_exec(
                 "yarn", "audit", "--json",
@@ -84,7 +284,6 @@ class SecurityAuditService:
             except (json.JSONDecodeError, KeyError):
                 continue
 
-        # Deduplicate
         seen = set()
         unique = []
         for v in vulnerabilities:
@@ -99,7 +298,6 @@ class SecurityAuditService:
         return {"vulnerabilities": unique, "summary": summary}
 
     async def run_backend_audit(self) -> Dict[str, Any]:
-        """Run pip-audit on backend Python dependencies."""
         pip_audit_path = "/root/.venv/bin/pip-audit"
         try:
             proc = await asyncio.create_subprocess_exec(
@@ -111,7 +309,6 @@ class SecurityAuditService:
             stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=120)
             return self._parse_pip_audit(stdout.decode("utf-8", errors="replace"))
         except FileNotFoundError:
-            # pip-audit not installed — try safety
             return await self._run_safety_check()
         except asyncio.TimeoutError:
             return {"error": "Backend audit timed out", "vulnerabilities": [], "summary": {}}
@@ -143,7 +340,6 @@ class SecurityAuditService:
         }
 
     async def _run_safety_check(self) -> Dict[str, Any]:
-        """Fallback: use safety check."""
         try:
             proc = await asyncio.create_subprocess_exec(
                 "safety", "check", "--json",
@@ -177,11 +373,9 @@ class SecurityAuditService:
                 "note": "Neither pip-audit nor safety installed. Install with: pip install pip-audit",
             }
 
-    async def run_full_audit(self, force: bool = False) -> Dict[str, Any]:
-        """Run full audit on both frontend and backend."""
+    async def run_full_audit(self, force: bool = False, is_scheduled: bool = False) -> Dict[str, Any]:
         now = datetime.now(timezone.utc)
 
-        # Return cache if fresh
         if not force and self._cache and self._cache_time:
             age = (now - self._cache_time).total_seconds()
             if age < self._cache_ttl:
@@ -202,7 +396,6 @@ class SecurityAuditService:
         total_moderate = fe_vuln_counts.get("moderate", 0)
         total_low = fe_vuln_counts.get("low", 0)
 
-        # Add backend counts
         for v in be_vulns:
             sev = v.get("severity", "").lower()
             if sev == "critical":
@@ -233,6 +426,9 @@ class SecurityAuditService:
         else:
             grade = "F"
 
+        # Build vulnerability signatures for diff detection
+        vuln_sigs = [f"{v.get('module', '')}|{v.get('title', '')}" for v in fe_vulns + be_vulns]
+
         result = {
             "timestamp": now.isoformat(),
             "security_score": score,
@@ -258,7 +454,6 @@ class SecurityAuditService:
             "cached": False,
         }
 
-        # Save to MongoDB
         audit_record = {
             "timestamp": now.isoformat(),
             "security_score": score,
@@ -268,8 +463,10 @@ class SecurityAuditService:
             "frontend_vuln_count": len(fe_vulns),
             "backend_vuln_count": len(be_vulns),
             "total_dependencies": fe_summary.get("total_dependencies", 0),
+            "is_scheduled": is_scheduled,
+            "vuln_signatures": vuln_sigs,
         }
-        await self.collection.insert_one(audit_record)
+        await self.audits_col.insert_one(audit_record)
 
         self._cache = result
         self._cache_time = now
@@ -277,8 +474,15 @@ class SecurityAuditService:
         return result
 
     async def get_audit_history(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get previous audit results."""
-        cursor = self.collection.find(
-            {}, {"_id": 0}
+        cursor = self.audits_col.find(
+            {}, {"_id": 0, "vuln_signatures": 0}
         ).sort("timestamp", -1).limit(limit)
         return await cursor.to_list(length=limit)
+
+    async def get_trend_data(self, days: int = 30) -> List[Dict[str, Any]]:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        cursor = self.audits_col.find(
+            {"timestamp": {"$gte": cutoff}},
+            {"_id": 0, "vuln_signatures": 0},
+        ).sort("timestamp", 1)
+        return await cursor.to_list(length=500)
