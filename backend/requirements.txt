@@ -145,7 +145,7 @@ pyflakes==3.4.0
 Pygments==2.19.2
 PyJWT==2.10.1
 pymongo==4.15.4
-pyOpenSSL==25.1.0
+pyOpenSSL==25.3.0
 pyparsing==3.2.3
 pyqldb==3.2.4
 pytest==8.4.1
