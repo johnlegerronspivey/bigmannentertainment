@@ -990,5 +990,11 @@ Testing: 100% backend (9/9) + 100% frontend (all features verified)
 
 **Route:** `/security-audit`
 
+### CVE-2026-1615 - jsonpath Arbitrary Code Injection (Feb 2026) ✅ FIXED
+- **Severity**: Critical (CVSS 9.8)
+- **Package**: `jsonpath` (all versions) — transitive dependency via `react-scripts` → `bfj`
+- **Fix**: No patched version of `jsonpath` exists. Resolved by forcing `bfj` to v9.1.3 (which dropped `jsonpath` entirely) via `resolutions` in `package.json`. Removed the old `jsonpath` resolution entry.
+- **Result**: `jsonpath` completely removed from dependency tree. `yarn audit` shows 0 vulnerabilities.
+
 ## Last Updated
 February 2026
