@@ -955,8 +955,10 @@ Testing: 100% backend (9/9) + 100% frontend (all features verified)
 | lodash | Moderate | 4.17.21 | 4.17.23 | ✅ Fixed |
 | diff | Low | 4.0.2 | 4.0.4 | ✅ Fixed |
 | webpack | Low | 5.97.1 | 5.105.1 | ✅ Fixed |
-| @smithy/config-resolver | Low | 3.0.13 | 3.0.13 | ⚠️ Needs major bump (4.x), would break AWS SDK |
-| elliptic | Low | 6.6.1 | 6.6.1 | ⚠️ No upstream fix available |
+| @smithy/config-resolver | Low | 3.0.13 | 4.4.6 | ✅ Fixed (aws-amplify 6.16.2) |
+| elliptic | Low | 6.6.1 | REMOVED | ✅ Fixed (WalletConnect 2.23.5 uses @noble/curves) |
+
+**Final audit result: 0 Critical, 0 High, 0 Moderate, 0 Low across 2,196 dependencies**
 
 **File**: `/app/frontend/package.json` (resolutions block)
 
