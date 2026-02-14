@@ -197,6 +197,9 @@ class SecurityAuditService:
         if new_alerts:
             await self.alerts_col.insert_many(new_alerts)
             logger.info(f"Generated {len(new_alerts)} new vulnerability alerts")
+            # Send email notification
+            if config.get("email_notifications") and config.get("alert_email"):
+                await self._send_alert_email(new_alerts, scan_result, config["alert_email"])
 
         # Also generate summary alert if total vulns changed
         total = scan_result.get("total_vulnerabilities", 0)
