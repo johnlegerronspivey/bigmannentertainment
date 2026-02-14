@@ -579,7 +579,7 @@ export default function SecurityAuditDashboard() {
 
         {/* ── Monitoring Tab ── */}
         {activeTab === 'monitoring' && (
-          <MonitorPanel config={monitorConfig} onUpdate={handleUpdateConfig} onScanNow={handleScanNow} scanning={scanning} />
+          <MonitorPanel config={monitorConfig} onUpdate={handleUpdateConfig} onScanNow={handleScanNow} scanning={scanning} onTestEmail={handleTestEmail} testingEmail={testingEmail} />
         )}
 
         {/* ── Alerts Tab ── */}
