@@ -461,6 +461,11 @@ export default function SecurityAuditDashboard() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Auto-scan ON
               </span>
             )}
+            {monitorConfig?.email_notifications && (
+              <span className="flex items-center gap-1.5 text-xs text-violet-400 bg-violet-900/30 px-2.5 py-1 rounded-full" data-testid="email-active-badge">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> Email ON
+              </span>
+            )}
             {auditData?.cached && <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded" data-testid="cache-indicator">Cached ({auditData.cache_age_seconds}s)</span>}
             <button onClick={() => fetchAudit(true)} disabled={loading}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
