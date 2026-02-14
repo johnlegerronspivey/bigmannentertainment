@@ -269,7 +269,7 @@ class ScannerService:
         result = {"id": scan_id, "scanner": "checkov", "scan_type": "iac",
                   "target": target, "started_at": now, "status": "running"}
         try:
-            cmd = ["checkov", "-d", target, "--output", "json", "--compact"]
+            cmd = ["/root/.venv/bin/checkov", "-d", target, "--output", "json", "--compact"]
             if framework != "all":
                 cmd.extend(["--framework", framework])
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
