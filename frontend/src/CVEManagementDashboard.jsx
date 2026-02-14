@@ -1314,8 +1314,11 @@ export default function CVEManagementDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {tab === "overview" && <OverviewTab dashboard={dashboard} onRefresh={fetchDashboard} loading={loading} />}
         {tab === "cves" && <CVEDatabaseTab onRefresh={fetchDashboard} />}
+        {tab === "scanners" && <ScannersTab onRefresh={fetchDashboard} />}
         {tab === "services" && <ServicesTab onRefresh={fetchDashboard} />}
         {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
+        {tab === "cicd" && <CICDTab onRefresh={fetchDashboard} />}
+        {tab === "policy-engine" && <PolicyEngineTab onRefresh={fetchDashboard} />}
         {tab === "policies" && <PoliciesTab onRefresh={fetchDashboard} />}
         {tab === "audit" && <AuditTrailTab />}
       </div>
