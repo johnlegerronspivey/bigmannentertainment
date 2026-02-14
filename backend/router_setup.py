@@ -65,6 +65,7 @@ from creative_studio_collab_endpoints import router as collab_router, ai_router 
 from usage_analytics_endpoints import router as usage_analytics_router
 from aws_cloudwatch_endpoints import router as cloudwatch_router
 from security_audit_endpoints import router as security_audit_router
+from cve_management_endpoints import router as cve_management_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
