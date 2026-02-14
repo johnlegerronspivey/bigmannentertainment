@@ -126,3 +126,27 @@ async def dismiss_alerts(body: AlertAction):
     service = get_security_audit_service()
     count = await service.dismiss_alerts(body.alert_ids)
     return {"dismissed": count}
+
+
+# ─── Email Notifications ───────────────────────────────────────
+
+@router.post("/email/test")
+async def send_test_email(body: TestEmailRequest):
+    service = get_security_audit_service()
+    return await service.send_test_email(body.recipient or "")
+
+
+@router.get("/email/status")
+async def email_status():
+    import resend as _resend
+    has_key = bool(_resend.api_key)
+    import os
+    default_email = os.environ.get("CVE_ALERT_EMAIL", "")
+    service = get_security_audit_service()
+    config = await service.get_monitor_config()
+    return {
+        "configured": has_key and bool(config.get("alert_email")),
+        "has_api_key": has_key,
+        "alert_email": config.get("alert_email", default_email),
+        "email_notifications_enabled": config.get("email_notifications", False),
+    }
