@@ -90,7 +90,8 @@ routers = [
     collab_router, ai_assets_router,
     usage_analytics_router,
     cloudwatch_router,
-    security_audit_router
+    security_audit_router,
+    cve_management_router
 ]
 
 for router in routers:
