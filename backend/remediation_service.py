@@ -232,7 +232,10 @@ class RemediationService:
             return {"success": True, "issue_number": issue.number, "issue_url": issue.html_url, "item": item}
         except GithubException as e:
             logger.error(f"GitHub issue creation failed: {e}")
-            return {"error": f"GitHub API error: {str(e)}", "success": False}
+            msg = str(e)
+            if "403" in msg:
+                msg = "GitHub token lacks write permissions. Update your token's permissions to include 'Issues: Read and write' at github.com/settings/tokens"
+            return {"error": msg, "success": False}
 
     def _build_issue_body(self, cve: Dict) -> str:
         severity = cve.get("severity", "medium").upper()
