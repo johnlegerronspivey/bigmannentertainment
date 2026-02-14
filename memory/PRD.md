@@ -1038,7 +1038,28 @@ Testing: 100% backend (9/9) + 100% frontend (all features verified)
 ✅ History: Audit records with trend chart
 ```
 
-**Route:** `/security-audit`
+### Email Notifications via Resend (Feb 2026) ✅ FULLY IMPLEMENTED & TESTED
+**Features:**
+- **Resend Integration**: Sends beautifully formatted HTML emails via Resend API when new CVEs are detected
+- **HTML Email Template**: Dark-themed email with security score, severity counts, and vulnerability table
+- **Configurable**: Enable/disable email notifications, set recipient email address via Monitoring tab
+- **Test Email**: "Test Email" button to verify email delivery is working
+- **Auto-alert on scan**: When monitor detects new vulnerabilities matching severity filters, email is automatically sent
+- **Email ON badge**: Header shows "Email ON" indicator when notifications are active
 
-## Last Updated
-February 2026
+**API Endpoints:**
+- `GET /api/security/email/status` - Email configuration status (has_api_key, configured, etc.)
+- `POST /api/security/email/test` - Send a test email to verify integration
+
+**Config Fields Added:**
+- `email_notifications` (boolean) - Enable/disable email alerts
+- `alert_email` (string) - Recipient email address
+
+**Test Results (Feb 2026):**
+```
+✅ Backend: 100% (13/13 tests passed including regression)
+✅ Frontend: 100% (toggle, email input, test button, badge, all verified)
+✅ Real emails sent via Resend API (not mocked)
+```
+
+**Route:** `/security-audit` → Monitoring tab → Email Notifications section
