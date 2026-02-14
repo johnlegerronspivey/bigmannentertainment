@@ -1066,3 +1066,16 @@ February 2026
 ```
 
 **Route:** `/security-audit` → Monitoring tab → Email Notifications section
+
+### Persistent Alert Storage (Feb 2026) ✅ CONFIRMED WORKING
+**Status:** Already implemented with MongoDB. Verified Feb 2026.
+**MongoDB Collections:**
+- `security_audits` - Stores all audit scan results with severity breakdown, scores, and vuln signatures
+- `security_alerts` - Persistent alert storage (survives app restarts)
+- `security_monitor_config` - Monitor configuration (enabled state, interval, email settings)
+
+**Verification:**
+- 16 audit records persisted across sessions
+- Monitor config with 7 total scans, last scan timestamp preserved
+- Alert CRUD operations (create, read, mark read, dismiss) all use MongoDB
+- No in-memory alert storage - all data fully persistent
