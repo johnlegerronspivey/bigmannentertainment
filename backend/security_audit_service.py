@@ -219,6 +219,159 @@ class SecurityAuditService:
             }
             await self.alerts_col.insert_one(summary_alert)
 
+    # ─── Email Notifications via Resend ──────────────────────────
+
+    def _build_alert_html(self, alerts: List[Dict[str, Any]], scan_result: Dict[str, Any]) -> str:
+        sb = scan_result.get("severity_breakdown", {})
+        score = scan_result.get("security_score", 0)
+        grade = scan_result.get("grade", "?")
+        sev_colors = {"critical": "#ef4444", "high": "#f97316", "moderate": "#eab308", "low": "#3b82f6"}
+
+        vuln_rows = ""
+        for a in alerts[:20]:
+            color = sev_colors.get(a["severity"], "#94a3b8")
+            vuln_rows += f"""
+            <tr>
+              <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;">
+                <span style="background:{color};color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;">{a['severity']}</span>
+              </td>
+              <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-weight:600;">{a['module']}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;color:#475569;">{a['title']}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;">{a['stack']}</td>
+            </tr>"""
+
+        return f"""
+        <div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:0 auto;background:#0f172a;border-radius:12px;overflow:hidden;">
+          <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:24px 32px;">
+            <h1 style="color:#fff;margin:0;font-size:22px;">CVE Alert: {len(alerts)} New Vulnerabilities Detected</h1>
+            <p style="color:#c7d2fe;margin:8px 0 0;font-size:14px;">Big Mann Entertainment - Security Monitor</p>
+          </div>
+          <div style="padding:24px 32px;">
+            <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+              <tr>
+                <td style="padding:12px;background:#1e293b;border-radius:8px;text-align:center;width:25%;">
+                  <div style="font-size:28px;font-weight:700;color:{'#34d399' if score >= 90 else '#facc15' if score >= 60 else '#f87171'};">{score}</div>
+                  <div style="font-size:11px;color:#94a3b8;margin-top:4px;">SCORE (Grade {grade})</div>
+                </td>
+                <td style="width:8px;"></td>
+                <td style="padding:12px;background:#1e293b;border-radius:8px;text-align:center;width:25%;">
+                  <div style="font-size:28px;font-weight:700;color:#ef4444;">{sb.get('critical', 0)}</div>
+                  <div style="font-size:11px;color:#94a3b8;margin-top:4px;">CRITICAL</div>
+                </td>
+                <td style="width:8px;"></td>
+                <td style="padding:12px;background:#1e293b;border-radius:8px;text-align:center;width:25%;">
+                  <div style="font-size:28px;font-weight:700;color:#f97316;">{sb.get('high', 0)}</div>
+                  <div style="font-size:11px;color:#94a3b8;margin-top:4px;">HIGH</div>
+                </td>
+                <td style="width:8px;"></td>
+                <td style="padding:12px;background:#1e293b;border-radius:8px;text-align:center;width:25%;">
+                  <div style="font-size:28px;font-weight:700;color:#eab308;">{sb.get('moderate', 0) + sb.get('low', 0)}</div>
+                  <div style="font-size:11px;color:#94a3b8;margin-top:4px;">OTHER</div>
+                </td>
+              </tr>
+            </table>
+            <h2 style="color:#e2e8f0;font-size:16px;margin:20px 0 12px;">New Vulnerabilities</h2>
+            <table style="width:100%;border-collapse:collapse;background:#1e293b;border-radius:8px;overflow:hidden;">
+              <thead>
+                <tr style="background:#334155;">
+                  <th style="padding:10px 12px;text-align:left;color:#94a3b8;font-size:11px;font-weight:600;">SEVERITY</th>
+                  <th style="padding:10px 12px;text-align:left;color:#94a3b8;font-size:11px;font-weight:600;">PACKAGE</th>
+                  <th style="padding:10px 12px;text-align:left;color:#94a3b8;font-size:11px;font-weight:600;">ISSUE</th>
+                  <th style="padding:10px 12px;text-align:left;color:#94a3b8;font-size:11px;font-weight:600;">STACK</th>
+                </tr>
+              </thead>
+              <tbody style="color:#e2e8f0;font-size:13px;">{vuln_rows}</tbody>
+            </table>
+            {f'<p style="color:#94a3b8;font-size:12px;margin-top:8px;">Showing first 20 of {len(alerts)} vulnerabilities.</p>' if len(alerts) > 20 else ''}
+            <p style="color:#64748b;font-size:12px;margin-top:24px;text-align:center;">
+              Sent by CVE Monitor at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}
+            </p>
+          </div>
+        </div>"""
+
+    async def _send_alert_email(self, alerts: List[Dict[str, Any]], scan_result: Dict[str, Any], recipient: str):
+        if not resend.api_key:
+            logger.warning("Resend API key not configured, skipping email")
+            return {"sent": False, "error": "No API key"}
+        try:
+            html = self._build_alert_html(alerts, scan_result)
+            critical_count = sum(1 for a in alerts if a["severity"] == "critical")
+            high_count = sum(1 for a in alerts if a["severity"] == "high")
+            subject = f"[CVE Alert] {len(alerts)} new vulnerabilities detected"
+            if critical_count:
+                subject = f"[CRITICAL] {critical_count} critical CVEs detected"
+            elif high_count:
+                subject = f"[HIGH] {high_count} high-severity CVEs detected"
+
+            params = {
+                "from": SENDER_EMAIL,
+                "to": [recipient],
+                "subject": subject,
+                "html": html,
+            }
+            result = await asyncio.to_thread(resend.Emails.send, params)
+            email_id = result.get("id") if isinstance(result, dict) else getattr(result, "id", str(result))
+            logger.info(f"CVE alert email sent to {recipient}, id={email_id}")
+
+            # Log the notification
+            await self.alerts_col.insert_one({
+                "type": "email_notification",
+                "severity": "info",
+                "module": "Email",
+                "title": f"Alert email sent to {recipient}",
+                "description": f"Notified about {len(alerts)} new vulnerabilities (id: {email_id})",
+                "url": "",
+                "stack": "system",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "read": True,
+                "dismissed": False,
+            })
+            return {"sent": True, "email_id": email_id}
+        except Exception as e:
+            logger.error(f"Failed to send CVE alert email: {e}")
+            return {"sent": False, "error": str(e)}
+
+    async def send_test_email(self, recipient: str = "") -> Dict[str, Any]:
+        """Send a test email to verify Resend integration."""
+        to = recipient or DEFAULT_ALERT_EMAIL
+        if not to:
+            return {"sent": False, "error": "No recipient email configured"}
+        if not resend.api_key:
+            return {"sent": False, "error": "Resend API key not configured"}
+
+        html = """
+        <div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:0 auto;background:#0f172a;border-radius:12px;overflow:hidden;">
+          <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:24px 32px;">
+            <h1 style="color:#fff;margin:0;font-size:22px;">CVE Monitor - Test Email</h1>
+            <p style="color:#c7d2fe;margin:8px 0 0;font-size:14px;">Big Mann Entertainment</p>
+          </div>
+          <div style="padding:24px 32px;">
+            <div style="background:#1e293b;border-radius:8px;padding:20px;text-align:center;">
+              <div style="font-size:48px;margin-bottom:12px;">&#9989;</div>
+              <h2 style="color:#34d399;margin:0 0 8px;">Email Notifications Working</h2>
+              <p style="color:#94a3b8;font-size:14px;margin:0;">Your CVE Monitor email alerts are configured correctly. You will receive notifications when new vulnerabilities are detected.</p>
+            </div>
+            <p style="color:#64748b;font-size:12px;margin-top:24px;text-align:center;">
+              Sent at """ + datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC') + """
+            </p>
+          </div>
+        </div>"""
+
+        try:
+            params = {
+                "from": SENDER_EMAIL,
+                "to": [to],
+                "subject": "[CVE Monitor] Test Notification - Email Working",
+                "html": html,
+            }
+            result = await asyncio.to_thread(resend.Emails.send, params)
+            email_id = result.get("id") if isinstance(result, dict) else getattr(result, "id", str(result))
+            logger.info(f"Test email sent to {to}, id={email_id}")
+            return {"sent": True, "email_id": email_id, "recipient": to}
+        except Exception as e:
+            logger.error(f"Test email failed: {e}")
+            return {"sent": False, "error": str(e)}
+
     async def get_alerts(self, limit: int = 50, unread_only: bool = False) -> List[Dict[str, Any]]:
         query = {"dismissed": False}
         if unread_only:
