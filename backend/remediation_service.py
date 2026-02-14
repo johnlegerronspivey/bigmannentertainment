@@ -89,6 +89,7 @@ class RemediationService:
             "repo_connected": repo is not None,
             "repo_name": os.environ.get("GITHUB_REPO", ""),
             "token_configured": bool(os.environ.get("GITHUB_TOKEN")),
+            "write_access": False,
         }
         if repo:
             try:
@@ -97,6 +98,7 @@ class RemediationService:
                 config["default_branch"] = repo.default_branch
                 config["open_issues_count"] = repo.open_issues_count
                 config["repo_private"] = repo.private
+                config["write_access"] = repo.permissions.push if repo.permissions else False
             except GithubException:
                 config["repo_connected"] = False
 
