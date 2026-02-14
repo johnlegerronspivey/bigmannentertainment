@@ -56,7 +56,7 @@ class ScannerService:
     async def get_tool_status(self) -> Dict[str, Any]:
         tools = {}
         for name, cmd in [("trivy", "trivy --version"), ("grype", "grype version"),
-                          ("syft", "syft version"), ("checkov", "checkov --version")]:
+                          ("syft", "syft version"), ("checkov", "/root/.venv/bin/checkov --version")]:
             try:
                 r = subprocess.run(cmd.split(), capture_output=True, text=True, timeout=10)
                 output = (r.stdout.strip() or r.stderr.strip()).split("\n")[0]
