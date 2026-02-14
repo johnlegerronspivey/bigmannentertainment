@@ -349,6 +349,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  CVE Management initialization failed: {str(e)}")
 
+    # Initialize Scanner Service (Phase 2)
+    try:
+        from scanner_service import initialize_scanner_service
+        scanner_svc = initialize_scanner_service(db)
+        if scanner_svc:
+            print("🔍 Scanner Service initialized (trivy, grype, syft, checkov)")
+    except Exception as e:
+        print(f"⚠️  Scanner Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
