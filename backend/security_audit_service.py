@@ -80,7 +80,7 @@ class SecurityAuditService:
         return {k: v for k, v in config.items() if k != "_id"}
 
     async def update_monitor_config(self, updates: Dict[str, Any]) -> Dict[str, Any]:
-        allowed = {"enabled", "interval_hours", "alert_on_critical", "alert_on_high", "alert_on_moderate", "alert_on_low"}
+        allowed = {"enabled", "interval_hours", "alert_on_critical", "alert_on_high", "alert_on_moderate", "alert_on_low", "email_notifications", "alert_email"}
         clean = {k: v for k, v in updates.items() if k in allowed}
         if not clean:
             return await self.get_monitor_config()
