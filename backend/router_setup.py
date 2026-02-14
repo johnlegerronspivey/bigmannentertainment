@@ -67,6 +67,7 @@ from aws_cloudwatch_endpoints import router as cloudwatch_router
 from security_audit_endpoints import router as security_audit_router
 from cve_management_endpoints import router as cve_management_router
 from scanner_endpoints import router as scanner_router
+from remediation_endpoints import router as remediation_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -93,7 +94,8 @@ routers = [
     cloudwatch_router,
     security_audit_router,
     cve_management_router,
-    scanner_router
+    scanner_router,
+    remediation_router
 ]
 
 for router in routers:

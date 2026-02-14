@@ -358,6 +358,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Scanner Service initialization failed: {str(e)}")
 
+    # Initialize Remediation Service (Phase 3)
+    try:
+        from remediation_service import initialize_remediation_service
+        remediation_svc = initialize_remediation_service(db)
+        if remediation_svc:
+            print("🔧 Remediation Service initialized (GitHub + AWS)")
+    except Exception as e:
+        print(f"⚠️  Remediation Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
