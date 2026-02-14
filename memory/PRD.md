@@ -996,5 +996,49 @@ Testing: 100% backend (9/9) + 100% frontend (all features verified)
 - **Fix**: No patched version of `jsonpath` exists. Resolved by forcing `bfj` to v9.1.3 (which dropped `jsonpath` entirely) via `resolutions` in `package.json`. Removed the old `jsonpath` resolution entry.
 - **Result**: `jsonpath` completely removed from dependency tree. `yarn audit` shows 0 vulnerabilities.
 
+### Automated CVE Monitoring & Alerting (Feb 2026) ✅ FULLY IMPLEMENTED & TESTED
+**Features:**
+- **Automated Background Scanning**: asyncio-based monitor loop runs scans at configurable intervals (1h, 6h, 12h, 1d, 2d, 1w)
+- **Vulnerability Diffing**: Compares current scan against previous to detect NEW vulnerabilities only
+- **Configurable Alert Severity**: Toggle which severity levels trigger alerts (Critical, High, Moderate, Low)
+- **Alert Management**: View, mark as read, dismiss individual/all alerts; unread badge counter
+- **Scan History & Trends**: Full audit history in MongoDB with trend chart (score + vulns over time)
+- **Manual Scan Trigger**: "Scan Now" button for on-demand scans with alert generation
+- **Security Score Ring**: Visual 0-100 score with A-F grading
+- **5-Tab Dashboard**: Overview, Vulnerabilities, Monitoring, Alerts, History
+
+**API Endpoints:**
+- `GET /api/security/health` - Service health check
+- `GET /api/security/audit` - Run full audit (uses cache; `?force=true` bypasses)
+- `GET /api/security/audit/frontend` - Frontend-only audit
+- `GET /api/security/audit/backend` - Backend-only audit
+- `GET /api/security/audit/history?limit=20` - Audit history
+- `GET /api/security/audit/trend?days=30` - Trend data for charts
+- `GET /api/security/monitor/config` - Get monitor configuration
+- `PUT /api/security/monitor/config` - Update config (enable/disable, interval, severity filters)
+- `POST /api/security/monitor/scan-now` - Trigger manual scan + generate alerts
+- `GET /api/security/alerts` - Get alerts list
+- `GET /api/security/alerts/count` - Unread/total alert count
+- `POST /api/security/alerts/read` - Mark alerts as read
+- `POST /api/security/alerts/dismiss` - Dismiss alerts
+
+**Files:**
+- `/app/backend/security_audit_service.py` - Core service with monitoring loop, alerting, diffing
+- `/app/backend/security_audit_endpoints.py` - FastAPI routes
+- `/app/frontend/src/SecurityAuditDashboard.jsx` - React dashboard
+- `/app/backend/tests/test_security_audit.py` - Test suite
+
+**Test Results (Feb 2026):**
+```
+✅ Backend: 100% (16/16 tests passed)
+✅ Frontend: 100% (all 5 tabs and interactive features verified)
+✅ Monitor: Enable/disable, interval selection, severity toggles
+✅ Scans: Manual and automated scan execution
+✅ Alerts: CRUD operations, mark read, dismiss
+✅ History: Audit records with trend chart
+```
+
+**Route:** `/security-audit`
+
 ## Last Updated
 February 2026
