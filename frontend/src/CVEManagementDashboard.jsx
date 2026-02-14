@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Shield, AlertTriangle, CheckCircle, Clock, Search, Plus, RefreshCw, ChevronDown, ChevronRight, Package, Server, FileText, Settings, Activity, XCircle, Eye, Box, Layers } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle, Clock, Search, Plus, RefreshCw, ChevronDown, ChevronRight, Package, Server, FileText, Settings, Activity, XCircle, Eye, Box, Layers, Scan, GitBranch, Lock, Play, Download, Trash2, ToggleLeft, ToggleRight, Terminal, Copy } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api/cve`;
+const SCANNER_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/scanners`;
 
 const SEVERITY_COLORS = {
   critical: { bg: "bg-red-900/30", text: "text-red-400", border: "border-red-500/40", badge: "bg-red-500/20 text-red-300", dot: "bg-red-500" },
