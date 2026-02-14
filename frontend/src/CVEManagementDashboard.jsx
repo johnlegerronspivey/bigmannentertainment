@@ -1238,9 +1238,12 @@ const CreateRuleModal = ({ onClose, onCreated }) => {
 const TABS = [
   { id: "overview", label: "Overview", icon: Shield },
   { id: "cves", label: "CVE Database", icon: AlertTriangle },
+  { id: "scanners", label: "Scanners", icon: Scan },
   { id: "services", label: "Services", icon: Server },
   { id: "sbom", label: "SBOM", icon: Layers },
-  { id: "policies", label: "Policies", icon: Settings },
+  { id: "cicd", label: "CI/CD", icon: GitBranch },
+  { id: "policy-engine", label: "Policy Engine", icon: Lock },
+  { id: "policies", label: "SLA Policies", icon: Settings },
   { id: "audit", label: "Audit Trail", icon: Activity },
 ];
 
