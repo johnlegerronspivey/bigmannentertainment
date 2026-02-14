@@ -59,7 +59,8 @@ class ScannerService:
                           ("syft", "syft version"), ("checkov", "checkov --version")]:
             try:
                 r = subprocess.run(cmd.split(), capture_output=True, text=True, timeout=10)
-                version = r.stdout.strip().split("\n")[0] if r.returncode == 0 else None
+                output = (r.stdout.strip() or r.stderr.strip()).split("\n")[0]
+                version = output if r.returncode == 0 else None
                 tools[name] = {"installed": r.returncode == 0, "version": version}
             except Exception:
                 tools[name] = {"installed": False, "version": None}
