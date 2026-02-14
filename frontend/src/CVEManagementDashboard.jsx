@@ -1347,7 +1347,10 @@ const RemediationTab = ({ onRefresh }) => {
             <div>
               <h3 className="text-white font-semibold">GitHub Integration</h3>
               {config?.repo_connected ? (
-                <p className="text-sm text-emerald-400">Connected to <a href={config.repo_url} target="_blank" rel="noreferrer" className="underline hover:text-emerald-300">{config.repo_full_name}</a> ({config.default_branch})</p>
+                <div>
+                  <p className="text-sm text-emerald-400">Connected to <a href={config.repo_url} target="_blank" rel="noreferrer" className="underline hover:text-emerald-300">{config.repo_full_name}</a> ({config.default_branch})</p>
+                  {!config.write_access && <p className="text-xs text-yellow-400 mt-1">Token has read-only access. To create issues/PRs, update your token permissions at github.com/settings/tokens</p>}
+                </div>
               ) : (
                 <p className="text-sm text-red-400">Not connected. Configure GITHUB_TOKEN and GITHUB_REPO in backend/.env</p>
               )}
