@@ -340,6 +340,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  CVE Monitor initialization failed: {str(e)}")
 
+    # Initialize CVE Management Platform
+    try:
+        from cve_management_service import initialize_cve_management
+        cve_mgmt = initialize_cve_management(db)
+        if cve_mgmt:
+            print("🧠 CVE Management Platform initialized")
+    except Exception as e:
+        print(f"⚠️  CVE Management initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
