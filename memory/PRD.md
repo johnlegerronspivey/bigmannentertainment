@@ -12,61 +12,77 @@ Build a comprehensive enterprise CVE management platform with:
 - **Frontend**: React (CRA) with Tailwind CSS, Lucide React icons
 - **Backend**: FastAPI (Python) with Motor (async MongoDB driver)
 - **Database**: MongoDB
+- **Security Tools**: Trivy v0.58.2, Grype v0.108.0, Syft v1.42.0, Checkov 3.2.501
 - **Background Jobs**: APScheduler (for existing security monitoring)
 - **Email**: Resend (for existing CVE alerts)
 
 ## Key Files
-- `/app/backend/cve_management_service.py` - Core CVE brain service
-- `/app/backend/cve_management_endpoints.py` - API endpoints (prefix: /api/cve)
-- `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 6 tabs
-- `/app/backend/security_audit_service.py` - Existing security audit monitoring
-- `/app/backend/security_audit_endpoints.py` - Existing audit endpoints
+- `/app/backend/cve_management_service.py` - Core CVE brain service (Phase 1)
+- `/app/backend/cve_management_endpoints.py` - CVE API endpoints (prefix: /api/cve)
+- `/app/backend/scanner_service.py` - Multi-scanner orchestration (Phase 2)
+- `/app/backend/scanner_endpoints.py` - Scanner API endpoints (prefix: /api/cve/scanners)
+- `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 9 tabs
+- `/tmp/test_iac/main.tf` - Sample Terraform for IaC scanning demos
 
-## MongoDB Collections (CVE Platform)
-- `cve_entries` - CVE records with lifecycle state (detected→triaged→in_progress→fixed→verified→dismissed)
-- `cve_services` - Service registry with ownership, criticality, tech stack
-- `cve_sbom_records` - SBOM snapshots with component lists
-- `cve_severity_policies` - Configurable SLA policies per severity level
-- `cve_audit_trail` - Every action logged with timestamp and user
+## MongoDB Collections
+### Phase 1
+- `cve_entries` - CVE records with lifecycle state
+- `cve_services` - Service registry with ownership
+- `cve_sbom_records` - SBOM snapshots
+- `cve_severity_policies` - Configurable SLA policies
+- `cve_audit_trail` - Action log
 
-## API Endpoints (all /api/cve/*)
+### Phase 2
+- `cve_scan_results` - Scanner output (trivy, grype, syft, checkov)
+- `cve_policy_rules` - Policy-as-code rules
+- `cve_pipeline_configs` - Generated CI/CD pipeline configs
+
+## API Endpoints
+### Phase 1 (/api/cve/*)
 - GET /health, GET /dashboard
 - CRUD: /entries, /entries/{id}, /entries/{id}/status
 - CRUD: /services, /services/{id}
 - POST /sbom/generate, GET /sbom/list, GET /sbom/{id}
 - GET /policies, PUT /policies
-- POST /scan (comprehensive vulnerability scan)
-- GET /audit-trail
-- POST /seed (sample data)
+- POST /scan, GET /audit-trail, POST /seed
+
+### Phase 2 (/api/cve/scanners/*)
+- GET /tools - Tool installation status
+- POST /trivy/fs, /trivy/iac - Trivy scans
+- POST /grype - Grype dependency scan
+- POST /syft - Syft SBOM generation
+- POST /checkov - Checkov IaC scan
+- GET /results, GET /results/{id} - Scan history
+- CRUD: /policy-rules, POST /policy-rules/seed, POST /policy-rules/evaluate/{scan_id}
+- POST /pipeline/generate, GET /pipeline/list, GET /pipeline/{id}
 
 ## What's Been Implemented
 
 ### Phase 0 (Previous): Security Audit System
 - CVE-2026-1615 vulnerability fix
 - Automated CVE monitoring with APScheduler
-- Email alerts via Resend
-- Persistent storage in MongoDB
+- Email alerts via Resend, persistent MongoDB storage
 
 ### Phase 1 (Feb 14, 2026): CVE Brain & Core Dashboard - COMPLETE
 - Central CVE database with full lifecycle tracking (6 states)
-- SBOM generation parsing package.json and requirements.txt (293 components)
-- Service registry with 4 pre-configured services (frontend, backend, blockchain, AWS infra)
-- Severity policy engine (Critical: 24h SLA, High: 72h, Medium: 336h, Low: 720h)
-- Comprehensive scan engine (yarn audit + pip-audit with auto-CVE creation)
-- Complete audit trail for all actions
-- 6-tab dashboard UI (Overview, CVE Database, Services, SBOM, Policies, Audit Trail)
-- Testing: 100% backend (24/24), 100% frontend
+- SBOM generation, Service registry, Severity policy engine
+- Comprehensive scan engine, Complete audit trail
+- 6-tab dashboard UI
+- Testing: 100% (24/24 backend, all frontend)
+
+### Phase 2 (Feb 14, 2026): Scanning & CI/CD Gates - COMPLETE
+- Installed real security tools: Trivy v0.58.2, Grype v0.108.0, Syft v1.42.0, Checkov 3.2.501
+- Multi-scanner orchestration (5 scan types: trivy-fs, trivy-iac, grype, syft, checkov)
+- Real vulnerability data: Grype found 30 vulns (1C/10H/14M), Checkov 42P/32F, Trivy IaC 19 misconfigs
+- CI/CD pipeline generator (GitHub Actions YAML with security gates)
+- Policy-as-code rules engine (5 rule types: severity threshold, CVSS, package blocklist, IaC failures)
+- Deploy gate evaluation (block/warn based on scan results)
+- 3 new tabs added (Scanners, CI/CD, Policy Engine) - total 9 tabs
+- Testing: 100% (22/22 backend, all frontend)
 
 ## Phased Roadmap
 
-### Phase 2 (Upcoming): Scanning & CI/CD Gates
-- Multi-scanner integration (trivy, checkov, tfsec, grype)
-- Container image scanning
-- IaC scanning for Terraform
-- CI/CD pipeline config generator (GitHub Actions YAML)
-- Policy-as-code rules engine
-
-### Phase 3 (Future): Automated Remediation & GitHub Integration
+### Phase 3 (Next): Automated Remediation & GitHub Integration
 - GitHub API: auto-create issues & PRs on critical CVEs
 - Auto-version-bump PR generation
 - Auto-assign to team based on ownership
@@ -84,3 +100,4 @@ https://github.com/johnlegerronspivey/bigmannentertainment
 ## Test Credentials
 - Login: enterprise@test.com / TestPass123!
 - API: https://dep-guardian.preview.emergentagent.com/api/cve
+- Scanner API: https://dep-guardian.preview.emergentagent.com/api/cve/scanners
