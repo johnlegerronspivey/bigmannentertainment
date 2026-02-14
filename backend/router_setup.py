@@ -92,7 +92,8 @@ routers = [
     usage_analytics_router,
     cloudwatch_router,
     security_audit_router,
-    cve_management_router
+    cve_management_router,
+    scanner_router
 ]
 
 for router in routers:
