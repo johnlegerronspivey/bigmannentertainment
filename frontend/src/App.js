@@ -3840,6 +3840,7 @@ function App() {
             <Route path="/usage-analytics" element={<ProtectedRoute><UsageAnalyticsDashboard /></ProtectedRoute>} />
             <Route path="/cloudwatch" element={<ProtectedRoute><AWSCloudWatchDashboard /></ProtectedRoute>} />
             <Route path="/security-audit" element={<ProtectedRoute><SecurityAuditDashboard /></ProtectedRoute>} />
+            <Route path="/cve-management" element={<ProtectedRoute><CVEManagementDashboard /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
             <Route path="/image-upload" element={<ProtectedRoute><ImageUploadComponent /></ProtectedRoute>} />
