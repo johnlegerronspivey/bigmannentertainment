@@ -61,7 +61,8 @@ class RemediationService:
         token = os.environ.get("GITHUB_TOKEN")
         if not token:
             return None
-        return Github(token)
+        from github import Auth
+        return Github(auth=Auth.Token(token))
 
     def _get_repo(self):
         gh = self._get_github()
