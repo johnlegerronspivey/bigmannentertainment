@@ -396,7 +396,10 @@ class RemediationService:
             return {"success": True, "pr_number": pr.number, "pr_url": pr.html_url, "updated_files": updated_files, "branch": branch_name, "item": item}
         except GithubException as e:
             logger.error(f"GitHub PR creation failed: {e}")
-            return {"error": f"GitHub API error: {str(e)}", "success": False}
+            msg = str(e)
+            if "403" in msg:
+                msg = "GitHub token lacks write permissions. Update your token's permissions to include 'Contents: Read and write' and 'Pull requests: Read and write' at github.com/settings/tokens"
+            return {"error": msg, "success": False}
 
     def _bump_dependency(self, content: str, package: str, new_version: str, filename: str) -> str:
         import re
