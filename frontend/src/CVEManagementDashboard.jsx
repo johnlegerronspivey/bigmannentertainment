@@ -1317,6 +1317,7 @@ export default function CVEManagementDashboard() {
         {tab === "overview" && <OverviewTab dashboard={dashboard} onRefresh={fetchDashboard} loading={loading} />}
         {tab === "cves" && <CVEDatabaseTab onRefresh={fetchDashboard} />}
         {tab === "scanners" && <ScannersTab onRefresh={fetchDashboard} />}
+        {tab === "remediation" && <RemediationTab onRefresh={fetchDashboard} />}
         {tab === "services" && <ServicesTab onRefresh={fetchDashboard} />}
         {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
         {tab === "cicd" && <CICDTab onRefresh={fetchDashboard} />}
