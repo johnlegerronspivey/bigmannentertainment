@@ -18,10 +18,16 @@ class MonitorConfigUpdate(BaseModel):
     alert_on_high: Optional[bool] = None
     alert_on_moderate: Optional[bool] = None
     alert_on_low: Optional[bool] = None
+    email_notifications: Optional[bool] = None
+    alert_email: Optional[str] = None
 
 
 class AlertAction(BaseModel):
     alert_ids: Optional[List[str]] = None
+
+
+class TestEmailRequest(BaseModel):
+    recipient: Optional[str] = None
 
 
 # ─── Health ────────────────────────────────────────────────────
