@@ -10,8 +10,14 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import resend
 
 logger = logging.getLogger("security_audit_service")
+
+# Resend email config
+resend.api_key = os.environ.get("RESEND_API_KEY", "")
+SENDER_EMAIL = "onboarding@resend.dev"
+DEFAULT_ALERT_EMAIL = os.environ.get("CVE_ALERT_EMAIL", "")
 
 FRONTEND_DIR = "/app/frontend"
 BACKEND_DIR = "/app/backend"
