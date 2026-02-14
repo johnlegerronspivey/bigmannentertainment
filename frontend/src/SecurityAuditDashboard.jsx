@@ -151,7 +151,7 @@ function AlertCard({ alert, onDismiss }) {
 
 /* ─── Monitor Config Panel ─────────────────────────────────── */
 
-function MonitorPanel({ config, onUpdate, onScanNow, scanning }) {
+function MonitorPanel({ config, onUpdate, onScanNow, scanning, onTestEmail, testingEmail }) {
   if (!config) return null;
   const toggle = (key) => onUpdate({ [key]: !config[key] });
 
@@ -189,6 +189,44 @@ function MonitorPanel({ config, onUpdate, onScanNow, scanning }) {
           <p className="text-sm font-mono text-slate-300">{config.next_scan ? new Date(config.next_scan).toLocaleString() : 'N/A'}</p>
           <p className="text-xs text-slate-400 mt-1">Next Scan</p>
         </div>
+      </div>
+
+      {/* Email notifications */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          Email Notifications
+        </h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="font-medium text-white">Send email on new CVEs</span>
+            <p className="text-xs text-slate-400 mt-0.5">Get notified via email when vulnerabilities match your severity filters</p>
+          </div>
+          <button onClick={() => toggle('email_notifications')}
+            className={`relative w-11 h-6 rounded-full transition-colors ${config.email_notifications ? 'bg-indigo-600' : 'bg-slate-600'}`}
+            data-testid="toggle-email-notifications">
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${config.email_notifications ? 'translate-x-5' : ''}`} />
+          </button>
+        </div>
+        {config.email_notifications && (
+          <div className="space-y-3 pt-2">
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Recipient Email</label>
+              <div className="flex gap-2">
+                <input type="email" value={config.alert_email || ''}
+                  onChange={(e) => onUpdate({ alert_email: e.target.value })}
+                  className="flex-1 bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  placeholder="your@email.com"
+                  data-testid="alert-email-input" />
+                <button onClick={onTestEmail} disabled={testingEmail || !config.alert_email}
+                  className="px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+                  data-testid="send-test-email-btn">
+                  {testingEmail ? 'Sending...' : 'Test Email'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Scan interval */}
