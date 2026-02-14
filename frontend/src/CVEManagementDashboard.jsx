@@ -660,6 +660,579 @@ const AuditTrailTab = () => {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// SCANNERS TAB (Phase 2)
+// ═══════════════════════════════════════════════════════════════
+const ScannersTab = ({ onRefresh }) => {
+  const [tools, setTools] = useState({});
+  const [results, setResults] = useState([]);
+  const [selectedResult, setSelectedResult] = useState(null);
+  const [resultDetail, setResultDetail] = useState(null);
+  const [running, setRunning] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [t, r] = await Promise.all([fetcher(`${SCANNER_API}/tools`), fetcher(`${SCANNER_API}/results?limit=30`)]);
+      setTools(t);
+      setResults(r);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const runScanner = async (key, url) => {
+    setRunning((r) => ({ ...r, [key]: true }));
+    try {
+      await fetcher(url, { method: "POST" });
+      fetchData();
+      onRefresh();
+    } catch (e) { console.error(e); }
+    setRunning((r) => ({ ...r, [key]: false }));
+  };
+
+  const viewResult = async (id) => {
+    if (selectedResult === id) { setSelectedResult(null); setResultDetail(null); return; }
+    try { setResultDetail(await fetcher(`${SCANNER_API}/results/${id}`)); setSelectedResult(id); } catch (e) { console.error(e); }
+  };
+
+  const scanners = [
+    { key: "trivy_fs", label: "Trivy Filesystem", desc: "Scan app dependencies for known vulnerabilities", url: `${SCANNER_API}/trivy/fs?target=/app&severity=CRITICAL,HIGH,MEDIUM,LOW`, icon: "FS", color: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
+    { key: "trivy_iac", label: "Trivy IaC", desc: "Scan Terraform/IaC for misconfigurations", url: `${SCANNER_API}/trivy/iac?target=/tmp/test_iac`, icon: "IaC", color: "bg-purple-500/10 text-purple-400 border-purple-500/30" },
+    { key: "grype", label: "Grype", desc: "Anchore vulnerability scanner for dependencies", url: `${SCANNER_API}/grype?target=dir%3A/app/backend`, icon: "GR", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" },
+    { key: "syft", label: "Syft SBOM", desc: "Generate Software Bill of Materials", url: `${SCANNER_API}/syft?target=/app/backend`, icon: "SB", color: "bg-amber-500/10 text-amber-400 border-amber-500/30" },
+    { key: "checkov", label: "Checkov", desc: "IaC security scanner for Terraform, K8s, CloudFormation", url: `${SCANNER_API}/checkov?target=/tmp/test_iac`, icon: "CK", color: "bg-pink-500/10 text-pink-400 border-pink-500/30" },
+  ];
+
+  const toolStatusDot = (name) => {
+    const t = tools[name];
+    if (!t) return "bg-slate-500";
+    return t.installed ? "bg-emerald-500" : "bg-red-500";
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Tool Status */}
+      <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+        <h3 className="text-white font-semibold mb-3">Installed Security Tools</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Object.entries(tools).map(([name, info]) => (
+            <div key={name} className="flex items-center gap-3 bg-slate-900/50 rounded-lg px-3 py-2">
+              <div className={`w-2.5 h-2.5 rounded-full ${info.installed ? "bg-emerald-500" : "bg-red-500"}`} />
+              <div>
+                <div className="text-sm text-white font-medium capitalize">{name}</div>
+                <div className="text-xs text-slate-500 truncate max-w-[150px]">{info.version || "Not installed"}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Scanner Cards */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {scanners.map((s) => (
+          <div key={s.key} data-testid={`scanner-${s.key}`} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold border ${s.color}`}>{s.icon}</span>
+                <div>
+                  <div className="text-white font-medium text-sm">{s.label}</div>
+                  <div className="text-xs text-slate-400">{s.desc}</div>
+                </div>
+              </div>
+            </div>
+            <button data-testid={`run-${s.key}`} onClick={() => runScanner(s.key, s.url)} disabled={running[s.key]} className="w-full mt-2 flex items-center justify-center gap-2 bg-cyan-600/80 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50">
+              {running[s.key] ? <><RefreshCw className="w-4 h-4 animate-spin" /> Running...</> : <><Play className="w-4 h-4" /> Run Scan</>}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Scan History */}
+      <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+        <h3 className="text-white font-semibold mb-3">Scan History</h3>
+        <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          {results.map((r) => (
+            <div key={r.id} className="bg-slate-900/50 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-slate-800/50 transition-colors" onClick={() => viewResult(r.id)}>
+                <div className="flex items-center gap-3">
+                  {selectedResult === r.id ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                  <span className="text-xs font-mono text-cyan-400">{r.scanner}</span>
+                  <span className="text-xs text-slate-500">{r.scan_type}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-xs ${r.status === "completed" ? "bg-emerald-500/10 text-emerald-400" : r.status === "error" ? "bg-red-500/10 text-red-400" : "bg-yellow-500/10 text-yellow-400"}`}>{r.status}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {r.summary && <div className="flex items-center gap-2 text-xs">
+                    {r.summary.critical > 0 && <span className="text-red-400">{r.summary.critical}C</span>}
+                    {r.summary.high > 0 && <span className="text-orange-400">{r.summary.high}H</span>}
+                    {r.summary.medium > 0 && <span className="text-yellow-400">{r.summary.medium}M</span>}
+                    {(r.summary.total || r.summary.total_packages) > 0 && <span className="text-slate-400">Total: {r.summary.total || r.summary.total_packages}</span>}
+                    {r.summary.passed !== undefined && <span className="text-emerald-400">P:{r.summary.passed}</span>}
+                    {r.summary.failed !== undefined && <span className="text-red-400">F:{r.summary.failed}</span>}
+                  </div>}
+                  <span className="text-xs text-slate-500">{new Date(r.started_at).toLocaleString()}</span>
+                </div>
+              </div>
+              {selectedResult === r.id && resultDetail && (
+                <div className="px-4 pb-3 border-t border-slate-800/50 pt-2">
+                  {/* Vulnerabilities */}
+                  {resultDetail.vulnerabilities && (
+                    <div className="space-y-1 max-h-60 overflow-y-auto">
+                      {resultDetail.vulnerabilities.map((v, i) => (
+                        <div key={i} className="flex items-center justify-between bg-slate-800/50 rounded px-3 py-1.5 text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <SeverityBadge severity={v.severity} />
+                            <span className="text-cyan-400 font-mono">{v.id}</span>
+                            <span className="text-white truncate">{v.package}@{v.installed_version}</span>
+                          </div>
+                          <span className="text-emerald-400 shrink-0 ml-2">{v.fixed_version || "—"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Misconfigurations (Trivy IaC) */}
+                  {resultDetail.misconfigurations && (
+                    <div className="space-y-1 max-h-60 overflow-y-auto">
+                      {resultDetail.misconfigurations.map((m, i) => (
+                        <div key={i} className="bg-slate-800/50 rounded px-3 py-1.5 text-xs">
+                          <div className="flex items-center gap-2">
+                            <SeverityBadge severity={m.severity} />
+                            <span className="text-cyan-400 font-mono">{m.id}</span>
+                            <span className="text-white">{m.title}</span>
+                          </div>
+                          {m.resolution && <div className="text-slate-400 mt-1 ml-4">{m.resolution}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Packages (Syft) */}
+                  {resultDetail.packages && (
+                    <div className="space-y-1 max-h-60 overflow-y-auto">
+                      <div className="text-xs text-slate-400 mb-1">By type: {JSON.stringify(resultDetail.summary?.by_type)}</div>
+                      {resultDetail.packages.slice(0, 50).map((p, i) => (
+                        <div key={i} className="flex items-center justify-between bg-slate-800/50 rounded px-3 py-1 text-xs">
+                          <div className="flex items-center gap-2"><Package className="w-3 h-3 text-slate-500" /><span className="text-white">{p.name}</span><span className="text-slate-500">@{p.version}</span></div>
+                          <div className="flex items-center gap-2"><span className="text-slate-400">{p.type}</span>{p.language && <span className="text-purple-400">{p.language}</span>}</div>
+                        </div>
+                      ))}
+                      {resultDetail.packages.length > 50 && <div className="text-xs text-slate-500 text-center">...and {resultDetail.packages.length - 50} more</div>}
+                    </div>
+                  )}
+                  {/* Checks (Checkov) */}
+                  {resultDetail.checks && (
+                    <div className="space-y-1 max-h-60 overflow-y-auto">
+                      {resultDetail.checks.filter((c) => c.status === "failed").map((c, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-red-900/10 rounded px-3 py-1.5 text-xs">
+                          <XCircle className="w-3 h-3 text-red-400 shrink-0" />
+                          <span className="text-red-300 font-mono">{c.check_id}</span>
+                          <span className="text-white truncate">{c.resource}</span>
+                          <span className="text-slate-500">{c.file}</span>
+                        </div>
+                      ))}
+                      {resultDetail.checks.filter((c) => c.status === "passed").length > 0 && (
+                        <div className="text-xs text-emerald-400 mt-1">{resultDetail.checks.filter((c) => c.status === "passed").length} checks passed</div>
+                      )}
+                    </div>
+                  )}
+                  {resultDetail.error && <div className="text-xs text-red-400 bg-red-900/10 rounded p-2">{resultDetail.error}</div>}
+                </div>
+              )}
+            </div>
+          ))}
+          {loading && <div className="text-center text-slate-400 py-6">Loading scan history...</div>}
+          {!loading && results.length === 0 && <div className="text-center text-slate-500 py-6">No scan results yet. Run a scanner above.</div>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// CI/CD PIPELINE GENERATOR TAB (Phase 2)
+// ═══════════════════════════════════════════════════════════════
+const CICDTab = ({ onRefresh }) => {
+  const [config, setConfig] = useState({
+    repo_name: "bigmannentertainment", branch: "main",
+    enable_trivy: true, enable_grype: true, enable_checkov: true, enable_syft: true,
+    fail_on_critical: true, fail_on_high: false, container_image: "", terraform_dir: "terraform/", notify_email: "",
+  });
+  const [generatedYaml, setGeneratedYaml] = useState(null);
+  const [pipelines, setPipelines] = useState([]);
+  const [generating, setGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    (async () => { try { setPipelines(await fetcher(`${SCANNER_API}/pipeline/list`)); } catch (e) {} })();
+  }, []);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const result = await fetcher(`${SCANNER_API}/pipeline/generate`, { method: "POST", body: JSON.stringify(config) });
+      setGeneratedYaml(result.yaml_content);
+      setPipelines(await fetcher(`${SCANNER_API}/pipeline/list`));
+      onRefresh();
+    } catch (e) { console.error(e); }
+    setGenerating(false);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatedYaml);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([generatedYaml], { type: "text/yaml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "security-gates.yml";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Config Panel */}
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+          <h3 className="text-white font-semibold mb-4">Pipeline Configuration</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-400 block mb-1">Repository</label>
+                <input data-testid="pipeline-repo" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={config.repo_name} onChange={(e) => setConfig({ ...config, repo_name: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 block mb-1">Branch</label>
+                <input data-testid="pipeline-branch" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={config.branch} onChange={(e) => setConfig({ ...config, branch: e.target.value })} />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-2">Security Scanners</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[{ k: "enable_trivy", l: "Trivy (Vuln + IaC)" }, { k: "enable_grype", l: "Grype (Dependencies)" }, { k: "enable_checkov", l: "Checkov (IaC)" }, { k: "enable_syft", l: "Syft (SBOM)" }].map(({ k, l }) => (
+                  <label key={k} className="flex items-center gap-2 bg-slate-900/50 rounded-lg px-3 py-2 cursor-pointer">
+                    <input type="checkbox" className="w-4 h-4 rounded bg-slate-800 border-slate-600 text-cyan-500" checked={config[k]} onChange={(e) => setConfig({ ...config, [k]: e.target.checked })} />
+                    <span className="text-sm text-slate-300">{l}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-2">Fail Conditions</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded bg-slate-800 border-slate-600 text-red-500" checked={config.fail_on_critical} onChange={(e) => setConfig({ ...config, fail_on_critical: e.target.checked })} />
+                  <span className="text-sm text-red-300">Fail on Critical</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded bg-slate-800 border-slate-600 text-orange-500" checked={config.fail_on_high} onChange={(e) => setConfig({ ...config, fail_on_high: e.target.checked })} />
+                  <span className="text-sm text-orange-300">Fail on High</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-400 block mb-1">Container Image (optional)</label>
+                <input className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. myapp:latest" value={config.container_image} onChange={(e) => setConfig({ ...config, container_image: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 block mb-1">Terraform Dir</label>
+                <input className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={config.terraform_dir} onChange={(e) => setConfig({ ...config, terraform_dir: e.target.value })} />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Notification Email</label>
+              <input className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="team@company.com" value={config.notify_email} onChange={(e) => setConfig({ ...config, notify_email: e.target.value })} />
+            </div>
+
+            <button data-testid="generate-pipeline-btn" onClick={handleGenerate} disabled={generating} className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50">
+              <GitBranch className="w-4 h-4" /> {generating ? "Generating..." : "Generate GitHub Actions YAML"}
+            </button>
+          </div>
+        </div>
+
+        {/* YAML Preview */}
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 flex flex-col">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-white font-semibold">Generated Pipeline</h3>
+            {generatedYaml && (
+              <div className="flex items-center gap-2">
+                <button data-testid="copy-yaml-btn" onClick={handleCopy} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs transition-colors">
+                  <Copy className="w-3 h-3" /> {copied ? "Copied!" : "Copy"}
+                </button>
+                <button data-testid="download-yaml-btn" onClick={handleDownload} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs transition-colors">
+                  <Download className="w-3 h-3" /> Download
+                </button>
+              </div>
+            )}
+          </div>
+          {generatedYaml ? (
+            <pre className="flex-1 bg-slate-950 rounded-lg p-4 text-xs text-green-400 font-mono overflow-auto max-h-[500px] whitespace-pre">{generatedYaml}</pre>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
+              <div className="text-center">
+                <Terminal className="w-8 h-8 mx-auto mb-2 text-slate-600" />
+                <div>Configure and generate your security pipeline</div>
+                <div className="text-xs text-slate-600 mt-1">.github/workflows/security-gates.yml</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Pipeline History */}
+      {pipelines.length > 0 && (
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+          <h3 className="text-white font-semibold mb-3">Generated Pipelines</h3>
+          <div className="space-y-2">
+            {pipelines.map((p) => (
+              <div key={p.id} className="flex items-center justify-between bg-slate-900/50 rounded-lg px-4 py-2.5">
+                <div className="flex items-center gap-3">
+                  <GitBranch className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm text-white">{p.repo_name}</span>
+                  <span className="text-xs text-slate-500">/{p.branch}</span>
+                </div>
+                <span className="text-xs text-slate-500">{new Date(p.created_at).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// POLICY ENGINE TAB (Phase 2)
+// ═══════════════════════════════════════════════════════════════
+const PolicyEngineTab = ({ onRefresh }) => {
+  const [rules, setRules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [evaluating, setEvaluating] = useState(false);
+  const [evalResult, setEvalResult] = useState(null);
+  const [scans, setScans] = useState([]);
+  const [evalScanId, setEvalScanId] = useState("");
+
+  const fetchRules = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [r, s] = await Promise.all([fetcher(`${SCANNER_API}/policy-rules`), fetcher(`${SCANNER_API}/results?limit=20`)]);
+      setRules(r);
+      setScans(s);
+      if (s.length > 0 && !evalScanId) setEvalScanId(s[0].id);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, [evalScanId]);
+
+  useEffect(() => { fetchRules(); }, [fetchRules]);
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    try { await fetcher(`${SCANNER_API}/policy-rules/seed`, { method: "POST" }); fetchRules(); } catch (e) { console.error(e); }
+    setSeeding(false);
+  };
+
+  const handleToggle = async (rule) => {
+    try {
+      await fetcher(`${SCANNER_API}/policy-rules/${rule.id}`, { method: "PUT", body: JSON.stringify({ enabled: !rule.enabled }) });
+      fetchRules();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this policy rule?")) return;
+    try { await fetcher(`${SCANNER_API}/policy-rules/${id}`, { method: "DELETE" }); fetchRules(); onRefresh(); } catch (e) { console.error(e); }
+  };
+
+  const handleEvaluate = async () => {
+    if (!evalScanId) return;
+    setEvaluating(true);
+    try { setEvalResult(await fetcher(`${SCANNER_API}/policy-rules/evaluate/${evalScanId}`, { method: "POST" })); } catch (e) { console.error(e); }
+    setEvaluating(false);
+  };
+
+  const conditionLabels = { severity_threshold: "Severity Threshold", cvss_threshold: "CVSS Score Threshold", package_blocklist: "Package Blocklist", iac_failures: "IaC Failure Count" };
+  const actionColors = { block_deploy: "bg-red-500/20 text-red-300", warn: "bg-yellow-500/20 text-yellow-300", notify: "bg-blue-500/20 text-blue-300" };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-white font-semibold">Policy-as-Code Rules Engine</div>
+          <div className="text-slate-400 text-xs mt-0.5">Define rules that block deployments based on scan results</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button data-testid="seed-rules-btn" onClick={handleSeed} disabled={seeding} className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs transition-colors disabled:opacity-50">{seeding ? "Seeding..." : "Seed Default Rules"}</button>
+          <button data-testid="create-rule-btn" onClick={() => setShowCreate(true)} className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+            <Plus className="w-4 h-4" /> Add Rule
+          </button>
+        </div>
+      </div>
+
+      {/* Rules List */}
+      <div className="space-y-3">
+        {rules.map((rule) => (
+          <div key={rule.id} data-testid={`policy-rule-${rule.id}`} className={`bg-slate-800/60 border rounded-xl p-4 ${rule.enabled ? "border-slate-700/50" : "border-slate-700/30 opacity-60"}`}>
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <button onClick={() => handleToggle(rule)} className="mt-0.5" title={rule.enabled ? "Disable" : "Enable"}>
+                  {rule.enabled ? <ToggleRight className="w-6 h-6 text-cyan-400" /> : <ToggleLeft className="w-6 h-6 text-slate-500" />}
+                </button>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-medium">{rule.name}</span>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${actionColors[rule.action] || actionColors.warn}`}>{rule.action?.replace("_", " ").toUpperCase()}</span>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-0.5">{rule.description}</div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="px-2 py-0.5 bg-slate-700/50 rounded text-xs text-slate-300">{conditionLabels[rule.condition_type] || rule.condition_type}</span>
+                    <span className="text-xs text-slate-500 font-mono">{JSON.stringify(rule.condition)}</span>
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => handleDelete(rule.id)} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          </div>
+        ))}
+        {loading && <div className="text-center text-slate-400 py-6">Loading rules...</div>}
+        {!loading && rules.length === 0 && <div className="text-center text-slate-500 py-6">No policy rules. Click "Seed Default Rules" to get started.</div>}
+      </div>
+
+      {/* Policy Evaluation */}
+      <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+        <h3 className="text-white font-semibold mb-3">Evaluate Against Scan</h3>
+        <div className="flex items-center gap-3 mb-4">
+          <select data-testid="eval-scan-select" className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={evalScanId} onChange={(e) => setEvalScanId(e.target.value)}>
+            <option value="">Select a scan result...</option>
+            {scans.map((s) => (
+              <option key={s.id} value={s.id}>{s.scanner} ({s.scan_type}) — {new Date(s.started_at).toLocaleString()} {s.summary?.total ? `[${s.summary.total} findings]` : ""}</option>
+            ))}
+          </select>
+          <button data-testid="evaluate-policies-btn" onClick={handleEvaluate} disabled={evaluating || !evalScanId} className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50">
+            <Shield className="w-4 h-4" /> {evaluating ? "Evaluating..." : "Evaluate"}
+          </button>
+        </div>
+
+        {evalResult && (
+          <div className={`rounded-xl p-4 border ${evalResult.deploy_allowed ? "bg-emerald-900/20 border-emerald-500/40" : "bg-red-900/20 border-red-500/40"}`}>
+            <div className="flex items-center gap-3 mb-3">
+              {evalResult.deploy_allowed ? <CheckCircle className="w-6 h-6 text-emerald-400" /> : <XCircle className="w-6 h-6 text-red-400" />}
+              <div>
+                <div className={`text-lg font-bold ${evalResult.deploy_allowed ? "text-emerald-400" : "text-red-400"}`}>
+                  {evalResult.deploy_allowed ? "DEPLOY ALLOWED" : "DEPLOY BLOCKED"}
+                </div>
+                <div className="text-xs text-slate-400">{evalResult.rules_evaluated} rules evaluated</div>
+              </div>
+            </div>
+            {evalResult.rules_triggered.length > 0 && (
+              <div className="space-y-1 mb-2">
+                <div className="text-xs text-red-400 font-medium">Triggered Rules:</div>
+                {evalResult.rules_triggered.map((r, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs bg-red-900/20 rounded px-3 py-1.5">
+                    <XCircle className="w-3 h-3 text-red-400" />
+                    <span className="text-white">{r.rule_name}</span>
+                    <span className={`px-1.5 py-0.5 rounded ${actionColors[r.action]}`}>{r.action?.replace("_", " ")}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {evalResult.rules_passed.length > 0 && (
+              <div className="space-y-1">
+                <div className="text-xs text-emerald-400 font-medium">Passed Rules:</div>
+                {evalResult.rules_passed.map((r, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs bg-emerald-900/10 rounded px-3 py-1.5">
+                    <CheckCircle className="w-3 h-3 text-emerald-400" />
+                    <span className="text-white">{r.rule_name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {showCreate && <CreateRuleModal onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); fetchRules(); onRefresh(); }} />}
+    </div>
+  );
+};
+
+const CreateRuleModal = ({ onClose, onCreated }) => {
+  const [form, setForm] = useState({ name: "", description: "", condition_type: "severity_threshold", action: "block_deploy", conditionJson: '{"min_severity": "critical", "max_count": 0}' });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      let condition = {};
+      try { condition = JSON.parse(form.conditionJson); } catch (e) {}
+      await fetcher(`${SCANNER_API}/policy-rules`, {
+        method: "POST",
+        body: JSON.stringify({ name: form.name, description: form.description, condition_type: form.condition_type, condition, action: form.action }),
+      });
+      onCreated();
+    } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
+  const templates = {
+    severity_threshold: '{"min_severity": "critical", "max_count": 0}',
+    cvss_threshold: '{"min_score": 9.0}',
+    package_blocklist: '{"packages": ["jsonpath", "cryptography"]}',
+    iac_failures: '{"max_failures": 3}',
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-white text-lg font-semibold mb-4">Create Policy Rule</h3>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input data-testid="rule-create-name" required placeholder="Rule Name *" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input placeholder="Description" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Condition Type</label>
+              <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.condition_type} onChange={(e) => setForm({ ...form, condition_type: e.target.value, conditionJson: templates[e.target.value] || "{}" })}>
+                <option value="severity_threshold">Severity Threshold</option>
+                <option value="cvss_threshold">CVSS Score Threshold</option>
+                <option value="package_blocklist">Package Blocklist</option>
+                <option value="iac_failures">IaC Failure Count</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Action</label>
+              <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.action} onChange={(e) => setForm({ ...form, action: e.target.value })}>
+                <option value="block_deploy">Block Deploy</option>
+                <option value="warn">Warn</option>
+                <option value="notify">Notify</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Condition (JSON)</label>
+            <textarea className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono h-20" value={form.conditionJson} onChange={(e) => setForm({ ...form, conditionJson: e.target.value })} />
+          </div>
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-slate-400 hover:text-white text-sm">Cancel</button>
+            <button data-testid="rule-create-submit" type="submit" disabled={saving} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm transition-colors disabled:opacity-50">{saving ? "Saving..." : "Create Rule"}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
 // MAIN DASHBOARD
 // ═══════════════════════════════════════════════════════════════
 const TABS = [
