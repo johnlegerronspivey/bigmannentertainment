@@ -384,6 +384,21 @@ export default function SecurityAuditDashboard() {
     setScanning(false);
   };
 
+  const handleTestEmail = async () => {
+    setTestingEmail(true);
+    const data = await apiFetch('/api/security/email/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipient: monitorConfig?.alert_email || '' }),
+    });
+    setTestingEmail(false);
+    if (data?.sent) {
+      alert('Test email sent successfully! Check your inbox.');
+    } else {
+      alert(`Failed to send test email: ${data?.error || 'Unknown error'}`);
+    }
+  };
+
   const handleDismissAlert = async (timestamp) => {
     await apiFetch('/api/security/alerts/dismiss', {
       method: 'POST',
