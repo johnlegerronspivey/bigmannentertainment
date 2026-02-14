@@ -312,6 +312,7 @@ export default function SecurityAuditDashboard() {
   const [monitorConfig, setMonitorConfig] = useState(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [sevFilter, setSevFilter] = useState('all');
   const pollRef = useRef(null);
