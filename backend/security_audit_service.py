@@ -61,11 +61,22 @@ class SecurityAuditService:
                 "alert_on_high": True,
                 "alert_on_moderate": False,
                 "alert_on_low": False,
+                "email_notifications": bool(DEFAULT_ALERT_EMAIL),
+                "alert_email": DEFAULT_ALERT_EMAIL,
                 "last_scan": None,
                 "next_scan": None,
                 "total_scans": 0,
             }
             await self.config_col.insert_one({**config})
+        else:
+            # Migrate old configs missing email fields
+            if "email_notifications" not in config:
+                config["email_notifications"] = bool(DEFAULT_ALERT_EMAIL)
+                config["alert_email"] = DEFAULT_ALERT_EMAIL
+                await self.config_col.update_one(
+                    {"type": "monitor"},
+                    {"$set": {"email_notifications": config["email_notifications"], "alert_email": config["alert_email"]}},
+                )
         return {k: v for k, v in config.items() if k != "_id"}
 
     async def update_monitor_config(self, updates: Dict[str, Any]) -> Dict[str, Any]:
