@@ -2582,6 +2582,7 @@ export default function CVEManagementDashboard() {
         {tab === "scanners" && <ScannersTab onRefresh={fetchDashboard} />}
         {tab === "remediation" && <RemediationTab onRefresh={fetchDashboard} />}
         {tab === "governance" && <GovernanceTab onRefresh={fetchDashboard} />}
+        {tab === "notifications" && <NotificationsTab onRefresh={fetchDashboard} unreadCount={unreadCount} onUnreadUpdate={fetchUnread} />}
         {tab === "services" && <ServicesTab onRefresh={fetchDashboard} />}
         {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
         {tab === "cicd" && <CICDTab onRefresh={fetchDashboard} />}
