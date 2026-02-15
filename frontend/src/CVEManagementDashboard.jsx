@@ -1963,6 +1963,7 @@ const TABS = [
   { id: "cves", label: "CVE Database", icon: AlertTriangle },
   { id: "scanners", label: "Scanners", icon: Scan },
   { id: "remediation", label: "Remediation", icon: Wrench },
+  { id: "governance", label: "Governance", icon: BarChart3 },
   { id: "services", label: "Services", icon: Server },
   { id: "sbom", label: "SBOM", icon: Layers },
   { id: "cicd", label: "CI/CD", icon: GitBranch },
