@@ -1778,22 +1778,29 @@ const GovernanceTab = ({ onRefresh }) => {
   const [mttr, setMttr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("overview");
+  const [ownerInfo, setOwnerInfo] = useState(null);
+  const [unassigned, setUnassigned] = useState(null);
+  const [govAssignTarget, setGovAssignTarget] = useState(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [m, t, s, o, mt] = await Promise.all([
+      const [m, t, s, o, mt, ow, ua] = await Promise.all([
         fetcher(`${GOVERNANCE_API}/metrics`),
         fetcher(`${GOVERNANCE_API}/trends?days=30`),
         fetcher(`${GOVERNANCE_API}/sla`),
         fetcher(`${GOVERNANCE_API}/ownership`),
         fetcher(`${GOVERNANCE_API}/mttr`),
+        fetcher(`${API}/owners`),
+        fetcher(`${API}/unassigned?limit=20`),
       ]);
       setMetrics(m);
       setTrends(t);
       setSla(s);
       setOwnership(o);
       setMttr(mt);
+      setOwnerInfo(ow);
+      setUnassigned(ua);
     } catch (e) { console.error(e); }
     setLoading(false);
   }, []);
