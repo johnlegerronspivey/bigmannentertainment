@@ -25,6 +25,8 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **CI/CD**: GitHub Actions (Lambda artifact build + upload)
 
 ## Key Files
+
+### Backend
 - `/app/backend/cve_management_service.py` - Core CVE brain service (Phase 1)
 - `/app/backend/cve_management_endpoints.py` - CVE API endpoints (prefix: /api/cve)
 - `/app/backend/scanner_service.py` - Multi-scanner orchestration (Phase 2)
@@ -34,118 +36,62 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/backend/governance_service.py` - Governance analytics service (Phase 4)
 - `/app/backend/governance_endpoints.py` - Governance API endpoints (prefix: /api/cve/governance)
 - `/app/backend/notification_service.py` - Notification & reporting service (Phase 5)
-- `/app/backend/notification_endpoints.py` - Notification API endpoints (prefix: /api/cve/notifications, /api/cve/reports)
-- `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 12 tabs
+- `/app/backend/notification_endpoints.py` - Notification API endpoints
+- `/app/backend/rbac_service.py` - RBAC service (Phase 6)
+- `/app/backend/rbac_endpoints.py` - RBAC API endpoints
 
-## MongoDB Collections
-### Phase 1
-- `cve_entries` - CVE records with lifecycle state
-- `cve_services` - Service registry with ownership
-- `cve_sbom_records` - SBOM snapshots
-- `cve_severity_policies` - Configurable SLA policies
-- `cve_audit_trail` - Action log
+### Frontend (Refactored)
+- `/app/frontend/src/CVEManagementDashboard.jsx` - Thin orchestrator (149 lines), imports all tab components
+- `/app/frontend/src/cve/shared.js` - Shared constants, API URLs, utility components (StatCard, SeverityBadge, StatusBadge, fetcher)
+- `/app/frontend/src/cve/OverviewTab.jsx` - Dashboard overview with stats and severity breakdown
+- `/app/frontend/src/cve/CVEDatabaseTab.jsx` - CVE listing, filtering, creation, status transitions
+- `/app/frontend/src/cve/AssignOwnerModal.jsx` - Owner assignment modal (reused across tabs)
+- `/app/frontend/src/cve/ScannersTab.jsx` - Security scanner tools and scan history
+- `/app/frontend/src/cve/RemediationTab.jsx` - GitHub issues/PRs, AWS findings, bulk operations
+- `/app/frontend/src/cve/GovernanceTab.jsx` - Charts, risk gauge, trends, SLA compliance, ownership
+- `/app/frontend/src/cve/NotificationsTab.jsx` - Notifications, preferences, SLA checks, digests
+- `/app/frontend/src/cve/ServicesTab.jsx` - Service registry + SBOMTab
+- `/app/frontend/src/cve/CICDTab.jsx` - Pipeline generator with YAML preview
+- `/app/frontend/src/cve/PolicyEngineTab.jsx` - Policy-as-code rules engine
+- `/app/frontend/src/cve/PoliciesTab.jsx` - SLA policies config + AuditTrailTab
+- `/app/frontend/src/cve/UserManagementTab.jsx` - User management with RBAC
 
-### Phase 2
-- `cve_scan_results` - Scanner output (trivy, grype, syft, checkov)
-- `cve_policy_rules` - Policy-as-code rules
-- `cve_pipeline_configs` - Generated CI/CD pipeline configs
+## What's Been Implemented
 
-### Phase 3
-- `cve_remediation_items` - Remediation tracking (GitHub issues/PRs, status lifecycle)
-- `cve_aws_findings` - Cached AWS Inspector findings
+### Phase 1-5: Core CVE Platform (COMPLETE)
+- CVE lifecycle management (detect, triage, fix, verify)
+- SBOM generation
+- Multi-scanner integration (Trivy, Grype, Syft, Checkov)
+- CI/CD pipeline generation
+- Policy-as-code rules engine
+- Automated remediation via GitHub
+- AWS Inspector/Security Hub integration
+- Governance dashboards with charts
+- Notifications with email alerts
+- CSV export for CVEs and governance data
 
-### Phase 5
-- `cve_notifications` - Notification records (type, severity, read status, email sent)
-- `cve_notification_preferences` - Email preferences, type toggles, SLA thresholds
+### Phase 6: User Management & RBAC (COMPLETE)
+- Role-based access control (Admin, Manager, Analyst)
+- User invitation and management
+- Permission-gated UI elements
 
-## API Endpoints
-### Phase 1 (/api/cve/*)
-- GET /health, GET /dashboard
-- CRUD: /entries, /entries/{id}, /entries/{id}/status
-- PUT /entries/{id}/owner - Assign/reassign CVE owner (Phase 4.1)
-- POST /entries/bulk-assign - Bulk assign owners (Phase 4.1)
-- GET /owners - List available owners and teams (Phase 4.1)
-- GET /unassigned - List unassigned open CVEs (Phase 4.1)
-- CRUD: /services, /services/{id}
-- POST /sbom/generate, GET /sbom/list, GET /sbom/{id}
-- GET /policies, PUT /policies
-- POST /scan, GET /audit-trail, POST /seed
+### Infrastructure Automation (COMPLETE - Pending User Testing)
+- Terraform configurations for multi-environment deployment
+- Python Lambda function for CVE remediation
+- GitHub Actions workflow for CI/CD
+- Status: Code ready, awaiting user testing in their own pipeline
 
-### Phase 2 (/api/cve/scanners/*)
-- GET /tools - Tool installation status
-- POST /trivy/fs, /trivy/iac - Trivy scans
-- POST /grype - Grype dependency scan
-- POST /syft - Syft SBOM generation
-- POST /checkov - Checkov IaC scan
-- GET /results, GET /results/{id} - Scan history
-- CRUD: /policy-rules, POST /policy-rules/seed, POST /policy-rules/evaluate/{scan_id}
-- POST /pipeline/generate, GET /pipeline/list, GET /pipeline/{id}
-
-### Phase 3 (/api/cve/remediation/*)
-- GET /config - GitHub connection status + stats
-- GET /items - List remediation items
-- GET /items/{id} - Get single item
-- PUT /items/{id}/status - Update remediation status
-- POST /create-issue/{cve_id} - Create GitHub issue from CVE
-- POST /create-pr/{cve_id} - Create GitHub PR
-- POST /bulk-create-issues - Bulk create issues by severity
-- POST /sync-github - Sync item statuses with GitHub
-- GET /aws/findings, POST /aws/sync, GET /aws/security-hub
-- GET /stats - Remediation statistics
-
-### Phase 4 (/api/cve/governance/*)
-- GET /metrics, GET /trends, GET /sla, GET /ownership, GET /mttr, GET /scan-activity
-
-### Phase 5 (/api/cve/notifications/*)
-- GET / - List notifications (pagination, unread_only, type filter)
-- GET /unread-count - Unread count with breakdown by type
-- POST / - Create notification
-- PUT /{id}/read - Mark as read
-- PUT /read-all - Mark all as read
-- DELETE /{id} - Dismiss notification
-- POST /check-sla - Run SLA compliance check (generates warning/breach notifications)
-- GET /preferences - Get notification preferences
-- PUT /preferences - Update preferences (email toggle, types, recipient)
-- POST /test-email - Send test email via Resend
-- POST /weekly-digest - Generate weekly security posture digest
-
-### Phase 5 (/api/cve/reports/*)
-- GET /cves/csv - Export CVEs as CSV (status/severity filters)
-- GET /governance/csv - Export governance report as CSV
-
-## Completed Phases
-
-### Phase 1: CVE Brain & Core Dashboard - COMPLETE
-### Phase 2: Scanning & CI/CD Gates - COMPLETE
-### Phase 3: Automated Remediation & GitHub/AWS Integration - COMPLETE (Verified Feb 15, 2026)
-### Phase 4: Governance Dashboards & Advanced Analytics - COMPLETE
-### Phase 4.1: CVE Ownership Model - COMPLETE (Verified Feb 15, 2026)
-### Phase 5 Infrastructure: Remediation Automation Pipeline - COMPLETE (Verified Feb 15, 2026 — tfvars updated with AWS Account 314108682794)
-### Phase 5: Notifications & Reporting - COMPLETE (Tested Feb 15, 2026 — 22/22 backend, 100% frontend)
-### Phase 6: User Management & RBAC - COMPLETE (Tested Feb 15, 2026 — 17/17 backend, 100% frontend)
-- 3 roles: Admin, Manager, Analyst with granular permissions
-- Auto-provisioning: first user becomes admin
-- User Management tab (admin only): invite users, change roles, activate/deactivate
-- Permission-gated UI: buttons/tabs hidden based on role
-- Backend: `/app/backend/rbac_service.py`, `/app/backend/rbac_endpoints.py`
-- API prefix: `/api/cve/rbac`
-- MongoDB collection: `cve_users`
+### Frontend Refactoring (COMPLETE - Feb 15, 2026)
+- Refactored monolithic CVEManagementDashboard.jsx from 2810 lines to 149 lines
+- Extracted 13 component files into `/app/frontend/src/cve/` directory
+- All 13 tabs verified working with 0 regressions (test report: iteration_25.json)
 
 ## Prioritized Backlog
 
-### P2 - Refactoring
-- Break down CVEManagementDashboard.jsx (2600+ lines) into per-tab components
-
-### P3 - Enhancements
-- Custom SLA policy editor
-- Historical risk score tracking
-- Jira/ServiceNow integration
-- Enhanced SLA Tracking with escalations
+### P1 - Enhanced SLA Tracking
+- Proactive notifications and escalations for SLA breaches
+- Escalation chains based on severity and time overdue
 
 ## Test Credentials
-- Login: enterprise@test.com / TestPass123!
-- API: https://cve-remediation.preview.emergentagent.com/api/cve
-- GitHub Repo: johnlegerronspivey/bigmannentertainment
-
-## User's GitHub Repo
-https://github.com/johnlegerronspivey/bigmannentertainment
+- Admin: Register via /api/auth/register (enterprise users)
+- Test user: cveadmin@test.com / Test1234!
