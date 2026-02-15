@@ -75,6 +75,19 @@ class ServiceUpdate(BaseModel):
     tags: Optional[List[str]] = None
 
 
+class OwnerAssign(BaseModel):
+    assigned_to: str = ""
+    assigned_team: str = ""
+    notes: str = ""
+
+
+class BulkOwnerAssign(BaseModel):
+    cve_ids: List[str]
+    assigned_to: str = ""
+    assigned_team: str = ""
+    notes: str = ""
+
+
 class SeverityPoliciesUpdate(BaseModel):
     policies: Dict[str, Any]
 
@@ -140,6 +153,35 @@ async def update_cve_status(cve_entry_id: str, body: CVEStatusUpdate):
     if not result:
         raise HTTPException(status_code=404, detail="CVE not found or invalid status")
     return result
+
+
+# ─── Ownership ─────────────────────────────────────────────────
+
+@router.put("/entries/{cve_entry_id}/owner")
+async def assign_owner(cve_entry_id: str, body: OwnerAssign):
+    svc = get_cve_management_service()
+    result = await svc.assign_owner(cve_entry_id, body.assigned_to, body.assigned_team, body.notes)
+    if not result:
+        raise HTTPException(status_code=404, detail="CVE not found")
+    return result
+
+
+@router.post("/entries/bulk-assign")
+async def bulk_assign_owner(body: BulkOwnerAssign):
+    svc = get_cve_management_service()
+    return await svc.bulk_assign_owner(body.cve_ids, body.assigned_to, body.assigned_team, body.notes)
+
+
+@router.get("/owners")
+async def get_available_owners():
+    svc = get_cve_management_service()
+    return await svc.get_available_owners()
+
+
+@router.get("/unassigned")
+async def get_unassigned_cves(severity: Optional[str] = Query(None), limit: int = Query(50, ge=1, le=200)):
+    svc = get_cve_management_service()
+    return await svc.get_unassigned_cves(severity=severity, limit=limit)
 
 
 # ─── Services ──────────────────────────────────────────────────
