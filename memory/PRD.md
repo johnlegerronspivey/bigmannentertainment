@@ -52,6 +52,10 @@ Build a comprehensive enterprise CVE management platform with:
 ### Phase 1 (/api/cve/*)
 - GET /health, GET /dashboard
 - CRUD: /entries, /entries/{id}, /entries/{id}/status
+- PUT /entries/{id}/owner - Assign/reassign CVE owner (Phase 4.1)
+- POST /entries/bulk-assign - Bulk assign owners (Phase 4.1)
+- GET /owners - List available owners and teams (Phase 4.1)
+- GET /unassigned - List unassigned open CVEs (Phase 4.1)
 - CRUD: /services, /services/{id}
 - POST /sbom/generate, GET /sbom/list, GET /sbom/{id}
 - GET /policies, PUT /policies
