@@ -5,11 +5,11 @@ Build a comprehensive enterprise CVE management platform with:
 1. **Core CVE Brain**: Central vulnerability database with full lifecycle tracking
 2. **SBOM Generation**: Track every dependency in the stack
 3. **CI/CD Security Gates**: Dependency, container, and IaC scanning
-4. **Automated Remediation**: GitHub API integration for auto-PRs
-5. **Governance Dashboards**: Rich charts, analytics, trends
+4. **Automated Remediation**: GitHub API integration for auto-PRs, AWS Inspector/Security Hub
+5. **Governance Dashboards**: Rich charts, analytics, trends, SLA tracking
 
 ## Architecture
-- **Frontend**: React (CRA) with Tailwind CSS, Lucide React icons
+- **Frontend**: React (CRA) with Tailwind CSS, Lucide React icons, Recharts
 - **Backend**: FastAPI (Python) with Motor (async MongoDB driver)
 - **Database**: MongoDB
 - **Security Tools**: Trivy v0.58.2, Grype v0.108.0, Syft v1.42.0, Checkov 3.2.501
@@ -17,15 +17,18 @@ Build a comprehensive enterprise CVE management platform with:
 - **Email**: Resend (for existing CVE alerts)
 - **GitHub Integration**: PyGithub for issue/PR creation
 - **AWS**: boto3 for Inspector/Security Hub
+- **Charts**: Recharts (PieChart, BarChart, AreaChart, LineChart)
 
 ## Key Files
 - `/app/backend/cve_management_service.py` - Core CVE brain service (Phase 1)
 - `/app/backend/cve_management_endpoints.py` - CVE API endpoints (prefix: /api/cve)
 - `/app/backend/scanner_service.py` - Multi-scanner orchestration (Phase 2)
 - `/app/backend/scanner_endpoints.py` - Scanner API endpoints (prefix: /api/cve/scanners)
-- `/app/backend/remediation_service.py` - Remediation & GitHub integration (Phase 3)
+- `/app/backend/remediation_service.py` - Remediation & GitHub/AWS integration (Phase 3)
 - `/app/backend/remediation_endpoints.py` - Remediation API endpoints (prefix: /api/cve/remediation)
-- `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 10 tabs
+- `/app/backend/governance_service.py` - Governance analytics service (Phase 4)
+- `/app/backend/governance_endpoints.py` - Governance API endpoints (prefix: /api/cve/governance)
+- `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 11 tabs
 - `/tmp/test_iac/main.tf` - Sample Terraform for IaC scanning demos
 
 ## MongoDB Collections
@@ -78,6 +81,14 @@ Build a comprehensive enterprise CVE management platform with:
 - GET /aws/security-hub - Security Hub summary
 - GET /stats - Remediation statistics
 
+### Phase 4 (/api/cve/governance/*)
+- GET /metrics - Full governance dashboard metrics (risk score, severity dist, fix rate)
+- GET /trends?days=30 - Daily detected/fixed trend data
+- GET /sla - SLA compliance per severity with overall %
+- GET /ownership - Team, person, source, status distribution
+- GET /mttr - Mean Time to Remediate by severity
+- GET /scan-activity - Scan history and scanner breakdown
+
 ## What's Been Implemented
 
 ### Phase 0 (Previous): Security Audit System
@@ -105,30 +116,52 @@ Build a comprehensive enterprise CVE management platform with:
 ### Phase 3 (Feb 14, 2026): Automated Remediation & GitHub/AWS Integration - COMPLETE
 - GitHub API integration (PyGithub) - connected to johnlegerronspivey/bigmannentertainment
 - Auto-create GitHub issues from CVEs with severity labels, detailed descriptions
-- Auto-create GitHub PRs with dependency version bumps (requirements.txt, package.json, pyproject.toml)
+- Auto-create GitHub PRs with dependency version bumps
 - Bulk issue creation by severity level
-- GitHub sync to track issue/PR status (open, merged, closed)
-- Remediation workflow lifecycle (open → issue_created → pr_created → in_review → merged → deployed → verified → closed)
+- GitHub sync to track issue/PR status
+- Remediation workflow lifecycle (open -> issue_created -> pr_created -> in_review -> merged -> deployed -> verified -> closed)
 - AWS Inspector integration (live boto3 client, finding import)
 - AWS Security Hub summary endpoint
-- New "Remediation" tab with 4 sub-views (Items, Create from CVEs, Bulk Ops, AWS Findings)
-- Dashboard now has 10 tabs total
+- Enhanced AWS Findings UI with separate Inspector/Security Hub sub-tabs and connection status
 - Testing: 100% (17/17 backend, all frontend)
-- Note: GitHub token has read-only permissions; create operations return informative error. Update token at github.com/settings/tokens for full write access.
 
-## Phased Roadmap
+### Phase 4 (Feb 14, 2026): Governance Dashboards & Advanced Analytics - COMPLETE
+- Full governance analytics backend with 6 endpoints
+- Risk Assessment gauge (weighted score: crit*25 + high*15 + med*5 + low*1)
+- Severity distribution pie chart (open CVEs)
+- Status distribution donut chart (all CVEs)
+- CVE Trends area chart (30-day detected vs fixed)
+- SLA Compliance tracking with per-severity progress bars (Critical: 24h, High: 72h, Medium: 168h, Low: 720h)
+- Overall SLA compliance percentage
+- Mean Time to Remediate (MTTR) bar chart by severity
+- CVE ownership stats (by team, assignee, source)
+- Open CVEs by service bar chart
+- CVEs by source bar chart
+- Governance tab with 4 sub-views (Overview, Trends, SLA Compliance, Ownership)
+- Dashboard now has 11 tabs total
+- Testing: 100% (26/26 backend, all frontend)
 
-### Phase 4 (Next): Governance Dashboards & Advanced Analytics
-- Rich analytics dashboards (charts, trends, time-to-remediate)
-- CVE ownership model and SLA tracking
-- Export/reporting for audit readiness
-- Historical trend visualization
+## Phased Roadmap - ALL PHASES COMPLETE
+
+All 4 phases have been implemented:
+- Phase 1: CVE Brain & Core Dashboard
+- Phase 2: Scanning & CI/CD Gates
+- Phase 3: Automated Remediation & GitHub/AWS Integration
+- Phase 4: Governance Dashboards & Advanced Analytics
+
+### Potential Enhancements
+- Export governance reports as PDF/CSV
+- Email digest of weekly security posture
+- Custom SLA policy editor
+- Historical risk score tracking
+- Integration with Jira/ServiceNow for ticket management
 
 ## User's GitHub Repo
 https://github.com/johnlegerronspivey/bigmannentertainment
 
 ## Test Credentials
 - Login: enterprise@test.com / TestPass123!
-- API: https://vuln-shift-left.preview.emergentagent.com/api/cve
-- Scanner API: https://vuln-shift-left.preview.emergentagent.com/api/cve/scanners
-- Remediation API: https://vuln-shift-left.preview.emergentagent.com/api/cve/remediation
+- API: https://threat-hub-1.preview.emergentagent.com/api/cve
+- Scanner API: https://threat-hub-1.preview.emergentagent.com/api/cve/scanners
+- Remediation API: https://threat-hub-1.preview.emergentagent.com/api/cve/remediation
+- Governance API: https://threat-hub-1.preview.emergentagent.com/api/cve/governance
