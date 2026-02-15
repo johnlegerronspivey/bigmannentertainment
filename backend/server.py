@@ -394,6 +394,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  RBAC Service initialization failed: {str(e)}")
 
+    # Initialize SLA Tracker Service (Enhanced SLA Tracking)
+    try:
+        from sla_tracker_service import initialize_sla_tracker_service
+        sla_svc = initialize_sla_tracker_service(db)
+        if sla_svc:
+            print("⏱️ SLA Tracker Service initialized (escalations + countdowns)")
+    except Exception as e:
+        print(f"⚠️  SLA Tracker Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
