@@ -224,7 +224,7 @@ class CVEManagementService:
         )
         if result:
             result.pop("_id", None)
-            await self._log_audit("cve_updated", result.get("cve_id", cve_entry_id), f"CVE updated", data=data)
+            await self._log_audit("cve_updated", result.get("cve_id", cve_entry_id), "CVE updated", data=data)
             return result
         return None
 
