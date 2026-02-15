@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users } from "lucide-react";
+import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer } from "lucide-react";
 import { API, NOTIFICATION_API, RBAC_API, fetcher, ROLE_BADGES } from "./cve/shared";
 import { OverviewTab } from "./cve/OverviewTab";
 import { CVEDatabaseTab } from "./cve/CVEDatabaseTab";
@@ -12,6 +12,7 @@ import { CICDTab } from "./cve/CICDTab";
 import { PolicyEngineTab } from "./cve/PolicyEngineTab";
 import { PoliciesTab, AuditTrailTab } from "./cve/PoliciesTab";
 import { UserManagementTab } from "./cve/UserManagementTab";
+import { SLATrackerTab } from "./cve/SLATrackerTab";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: Shield },
@@ -19,6 +20,7 @@ const TABS = [
   { id: "scanners", label: "Scanners", icon: Scan },
   { id: "remediation", label: "Remediation", icon: Wrench },
   { id: "governance", label: "Governance", icon: BarChart3 },
+  { id: "sla-tracker", label: "SLA Tracker", icon: Timer },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "services", label: "Services", icon: Server },
   { id: "sbom", label: "SBOM", icon: Layers },
@@ -135,6 +137,7 @@ export default function CVEManagementDashboard() {
         {tab === "scanners" && <ScannersTab onRefresh={fetchDashboard} />}
         {tab === "remediation" && <RemediationTab onRefresh={fetchDashboard} />}
         {tab === "governance" && <GovernanceTab onRefresh={fetchDashboard} />}
+        {tab === "sla-tracker" && <SLATrackerTab onRefresh={fetchDashboard} />}
         {tab === "notifications" && <NotificationsTab onRefresh={fetchDashboard} unreadCount={unreadCount} onUnreadUpdate={fetchUnread} />}
         {tab === "services" && <ServicesTab onRefresh={fetchDashboard} />}
         {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
