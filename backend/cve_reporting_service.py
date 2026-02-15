@@ -221,7 +221,6 @@ class CVEReportingService:
     # ─── Team Performance ─────────────────────────────────────────
 
     async def get_team_performance(self) -> Dict[str, Any]:
-        now = datetime.now(timezone.utc)
         owner_stats = defaultdict(lambda: {
             "assigned": 0, "open": 0, "resolved": 0, "total_resolution_hours": 0,
             "critical": 0, "high": 0, "medium": 0, "low": 0,
