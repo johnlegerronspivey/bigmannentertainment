@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Shield, AlertTriangle, CheckCircle, Clock, Search, Plus, RefreshCw, ChevronDown, ChevronRight, Package, Server, FileText, Settings, Activity, XCircle, Eye, Box, Layers, Scan, GitBranch, Lock, Play, Download, Trash2, ToggleLeft, ToggleRight, Terminal, Copy, Wrench, Github, ExternalLink, CloudLightning, ArrowUpRight, Loader2, CheckCircle2, BarChart3, TrendingUp, Users, Target, Gauge } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle, Clock, Search, Plus, RefreshCw, ChevronDown, ChevronRight, Package, Server, FileText, Settings, Activity, XCircle, Eye, Box, Layers, Scan, GitBranch, Lock, Play, Download, Trash2, ToggleLeft, ToggleRight, Terminal, Copy, Wrench, Github, ExternalLink, CloudLightning, ArrowUpRight, Loader2, CheckCircle2, BarChart3, TrendingUp, Users, Target, Gauge, Bell, Mail, Send, X, FileDown } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, AreaChart, Area } from "recharts";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api/cve`;
