@@ -223,8 +223,15 @@ const CVEDatabaseTab = ({ onRefresh }) => {
                   <div><span className="text-slate-500">Source:</span> <span className="text-white ml-2">{c.source}</span></div>
                   <div><span className="text-slate-500">Exploitability:</span> <span className="text-white ml-2">{c.exploitability}</span></div>
                   <div><span className="text-slate-500">Detected:</span> <span className="text-white ml-2">{new Date(c.detected_at).toLocaleString()}</span></div>
-                  <div><span className="text-slate-500">Assigned:</span> <span className="text-white ml-2">{c.assigned_to || c.assigned_team || "Unassigned"}</span></div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">Owner:</span>
+                    <span className={`ml-2 ${c.assigned_to || c.assigned_team ? "text-white" : "text-slate-500 italic"}`}>{c.assigned_to || c.assigned_team || "Unassigned"}</span>
+                    <button data-testid={`assign-owner-btn-${c.id}`} onClick={(e) => { e.stopPropagation(); setAssignTarget(c); }} className="ml-1 px-2 py-0.5 rounded text-xs bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 transition-colors border border-cyan-500/30">
+                      <Users className="w-3 h-3 inline mr-1" />{c.assigned_to ? "Reassign" : "Assign"}
+                    </button>
+                  </div>
                 </div>
+                {c.assigned_team && <div className="text-xs text-slate-400"><span className="text-slate-500">Team:</span> <span className="ml-1">{c.assigned_team}</span></div>}
                 {c.description && <div className="text-sm text-slate-300 bg-slate-900/50 rounded-lg p-3">{c.description}</div>}
                 {c.affected_services?.length > 0 && (
                   <div className="flex items-center gap-2 flex-wrap">
