@@ -229,6 +229,78 @@ class CVEManagementService:
         return None
 
     # ═══════════════════════════════════════════════════════════
+    # CVE OWNERSHIP MODEL
+    # ═══════════════════════════════════════════════════════════
+
+    async def assign_owner(self, cve_entry_id: str, assigned_to: str, assigned_team: str, notes: str = "") -> Optional[Dict[str, Any]]:
+        now = datetime.now(timezone.utc).isoformat()
+        updates = {"assigned_to": assigned_to, "assigned_team": assigned_team, "updated_at": now}
+        result = await self.cves_col.find_one_and_update(
+            {"id": cve_entry_id}, {"$set": updates}, return_document=True
+        )
+        if not result:
+            result = await self.cves_col.find_one_and_update(
+                {"cve_id": cve_entry_id}, {"$set": updates}, return_document=True
+            )
+        if result:
+            result.pop("_id", None)
+            cve_id = result.get("cve_id", cve_entry_id)
+            await self._log_audit(
+                "owner_assigned", cve_id,
+                f"Ownership assigned: {assigned_to or 'N/A'} / Team: {assigned_team or 'N/A'}",
+                data={"assigned_to": assigned_to, "assigned_team": assigned_team, "notes": notes}
+            )
+            return result
+        return None
+
+    async def bulk_assign_owner(self, cve_ids: List[str], assigned_to: str, assigned_team: str, notes: str = "") -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        updated = 0
+        failed = []
+        for cve_id in cve_ids:
+            result = await self.cves_col.find_one_and_update(
+                {"id": cve_id}, {"$set": {"assigned_to": assigned_to, "assigned_team": assigned_team, "updated_at": now}}, return_document=True
+            )
+            if result:
+                result.pop("_id", None)
+                updated += 1
+                await self._log_audit(
+                    "owner_assigned", result.get("cve_id", cve_id),
+                    f"Bulk ownership assigned: {assigned_to or 'N/A'} / Team: {assigned_team or 'N/A'}",
+                    data={"assigned_to": assigned_to, "assigned_team": assigned_team, "bulk": True}
+                )
+            else:
+                failed.append(cve_id)
+        return {"updated": updated, "failed": failed, "total_requested": len(cve_ids)}
+
+    async def get_available_owners(self) -> Dict[str, Any]:
+        people = await self.cves_col.distinct("assigned_to", {"assigned_to": {"$ne": "", "$exists": True}})
+        teams = await self.cves_col.distinct("assigned_team", {"assigned_team": {"$ne": "", "$exists": True}})
+        service_owners = await self.services_col.distinct("owner", {"owner": {"$ne": "", "$exists": True}})
+        service_teams = await self.services_col.distinct("team", {"team": {"$ne": "", "$exists": True}})
+        all_people = sorted(set(p for p in (people + service_owners) if p))
+        all_teams = sorted(set(t for t in (teams + service_teams) if t))
+        unassigned_count = await self.cves_col.count_documents({
+            "status": {"$in": ["detected", "triaged", "in_progress"]},
+            "$or": [{"assigned_to": ""}, {"assigned_to": None}, {"assigned_to": {"$exists": False}}]
+        })
+        return {"people": all_people, "teams": all_teams, "unassigned_open_cves": unassigned_count}
+
+    async def get_unassigned_cves(self, severity: Optional[str] = None, limit: int = 50) -> Dict[str, Any]:
+        query = {
+            "status": {"$in": ["detected", "triaged", "in_progress"]},
+            "$or": [{"assigned_to": ""}, {"assigned_to": None}, {"assigned_to": {"$exists": False}}]
+        }
+        if severity:
+            query["severity"] = severity
+        total = await self.cves_col.count_documents(query)
+        cursor = self.cves_col.find(query, {"_id": 0}).sort("detected_at", -1).limit(limit)
+        items = []
+        async for doc in cursor:
+            items.append(doc)
+        return {"items": items, "total": total}
+
+    # ═══════════════════════════════════════════════════════════
     # SERVICE REGISTRY
     # ═══════════════════════════════════════════════════════════
 
