@@ -403,6 +403,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  SLA Tracker Service initialization failed: {str(e)}")
 
+    # Initialize CVE Reporting & Analytics Service
+    try:
+        from cve_reporting_service import initialize_cve_reporting_service
+        reporting_svc = initialize_cve_reporting_service(db)
+        if reporting_svc:
+            print("📊 CVE Reporting & Analytics Service initialized")
+    except Exception as e:
+        print(f"⚠️  CVE Reporting Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
