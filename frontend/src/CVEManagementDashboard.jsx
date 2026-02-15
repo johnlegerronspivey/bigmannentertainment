@@ -373,6 +373,8 @@ const CreateCVEModal = ({ onClose, onCreated }) => {
             <input placeholder="Affected Version" className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.affected_version} onChange={(e) => setForm({ ...form, affected_version: e.target.value })} />
             <input placeholder="Fixed Version" className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.fixed_version} onChange={(e) => setForm({ ...form, fixed_version: e.target.value })} />
             <input placeholder="Services (comma-separated)" className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.affected_services} onChange={(e) => setForm({ ...form, affected_services: e.target.value })} />
+            <input data-testid="cve-create-owner" placeholder="Assign to (person)" className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.assigned_to} onChange={(e) => setForm({ ...form, assigned_to: e.target.value })} />
+            <input data-testid="cve-create-team" placeholder="Assign to (team)" className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value={form.assigned_team} onChange={(e) => setForm({ ...form, assigned_team: e.target.value })} />
           </div>
           <textarea placeholder="Description" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm h-20" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <div className="flex justify-end gap-3">
