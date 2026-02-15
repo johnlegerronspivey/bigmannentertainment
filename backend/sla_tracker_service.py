@@ -80,6 +80,8 @@ class SLATrackerService:
         self.escalation_log_col = db["cve_escalation_log"]
         self.sla_snapshots_col = db["cve_sla_snapshots"]
         self.notifications_col = db["cve_notifications"]
+        self.sla_config_col = db["cve_sla_config"]
+        self._auto_task: Optional[asyncio.Task] = None
 
     async def _get_sla_hours(self) -> Dict[str, int]:
         """Get SLA hours per severity from policies or defaults."""
