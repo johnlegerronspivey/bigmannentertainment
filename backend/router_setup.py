@@ -69,6 +69,7 @@ from cve_management_endpoints import router as cve_management_router
 from scanner_endpoints import router as scanner_router
 from remediation_endpoints import router as remediation_router
 from governance_endpoints import router as governance_router
+from notification_endpoints import router as notification_router, reports_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -97,7 +98,9 @@ routers = [
     cve_management_router,
     scanner_router,
     remediation_router,
-    governance_router
+    governance_router,
+    notification_router,
+    reports_router
 ]
 
 for router in routers:
