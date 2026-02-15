@@ -8,6 +8,8 @@ Build a comprehensive enterprise CVE management platform with:
 4. **Automated Remediation**: GitHub API integration for auto-PRs, AWS Inspector/Security Hub
 5. **Governance Dashboards**: Rich charts, analytics, trends, SLA tracking
 
+Additionally, an infrastructure automation pipeline for CVE remediation using Terraform, AWS Lambda, and GitHub Actions.
+
 ## Architecture
 - **Frontend**: React (CRA) with Tailwind CSS, Lucide React icons, Recharts
 - **Backend**: FastAPI (Python) with Motor (async MongoDB driver)
@@ -18,6 +20,8 @@ Build a comprehensive enterprise CVE management platform with:
 - **GitHub Integration**: PyGithub for issue/PR creation
 - **AWS**: boto3 for Inspector/Security Hub
 - **Charts**: Recharts (PieChart, BarChart, AreaChart, LineChart)
+- **IaC**: Terraform (multi-environment: dev, staging, prod)
+- **CI/CD**: GitHub Actions (Lambda artifact build + upload)
 
 ## Key Files
 - `/app/backend/cve_management_service.py` - Core CVE brain service (Phase 1)
@@ -29,7 +33,6 @@ Build a comprehensive enterprise CVE management platform with:
 - `/app/backend/governance_service.py` - Governance analytics service (Phase 4)
 - `/app/backend/governance_endpoints.py` - Governance API endpoints (prefix: /api/cve/governance)
 - `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 11 tabs
-- `/tmp/test_iac/main.tf` - Sample Terraform for IaC scanning demos
 
 ## MongoDB Collections
 ### Phase 1
@@ -73,127 +76,52 @@ Build a comprehensive enterprise CVE management platform with:
 
 ### Phase 3 (/api/cve/remediation/*)
 - GET /config - GitHub connection status + stats
-- GET /items - List remediation items (filter by status/severity)
+- GET /items - List remediation items
 - GET /items/{id} - Get single item
 - PUT /items/{id}/status - Update remediation status
 - POST /create-issue/{cve_id} - Create GitHub issue from CVE
-- POST /create-pr/{cve_id} - Create GitHub PR with dependency bump
+- POST /create-pr/{cve_id} - Create GitHub PR
 - POST /bulk-create-issues - Bulk create issues by severity
 - POST /sync-github - Sync item statuses with GitHub
-- GET /aws/findings - AWS Inspector findings
-- POST /aws/sync - Import AWS findings into CVE DB
-- GET /aws/security-hub - Security Hub summary
+- GET /aws/findings, POST /aws/sync, GET /aws/security-hub
 - GET /stats - Remediation statistics
 
 ### Phase 4 (/api/cve/governance/*)
-- GET /metrics - Full governance dashboard metrics (risk score, severity dist, fix rate)
-- GET /trends?days=30 - Daily detected/fixed trend data
-- GET /sla - SLA compliance per severity with overall %
-- GET /ownership - Team, person, source, status distribution
-- GET /mttr - Mean Time to Remediate by severity
-- GET /scan-activity - Scan history and scanner breakdown
+- GET /metrics, GET /trends, GET /sla, GET /ownership, GET /mttr, GET /scan-activity
 
-## What's Been Implemented
+## Completed Phases
 
-### Phase 0 (Previous): Security Audit System
-- CVE-2026-1615 vulnerability fix
-- Automated CVE monitoring with APScheduler
-- Email alerts via Resend, persistent MongoDB storage
+### Phase 1: CVE Brain & Core Dashboard - COMPLETE
+### Phase 2: Scanning & CI/CD Gates - COMPLETE
+### Phase 3: Automated Remediation & GitHub/AWS Integration - COMPLETE (Verified Feb 15, 2026)
+### Phase 4: Governance Dashboards & Advanced Analytics - COMPLETE
+### Phase 4.1: CVE Ownership Model - COMPLETE (Verified Feb 15, 2026)
+### Phase 5 Infrastructure: Remediation Automation Pipeline - COMPLETE (User verification pending for Terraform/Lambda)
 
-### Phase 1 (Feb 14, 2026): CVE Brain & Core Dashboard - COMPLETE
-- Central CVE database with full lifecycle tracking (6 states)
-- SBOM generation, Service registry, Severity policy engine
-- Comprehensive scan engine, Complete audit trail
-- 6-tab dashboard UI
-- Testing: 100% (24/24 backend, all frontend)
+## Prioritized Backlog
 
-### Phase 2 (Feb 14, 2026): Scanning & CI/CD Gates - COMPLETE
-- Installed real security tools: Trivy v0.58.2, Grype v0.108.0, Syft v1.42.0, Checkov 3.2.501
-- Multi-scanner orchestration (5 scan types: trivy-fs, trivy-iac, grype, syft, checkov)
-- Real vulnerability data: Grype found 30 vulns (1C/10H/14M), Checkov 42P/32F, Trivy IaC 19 misconfigs
-- CI/CD pipeline generator (GitHub Actions YAML with security gates)
-- Policy-as-code rules engine (5 rule types: severity threshold, CVSS, package blocklist, IaC failures)
-- Deploy gate evaluation (block/warn based on scan results)
-- 3 new tabs added (Scanners, CI/CD, Policy Engine)
-- Testing: 100% (22/22 backend, all frontend)
-
-### Phase 3 (Feb 14, 2026): Automated Remediation & GitHub/AWS Integration - COMPLETE
-- GitHub API integration (PyGithub) - connected to johnlegerronspivey/bigmannentertainment
-- Auto-create GitHub issues from CVEs with severity labels, detailed descriptions
-- Auto-create GitHub PRs with dependency version bumps
-- Bulk issue creation by severity level
-- GitHub sync to track issue/PR status
-- Remediation workflow lifecycle (open -> issue_created -> pr_created -> in_review -> merged -> deployed -> verified -> closed)
-- AWS Inspector integration (live boto3 client, finding import)
-- AWS Security Hub summary endpoint
-- Enhanced AWS Findings UI with separate Inspector/Security Hub sub-tabs and connection status
-- Testing: 100% (17/17 backend, all frontend)
-
-### Phase 4 (Feb 14, 2026): Governance Dashboards & Advanced Analytics - COMPLETE
-- Full governance analytics backend with 6 endpoints
-- Risk Assessment gauge (weighted score: crit*25 + high*15 + med*5 + low*1)
-- Severity distribution pie chart (open CVEs)
-- Status distribution donut chart (all CVEs)
-- CVE Trends area chart (30-day detected vs fixed)
-- SLA Compliance tracking with per-severity progress bars (Critical: 24h, High: 72h, Medium: 168h, Low: 720h)
-- Overall SLA compliance percentage
-- Mean Time to Remediate (MTTR) bar chart by severity
-- CVE ownership stats (by team, assignee, source)
-- Open CVEs by service bar chart
-- CVEs by source bar chart
-- Governance tab with 4 sub-views (Overview, Trends, SLA Compliance, Ownership)
-- Dashboard now has 11 tabs total
-- Testing: 100% (26/26 backend, all frontend)
-
-### Phase 4.1 (Feb 15, 2026): CVE Ownership Model - COMPLETE
-- Backend: Dedicated ownership endpoints (PUT /entries/{id}/owner, POST /entries/bulk-assign, GET /owners, GET /unassigned)
-- Backend: assign_owner, bulk_assign_owner, get_available_owners, get_unassigned_cves service methods with full audit trail
-- Frontend: Assign/Reassign Owner button in CVE Database expanded view
-- Frontend: AssignOwnerModal with dropdown for existing people/teams + New button for custom entry
-- Frontend: Create CVE Modal now includes assigned_to and assigned_team fields
-- Frontend: Governance > Ownership tab enhanced with unassigned CVE alert banner, unassigned CVE list with quick-assign buttons
-- Frontend: Governance > Ownership tab shows Registered Owners and Registered Teams sections
-- All ownership changes logged to audit trail
-- Testing: 100% (17/17 backend, all frontend features verified)
-
-## Phased Roadmap - ALL PHASES COMPLETE
-
-All 4 phases have been implemented:
-- Phase 1: CVE Brain & Core Dashboard
-- Phase 2: Scanning & CI/CD Gates
-- Phase 3: Automated Remediation & GitHub/AWS Integration
-- Phase 4: Governance Dashboards & Advanced Analytics
-
-### Phase 5 Infrastructure (Feb 15, 2026): Remediation Automation Pipeline - COMPLETE
-- **Terraform IaC** (`infra/`): Lambda + EventBridge + IAM for automated CVE remediation
-  - Multi-environment support (dev, staging, prod) with workspace isolation
-  - EventBridge rule triggers Lambda on CRITICAL/HIGH Inspector findings
-  - IAM role with least-privilege (Secrets Manager, CloudWatch, S3)
-  - CloudWatch Log Group with 30-day retention
-- **Remediation Lambda** (`lambda/remediation_lambda.py`):
-  - Processes EventBridge events from AWS Inspector
-  - Reads GitHub PAT from Secrets Manager (cached)
-  - Creates detailed GitHub issues with severity labels, affected resources, CVE info
-  - Emits CloudWatch custom metrics (CVE_Detected_Count, Remediation_Issues_Created)
-- **Lambda Packaging** (`lambda/package.sh`): Reproducible zip build for deployment
-- **CI/CD** (`.github/workflows/build-lambda.yml`): Auto-package and upload to S3 per environment
-- **Deployment Guide** (`infra/DEPLOYMENT.md`): Full runbook with validation checklist
-
-### Potential Enhancements
+### P1 - Phase 5: Notifications & Reporting
+- Email/UI alerts for new CVEs and SLA breaches
 - Export governance reports as PDF/CSV
 - Email digest of weekly security posture
+
+### P2 - Phase 6: User Management & RBAC
+- Role-Based Access Control
+- Admin/Manager/Analyst roles
+
+### P2 - Refactoring
+- Break down CVEManagementDashboard.jsx (2300+ lines) into per-tab components
+
+### P3 - Enhancements
 - Custom SLA policy editor
 - Historical risk score tracking
-- Integration with Jira/ServiceNow for ticket management
-- Enhanced SLA Tracking with notifications and escalations for SLA breaches
-- Refactor CVEManagementDashboard.jsx (2200+ lines) into smaller per-tab components
-
-## User's GitHub Repo
-https://github.com/johnlegerronspivey/bigmannentertainment
+- Jira/ServiceNow integration
+- Enhanced SLA Tracking with escalations
 
 ## Test Credentials
 - Login: enterprise@test.com / TestPass123!
-- API: https://threat-hub-1.preview.emergentagent.com/api/cve
-- Scanner API: https://threat-hub-1.preview.emergentagent.com/api/cve/scanners
-- Remediation API: https://threat-hub-1.preview.emergentagent.com/api/cve/remediation
-- Governance API: https://threat-hub-1.preview.emergentagent.com/api/cve/governance
+- API: https://cve-infra.preview.emergentagent.com/api/cve
+- GitHub Repo: johnlegerronspivey/bigmannentertainment
+
+## User's GitHub Repo
+https://github.com/johnlegerronspivey/bigmannentertainment
