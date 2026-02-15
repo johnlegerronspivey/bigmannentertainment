@@ -2695,6 +2695,8 @@ export default function CVEManagementDashboard() {
   const [scanning, setScanning] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [cveRole, setCveRole] = useState("analyst");
+  const [cvePermissions, setCvePermissions] = useState([]);
 
   const fetchDashboard = useCallback(async () => {
     try { setDashboard(await fetcher(`${API}/dashboard`)); } catch (e) { console.error(e); }
@@ -2707,6 +2709,22 @@ export default function CVEManagementDashboard() {
       setUnreadCount(data.unread || 0);
     } catch (e) { console.error(e); }
   }, []);
+
+  const fetchMyRole = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const data = await fetcher(`${RBAC_API}/me`, { headers: { Authorization: `Bearer ${token}` } });
+      setCveRole(data.cve_role || "analyst");
+      setCvePermissions(data.permissions || []);
+    } catch (e) { console.error("RBAC fetch failed:", e); }
+  }, []);
+
+  useEffect(() => { fetchDashboard(); fetchUnread(); fetchMyRole(); }, [fetchDashboard, fetchUnread, fetchMyRole]);
+
+  const hasPerm = (perm) => cvePermissions.includes(perm);
+  const roleBadge = ROLE_BADGES[cveRole] || ROLE_BADGES.analyst;
+  const visibleTabs = TABS.filter((t) => !t.adminOnly || hasPerm("users.view"));
 
   useEffect(() => { fetchDashboard(); fetchUnread(); }, [fetchDashboard, fetchUnread]);
 
