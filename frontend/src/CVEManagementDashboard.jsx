@@ -6,6 +6,8 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api/cve`;
 const SCANNER_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/scanners`;
 const REMEDIATION_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/remediation`;
 const GOVERNANCE_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/governance`;
+const NOTIFICATION_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/notifications`;
+const REPORTS_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/reports`;
 
 const SEVERITY_COLORS = {
   critical: { bg: "bg-red-900/30", text: "text-red-400", border: "border-red-500/40", badge: "bg-red-500/20 text-red-300", dot: "bg-red-500" },
