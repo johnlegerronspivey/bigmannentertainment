@@ -298,6 +298,15 @@ class SLATrackerService:
                         "actual_pct": round(pct, 1),
                         "severity": cve_item["severity"],
                         "action": rule.get("action", "notify"),
+                        "status": "open",
+                        "acknowledged_by": "",
+                        "acknowledged_at": "",
+                        "assignee": "",
+                        "assigned_by": "",
+                        "assigned_at": "",
+                        "resolved_by": "",
+                        "resolved_at": "",
+                        "resolution_note": "",
                         "created_at": now.isoformat(),
                     }
                     await self.escalation_log_col.insert_one({**log_entry, "_id": log_entry["id"]})
