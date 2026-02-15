@@ -2778,7 +2778,7 @@ export default function CVEManagementDashboard() {
       <div className="border-b border-slate-800/60 bg-slate-900/40">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1 overflow-x-auto py-1">
-            {TABS.map((t) => (
+            {visibleTabs.map((t) => (
               <button key={t.id} data-testid={`tab-${t.id}`} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all whitespace-nowrap ${tab === t.id ? "bg-cyan-500/10 text-cyan-400 font-medium" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
                 <t.icon className="w-4 h-4" /> {t.label}
                 {t.id === "cves" && dashboard?.open_cves > 0 && <span className="ml-1 px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded text-xs">{dashboard.open_cves}</span>}
