@@ -119,6 +119,13 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Scanner Effectiveness: bar chart + scanner cards
 - Export: CSV download for CVE database, executive summary, and team performance; saved report management
 
+### CVE Vulnerability Remediation (COMPLETE - Feb 15, 2026)
+- Scanned Python backend with `pip-audit`: found 7 CVEs across 2 packages
+  - `requests` 2.31.0 → 2.32.5 (CVE-2024-35195, CVE-2024-47081)
+  - `urllib3` 2.0.7 → 2.6.3 (CVE-2024-37891, CVE-2025-50181, CVE-2025-66418, CVE-2025-66471, CVE-2026-21441)
+- Scanned Node.js frontend with `yarn audit`: 0 vulnerabilities found
+- All CVEs resolved, requirements.txt frozen, backend restarted and verified healthy
+
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
