@@ -7,6 +7,7 @@ Build a comprehensive enterprise CVE management platform with:
 3. **CI/CD Security Gates**: Dependency, container, and IaC scanning
 4. **Automated Remediation**: GitHub API integration for auto-PRs, AWS Inspector/Security Hub
 5. **Governance Dashboards**: Rich charts, analytics, trends, SLA tracking
+6. **Notifications & Reporting**: Email/UI alerts, SLA monitoring, CSV exports, weekly digests
 
 Additionally, an infrastructure automation pipeline for CVE remediation using Terraform, AWS Lambda, and GitHub Actions.
 
@@ -16,7 +17,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **Database**: MongoDB
 - **Security Tools**: Trivy v0.58.2, Grype v0.108.0, Syft v1.42.0, Checkov 3.2.501
 - **Background Jobs**: APScheduler (for existing security monitoring)
-- **Email**: Resend (for existing CVE alerts)
+- **Email**: Resend (for CVE alerts + Phase 5 notifications)
 - **GitHub Integration**: PyGithub for issue/PR creation
 - **AWS**: boto3 for Inspector/Security Hub
 - **Charts**: Recharts (PieChart, BarChart, AreaChart, LineChart)
@@ -32,7 +33,9 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/backend/remediation_endpoints.py` - Remediation API endpoints (prefix: /api/cve/remediation)
 - `/app/backend/governance_service.py` - Governance analytics service (Phase 4)
 - `/app/backend/governance_endpoints.py` - Governance API endpoints (prefix: /api/cve/governance)
-- `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 11 tabs
+- `/app/backend/notification_service.py` - Notification & reporting service (Phase 5)
+- `/app/backend/notification_endpoints.py` - Notification API endpoints (prefix: /api/cve/notifications, /api/cve/reports)
+- `/app/frontend/src/CVEManagementDashboard.jsx` - Full dashboard UI with 12 tabs
 
 ## MongoDB Collections
 ### Phase 1
@@ -50,6 +53,10 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### Phase 3
 - `cve_remediation_items` - Remediation tracking (GitHub issues/PRs, status lifecycle)
 - `cve_aws_findings` - Cached AWS Inspector findings
+
+### Phase 5
+- `cve_notifications` - Notification records (type, severity, read status, email sent)
+- `cve_notification_preferences` - Email preferences, type toggles, SLA thresholds
 
 ## API Endpoints
 ### Phase 1 (/api/cve/*)
@@ -89,6 +96,23 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### Phase 4 (/api/cve/governance/*)
 - GET /metrics, GET /trends, GET /sla, GET /ownership, GET /mttr, GET /scan-activity
 
+### Phase 5 (/api/cve/notifications/*)
+- GET / - List notifications (pagination, unread_only, type filter)
+- GET /unread-count - Unread count with breakdown by type
+- POST / - Create notification
+- PUT /{id}/read - Mark as read
+- PUT /read-all - Mark all as read
+- DELETE /{id} - Dismiss notification
+- POST /check-sla - Run SLA compliance check (generates warning/breach notifications)
+- GET /preferences - Get notification preferences
+- PUT /preferences - Update preferences (email toggle, types, recipient)
+- POST /test-email - Send test email via Resend
+- POST /weekly-digest - Generate weekly security posture digest
+
+### Phase 5 (/api/cve/reports/*)
+- GET /cves/csv - Export CVEs as CSV (status/severity filters)
+- GET /governance/csv - Export governance report as CSV
+
 ## Completed Phases
 
 ### Phase 1: CVE Brain & Core Dashboard - COMPLETE
@@ -97,20 +121,16 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### Phase 4: Governance Dashboards & Advanced Analytics - COMPLETE
 ### Phase 4.1: CVE Ownership Model - COMPLETE (Verified Feb 15, 2026)
 ### Phase 5 Infrastructure: Remediation Automation Pipeline - COMPLETE (User verification pending for Terraform/Lambda)
+### Phase 5: Notifications & Reporting - COMPLETE (Tested Feb 15, 2026 — 22/22 backend, 100% frontend)
 
 ## Prioritized Backlog
-
-### P1 - Phase 5: Notifications & Reporting
-- Email/UI alerts for new CVEs and SLA breaches
-- Export governance reports as PDF/CSV
-- Email digest of weekly security posture
 
 ### P2 - Phase 6: User Management & RBAC
 - Role-Based Access Control
 - Admin/Manager/Analyst roles
 
 ### P2 - Refactoring
-- Break down CVEManagementDashboard.jsx (2300+ lines) into per-tab components
+- Break down CVEManagementDashboard.jsx (2500+ lines) into per-tab components
 
 ### P3 - Enhancements
 - Custom SLA policy editor
@@ -120,7 +140,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 
 ## Test Credentials
 - Login: enterprise@test.com / TestPass123!
-- API: https://cve-infra.preview.emergentagent.com/api/cve
+- API: https://cve-remediation.preview.emergentagent.com/api/cve
 - GitHub Repo: johnlegerronspivey/bigmannentertainment
 
 ## User's GitHub Repo
