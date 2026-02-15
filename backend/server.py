@@ -385,6 +385,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Notification Service initialization failed: {str(e)}")
 
+    # Initialize RBAC Service (Phase 6)
+    try:
+        from rbac_service import initialize_rbac_service
+        rbac_ok = initialize_rbac_service(db)
+        if rbac_ok:
+            print("👤 RBAC Service initialized (admin/manager/analyst)")
+    except Exception as e:
+        print(f"⚠️  RBAC Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
