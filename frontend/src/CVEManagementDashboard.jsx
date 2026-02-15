@@ -144,6 +144,7 @@ const CVEDatabaseTab = ({ onRefresh }) => {
   const [filters, setFilters] = useState({ status: "", severity: "", search: "" });
   const [expanded, setExpanded] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [assignTarget, setAssignTarget] = useState(null);
 
   const fetchCves = useCallback(async () => {
     setLoading(true);
