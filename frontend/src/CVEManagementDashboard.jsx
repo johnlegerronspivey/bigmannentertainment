@@ -2752,6 +2752,7 @@ export default function CVEManagementDashboard() {
                 <h1 className="text-xl font-bold text-white">CVE Management Platform</h1>
                 <p className="text-xs text-slate-400">Central vulnerability brain — detect, triage, fix, verify</p>
               </div>
+              <span data-testid="user-role-badge" className={`ml-2 px-2.5 py-1 rounded-lg text-xs font-semibold ${roleBadge.bg} ${roleBadge.text}`}>{roleBadge.label}</span>
             </div>
             <div className="flex items-center gap-3">
               <button data-testid="notification-bell" onClick={() => setTab("notifications")} className="relative p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors">
