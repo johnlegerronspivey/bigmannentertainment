@@ -7,6 +7,7 @@ export const GOVERNANCE_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/gove
 export const NOTIFICATION_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/notifications`;
 export const REPORTS_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/reports`;
 export const RBAC_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/rbac`;
+export const SLA_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/sla`;
 
 export const SEVERITY_COLORS = {
   critical: { bg: "bg-red-900/30", text: "text-red-400", border: "border-red-500/40", badge: "bg-red-500/20 text-red-300", dot: "bg-red-500" },
