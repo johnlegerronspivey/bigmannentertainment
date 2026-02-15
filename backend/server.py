@@ -376,6 +376,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Governance Service initialization failed: {str(e)}")
 
+    # Initialize Notification Service (Phase 5)
+    try:
+        from notification_service import initialize_notification_service
+        notif_svc = initialize_notification_service(db)
+        if notif_svc:
+            print("🔔 Notification Service initialized (alerts + reporting)")
+    except Exception as e:
+        print(f"⚠️  Notification Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
