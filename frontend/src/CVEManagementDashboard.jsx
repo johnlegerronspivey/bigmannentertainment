@@ -2761,10 +2761,14 @@ export default function CVEManagementDashboard() {
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{unreadCount > 99 ? "99+" : unreadCount}</span>
                 )}
               </button>
-              <button data-testid="seed-data-btn" onClick={handleSeed} disabled={seeding} className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs transition-colors disabled:opacity-50">{seeding ? "Seeding..." : "Seed Data"}</button>
-              <button data-testid="run-scan-btn" onClick={handleScan} disabled={scanning} className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50">
-                <RefreshCw className={`w-4 h-4 ${scanning ? "animate-spin" : ""}`} /> {scanning ? "Scanning..." : "Run Scan"}
-              </button>
+              {hasPerm("cves.create") && (
+                <button data-testid="seed-data-btn" onClick={handleSeed} disabled={seeding} className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs transition-colors disabled:opacity-50">{seeding ? "Seeding..." : "Seed Data"}</button>
+              )}
+              {hasPerm("scans.run") && (
+                <button data-testid="run-scan-btn" onClick={handleScan} disabled={scanning} className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50">
+                  <RefreshCw className={`w-4 h-4 ${scanning ? "animate-spin" : ""}`} /> {scanning ? "Scanning..." : "Run Scan"}
+                </button>
+              )}
             </div>
           </div>
         </div>
