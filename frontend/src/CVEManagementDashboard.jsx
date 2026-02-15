@@ -2803,6 +2803,7 @@ export default function CVEManagementDashboard() {
         {tab === "policy-engine" && <PolicyEngineTab onRefresh={fetchDashboard} />}
         {tab === "policies" && <PoliciesTab onRefresh={fetchDashboard} />}
         {tab === "audit" && <AuditTrailTab />}
+        {tab === "users" && hasPerm("users.view") && <UserManagementTab currentRole={cveRole} />}
       </div>
     </div>
   );
