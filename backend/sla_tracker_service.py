@@ -1,17 +1,23 @@
 """
-SLA Tracker Service - Enhanced SLA Tracking
-Provides live countdown timers, escalation chains, SLA history, and at-risk CVE tracking.
+SLA Tracker Service - Enhanced SLA Tracking (Phase 2)
+Provides live countdown timers, escalation chains, SLA history, at-risk CVE tracking,
+proactive notifications, auto-escalation scheduling, and escalation workflows.
 """
 
+import asyncio
 import logging
 import os
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
+import resend
 from motor.motor_asyncio import AsyncIOMotorClient
 
 logger = logging.getLogger("sla_tracker_service")
+
+resend.api_key = os.environ.get("RESEND_API_KEY", "")
+SLA_SENDER_EMAIL = "onboarding@resend.dev"
 
 SEVERITY_SLA_DEFAULTS = {"critical": 24, "high": 72, "medium": 168, "low": 720}
 
