@@ -1,5 +1,6 @@
 """
-SLA Tracker API Endpoints - Enhanced SLA Tracking
+SLA Tracker API Endpoints - Enhanced SLA Tracking (Phase 2)
+Includes auto-escalation config, escalation workflows, notification prefs, and digest.
 """
 
 from fastapi import APIRouter, Query
@@ -24,6 +25,32 @@ class EscalationRule(BaseModel):
 class EscalationRulesUpdate(BaseModel):
     rules: List[EscalationRule]
 
+
+class AutoEscalationConfig(BaseModel):
+    enabled: bool = False
+    interval_minutes: int = 60
+    email_on_warning: bool = True
+    email_on_breach: bool = True
+    email_on_escalation: bool = True
+    digest_enabled: bool = False
+    digest_cron_hour: int = 8
+    recipients: List[str] = []
+
+
+class NotificationPreferences(BaseModel):
+    notify_on_warning: bool = True
+    notify_on_breach: bool = True
+    notify_on_escalation: bool = True
+    per_severity: Dict[str, Dict[str, bool]] = {}
+
+
+class EscalationAction(BaseModel):
+    performed_by: str = ""
+    assignee: str = ""
+    resolution_note: str = ""
+
+
+# ─── Phase 1 Endpoints ───────────────────────────────────────
 
 @router.get("/dashboard")
 async def get_sla_dashboard():
@@ -53,7 +80,7 @@ async def update_escalation_rules(body: EscalationRulesUpdate):
 @router.post("/run-escalations")
 async def run_escalations():
     svc = get_sla_tracker_service()
-    return await svc.run_escalations()
+    return await svc.run_escalations_with_notifications()
 
 
 @router.get("/escalation-log")
@@ -72,3 +99,65 @@ async def get_sla_history(days: int = Query(30, ge=7, le=90)):
 async def take_snapshot():
     svc = get_sla_tracker_service()
     return await svc.take_snapshot()
+
+
+# ─── Phase 2: Auto-Escalation Config ─────────────────────────
+
+@router.get("/auto-escalation-config")
+async def get_auto_escalation_config():
+    svc = get_sla_tracker_service()
+    return await svc.get_auto_escalation_config()
+
+
+@router.put("/auto-escalation-config")
+async def update_auto_escalation_config(body: AutoEscalationConfig):
+    svc = get_sla_tracker_service()
+    return await svc.update_auto_escalation_config(body.dict())
+
+
+# ─── Phase 2: Notification Preferences ───────────────────────
+
+@router.get("/notification-preferences")
+async def get_notification_preferences():
+    svc = get_sla_tracker_service()
+    return await svc.get_notification_preferences()
+
+
+@router.put("/notification-preferences")
+async def update_notification_preferences(body: NotificationPreferences):
+    svc = get_sla_tracker_service()
+    return await svc.update_notification_preferences(body.dict())
+
+
+# ─── Phase 2: Escalation Workflow ────────────────────────────
+
+@router.post("/escalation-log/{log_id}/acknowledge")
+async def acknowledge_escalation(log_id: str, body: EscalationAction):
+    svc = get_sla_tracker_service()
+    return await svc.acknowledge_escalation(log_id, acknowledged_by=body.performed_by)
+
+
+@router.post("/escalation-log/{log_id}/assign")
+async def assign_escalation(log_id: str, body: EscalationAction):
+    svc = get_sla_tracker_service()
+    return await svc.assign_escalation(log_id, assignee=body.assignee, assigned_by=body.performed_by)
+
+
+@router.post("/escalation-log/{log_id}/resolve")
+async def resolve_escalation(log_id: str, body: EscalationAction):
+    svc = get_sla_tracker_service()
+    return await svc.resolve_escalation(log_id, resolution_note=body.resolution_note, resolved_by=body.performed_by)
+
+
+@router.get("/escalation-stats")
+async def get_escalation_stats():
+    svc = get_sla_tracker_service()
+    return await svc.get_escalation_stats()
+
+
+# ─── Phase 2: SLA Digest ─────────────────────────────────────
+
+@router.post("/send-digest")
+async def send_sla_digest():
+    svc = get_sla_tracker_service()
+    return await svc.send_sla_digest()
