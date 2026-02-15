@@ -1,0 +1,77 @@
+name: Build & Upload Remediation Lambda
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lambda/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  package-lambda:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - env: dev
+          - env: staging
+          - env: prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Package Lambda
+        run: |
+          chmod +x lambda/package.sh
+          ./lambda/package.sh
+
+      - name: Upload remediation zip to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl private
+        env:
+          AWS_S3_BUCKET: model-agency-assets
+          AWS_REGION: us-east-1
+          SOURCE_DIR: './lambda'
+          DEST_DIR: 'remediation-artifacts'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Copy to environment-specific key
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          aws s3 cp lambda/remediation.zip "s3://model-agency-assets/remediation-${{ matrix.env }}.zip"
+          echo "Uploaded remediation-${{ matrix.env }}.zip"
+
+  verify:
+    needs: package-lambda
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify S3 artifacts
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          echo "Verifying uploaded artifacts..."
+          aws s3 ls s3://model-agency-assets/remediation-dev.zip
+          aws s3 ls s3://model-agency-assets/remediation-staging.zip
+          aws s3 ls s3://model-agency-assets/remediation-prod.zip
+          echo "All artifacts verified."
