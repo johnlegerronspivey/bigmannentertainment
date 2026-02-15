@@ -367,6 +367,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Remediation Service initialization failed: {str(e)}")
 
+    # Initialize Governance Service (Phase 4)
+    try:
+        from governance_service import initialize_governance_service
+        governance_svc = initialize_governance_service(db)
+        if governance_svc:
+            print("📊 Governance Service initialized (dashboards + analytics)")
+    except Exception as e:
+        print(f"⚠️  Governance Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
