@@ -122,15 +122,19 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### Phase 4.1: CVE Ownership Model - COMPLETE (Verified Feb 15, 2026)
 ### Phase 5 Infrastructure: Remediation Automation Pipeline - COMPLETE (Verified Feb 15, 2026 — tfvars updated with AWS Account 314108682794)
 ### Phase 5: Notifications & Reporting - COMPLETE (Tested Feb 15, 2026 — 22/22 backend, 100% frontend)
+### Phase 6: User Management & RBAC - COMPLETE (Tested Feb 15, 2026 — 17/17 backend, 100% frontend)
+- 3 roles: Admin, Manager, Analyst with granular permissions
+- Auto-provisioning: first user becomes admin
+- User Management tab (admin only): invite users, change roles, activate/deactivate
+- Permission-gated UI: buttons/tabs hidden based on role
+- Backend: `/app/backend/rbac_service.py`, `/app/backend/rbac_endpoints.py`
+- API prefix: `/api/cve/rbac`
+- MongoDB collection: `cve_users`
 
 ## Prioritized Backlog
 
-### P2 - Phase 6: User Management & RBAC
-- Role-Based Access Control
-- Admin/Manager/Analyst roles
-
 ### P2 - Refactoring
-- Break down CVEManagementDashboard.jsx (2500+ lines) into per-tab components
+- Break down CVEManagementDashboard.jsx (2600+ lines) into per-tab components
 
 ### P3 - Enhancements
 - Custom SLA policy editor
