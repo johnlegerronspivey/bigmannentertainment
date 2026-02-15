@@ -80,7 +80,7 @@ def has_permission(role: str, permission: str) -> bool:
 
 
 async def get_cve_user(user_id: str) -> Optional[dict]:
-    if not db:
+    if db is None:
         return None
     doc = await db.cve_users.find_one({"user_id": user_id}, {"_id": 0})
     return doc
@@ -88,7 +88,7 @@ async def get_cve_user(user_id: str) -> Optional[dict]:
 
 async def ensure_cve_user(user_id: str, email: str, full_name: str) -> dict:
     """Auto-provision a CVE user on first access. First user becomes admin."""
-    if not db:
+    if db is None:
         return {"user_id": user_id, "email": email, "full_name": full_name, "cve_role": "analyst", "is_active": True}
 
     existing = await db.cve_users.find_one({"user_id": user_id}, {"_id": 0})
@@ -114,7 +114,7 @@ async def ensure_cve_user(user_id: str, email: str, full_name: str) -> dict:
 
 
 async def list_cve_users() -> list:
-    if not db:
+    if db is None:
         return []
     cursor = db.cve_users.find({}, {"_id": 0}).sort("created_at", 1)
     return await cursor.to_list(length=500)
@@ -123,7 +123,7 @@ async def list_cve_users() -> list:
 async def update_cve_user_role(user_id: str, new_role: str) -> Optional[dict]:
     if new_role not in ROLES:
         return None
-    if not db:
+    if db is None:
         return None
     await db.cve_users.update_one(
         {"user_id": user_id},
@@ -133,7 +133,7 @@ async def update_cve_user_role(user_id: str, new_role: str) -> Optional[dict]:
 
 
 async def update_cve_user_status(user_id: str, is_active: bool) -> Optional[dict]:
-    if not db:
+    if db is None:
         return None
     await db.cve_users.update_one(
         {"user_id": user_id},
