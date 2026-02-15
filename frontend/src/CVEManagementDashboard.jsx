@@ -341,7 +341,7 @@ const AssignOwnerModal = ({ cve, onClose, onAssigned }) => {
 
 // ─── Create CVE Modal ────────────────────────────────────────
 const CreateCVEModal = ({ onClose, onCreated }) => {
-  const [form, setForm] = useState({ cve_id: "", title: "", description: "", severity: "medium", cvss_score: 0, affected_package: "", affected_version: "", fixed_version: "", affected_services: "", source: "manual" });
+  const [form, setForm] = useState({ cve_id: "", title: "", description: "", severity: "medium", cvss_score: 0, affected_package: "", affected_version: "", fixed_version: "", affected_services: "", source: "manual", assigned_to: "", assigned_team: "" });
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e) => {
