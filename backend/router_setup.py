@@ -70,6 +70,7 @@ from scanner_endpoints import router as scanner_router
 from remediation_endpoints import router as remediation_router
 from governance_endpoints import router as governance_router
 from notification_endpoints import router as notification_router, reports_router
+from rbac_endpoints import router as rbac_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -100,7 +101,8 @@ routers = [
     remediation_router,
     governance_router,
     notification_router,
-    reports_router
+    reports_router,
+    rbac_router
 ]
 
 for router in routers:
