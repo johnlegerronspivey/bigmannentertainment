@@ -2051,6 +2051,43 @@ const GovernanceTab = ({ onRefresh }) => {
       {/* ── OWNERSHIP ──────────────────────────── */}
       {view === "ownership" && (
         <div className="space-y-6">
+          {/* Unassigned Alert */}
+          {(ownerInfo?.unassigned_open_cves || 0) > 0 && (
+            <div data-testid="unassigned-alert" className="bg-amber-900/20 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-400" />
+                <div>
+                  <span className="text-amber-300 font-semibold text-sm">{ownerInfo.unassigned_open_cves} unassigned open CVE{ownerInfo.unassigned_open_cves !== 1 ? "s" : ""}</span>
+                  <p className="text-amber-400/70 text-xs mt-0.5">These vulnerabilities need an owner for accountability and SLA tracking</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Unassigned CVEs List */}
+          {(unassigned?.items || []).length > 0 && (
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+              <h3 className="text-white font-semibold mb-3 text-sm flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400" /> Unassigned CVEs
+                <span className="text-xs text-slate-500 font-normal ml-1">({unassigned.total} total)</span>
+              </h3>
+              <div className="space-y-2 max-h-72 overflow-y-auto">
+                {(unassigned.items || []).map((c) => (
+                  <div key={c.id} data-testid={`unassigned-cve-${c.id}`} className="flex items-center justify-between bg-slate-900/50 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-cyan-400 font-mono text-xs">{c.cve_id}</span>
+                      <SeverityBadge severity={c.severity} />
+                      <span className="text-xs text-slate-300 truncate">{c.title}</span>
+                    </div>
+                    <button data-testid={`gov-assign-btn-${c.id}`} onClick={() => setGovAssignTarget(c)} className="ml-2 px-2.5 py-1 rounded text-xs bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 transition-colors border border-cyan-500/30 shrink-0">
+                      <Users className="w-3 h-3 inline mr-1" />Assign
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid md:grid-cols-2 gap-6">
             {/* By Team */}
             <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
@@ -2099,6 +2136,34 @@ const GovernanceTab = ({ onRefresh }) => {
             </div>
           </div>
 
+          {/* Available Owners & Teams */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+              <h3 className="text-white font-semibold mb-3 text-sm">Registered Owners</h3>
+              {(ownerInfo?.people || []).length === 0 ? (
+                <p className="text-slate-500 text-sm">No owners registered yet. Assign an owner to a CVE to populate this list.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {(ownerInfo?.people || []).map((p) => (
+                    <span key={p} className="px-3 py-1 bg-purple-500/15 text-purple-300 rounded-lg text-xs border border-purple-500/20">{p}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+              <h3 className="text-white font-semibold mb-3 text-sm">Registered Teams</h3>
+              {(ownerInfo?.teams || []).length === 0 ? (
+                <p className="text-slate-500 text-sm">No teams registered yet. Assign a team to a CVE to populate this list.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {(ownerInfo?.teams || []).map((t) => (
+                    <span key={t} className="px-3 py-1 bg-cyan-500/15 text-cyan-300 rounded-lg text-xs border border-cyan-500/20">{t}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* By Source + By Status */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
@@ -2128,6 +2193,9 @@ const GovernanceTab = ({ onRefresh }) => {
               </ResponsiveContainer>
             </div>
           </div>
+
+          {/* Assign Owner Modal from Governance */}
+          {govAssignTarget && <AssignOwnerModal cve={govAssignTarget} onClose={() => setGovAssignTarget(null)} onAssigned={() => { setGovAssignTarget(null); fetchAll(); onRefresh(); }} />}
         </div>
       )}
     </div>
