@@ -422,3 +422,264 @@ class SLATrackerService:
         )
 
         return snapshot
+
+    # ─── Phase 2: Auto-Escalation Config ──────────────────────
+    async def get_auto_escalation_config(self) -> Dict[str, Any]:
+        doc = await self.sla_config_col.find_one({"key": "auto_escalation"}, {"_id": 0})
+        if not doc:
+            doc = {
+                "key": "auto_escalation",
+                "enabled": False,
+                "interval_minutes": 60,
+                "email_on_warning": True,
+                "email_on_breach": True,
+                "email_on_escalation": True,
+                "digest_enabled": False,
+                "digest_cron_hour": 8,
+                "recipients": [],
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await self.sla_config_col.insert_one({**doc, "_id": "auto_escalation"})
+        doc.pop("key", None)
+        return doc
+
+    async def update_auto_escalation_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        config["key"] = "auto_escalation"
+        config["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await self.sla_config_col.update_one(
+            {"key": "auto_escalation"}, {"$set": config}, upsert=True
+        )
+        was_enabled = config.get("enabled", False)
+        interval = config.get("interval_minutes", 60)
+        if was_enabled:
+            self.start_auto_escalation(interval)
+        else:
+            self.stop_auto_escalation()
+        config.pop("key", None)
+        return config
+
+    # ─── Phase 2: Notification Preferences ────────────────────
+    async def get_notification_preferences(self) -> Dict[str, Any]:
+        doc = await self.sla_config_col.find_one({"key": "sla_notif_prefs"}, {"_id": 0})
+        if not doc:
+            doc = {
+                "key": "sla_notif_prefs",
+                "notify_on_warning": True,
+                "notify_on_breach": True,
+                "notify_on_escalation": True,
+                "per_severity": {
+                    "critical": {"email": True, "in_app": True},
+                    "high": {"email": True, "in_app": True},
+                    "medium": {"email": False, "in_app": True},
+                    "low": {"email": False, "in_app": True},
+                },
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await self.sla_config_col.insert_one({**doc, "_id": "sla_notif_prefs"})
+        doc.pop("key", None)
+        return doc
+
+    async def update_notification_preferences(self, prefs: Dict[str, Any]) -> Dict[str, Any]:
+        prefs["key"] = "sla_notif_prefs"
+        prefs["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await self.sla_config_col.update_one(
+            {"key": "sla_notif_prefs"}, {"$set": prefs}, upsert=True
+        )
+        prefs.pop("key", None)
+        return prefs
+
+    # ─── Phase 2: Escalation Workflow ─────────────────────────
+    async def acknowledge_escalation(self, log_id: str, acknowledged_by: str = "") -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        result = await self.escalation_log_col.update_one(
+            {"id": log_id, "status": {"$nin": ["resolved"]}},
+            {"$set": {"status": "acknowledged", "acknowledged_by": acknowledged_by, "acknowledged_at": now}},
+        )
+        if result.modified_count == 0:
+            return {"success": False, "error": "Escalation not found or already resolved"}
+        return {"success": True, "status": "acknowledged"}
+
+    async def assign_escalation(self, log_id: str, assignee: str, assigned_by: str = "") -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        result = await self.escalation_log_col.update_one(
+            {"id": log_id, "status": {"$nin": ["resolved"]}},
+            {"$set": {"status": "assigned", "assignee": assignee, "assigned_by": assigned_by, "assigned_at": now}},
+        )
+        if result.modified_count == 0:
+            return {"success": False, "error": "Escalation not found or already resolved"}
+        return {"success": True, "status": "assigned", "assignee": assignee}
+
+    async def resolve_escalation(self, log_id: str, resolution_note: str = "", resolved_by: str = "") -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        result = await self.escalation_log_col.update_one(
+            {"id": log_id},
+            {"$set": {"status": "resolved", "resolution_note": resolution_note, "resolved_by": resolved_by, "resolved_at": now}},
+        )
+        if result.modified_count == 0:
+            return {"success": False, "error": "Escalation not found"}
+        return {"success": True, "status": "resolved"}
+
+    async def get_escalation_stats(self) -> Dict[str, Any]:
+        total = await self.escalation_log_col.count_documents({})
+        open_count = await self.escalation_log_col.count_documents({"status": {"$nin": ["resolved", "acknowledged", "assigned"]}})
+        ack_count = await self.escalation_log_col.count_documents({"status": "acknowledged"})
+        assigned_count = await self.escalation_log_col.count_documents({"status": "assigned"})
+        resolved_count = await self.escalation_log_col.count_documents({"status": "resolved"})
+        return {
+            "total": total,
+            "open": open_count,
+            "acknowledged": ack_count,
+            "assigned": assigned_count,
+            "resolved": resolved_count,
+        }
+
+    # ─── Phase 2: Email Sending ───────────────────────────────
+    async def _send_sla_email(self, recipients: List[str], subject: str, html_body: str) -> Dict[str, Any]:
+        if not resend.api_key or not recipients:
+            return {"sent": False, "reason": "No API key or no recipients"}
+        try:
+            params = {
+                "from": SLA_SENDER_EMAIL,
+                "to": recipients,
+                "subject": subject,
+                "html": html_body,
+            }
+            result = resend.Emails.send(params)
+            return {"sent": True, "id": result.get("id", "")}
+        except Exception as e:
+            logger.error(f"SLA email failed: {e}")
+            return {"sent": False, "reason": str(e)}
+
+    def _build_escalation_email_html(self, escalations: List[Dict], summary: Dict) -> str:
+        rows = ""
+        for esc in escalations[:20]:
+            sev_color = {"critical": "#ef4444", "high": "#f97316", "medium": "#eab308", "low": "#3b82f6"}.get(esc.get("severity", ""), "#94a3b8")
+            rows += f"""<tr>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:#e2e8f0;font-family:monospace;font-size:13px">{esc.get('cve_id','')}</td>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:{sev_color};font-weight:600;text-transform:uppercase;font-size:12px">{esc.get('severity','')}</td>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:#f59e0b;font-size:13px">L{esc.get('level',0)}</td>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:#94a3b8;font-size:13px">{esc.get('actual_pct',0)}%</td>
+            </tr>"""
+        return f"""<div style="background:#0f172a;padding:32px;font-family:system-ui,sans-serif">
+            <h2 style="color:#22d3ee;margin:0 0 8px">SLA Escalation Alert</h2>
+            <p style="color:#94a3b8;margin:0 0 24px;font-size:14px">
+                {summary.get('escalations_created',0)} new escalation(s) from {summary.get('checked',0)} at-risk CVEs
+            </p>
+            <table style="width:100%;border-collapse:collapse;background:#1e293b;border-radius:8px;overflow:hidden">
+                <thead><tr style="background:#334155">
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">CVE</th>
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">Severity</th>
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">Level</th>
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">SLA %</th>
+                </tr></thead>
+                <tbody>{rows}</tbody>
+            </table>
+        </div>"""
+
+    def _build_digest_email_html(self, dashboard: Dict, at_risk_items: List[Dict]) -> str:
+        compliance = dashboard.get("overall_compliance", 0)
+        color = "#10b981" if compliance >= 90 else "#f59e0b" if compliance >= 70 else "#ef4444"
+        sev_rows = ""
+        for sev in ["critical", "high", "medium", "low"]:
+            s = dashboard.get("severity_stats", {}).get(sev, {})
+            sev_color = {"critical": "#ef4444", "high": "#f97316", "medium": "#eab308", "low": "#3b82f6"}[sev]
+            sev_rows += f"""<tr>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:{sev_color};font-weight:600;text-transform:uppercase;font-size:12px">{sev}</td>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:#e2e8f0;font-size:13px">{s.get('total',0)}</td>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:#10b981;font-size:13px">{s.get('within_sla',0)}</td>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:#f59e0b;font-size:13px">{s.get('warning',0)}</td>
+                <td style="padding:8px;border-bottom:1px solid #334155;color:#ef4444;font-size:13px">{s.get('breached',0)}</td>
+            </tr>"""
+        risk_rows = ""
+        for item in at_risk_items[:10]:
+            risk_rows += f"<li style='color:#e2e8f0;font-size:13px;margin-bottom:4px'><span style='font-family:monospace;color:#22d3ee'>{item.get('cve_id','')}</span> — {item.get('severity','').upper()} — {item.get('percent_elapsed',0)}% elapsed</li>"
+        return f"""<div style="background:#0f172a;padding:32px;font-family:system-ui,sans-serif">
+            <h2 style="color:#22d3ee;margin:0 0 8px">SLA Compliance Digest</h2>
+            <p style="color:#94a3b8;margin:0 0 24px;font-size:14px">
+                Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}
+            </p>
+            <div style="background:#1e293b;border-radius:12px;padding:24px;margin-bottom:24px;text-align:center">
+                <div style="font-size:48px;font-weight:700;color:{color}">{compliance}%</div>
+                <div style="color:#94a3b8;font-size:13px">Overall SLA Compliance</div>
+                <div style="color:#64748b;font-size:12px;margin-top:4px">{dashboard.get('total_open',0)} open | {dashboard.get('total_breached',0)} breached | {dashboard.get('total_warning',0)} warning</div>
+            </div>
+            <table style="width:100%;border-collapse:collapse;background:#1e293b;border-radius:8px;overflow:hidden;margin-bottom:24px">
+                <thead><tr style="background:#334155">
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">Severity</th>
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">Total</th>
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">Within</th>
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">Warning</th>
+                    <th style="padding:10px;text-align:left;color:#e2e8f0;font-size:12px">Breached</th>
+                </tr></thead>
+                <tbody>{sev_rows}</tbody>
+            </table>
+            {"<h3 style='color:#e2e8f0;font-size:14px;margin-bottom:8px'>Top At-Risk CVEs</h3><ul style='padding-left:20px;margin:0'>" + risk_rows + "</ul>" if risk_rows else ""}
+        </div>"""
+
+    # ─── Phase 2: Enhanced Run Escalations (with email) ───────
+    async def run_escalations_with_notifications(self) -> Dict[str, Any]:
+        result = await self.run_escalations()
+        if result["escalations_created"] > 0:
+            config = await self.get_auto_escalation_config()
+            recipients = config.get("recipients", [])
+            if config.get("email_on_escalation", True) and recipients:
+                recent_log = await self.get_escalation_log(limit=result["escalations_created"])
+                html = self._build_escalation_email_html(recent_log.get("items", []), result)
+                email_result = await self._send_sla_email(
+                    recipients,
+                    f"SLA Alert: {result['escalations_created']} new escalation(s)",
+                    html,
+                )
+                result["email_sent"] = email_result.get("sent", False)
+            else:
+                result["email_sent"] = False
+        else:
+            result["email_sent"] = False
+        return result
+
+    # ─── Phase 2: SLA Digest ──────────────────────────────────
+    async def send_sla_digest(self) -> Dict[str, Any]:
+        config = await self.get_auto_escalation_config()
+        recipients = config.get("recipients", [])
+        if not recipients:
+            return {"sent": False, "reason": "No recipients configured"}
+        dashboard = await self.get_sla_dashboard()
+        at_risk_data = await self.get_at_risk_cves(limit=10)
+        html = self._build_digest_email_html(dashboard, at_risk_data.get("items", []))
+        email_result = await self._send_sla_email(
+            recipients,
+            f"SLA Digest — {dashboard.get('overall_compliance', 0)}% Compliance",
+            html,
+        )
+        return {
+            "sent": email_result.get("sent", False),
+            "recipients": len(recipients),
+            "compliance": dashboard.get("overall_compliance", 0),
+            "total_open": dashboard.get("total_open", 0),
+            "total_breached": dashboard.get("total_breached", 0),
+        }
+
+    # ─── Phase 2: Auto-Escalation Background Task ────────────
+    def start_auto_escalation(self, interval_minutes: int = 60):
+        self.stop_auto_escalation()
+        self._auto_task = asyncio.ensure_future(self._auto_escalation_loop(interval_minutes))
+        logger.info(f"Auto-escalation started: every {interval_minutes} min")
+
+    def stop_auto_escalation(self):
+        if self._auto_task and not self._auto_task.done():
+            self._auto_task.cancel()
+            self._auto_task = None
+            logger.info("Auto-escalation stopped")
+
+    async def _auto_escalation_loop(self, interval_minutes: int):
+        while True:
+            try:
+                await asyncio.sleep(interval_minutes * 60)
+                result = await self.run_escalations_with_notifications()
+                await self.take_snapshot()
+                logger.info(f"Auto-escalation run: {result.get('escalations_created', 0)} created")
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Auto-escalation error: {e}")
+                await asyncio.sleep(60)
