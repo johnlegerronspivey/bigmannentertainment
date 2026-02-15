@@ -164,6 +164,21 @@ All 4 phases have been implemented:
 - Phase 3: Automated Remediation & GitHub/AWS Integration
 - Phase 4: Governance Dashboards & Advanced Analytics
 
+### Phase 5 Infrastructure (Feb 15, 2026): Remediation Automation Pipeline - COMPLETE
+- **Terraform IaC** (`infra/`): Lambda + EventBridge + IAM for automated CVE remediation
+  - Multi-environment support (dev, staging, prod) with workspace isolation
+  - EventBridge rule triggers Lambda on CRITICAL/HIGH Inspector findings
+  - IAM role with least-privilege (Secrets Manager, CloudWatch, S3)
+  - CloudWatch Log Group with 30-day retention
+- **Remediation Lambda** (`lambda/remediation_lambda.py`):
+  - Processes EventBridge events from AWS Inspector
+  - Reads GitHub PAT from Secrets Manager (cached)
+  - Creates detailed GitHub issues with severity labels, affected resources, CVE info
+  - Emits CloudWatch custom metrics (CVE_Detected_Count, Remediation_Issues_Created)
+- **Lambda Packaging** (`lambda/package.sh`): Reproducible zip build for deployment
+- **CI/CD** (`.github/workflows/build-lambda.yml`): Auto-package and upload to S3 per environment
+- **Deployment Guide** (`infra/DEPLOYMENT.md`): Full runbook with validation checklist
+
 ### Potential Enhancements
 - Export governance reports as PDF/CSV
 - Email digest of weekly security posture
