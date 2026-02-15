@@ -2503,13 +2503,21 @@ export default function CVEManagementDashboard() {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchDashboard = useCallback(async () => {
     try { setDashboard(await fetcher(`${API}/dashboard`)); } catch (e) { console.error(e); }
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+  const fetchUnread = useCallback(async () => {
+    try {
+      const data = await fetcher(`${NOTIFICATION_API}/unread-count`);
+      setUnreadCount(data.unread || 0);
+    } catch (e) { console.error(e); }
+  }, []);
+
+  useEffect(() => { fetchDashboard(); fetchUnread(); }, [fetchDashboard, fetchUnread]);
 
   const handleScan = async () => {
     setScanning(true);
