@@ -223,13 +223,12 @@ class IaCService:
         return metrics_out
 
     # ── live GitHub Actions data ────────────────────────────────────
-    async def get_github_runs(self, limit: int = 15) -> dict:
-        """Fetch GitHub Actions workflow runs."""
+    def _get_github_runs_sync(self, limit: int = 15) -> dict:
+        """Synchronous: fetch GitHub Actions workflow runs."""
         if not self._gh:
             return {"connected": False, "error": "GitHub token not configured", "runs": []}
 
         if not GITHUB_REPO:
-            # Try to discover repos with workflows
             try:
                 user = self._gh.get_user()
                 repos = []
@@ -268,6 +267,9 @@ class IaCService:
             return {"connected": True, "error": f"Repo error: {msg[:100]}", "runs": []}
         except Exception as e:
             return {"connected": False, "error": str(e)[:120], "runs": []}
+
+    async def get_github_runs(self, limit: int = 15) -> dict:
+        return await asyncio.to_thread(self._get_github_runs_sync, limit)
 
     # ── live Terraform state from S3 ────────────────────────────────
     async def get_terraform_state(self, environment: str = "dev") -> dict:
