@@ -126,6 +126,13 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Scanned Node.js frontend with `yarn audit`: 0 vulnerabilities found
 - All CVEs resolved, requirements.txt frozen, backend restarted and verified healthy
 
+### CVE-2026-1615 jsonpath Fix (COMPLETE - Feb 18, 2026)
+- Removed orphaned `jsonpath@1.1.1` (CVE-2026-1615: critical arbitrary code injection, CVSS 9.8)
+- Upgraded `jsonpath-plus` from 10.3.0 → 10.4.0 for additional RCE protection
+- Cleaned package-lock.json to prevent reinstallation
+- Verified with `npm audit`: no jsonpath vulnerabilities remaining
+- Application health confirmed: backend API + frontend both operational
+
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
