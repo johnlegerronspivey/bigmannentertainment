@@ -73,6 +73,7 @@ from notification_endpoints import router as notification_router, reports_router
 from rbac_endpoints import router as rbac_router
 from sla_tracker_endpoints import router as sla_tracker_router
 from cve_reporting_endpoints import router as cve_reporting_router
+from iac_endpoints import router as iac_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -106,7 +107,8 @@ routers = [
     reports_router,
     rbac_router,
     sla_tracker_router,
-    cve_reporting_router
+    cve_reporting_router,
+    iac_router
 ]
 
 for router in routers:

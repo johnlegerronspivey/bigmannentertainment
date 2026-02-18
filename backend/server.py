@@ -412,6 +412,15 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  CVE Reporting Service initialization failed: {str(e)}")
 
+    # Initialize Infrastructure Automation Service
+    try:
+        from iac_service import initialize_iac_service
+        iac_ok = initialize_iac_service(db)
+        if iac_ok:
+            print("🏗️ Infrastructure Automation Service initialized")
+    except Exception as e:
+        print(f"⚠️  IaC Service initialization failed: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close PostgreSQL connections on shutdown"""
