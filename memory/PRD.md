@@ -18,8 +18,8 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **Security Tools**: Trivy v0.58.2, Grype v0.108.0, Syft v1.42.0, Checkov 3.2.501
 - **Background Jobs**: APScheduler (for existing security monitoring)
 - **Email**: Resend (for CVE alerts + Phase 5 notifications + SLA digest)
-- **GitHub Integration**: PyGithub for issue/PR creation
-- **AWS**: boto3 for Inspector/Security Hub
+- **GitHub Integration**: PyGitHub for issue/PR creation + workflow runs
+- **AWS**: boto3 for Lambda, S3, CloudWatch, Inspector/Security Hub
 - **Charts**: Recharts (PieChart, BarChart, AreaChart, LineChart)
 - **IaC**: Terraform (multi-environment: dev, staging, prod)
 - **CI/CD**: GitHub Actions (Lambda artifact build + upload)
@@ -43,11 +43,11 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/backend/sla_tracker_endpoints.py` - SLA API endpoints (prefix: /api/cve/sla)
 - `/app/backend/cve_reporting_service.py` - Advanced Reporting service
 - `/app/backend/cve_reporting_endpoints.py` - Reporting API endpoints (prefix: /api/cve/reporting)
-- `/app/backend/iac_service.py` - Infrastructure Automation service
+- `/app/backend/iac_service.py` - Infrastructure Automation service (LIVE AWS/GitHub integration)
 - `/app/backend/iac_endpoints.py` - IaC API endpoints (prefix: /api/cve/iac)
 
 ### Frontend (Refactored)
-- `/app/frontend/src/CVEManagementDashboard.jsx` - Thin orchestrator (149 lines), imports all tab components
+- `/app/frontend/src/CVEManagementDashboard.jsx` - Thin orchestrator (149 lines)
 - `/app/frontend/src/cve/shared.js` - Shared constants, API URLs, utility components
 - `/app/frontend/src/cve/OverviewTab.jsx` - Dashboard overview
 - `/app/frontend/src/cve/CVEDatabaseTab.jsx` - CVE listing, filtering, creation
@@ -61,88 +61,52 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/frontend/src/cve/PolicyEngineTab.jsx` - Policy-as-code rules engine
 - `/app/frontend/src/cve/PoliciesTab.jsx` - SLA policies config + AuditTrailTab
 - `/app/frontend/src/cve/UserManagementTab.jsx` - User management with RBAC
-- `/app/frontend/src/cve/SLATrackerTab.jsx` - SLA Tracker with 6 sub-views (Phase 1 + Phase 2)
+- `/app/frontend/src/cve/SLATrackerTab.jsx` - SLA Tracker with 6 sub-views
 - `/app/frontend/src/cve/ReportingTab.jsx` - Advanced Reporting
-- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation Management
+- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data
 
 ## What's Been Implemented
 
 ### Phase 1-5: Core CVE Platform (COMPLETE)
 - CVE lifecycle management (detect, triage, fix, verify)
-- SBOM generation
-- Multi-scanner integration (Trivy, Grype, Syft, Checkov)
-- CI/CD pipeline generation
-- Policy-as-code rules engine
-- Automated remediation via GitHub
-- AWS Inspector/Security Hub integration
-- Governance dashboards with charts
-- Notifications with email alerts
-- CSV export for CVEs and governance data
+- SBOM generation, Multi-scanner integration, CI/CD pipeline generation
+- Policy-as-code rules engine, Automated remediation via GitHub
+- AWS Inspector/Security Hub integration, Governance dashboards with charts
+- Notifications with email alerts, CSV export
 
 ### Phase 6: User Management & RBAC (COMPLETE)
 - Role-based access control (Admin, Manager, Analyst)
-- User invitation and management
-- Permission-gated UI elements
 
-### Infrastructure Automation (COMPLETE - Feb 18, 2026)
-- Terraform configurations for multi-environment deployment (dev/staging/prod)
-- Python Lambda function for CVE remediation (python3.12, EventBridge → GitHub Issues)
-- GitHub Actions CI/CD workflow with lint, test, package, deploy stages
-- Lambda dependencies updated to secure versions (requests>=2.32.5, boto3>=1.35.0)
-- **IaC Management Tab**: Full frontend UI with overview cards, environment selector, Terraform/Lambda/Workflow viewers, deployment commands, and deployment history tracking
-- **7 API Endpoints**: /api/cve/iac/overview, /terraform, /lambda, /workflow, /deployments (GET+POST), /commands/{env}
-- Test report: iteration_29.json (28/28 backend tests, 100% frontend verification)
+### Enhanced SLA Tracking Phase 1 & 2 (COMPLETE)
+- SLA Dashboard, At-Risk CVEs, Configurable escalation rules
+- Auto-Escalation Scheduler, Proactive Email Notifications
+- Escalation Workflow Management, SLA Digest Email
 
-### Frontend Refactoring (COMPLETE - Feb 15, 2026)
-- Refactored monolithic CVEManagementDashboard.jsx from 2810 lines to 149 lines
-- Extracted 13 component files into `/app/frontend/src/cve/` directory
+### Advanced Reporting & Analytics (COMPLETE)
+- Executive Summary, Trends, Team Performance, Scanner Effectiveness, Export
 
-### Enhanced SLA Tracking Phase 1 (COMPLETE - Feb 15, 2026)
-- SLA Dashboard with overall compliance health, per-severity breakdown, and charts
-- At-Risk CVEs with live countdown timers and escalation level badges
-- Configurable escalation rules (L1/L2/L3 chains with threshold percentages)
-- Run Escalations to auto-create notifications based on rules
-- SLA Compliance trend history over 30 days
-- Escalation log with full audit trail
-- Point-in-time SLA snapshots
+### Infrastructure Automation - LOCAL (COMPLETE - Feb 18, 2026)
+- Terraform configs, Lambda function, GitHub Actions CI/CD workflow
+- IaC Management Tab with overview cards, environment selector, viewers, deployment commands
 
-### Enhanced SLA Tracking Phase 2 (COMPLETE - Feb 15, 2026)
-- **Auto-Escalation Scheduler**: Background asyncio task that runs escalation checks at configurable intervals (5-1440 min)
-- **Auto-Escalation Config**: Enable/disable auto-escalation, set interval, configure email triggers, manage recipient list
-- **Proactive Email Notifications**: Automated email alerts via Resend for SLA warnings, breaches, and escalations with HTML-formatted templates
-- **Escalation Workflow Management**: Acknowledge, assign, and resolve escalation log entries with full audit trail (who, when, notes)
-- **Escalation Stats Dashboard**: Real-time counts of open/acknowledged/assigned/resolved escalations
-- **Per-Severity Notification Preferences**: Configure email vs in-app notifications per severity level (critical, high, medium, low)
-- **SLA Digest Email**: On-demand or scheduled compliance summary email with severity breakdown and top at-risk CVEs
-- **7 New API Endpoints**: auto-escalation-config (GET/PUT), notification-preferences (GET/PUT), escalation-stats (GET), escalation-log/{id}/acknowledge|assign|resolve (POST), send-digest (POST)
-- **2 New Frontend Sub-Views**: "Escalation Workflow" (stats + workflow log with action buttons) and "Notifications" (auto-escalation settings + per-severity prefs + digest)
-- All 28 backend tests passed, 100% frontend verification (test report: iteration_28.json)
+### Infrastructure Automation - LIVE DATA (COMPLETE - Feb 18, 2026)
+- **AWS Lambda Live**: Fetches real function configs + CloudWatch metrics (invocations, errors, duration, throttles) via boto3
+- **GitHub Actions Live**: Fetches real workflow runs with status/conclusion/branch from PyGitHub
+- **Terraform State Live**: Reads Terraform state from S3 backend (resources, versions)
+- **Connection Status**: Real-time LIVE/OFFLINE badges for Lambda, S3, GitHub
+- **Non-blocking I/O**: All boto3/PyGitHub calls wrapped in `asyncio.to_thread()` to prevent event loop blocking
+- **4 New API Endpoints**: /live-status, /lambda/live, /github/runs, /terraform/state
+- **Frontend**: LiveLambdaPanel (function cards with metrics), GitHubRunsPanel (run history), TerraformStatePanel (resource list), Connection status bar
+- Test report: iteration_30.json (30/30 backend tests, 100% frontend verification)
+- Live data verified: 9 Lambda functions, 15 GitHub workflow runs, S3 bucket connected
 
-### Advanced Reporting & Analytics (COMPLETE - Feb 15, 2026)
-- Executive Summary: stat cards, risk score gauge, SLA compliance gauge, severity distribution pie chart
-- Trends: discovery vs resolution area chart, backlog line chart, severity stacked bar, status distribution pie
-- Team Performance: horizontal bar chart + detailed table with per-owner metrics
-- Scanner Effectiveness: bar chart + scanner cards
-- Export: CSV download for CVE database, executive summary, and team performance; saved report management
-
-### CVE Vulnerability Remediation (COMPLETE - Feb 15, 2026)
-- Scanned Python backend with `pip-audit`: found 7 CVEs across 2 packages
-  - `requests` 2.31.0 → 2.32.5 (CVE-2024-35195, CVE-2024-47081)
-  - `urllib3` 2.0.7 → 2.6.3 (CVE-2024-37891, CVE-2025-50181, CVE-2025-66418, CVE-2025-66471, CVE-2026-21441)
-- Scanned Node.js frontend with `yarn audit`: 0 vulnerabilities found
-- All CVEs resolved, requirements.txt frozen, backend restarted and verified healthy
-
-### CVE-2026-1615 jsonpath Fix (COMPLETE - Feb 18, 2026)
-- Removed orphaned `jsonpath@1.1.1` (CVE-2026-1615: critical arbitrary code injection, CVSS 9.8)
-- Upgraded `jsonpath-plus` from 10.3.0 → 10.4.0 for additional RCE protection
-- Cleaned package-lock.json to prevent reinstallation
-- Verified with `npm audit`: no jsonpath vulnerabilities remaining
-- Application health confirmed: backend API + frontend both operational
+### CVE Vulnerability Remediation (COMPLETE)
+- All Python/Node.js CVEs resolved
 
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
-All phases 1-6 complete with Enhanced SLA Tracking (Phase 1 + Phase 2) and Advanced Reporting.
+All phases 1-6 complete with Enhanced SLA Tracking, Advanced Reporting, and Live IaC Integration.
 
 ### P1 - Future Tasks
 - PDF export for reports (in addition to CSV)
@@ -151,9 +115,10 @@ All phases 1-6 complete with Enhanced SLA Tracking (Phase 1 + Phase 2) and Advan
 - Multi-tenant support
 
 ## Test Credentials
-- Admin: Register via /api/auth/register (enterprise users)
 - Test user: cveadmin@test.com / Test1234!
 
 ## Test Reports
 - iteration_3.json - Advanced Reporting & Analytics
 - iteration_28.json - Enhanced SLA Tracking Phase 2
+- iteration_29.json - IaC Integration (Local)
+- iteration_30.json - IaC Live AWS/GitHub Integration (30/30 tests passed)
