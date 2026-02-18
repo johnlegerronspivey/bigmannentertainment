@@ -95,8 +95,8 @@ class IaCService:
         self._gh = _build_github_client()
 
     # ── connection health ───────────────────────────────────────────
-    async def get_live_status(self) -> dict:
-        """Check connectivity to AWS Lambda, S3, and GitHub."""
+    def _check_live_status_sync(self) -> dict:
+        """Synchronous version - check connectivity to AWS Lambda, S3, and GitHub."""
         aws_lambda_ok = False
         aws_lambda_detail = "No credentials"
         aws_s3_ok = False
@@ -106,7 +106,6 @@ class IaCService:
         github_user = None
         github_repo_name = None
 
-        # AWS Lambda
         if self._lambda_client:
             try:
                 self._lambda_client.list_functions(MaxItems=1)
@@ -117,11 +116,10 @@ class IaCService:
             except Exception as e:
                 aws_lambda_detail = f"Error: {str(e)[:80]}"
 
-        # AWS S3
         if self._s3_client:
             try:
-                self._s3_client.head_bucket(Bucket=S3_BUCKET) if S3_BUCKET else None
                 if S3_BUCKET:
+                    self._s3_client.head_bucket(Bucket=S3_BUCKET)
                     aws_s3_ok = True
                     aws_s3_detail = f"Connected ({S3_BUCKET})"
                 else:
@@ -138,7 +136,6 @@ class IaCService:
             except Exception as e:
                 aws_s3_detail = f"Error: {str(e)[:80]}"
 
-        # GitHub
         if self._gh:
             try:
                 user = self._gh.get_user()
@@ -158,6 +155,9 @@ class IaCService:
             "github": {"connected": github_ok, "detail": github_detail, "user": github_user, "repo": github_repo_name},
             "checked_at": datetime.now(timezone.utc).isoformat(),
         }
+
+    async def get_live_status(self) -> dict:
+        return await asyncio.to_thread(self._check_live_status_sync)
 
     # ── live Lambda data ────────────────────────────────────────────
     async def get_lambda_live(self) -> dict:
