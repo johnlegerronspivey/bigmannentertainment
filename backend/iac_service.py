@@ -160,8 +160,8 @@ class IaCService:
         return await asyncio.to_thread(self._check_live_status_sync)
 
     # ── live Lambda data ────────────────────────────────────────────
-    async def get_lambda_live(self) -> dict:
-        """Fetch real Lambda function configurations and CloudWatch metrics."""
+    def _get_lambda_live_sync(self) -> dict:
+        """Synchronous: fetch real Lambda function configurations and CloudWatch metrics."""
         if not self._lambda_client:
             return {"connected": False, "error": "AWS Lambda client not available", "functions": []}
 
@@ -183,7 +183,6 @@ class IaCService:
                         "architectures": fn.get("Architectures", []),
                         "layers": [layer["Arn"].split(":")[-2] for layer in fn.get("Layers", [])],
                     }
-                    # Fetch CloudWatch metrics for the last 24h
                     metrics = self._get_lambda_metrics(fn["FunctionName"])
                     fn_data["metrics"] = metrics
                     functions.append(fn_data)
@@ -194,6 +193,8 @@ class IaCService:
 
         return {"connected": True, "error": None, "functions": functions, "total": len(functions)}
 
+    async def get_lambda_live(self) -> dict:
+        return await asyncio.to_thread(self._get_lambda_live_sync)
     def _get_lambda_metrics(self, function_name: str) -> dict:
         """Get CloudWatch metrics for a Lambda function (last 24h)."""
         if not self._cw_client:
