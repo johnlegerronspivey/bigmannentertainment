@@ -10,6 +10,7 @@ from typing import Optional
 import os
 import json
 import logging
+import asyncio
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, BotoCoreError
 from github import Github, GithubException
