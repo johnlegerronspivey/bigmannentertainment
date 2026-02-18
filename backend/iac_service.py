@@ -272,8 +272,8 @@ class IaCService:
         return await asyncio.to_thread(self._get_github_runs_sync, limit)
 
     # ── live Terraform state from S3 ────────────────────────────────
-    async def get_terraform_state(self, environment: str = "dev") -> dict:
-        """Read Terraform state file from S3 backend."""
+    def _get_terraform_state_sync(self, environment: str = "dev") -> dict:
+        """Synchronous: read Terraform state file from S3 backend."""
         if not self._s3_client or not S3_BUCKET:
             return {"connected": False, "error": "S3 client or bucket not configured", "resources": []}
 
@@ -307,6 +307,9 @@ class IaCService:
             return {"connected": True, "error": f"S3 error: {code}", "resources": []}
         except Exception as e:
             return {"connected": False, "error": str(e)[:120], "resources": []}
+
+    async def get_terraform_state(self, environment: str = "dev") -> dict:
+        return await asyncio.to_thread(self._get_terraform_state_sync, environment)
 
     # ── existing methods (kept for backward compatibility) ──────────
     async def get_overview(self) -> dict:
