@@ -1,10 +1,10 @@
 """
 Infrastructure Automation API Endpoints
+Provides both local file-based data and live AWS/GitHub API data.
 """
 
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
-from typing import Optional
 
 from iac_service import get_iac_service
 
@@ -19,6 +19,8 @@ class DeploymentRecord(BaseModel):
     deployed_by: str = "manual"
     notes: str = ""
 
+
+# ── existing endpoints (local file-based) ──────────────────────────
 
 @router.get("/overview")
 async def get_iac_overview():
@@ -62,3 +64,35 @@ async def get_deployment_commands(environment: str):
         raise HTTPException(status_code=400, detail="Invalid environment. Use dev, staging, or prod.")
     svc = get_iac_service()
     return await svc.get_deployment_commands(environment)
+
+
+# ── NEW live data endpoints ─────────────────────────────────────────
+
+@router.get("/live-status")
+async def get_live_status():
+    """Check connectivity to AWS Lambda, S3, and GitHub APIs."""
+    svc = get_iac_service()
+    return await svc.get_live_status()
+
+
+@router.get("/lambda/live")
+async def get_lambda_live():
+    """Fetch real Lambda function data and CloudWatch metrics from AWS."""
+    svc = get_iac_service()
+    return await svc.get_lambda_live()
+
+
+@router.get("/github/runs")
+async def get_github_runs(limit: int = Query(15, ge=1, le=50)):
+    """Fetch GitHub Actions workflow runs."""
+    svc = get_iac_service()
+    return await svc.get_github_runs(limit=limit)
+
+
+@router.get("/terraform/state")
+async def get_terraform_state(environment: str = Query("dev")):
+    """Read Terraform state from S3 backend."""
+    if environment not in ["dev", "staging", "prod"]:
+        raise HTTPException(status_code=400, detail="Invalid environment.")
+    svc = get_iac_service()
+    return await svc.get_terraform_state(environment=environment)
