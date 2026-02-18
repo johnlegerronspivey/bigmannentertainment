@@ -43,6 +43,8 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/backend/sla_tracker_endpoints.py` - SLA API endpoints (prefix: /api/cve/sla)
 - `/app/backend/cve_reporting_service.py` - Advanced Reporting service
 - `/app/backend/cve_reporting_endpoints.py` - Reporting API endpoints (prefix: /api/cve/reporting)
+- `/app/backend/iac_service.py` - Infrastructure Automation service
+- `/app/backend/iac_endpoints.py` - IaC API endpoints (prefix: /api/cve/iac)
 
 ### Frontend (Refactored)
 - `/app/frontend/src/CVEManagementDashboard.jsx` - Thin orchestrator (149 lines), imports all tab components
@@ -61,6 +63,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/frontend/src/cve/UserManagementTab.jsx` - User management with RBAC
 - `/app/frontend/src/cve/SLATrackerTab.jsx` - SLA Tracker with 6 sub-views (Phase 1 + Phase 2)
 - `/app/frontend/src/cve/ReportingTab.jsx` - Advanced Reporting
+- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation Management
 
 ## What's Been Implemented
 
@@ -81,11 +84,14 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - User invitation and management
 - Permission-gated UI elements
 
-### Infrastructure Automation (COMPLETE - Pending User Testing)
-- Terraform configurations for multi-environment deployment
-- Python Lambda function for CVE remediation
-- GitHub Actions workflow for CI/CD
-- Status: Code ready, awaiting user testing in their own pipeline
+### Infrastructure Automation (COMPLETE - Feb 18, 2026)
+- Terraform configurations for multi-environment deployment (dev/staging/prod)
+- Python Lambda function for CVE remediation (python3.12, EventBridge → GitHub Issues)
+- GitHub Actions CI/CD workflow with lint, test, package, deploy stages
+- Lambda dependencies updated to secure versions (requests>=2.32.5, boto3>=1.35.0)
+- **IaC Management Tab**: Full frontend UI with overview cards, environment selector, Terraform/Lambda/Workflow viewers, deployment commands, and deployment history tracking
+- **7 API Endpoints**: /api/cve/iac/overview, /terraform, /lambda, /workflow, /deployments (GET+POST), /commands/{env}
+- Test report: iteration_29.json (28/28 backend tests, 100% frontend verification)
 
 ### Frontend Refactoring (COMPLETE - Feb 15, 2026)
 - Refactored monolithic CVEManagementDashboard.jsx from 2810 lines to 149 lines
