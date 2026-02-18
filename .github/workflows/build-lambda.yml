@@ -1,77 +1,150 @@
-name: Build & Upload Remediation Lambda
+name: Build & Deploy Remediation Lambda
 
 on:
   push:
     branches: [main]
     paths:
-      - 'lambda/**'
+      - "lambda/**"
+      - ".github/workflows/build-lambda.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "lambda/**"
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment'
+        description: "Target environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
           - staging
           - prod
 
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  ARTIFACT_BUCKET: model-agency-assets
+  AWS_REGION: us-east-1
+
 jobs:
-  package-lambda:
+  lint-and-test:
+    name: Lint & Test Lambda
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - env: dev
-          - env: staging
-          - env: prod
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r lambda/requirements.txt
+          pip install ruff pytest
+
+      - name: Lint with ruff
+        run: ruff check lambda/
+
+      - name: Run unit tests
+        run: |
+          if [ -d "lambda/tests" ]; then
+            pytest lambda/tests/ -v
+          else
+            echo "No tests directory found, skipping"
+          fi
+
+  package:
+    name: Package Lambda
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Package Lambda
         run: |
-          chmod +x lambda/package.sh
-          ./lambda/package.sh
+          WORKDIR="$(pwd)/lambda_build"
+          rm -rf "$WORKDIR"
+          mkdir -p "$WORKDIR/package"
+          pip install -r lambda/requirements.txt -t "$WORKDIR/package"
+          cp lambda/remediation_lambda.py "$WORKDIR/package/"
+          cd "$WORKDIR/package"
+          zip -r "$WORKDIR/remediation.zip" .
 
-      - name: Upload remediation zip to S3
-        uses: jakejarvis/s3-sync-action@v0.5.1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          args: --acl private
-        env:
-          AWS_S3_BUCKET: model-agency-assets
-          AWS_REGION: us-east-1
-          SOURCE_DIR: './lambda'
-          DEST_DIR: 'remediation-artifacts'
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          name: remediation-lambda
+          path: lambda_build/remediation.zip
+          retention-days: 7
 
-      - name: Copy to environment-specific key
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-        run: |
-          aws s3 cp lambda/remediation.zip "s3://model-agency-assets/remediation-${{ matrix.env }}.zip"
-          echo "Uploaded remediation-${{ matrix.env }}.zip"
-
-  verify:
-    needs: package-lambda
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || 'dev' }}
+    needs: package
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
     steps:
-      - name: Verify S3 artifacts
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
+      - uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: remediation-lambda
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Determine environment
+        id: env
         run: |
-          echo "Verifying uploaded artifacts..."
-          aws s3 ls s3://model-agency-assets/remediation-dev.zip
-          aws s3 ls s3://model-agency-assets/remediation-staging.zip
-          aws s3 ls s3://model-agency-assets/remediation-prod.zip
-          echo "All artifacts verified."
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          echo "environment=$ENV" >> "$GITHUB_OUTPUT"
+          echo "s3-key=remediation-${ENV}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp remediation.zip \
+            s3://${{ env.ARTIFACT_BUCKET }}/${{ steps.env.outputs.s3-key }}
+
+      - name: Update Lambda function
+        run: |
+          aws lambda update-function-code \
+            --function-name "cve-remediation-${{ steps.env.outputs.environment }}" \
+            --s3-bucket "${{ env.ARTIFACT_BUCKET }}" \
+            --s3-key "${{ steps.env.outputs.s3-key }}" \
+            --publish
+
+      - name: Verify deployment
+        run: |
+          FUNC="cve-remediation-${{ steps.env.outputs.environment }}"
+          STATE=$(aws lambda get-function --function-name "$FUNC" \
+            --query 'Configuration.State' --output text)
+          echo "Lambda state: $STATE"
+          if [ "$STATE" != "Active" ]; then
+            echo "::error::Lambda is not Active (state=$STATE)"
+            exit 1
+          fi
+
+      - name: Post deployment summary
+        run: |
+          echo "### Lambda Deployment Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Environment | ${{ steps.env.outputs.environment }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| S3 Key | ${{ steps.env.outputs.s3-key }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Commit | ${{ github.sha }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | ${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"
