@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer, FileBarChart } from "lucide-react";
+import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer, FileBarChart, Cloud } from "lucide-react";
 import { API, NOTIFICATION_API, RBAC_API, fetcher, ROLE_BADGES } from "./cve/shared";
 import { OverviewTab } from "./cve/OverviewTab";
 import { CVEDatabaseTab } from "./cve/CVEDatabaseTab";
@@ -14,6 +14,7 @@ import { PoliciesTab, AuditTrailTab } from "./cve/PoliciesTab";
 import { UserManagementTab } from "./cve/UserManagementTab";
 import { SLATrackerTab } from "./cve/SLATrackerTab";
 import { ReportingTab } from "./cve/ReportingTab";
+import { InfraTab } from "./cve/InfraTab";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: Shield },
@@ -27,6 +28,7 @@ const TABS = [
   { id: "services", label: "Services", icon: Server },
   { id: "sbom", label: "SBOM", icon: Layers },
   { id: "cicd", label: "CI/CD", icon: GitBranch },
+  { id: "infra", label: "Infrastructure", icon: Cloud },
   { id: "policy-engine", label: "Policy Engine", icon: Lock },
   { id: "policies", label: "SLA Policies", icon: Settings },
   { id: "audit", label: "Audit Trail", icon: Activity },
@@ -145,6 +147,7 @@ export default function CVEManagementDashboard() {
         {tab === "services" && <ServicesTab onRefresh={fetchDashboard} />}
         {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
         {tab === "cicd" && <CICDTab onRefresh={fetchDashboard} />}
+        {tab === "infra" && <InfraTab onRefresh={fetchDashboard} />}
         {tab === "policy-engine" && <PolicyEngineTab onRefresh={fetchDashboard} />}
         {tab === "policies" && <PoliciesTab onRefresh={fetchDashboard} />}
         {tab === "audit" && <AuditTrailTab />}
