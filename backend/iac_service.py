@@ -108,9 +108,8 @@ class IaCService:
         # AWS Lambda
         if self._lambda_client:
             try:
-                resp = self._lambda_client.list_functions(MaxItems=1)
+                self._lambda_client.list_functions(MaxItems=1)
                 aws_lambda_ok = True
-                total = len(resp.get("Functions", []))
                 aws_lambda_detail = f"Connected ({AWS_REGION})"
             except ClientError as e:
                 aws_lambda_detail = f"Error: {e.response['Error']['Code']}"
@@ -181,7 +180,7 @@ class IaCService:
                         "state": fn.get("State", "Unknown"),
                         "description": fn.get("Description", ""),
                         "architectures": fn.get("Architectures", []),
-                        "layers": [l["Arn"].split(":")[-2] for l in fn.get("Layers", [])],
+                        "layers": [layer["Arn"].split(":")[-2] for layer in fn.get("Layers", [])],
                     }
                     # Fetch CloudWatch metrics for the last 24h
                     metrics = self._get_lambda_metrics(fn["FunctionName"])
@@ -372,7 +371,7 @@ class IaCService:
                 "file": "lambda/requirements.txt",
                 "content": requirements,
                 "packages": [
-                    l.strip() for l in (requirements or "").split("\n") if l.strip() and not l.startswith("#")
+                    line.strip() for line in (requirements or "").split("\n") if line.strip() and not line.startswith("#")
                 ],
             },
             "package_script": {
