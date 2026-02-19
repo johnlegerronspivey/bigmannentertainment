@@ -63,7 +63,13 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/frontend/src/cve/UserManagementTab.jsx` - User management with RBAC
 - `/app/frontend/src/cve/SLATrackerTab.jsx` - SLA Tracker with 6 sub-views
 - `/app/frontend/src/cve/ReportingTab.jsx` - Advanced Reporting
-- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data
+- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data + Terraform Modules viewer
+
+### Infrastructure as Code
+- `/app/infra-terraform/` - Production-grade Terraform repository (44 files)
+- `/app/infra-terraform/modules/` - 11 reusable modules (cognito, s3-cloudfront, dynamodb, kinesis, lambda, eventbridge, sns, secrets-manager, qldb, media-convert, stepfunctions)
+- `/app/infra-terraform/envs/prod/` - Production environment config
+- `/app/infra-terraform/envs/staging/` - Staging environment config
 
 ## What's Been Implemented
 
