@@ -96,3 +96,10 @@ async def get_terraform_state(environment: str = Query("dev")):
         raise HTTPException(status_code=400, detail="Invalid environment.")
     svc = get_iac_service()
     return await svc.get_terraform_state(environment=environment)
+
+
+@router.get("/terraform/modules")
+async def get_terraform_modules():
+    """Return the infra-terraform module structure with file contents and metadata."""
+    svc = get_iac_service()
+    return await svc.get_terraform_modules()
