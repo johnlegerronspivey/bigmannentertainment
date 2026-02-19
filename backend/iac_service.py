@@ -334,6 +334,7 @@ class IaCService:
             "qldb": {"description": "Immutable ledger for audit trails (optional)", "icon": "book-open", "category": "ledger"},
             "media-convert": {"description": "Video transcoding queue (optional)", "icon": "film", "category": "media"},
             "stepfunctions": {"description": "Workflow orchestration via Step Functions", "icon": "layers", "category": "orchestration"},
+            "vpc": {"description": "VPC with public/private subnets, NAT, and IGW", "icon": "globe", "category": "networking"},
         }
 
         modules = []
