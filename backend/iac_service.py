@@ -312,6 +312,113 @@ class IaCService:
     async def get_terraform_state(self, environment: str = "dev") -> dict:
         return await asyncio.to_thread(self._get_terraform_state_sync, environment)
 
+    # ── Terraform modules structure ─────────────────────────────────
+    async def get_terraform_modules(self) -> dict:
+        """Scan infra-terraform/modules/ and return module metadata with file contents."""
+        modules_dir = os.path.join(INFRA_TF_DIR, "modules")
+        envs_dir = os.path.join(INFRA_TF_DIR, "envs")
+
+        if not os.path.isdir(modules_dir):
+            return {"exists": False, "error": "infra-terraform/modules/ not found", "modules": [], "environments": []}
+
+        MODULE_DESCRIPTIONS = {
+            "cognito": {"description": "User authentication via AWS Cognito", "icon": "shield", "category": "auth"},
+            "s3-cloudfront": {"description": "Frontend hosting with S3 + CloudFront CDN", "icon": "globe", "category": "hosting"},
+            "dynamodb": {"description": "NoSQL data store for campaigns, creatives, attribution, royalties", "icon": "database", "category": "database"},
+            "kinesis": {"description": "Real-time data streaming for impressions", "icon": "activity", "category": "streaming"},
+            "lambda": {"description": "Serverless compute for campaign + creative functions", "icon": "zap", "category": "compute"},
+            "eventbridge": {"description": "Event routing with custom event bus", "icon": "git-branch", "category": "events"},
+            "sns": {"description": "Notification alerts via email subscriptions", "icon": "bell", "category": "notifications"},
+            "secrets-manager": {"description": "Secure credential storage for blockchain keys", "icon": "lock", "category": "security"},
+            "qldb": {"description": "Immutable ledger for audit trails (optional)", "icon": "book-open", "category": "ledger"},
+            "media-convert": {"description": "Video transcoding queue (optional)", "icon": "film", "category": "media"},
+            "stepfunctions": {"description": "Workflow orchestration via Step Functions", "icon": "layers", "category": "orchestration"},
+        }
+
+        modules = []
+        for mod_name in sorted(os.listdir(modules_dir)):
+            mod_path = os.path.join(modules_dir, mod_name)
+            if not os.path.isdir(mod_path):
+                continue
+
+            files = {}
+            resources = []
+            variables = []
+            outputs = []
+            for fname in sorted(os.listdir(mod_path)):
+                fpath = os.path.join(mod_path, fname)
+                if os.path.isfile(fpath) and fname.endswith(".tf"):
+                    content = _read_file_safe(fpath)
+                    files[fname] = content
+                    if content and fname == "main.tf":
+                        for line in content.split("\n"):
+                            stripped = line.strip()
+                            if stripped.startswith("resource "):
+                                parts = stripped.split('"')
+                                if len(parts) >= 4:
+                                    resources.append({"type": parts[1], "name": parts[3]})
+                    if content and fname == "variables.tf":
+                        for line in content.split("\n"):
+                            stripped = line.strip()
+                            if stripped.startswith("variable "):
+                                var_name = stripped.split('"')[1] if '"' in stripped else ""
+                                if var_name:
+                                    variables.append(var_name)
+                    if content and fname == "outputs.tf":
+                        for line in content.split("\n"):
+                            stripped = line.strip()
+                            if stripped.startswith("output "):
+                                out_name = stripped.split('"')[1] if '"' in stripped else ""
+                                if out_name:
+                                    outputs.append(out_name)
+
+            meta = MODULE_DESCRIPTIONS.get(mod_name, {"description": "", "icon": "box", "category": "other"})
+            modules.append({
+                "name": mod_name,
+                "description": meta["description"],
+                "icon": meta["icon"],
+                "category": meta["category"],
+                "files": files,
+                "resources": resources,
+                "variables": variables,
+                "outputs": outputs,
+                "file_count": len(files),
+                "resource_count": len(resources),
+            })
+
+        environments = []
+        if os.path.isdir(envs_dir):
+            for env_name in sorted(os.listdir(envs_dir)):
+                env_path = os.path.join(envs_dir, env_name)
+                if not os.path.isdir(env_path):
+                    continue
+                env_files = {}
+                for fname in sorted(os.listdir(env_path)):
+                    fpath = os.path.join(env_path, fname)
+                    if os.path.isfile(fpath):
+                        env_files[fname] = _read_file_safe(fpath)
+                environments.append({
+                    "name": env_name,
+                    "files": env_files,
+                    "file_count": len(env_files),
+                })
+
+        top_level_files = {}
+        for fname in ["provider.tf", "versions.tf", "variables.tf", "outputs.tf", "README.md"]:
+            fpath = os.path.join(INFRA_TF_DIR, fname)
+            content = _read_file_safe(fpath)
+            if content:
+                top_level_files[fname] = content
+
+        return {
+            "exists": True,
+            "modules": modules,
+            "environments": environments,
+            "top_level_files": top_level_files,
+            "total_modules": len(modules),
+            "total_resources": sum(m["resource_count"] for m in modules),
+        }
+
     # ── existing methods (kept for backward compatibility) ──────────
     async def get_overview(self) -> dict:
         tf_exists = os.path.isfile(os.path.join(INFRA_DIR, "main.tf"))
