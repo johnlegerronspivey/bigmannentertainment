@@ -315,7 +315,7 @@ const CATEGORY_ICON_COLORS = {
   auth: "text-violet-400", hosting: "text-cyan-400", database: "text-amber-400",
   streaming: "text-pink-400", compute: "text-yellow-400", events: "text-teal-400",
   notifications: "text-orange-400", security: "text-red-400", ledger: "text-indigo-400",
-  media: "text-fuchsia-400", orchestration: "text-emerald-400", other: "text-slate-400",
+  media: "text-fuchsia-400", orchestration: "text-emerald-400", networking: "text-sky-400", other: "text-slate-400",
 };
 
 const TerraformModuleCard = ({ mod }) => {
