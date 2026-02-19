@@ -3,7 +3,7 @@ import {
   Cloud, Server, GitBranch, Terminal, CheckCircle, XCircle, Copy,
   ChevronDown, ChevronRight, Rocket, Clock, Box, Wifi, WifiOff,
   Activity, RefreshCw, ExternalLink, Zap, Database, AlertTriangle,
-  Shield, Globe, Bell, Lock, BookOpen, Film, Layers, Package
+  Shield, Globe, Bell, Lock, BookOpen, Film, Layers, Package, Code
 } from "lucide-react";
 import { fetcher } from "./shared";
 
