@@ -420,6 +420,84 @@ class IaCService:
             "total_resources": sum(m["resource_count"] for m in modules),
         }
 
+    # ── CDK constructs structure ───────────────────────────────────
+    async def get_cdk_constructs(self) -> dict:
+        """Scan infra-cdk/ and return construct metadata with file contents."""
+        lib_dir = os.path.join(INFRA_CDK_DIR, "lib")
+        constructs_dir = os.path.join(lib_dir, "constructs")
+        bin_dir = os.path.join(INFRA_CDK_DIR, "bin")
+
+        if not os.path.isdir(INFRA_CDK_DIR):
+            return {"exists": False, "error": "infra-cdk/ not found", "constructs": [], "config_files": {}}
+
+        CONSTRUCT_DESCRIPTIONS = {
+            "auth": {"description": "Cognito User Pool authentication", "icon": "shield", "category": "auth", "services": ["Cognito UserPool", "UserPoolClient"]},
+            "frontend": {"description": "S3 + CloudFront static hosting", "icon": "globe", "category": "hosting", "services": ["S3 Bucket", "CloudFront Distribution"]},
+            "api": {"description": "API Gateway with Cognito authorizer", "icon": "server", "category": "api", "services": ["REST API", "CognitoAuthorizer", "LambdaIntegration"]},
+            "lambdas": {"description": "Lambda microservices for campaigns, creatives, attribution", "icon": "zap", "category": "compute", "services": ["CampaignHandler", "CreativeHandler", "AttributionHandler", "IAM Role"]},
+            "dynamodb": {"description": "NoSQL tables for campaigns, creatives, attribution, royalties", "icon": "database", "category": "database", "services": ["Campaigns Table", "Creatives Table", "Attribution Table", "Royalties Table"]},
+            "kinesis": {"description": "Real-time impression data streaming", "icon": "activity", "category": "streaming", "services": ["ImpressionStream"]},
+            "eventbridge": {"description": "Event-driven routing with custom bus", "icon": "git-branch", "category": "events", "services": ["DoohEventBus", "CampaignCreatedRule", "ImpressionReceivedRule"]},
+            "qldb": {"description": "Immutable audit ledger (optional)", "icon": "book-open", "category": "ledger", "services": ["AuditLedger"]},
+        }
+
+        constructs = []
+        if os.path.isdir(constructs_dir):
+            for fname in sorted(os.listdir(constructs_dir)):
+                if not fname.endswith(".ts"):
+                    continue
+                fpath = os.path.join(constructs_dir, fname)
+                content = _read_file_safe(fpath)
+                name = fname.replace(".ts", "")
+                meta = CONSTRUCT_DESCRIPTIONS.get(name, {"description": "", "icon": "box", "category": "other", "services": []})
+
+                exports = []
+                imports_list = []
+                if content:
+                    for line in content.split("\n"):
+                        stripped = line.strip()
+                        if stripped.startswith("export class "):
+                            cls = stripped.split("export class ")[1].split(" ")[0]
+                            exports.append(cls)
+                        if stripped.startswith("import "):
+                            imports_list.append(stripped)
+
+                constructs.append({
+                    "name": name,
+                    "file": f"lib/constructs/{fname}",
+                    "description": meta["description"],
+                    "icon": meta["icon"],
+                    "category": meta["category"],
+                    "services": meta["services"],
+                    "exports": exports,
+                    "imports_count": len(imports_list),
+                    "code": content,
+                    "lines": len(content.split("\n")) if content else 0,
+                })
+
+        stack_file = os.path.join(lib_dir, "infra-stack.ts")
+        stack_content = _read_file_safe(stack_file)
+
+        entry_file = os.path.join(bin_dir, "infra.ts")
+        entry_content = _read_file_safe(entry_file)
+
+        config_files = {}
+        for fname in ["package.json", "cdk.json", "tsconfig.json"]:
+            fpath = os.path.join(INFRA_CDK_DIR, fname)
+            c = _read_file_safe(fpath)
+            if c:
+                config_files[fname] = c
+
+        return {
+            "exists": True,
+            "constructs": constructs,
+            "stack_file": {"name": "lib/infra-stack.ts", "code": stack_content, "lines": len(stack_content.split("\n")) if stack_content else 0},
+            "entry_file": {"name": "bin/infra.ts", "code": entry_content, "lines": len(entry_content.split("\n")) if entry_content else 0},
+            "config_files": config_files,
+            "total_constructs": len(constructs),
+            "total_services": sum(len(c["services"]) for c in constructs),
+        }
+
     # ── existing methods (kept for backward compatibility) ──────────
     async def get_overview(self) -> dict:
         tf_exists = os.path.isfile(os.path.join(INFRA_DIR, "main.tf"))
