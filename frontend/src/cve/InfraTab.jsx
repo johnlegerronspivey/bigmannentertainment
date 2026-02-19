@@ -307,6 +307,7 @@ const CATEGORY_COLORS = {
   ledger: "border-indigo-500/30 bg-indigo-500/5",
   media: "border-fuchsia-500/30 bg-fuchsia-500/5",
   orchestration: "border-emerald-500/30 bg-emerald-500/5",
+  networking: "border-sky-500/30 bg-sky-500/5",
   other: "border-slate-500/30 bg-slate-500/5",
 };
 
