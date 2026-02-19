@@ -730,7 +730,7 @@ export const InfraTab = ({ onRefresh }) => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <div data-testid="stat-terraform" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-violet-500/10"><Cloud className="w-5 h-5 text-violet-400" /></div>
@@ -739,6 +739,18 @@ export const InfraTab = ({ onRefresh }) => {
           <div className="flex items-center gap-2">
             <StatusDot ok={overview?.terraform?.configured} />
             <span className="text-white font-semibold">{overview?.terraform?.configured ? "Configured" : "Not Found"}</span>
+          </div>
+        </div>
+        <div data-testid="stat-cdk" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-orange-500/10"><Code className="w-5 h-5 text-orange-400" /></div>
+            <span className="text-slate-400 text-sm">CDK</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatusDot ok={cdkData?.exists} />
+            <span className="text-white font-semibold">
+              {cdkData?.exists ? `${cdkData.total_constructs} Constructs` : "Not Found"}
+            </span>
           </div>
         </div>
         <div data-testid="stat-lambda" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
