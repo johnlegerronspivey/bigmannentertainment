@@ -640,7 +640,8 @@ export const InfraTab = ({ onRefresh }) => {
       fetcher(`${IAC_API}/github/runs`).catch(() => null),
       fetcher(`${IAC_API}/terraform/state?environment=${selectedEnv}`).catch(() => null),
       fetcher(`${IAC_API}/terraform/modules`).catch(() => null),
-    ]).then(([ov, tf, lm, wf, dep, ls, ll, gr, ts, tm]) => {
+      fetcher(`${IAC_API}/cdk/constructs`).catch(() => null),
+    ]).then(([ov, tf, lm, wf, dep, ls, ll, gr, ts, tm, cdk]) => {
       setOverview(ov);
       setTerraform(tf);
       setLambda(lm);
@@ -651,6 +652,7 @@ export const InfraTab = ({ onRefresh }) => {
       setGhRuns(gr);
       setTfState(ts);
       setTfModules(tm);
+      setCdkData(cdk);
       setLoading(false);
     });
   }, [selectedEnv]);
