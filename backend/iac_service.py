@@ -21,6 +21,7 @@ _db: Optional[AsyncIOMotorDatabase] = None
 
 INFRA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "infra")
 INFRA_TF_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "infra-terraform")
+INFRA_CDK_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "infra-cdk")
 LAMBDA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "lambda")
 GH_WORKFLOWS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".github", "workflows")
 
