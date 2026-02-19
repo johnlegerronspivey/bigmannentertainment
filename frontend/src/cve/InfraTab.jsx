@@ -624,6 +624,7 @@ export const InfraTab = ({ onRefresh }) => {
   const [ghRuns, setGhRuns] = useState(null);
   const [tfState, setTfState] = useState(null);
   const [tfModules, setTfModules] = useState(null);
+  const [cdkData, setCdkData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(() => {
