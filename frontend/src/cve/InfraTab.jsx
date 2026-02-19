@@ -694,6 +694,37 @@ export const InfraTab = ({ onRefresh }) => {
         <TerraformStatePanel data={tfState} />
       </Collapsible>
 
+      {/* ── Terraform Modules ──────────────────────────────────── */}
+      <Collapsible
+        title={`Terraform Modules (${tfModules?.total_modules || 0})`}
+        icon={Package}
+        defaultOpen
+        testId="section-terraform-modules"
+        badge={
+          tfModules?.exists ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              {tfModules.total_resources} resources
+            </span>
+          ) : null
+        }
+      >
+        <TerraformModulesPanel data={tfModules} />
+      </Collapsible>
+
+      {/* ── Terraform Environments (Prod / Staging) ────────────── */}
+      <Collapsible
+        title="Terraform Environments"
+        icon={Cloud}
+        testId="section-terraform-envs"
+        badge={
+          tfModules?.environments?.length ? (
+            <span className="text-xs text-slate-500">{tfModules.environments.length} configured</span>
+          ) : null
+        }
+      >
+        <TerraformEnvsPanel data={tfModules} />
+      </Collapsible>
+
       {/* ── Local: Terraform Configuration ─────────────────────── */}
       <Collapsible title="Terraform Configuration (Local)" icon={Cloud} testId="section-terraform">
         <div className="space-y-4 pt-3">
