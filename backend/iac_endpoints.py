@@ -103,3 +103,10 @@ async def get_terraform_modules():
     """Return the infra-terraform module structure with file contents and metadata."""
     svc = get_iac_service()
     return await svc.get_terraform_modules()
+
+
+@router.get("/cdk/constructs")
+async def get_cdk_constructs():
+    """Return the infra-cdk construct structure with file contents and metadata."""
+    svc = get_iac_service()
+    return await svc.get_cdk_constructs()
