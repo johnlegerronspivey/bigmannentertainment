@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   Cloud, Server, GitBranch, Terminal, CheckCircle, XCircle, Copy,
   ChevronDown, ChevronRight, Rocket, Clock, Box, Wifi, WifiOff,
-  Activity, RefreshCw, ExternalLink, Zap, Database, AlertTriangle
+  Activity, RefreshCw, ExternalLink, Zap, Database, AlertTriangle,
+  Shield, Globe, Bell, Lock, BookOpen, Film, Layers, Package
 } from "lucide-react";
 import { fetcher } from "./shared";
 
