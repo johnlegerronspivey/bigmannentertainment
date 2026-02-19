@@ -882,6 +882,23 @@ export const InfraTab = ({ onRefresh }) => {
         <TerraformEnvsPanel data={tfModules} />
       </Collapsible>
 
+      {/* ── CDK Constructs ──────────────────────────────────────── */}
+      <Collapsible
+        title={`CDK Constructs (${cdkData?.total_constructs || 0})`}
+        icon={Code}
+        defaultOpen
+        testId="section-cdk-constructs"
+        badge={
+          cdkData?.exists ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-orange-500/15 text-orange-300 border border-orange-500/30">
+              {cdkData.total_services} services
+            </span>
+          ) : null
+        }
+      >
+        <CdkConstructsPanel data={cdkData} />
+      </Collapsible>
+
       {/* ── Local: Terraform Configuration ─────────────────────── */}
       <Collapsible title="Terraform Configuration (Local)" icon={Cloud} testId="section-terraform">
         <div className="space-y-4 pt-3">
