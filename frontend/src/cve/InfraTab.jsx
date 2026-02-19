@@ -639,6 +639,18 @@ export const InfraTab = ({ onRefresh }) => {
           </div>
           <div className="text-2xl font-bold text-white">{overview?.total_deployments || 0}</div>
         </div>
+        <div data-testid="stat-tf-modules" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-indigo-500/10"><Package className="w-5 h-5 text-indigo-400" /></div>
+            <span className="text-slate-400 text-sm">TF Modules</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatusDot ok={tfModules?.exists} />
+            <span className="text-white font-semibold">
+              {tfModules?.exists ? `${tfModules.total_modules} Modules` : "Not Found"}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Environment Pills */}
