@@ -2,6 +2,13 @@ provider "aws" {
   region = var.aws_region
 }
 
+module "vpc" {
+  source  = "../../modules/vpc"
+  project = var.project
+  env     = var.env
+  tags    = var.tags
+}
+
 module "cognito" {
   source  = "../../modules/cognito"
   project = var.project
