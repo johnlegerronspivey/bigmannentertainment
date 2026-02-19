@@ -1,0 +1,7 @@
+project        = "bigmann-dooh"
+env            = "prod"
+aws_region     = "us-east-1"
+campaign_zip   = "../artifacts/campaign.zip"
+creative_zip   = "../artifacts/creative.zip"
+admin_email    = "ops@example.com"
+tfstate_bucket = "my-terraform-state-bucket"

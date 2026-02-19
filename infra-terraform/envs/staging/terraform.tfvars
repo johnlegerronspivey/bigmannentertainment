@@ -1,0 +1,7 @@
+project        = "bigmann-dooh"
+env            = "staging"
+aws_region     = "us-east-1"
+campaign_zip   = "../artifacts/campaign-staging.zip"
+creative_zip   = "../artifacts/creative-staging.zip"
+admin_email    = "staging-ops@example.com"
+tfstate_bucket = "my-terraform-state-bucket"
