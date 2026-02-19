@@ -21,7 +21,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **GitHub Integration**: PyGitHub for issue/PR creation + workflow runs
 - **AWS**: boto3 for Lambda, S3, CloudWatch, Inspector/Security Hub
 - **Charts**: Recharts (PieChart, BarChart, AreaChart, LineChart)
-- **IaC**: Terraform (multi-environment: dev, staging, prod)
+- **IaC**: Terraform (multi-environment: dev, staging, prod) + AWS CDK (TypeScript)
 - **CI/CD**: GitHub Actions (Lambda artifact build + upload)
 
 ## Key Files
@@ -43,7 +43,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/backend/sla_tracker_endpoints.py` - SLA API endpoints (prefix: /api/cve/sla)
 - `/app/backend/cve_reporting_service.py` - Advanced Reporting service
 - `/app/backend/cve_reporting_endpoints.py` - Reporting API endpoints (prefix: /api/cve/reporting)
-- `/app/backend/iac_service.py` - Infrastructure Automation service (LIVE AWS/GitHub integration)
+- `/app/backend/iac_service.py` - Infrastructure Automation service (LIVE AWS/GitHub + CDK/TF parsing)
 - `/app/backend/iac_endpoints.py` - IaC API endpoints (prefix: /api/cve/iac)
 
 ### Frontend (Refactored)
@@ -63,13 +63,17 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/frontend/src/cve/UserManagementTab.jsx` - User management with RBAC
 - `/app/frontend/src/cve/SLATrackerTab.jsx` - SLA Tracker with 6 sub-views
 - `/app/frontend/src/cve/ReportingTab.jsx` - Advanced Reporting
-- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data + Terraform Modules viewer
+- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data + Terraform Modules + CDK Constructs viewer
 
 ### Infrastructure as Code
-- `/app/infra-terraform/` - Production-grade Terraform repository (44 files)
-- `/app/infra-terraform/modules/` - 11 reusable modules (cognito, s3-cloudfront, dynamodb, kinesis, lambda, eventbridge, sns, secrets-manager, qldb, media-convert, stepfunctions)
+- `/app/infra-terraform/` - Production-grade Terraform repository (47+ files)
+- `/app/infra-terraform/modules/` - 12 reusable modules (cognito, s3-cloudfront, dynamodb, kinesis, lambda, eventbridge, sns, secrets-manager, qldb, media-convert, stepfunctions, vpc)
 - `/app/infra-terraform/envs/prod/` - Production environment config
 - `/app/infra-terraform/envs/staging/` - Staging environment config
+- `/app/infra-cdk/` - CDK TypeScript project for Programmatic DOOH platform
+- `/app/infra-cdk/lib/constructs/` - 8 constructs (auth, frontend, api, lambdas, dynamodb, kinesis, eventbridge, qldb)
+- `/app/infra-cdk/lib/infra-stack.ts` - Main stack composition
+- `/app/infra-cdk/bin/infra.ts` - CDK app entry point
 
 ## What's Been Implemented
 
@@ -96,25 +100,28 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - IaC Management Tab with overview cards, environment selector, viewers, deployment commands
 
 ### Infrastructure Automation - LIVE DATA (COMPLETE - Feb 18, 2026)
-- **AWS Lambda Live**: Fetches real function configs + CloudWatch metrics (invocations, errors, duration, throttles) via boto3
+- **AWS Lambda Live**: Fetches real function configs + CloudWatch metrics via boto3
 - **GitHub Actions Live**: Fetches real workflow runs with status/conclusion/branch from PyGitHub
-- **Terraform State Live**: Reads Terraform state from S3 backend (resources, versions)
+- **Terraform State Live**: Reads Terraform state from S3 backend
 - **Connection Status**: Real-time LIVE/OFFLINE badges for Lambda, S3, GitHub
-- **Non-blocking I/O**: All boto3/PyGitHub calls wrapped in `asyncio.to_thread()` to prevent event loop blocking
-- **4 New API Endpoints**: /live-status, /lambda/live, /github/runs, /terraform/state
-- **Frontend**: LiveLambdaPanel (function cards with metrics), GitHubRunsPanel (run history), TerraformStatePanel (resource list), Connection status bar
+- **Non-blocking I/O**: All boto3/PyGitHub calls wrapped in `asyncio.to_thread()`
 - Test report: iteration_30.json (30/30 backend tests, 100% frontend verification)
-- Live data verified: 9 Lambda functions, 15 GitHub workflow runs, S3 bucket connected
 
 ### Terraform Modules Repository (COMPLETE - Feb 19, 2026)
 - **44 Terraform files** created under `/app/infra-terraform/` with production-grade modular architecture
 - **11 Modules**: cognito, s3-cloudfront, dynamodb, kinesis, lambda, eventbridge, sns, secrets-manager, qldb, media-convert, stepfunctions
-- **30 total resources** across all modules
-- **2 Environment configs**: prod (high-capacity) and staging (lower allocation)
-- **Top-level files**: provider.tf, versions.tf, variables.tf, outputs.tf, README.md
-- **New API Endpoint**: GET /api/cve/iac/terraform/modules — scans and returns module metadata with file contents
-- **Frontend**: TerraformModuleCard (expandable with resources/variables/outputs/code), TerraformModulesPanel, TerraformEnvsPanel, TF Modules stat card
 - Test report: iteration_31.json (15/15 backend tests, 100% frontend verification)
+
+### CDK TypeScript Project + VPC Module (COMPLETE - Feb 19, 2026)
+- **CDK Project**: 13 files at `/app/infra-cdk/` implementing Programmatic DOOH platform infrastructure
+- **8 CDK Constructs**: auth (Cognito), frontend (S3+CloudFront), api (API Gateway), lambdas (3 Lambda functions), dynamodb (4 tables), kinesis (impression stream), eventbridge (event bus+rules), qldb (audit ledger)
+- **20 AWS services** defined across all constructs
+- **Config files**: package.json, cdk.json, tsconfig.json
+- **VPC Terraform module**: Added to infra-terraform/modules/vpc/ with 10 resources (VPC, public/private subnets, IGW, NAT, route tables)
+- **Updated Terraform**: Now 12 modules, 40 total resources
+- **New API Endpoint**: GET /api/cve/iac/cdk/constructs — scans and returns CDK construct metadata with file contents
+- **Frontend**: CdkConstructCard (expandable with services/code), CdkConstructsPanel, CDK stat card, file toggle viewers
+- Test report: iteration_32.json (25/25 backend tests, 100% frontend verification)
 
 ### CVE Vulnerability Remediation (COMPLETE)
 - All Python/Node.js CVEs resolved
@@ -122,7 +129,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
-All phases 1-6 complete with Enhanced SLA Tracking, Advanced Reporting, and Live IaC Integration.
+All phases 1-6 complete with Enhanced SLA Tracking, Advanced Reporting, Live IaC Integration, Terraform Modules, and CDK Constructs.
 
 ### P1 - Future Tasks
 - PDF export for reports (in addition to CSV)
@@ -139,3 +146,4 @@ All phases 1-6 complete with Enhanced SLA Tracking, Advanced Reporting, and Live
 - iteration_29.json - IaC Integration (Local)
 - iteration_30.json - IaC Live AWS/GitHub Integration (30/30 tests passed)
 - iteration_31.json - Terraform Modules Repository (15/15 tests passed)
+- iteration_32.json - CDK Constructs + VPC Module (25/25 tests passed)
