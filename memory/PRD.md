@@ -7,7 +7,7 @@ Build a comprehensive enterprise CVE management platform with:
 3. **CI/CD Security Gates**: Dependency, container, and IaC scanning
 4. **Automated Remediation**: GitHub API integration for auto-PRs, AWS Inspector/Security Hub
 5. **Governance Dashboards**: Rich charts, analytics, trends, SLA tracking
-6. **Notifications & Reporting**: Email/UI alerts, SLA monitoring, CSV exports, weekly digests
+6. **Notifications & Reporting**: Email/UI alerts, SLA monitoring, CSV/PDF exports, weekly digests
 
 Additionally, an infrastructure automation pipeline for CVE remediation using Terraform, AWS Lambda, and GitHub Actions.
 
@@ -23,6 +23,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **Charts**: Recharts (PieChart, BarChart, AreaChart, LineChart)
 - **IaC**: Terraform (multi-environment: dev, staging, prod) + AWS CDK (TypeScript)
 - **CI/CD**: GitHub Actions (Lambda artifact build + upload)
+- **PDF Generation**: fpdf2 (for report exports)
 
 ## Key Files
 
@@ -41,20 +42,20 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/backend/rbac_endpoints.py` - RBAC API endpoints
 - `/app/backend/sla_tracker_service.py` - SLA Tracker service (Phase 1 + Phase 2)
 - `/app/backend/sla_tracker_endpoints.py` - SLA API endpoints (prefix: /api/cve/sla)
-- `/app/backend/cve_reporting_service.py` - Advanced Reporting service
+- `/app/backend/cve_reporting_service.py` - Advanced Reporting service (CSV + PDF export + dashboard trends)
 - `/app/backend/cve_reporting_endpoints.py` - Reporting API endpoints (prefix: /api/cve/reporting)
 - `/app/backend/iac_service.py` - Infrastructure Automation service (LIVE AWS/GitHub + CDK/TF parsing)
 - `/app/backend/iac_endpoints.py` - IaC API endpoints (prefix: /api/cve/iac)
 
 ### Frontend (Refactored)
-- `/app/frontend/src/CVEManagementDashboard.jsx` - Thin orchestrator (149 lines)
+- `/app/frontend/src/CVEManagementDashboard.jsx` - Thin orchestrator with responsive tabs
 - `/app/frontend/src/cve/shared.js` - Shared constants, API URLs, utility components
-- `/app/frontend/src/cve/OverviewTab.jsx` - Dashboard overview
-- `/app/frontend/src/cve/CVEDatabaseTab.jsx` - CVE listing, filtering, creation
+- `/app/frontend/src/cve/OverviewTab.jsx` - Enhanced dashboard with trend indicators, sparkline
+- `/app/frontend/src/cve/CVEDatabaseTab.jsx` - CVE listing with debounced search, active filter chips
 - `/app/frontend/src/cve/AssignOwnerModal.jsx` - Owner assignment modal
 - `/app/frontend/src/cve/ScannersTab.jsx` - Security scanner tools
 - `/app/frontend/src/cve/RemediationTab.jsx` - GitHub issues/PRs, AWS findings
-- `/app/frontend/src/cve/GovernanceTab.jsx` - Charts, risk gauge, trends
+- `/app/frontend/src/cve/GovernanceTab.jsx` - Charts, risk gauge, trends (with skeleton loading)
 - `/app/frontend/src/cve/NotificationsTab.jsx` - Notifications, preferences
 - `/app/frontend/src/cve/ServicesTab.jsx` - Service registry + SBOMTab
 - `/app/frontend/src/cve/CICDTab.jsx` - Pipeline generator
@@ -62,80 +63,55 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - `/app/frontend/src/cve/PoliciesTab.jsx` - SLA policies config + AuditTrailTab
 - `/app/frontend/src/cve/UserManagementTab.jsx` - User management with RBAC
 - `/app/frontend/src/cve/SLATrackerTab.jsx` - SLA Tracker with 6 sub-views
-- `/app/frontend/src/cve/ReportingTab.jsx` - Advanced Reporting
-- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data + Terraform Modules + CDK Constructs viewer
+- `/app/frontend/src/cve/ReportingTab.jsx` - Advanced Reporting with CSV + PDF export
+- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data + Terraform + CDK
 
 ### Infrastructure as Code
 - `/app/infra-terraform/` - Production-grade Terraform repository (47+ files)
-- `/app/infra-terraform/modules/` - 12 reusable modules (cognito, s3-cloudfront, dynamodb, kinesis, lambda, eventbridge, sns, secrets-manager, qldb, media-convert, stepfunctions, vpc)
-- `/app/infra-terraform/envs/prod/` - Production environment config
-- `/app/infra-terraform/envs/staging/` - Staging environment config
+- `/app/infra-terraform/modules/` - 12 reusable modules
 - `/app/infra-cdk/` - CDK TypeScript project for Programmatic DOOH platform
-- `/app/infra-cdk/lib/constructs/` - 8 constructs (auth, frontend, api, lambdas, dynamodb, kinesis, eventbridge, qldb)
-- `/app/infra-cdk/lib/infra-stack.ts` - Main stack composition
-- `/app/infra-cdk/bin/infra.ts` - CDK app entry point
+- `/app/infra-cdk/lib/constructs/` - 8 constructs
 
 ## What's Been Implemented
 
-### Phase 1-5: Core CVE Platform (COMPLETE)
-- CVE lifecycle management (detect, triage, fix, verify)
-- SBOM generation, Multi-scanner integration, CI/CD pipeline generation
-- Policy-as-code rules engine, Automated remediation via GitHub
-- AWS Inspector/Security Hub integration, Governance dashboards with charts
-- Notifications with email alerts, CSV export
-
-### Phase 6: User Management & RBAC (COMPLETE)
-- Role-based access control (Admin, Manager, Analyst)
+### Phase 1-6: Core CVE Platform (COMPLETE)
+- CVE lifecycle management, SBOM generation, Multi-scanner integration
+- CI/CD pipeline generation, Policy-as-code rules engine
+- Automated remediation via GitHub, AWS Inspector/Security Hub
+- Governance dashboards, Notifications, User Management & RBAC
 
 ### Enhanced SLA Tracking Phase 1 & 2 (COMPLETE)
 - SLA Dashboard, At-Risk CVEs, Configurable escalation rules
 - Auto-Escalation Scheduler, Proactive Email Notifications
-- Escalation Workflow Management, SLA Digest Email
 
 ### Advanced Reporting & Analytics (COMPLETE)
 - Executive Summary, Trends, Team Performance, Scanner Effectiveness, Export
 
-### Infrastructure Automation - LOCAL (COMPLETE - Feb 18, 2026)
-- Terraform configs, Lambda function, GitHub Actions CI/CD workflow
-- IaC Management Tab with overview cards, environment selector, viewers, deployment commands
+### Infrastructure Automation (COMPLETE)
+- Terraform configs, Lambda function, GitHub Actions CI/CD
+- Live AWS/GitHub data integration
+- Terraform Modules Repository (12 modules)
+- CDK TypeScript Project + VPC Module
 
-### Infrastructure Automation - LIVE DATA (COMPLETE - Feb 18, 2026)
-- **AWS Lambda Live**: Fetches real function configs + CloudWatch metrics via boto3
-- **GitHub Actions Live**: Fetches real workflow runs with status/conclusion/branch from PyGitHub
-- **Terraform State Live**: Reads Terraform state from S3 backend
-- **Connection Status**: Real-time LIVE/OFFLINE badges for Lambda, S3, GitHub
-- **Non-blocking I/O**: All boto3/PyGitHub calls wrapped in `asyncio.to_thread()`
-- Test report: iteration_30.json (30/30 backend tests, 100% frontend verification)
-
-### Terraform Modules Repository (COMPLETE - Feb 19, 2026)
-- **44 Terraform files** created under `/app/infra-terraform/` with production-grade modular architecture
-- **11 Modules**: cognito, s3-cloudfront, dynamodb, kinesis, lambda, eventbridge, sns, secrets-manager, qldb, media-convert, stepfunctions
-- Test report: iteration_31.json (15/15 backend tests, 100% frontend verification)
-
-### CDK TypeScript Project + VPC Module (COMPLETE - Feb 19, 2026)
-- **CDK Project**: 13 files at `/app/infra-cdk/` implementing Programmatic DOOH platform infrastructure
-- **8 CDK Constructs**: auth (Cognito), frontend (S3+CloudFront), api (API Gateway), lambdas (3 Lambda functions), dynamodb (4 tables), kinesis (impression stream), eventbridge (event bus+rules), qldb (audit ledger)
-- **20 AWS services** defined across all constructs
-- **Config files**: package.json, cdk.json, tsconfig.json
-- **VPC Terraform module**: Added to infra-terraform/modules/vpc/ with 10 resources (VPC, public/private subnets, IGW, NAT, route tables)
-- **Updated Terraform**: Now 12 modules, 40 total resources
-- **New API Endpoint**: GET /api/cve/iac/cdk/constructs — scans and returns CDK construct metadata with file contents
-- **Frontend**: CdkConstructCard (expandable with services/code), CdkConstructsPanel, CDK stat card, file toggle viewers
-- Test report: iteration_32.json (25/25 backend tests, 100% frontend verification)
-
-### CVE Vulnerability Remediation (COMPLETE)
-- All Python/Node.js CVEs resolved
+### PDF Export & Dashboard Enhancements (COMPLETE - Feb 20, 2026)
+- **PDF Export**: Professional formatted PDF reports (Executive, CVE Database, Team Performance)
+- **Dashboard Trends**: 7-day mini sparkline, week-over-week delta indicators
+- **Search Improvements**: Debounced search (350ms), active filter chips with clear all
+- **Loading Skeletons**: Animated skeleton states in Overview, Governance tabs
+- **Responsive Tabs**: Better tab navigation on mobile/tablet viewports
+- **New Backend Endpoints**: `/export/executive-pdf`, `/export/cves-pdf`, `/export/team-pdf`, `/dashboard-trends`
+- Test report: iteration_33.json (26/26 backend tests, 100% frontend verification)
 
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
-All phases 1-6 complete with Enhanced SLA Tracking, Advanced Reporting, Live IaC Integration, Terraform Modules, and CDK Constructs.
+All phases 1-6 complete with Enhanced SLA, Reporting, Live IaC, Terraform, CDK, PDF Export.
 
 ### P1 - Future Tasks
-- PDF export for reports (in addition to CSV)
 - Real-time WebSocket notifications for SLA breaches
 - Integration with external ticketing systems (Jira, ServiceNow)
 - Multi-tenant support
+- Advanced PDF with embedded charts/graphs
 
 ## Test Credentials
 - Test user: cveadmin@test.com / Test1234!
@@ -147,3 +123,4 @@ All phases 1-6 complete with Enhanced SLA Tracking, Advanced Reporting, Live IaC
 - iteration_30.json - IaC Live AWS/GitHub Integration (30/30 tests passed)
 - iteration_31.json - Terraform Modules Repository (15/15 tests passed)
 - iteration_32.json - CDK Constructs + VPC Module (25/25 tests passed)
+- iteration_33.json - PDF Export + Dashboard Enhancements (26/26 tests passed)
