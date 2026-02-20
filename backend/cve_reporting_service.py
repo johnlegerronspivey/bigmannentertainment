@@ -387,6 +387,327 @@ class CVEReportingService:
             ])
         return output.getvalue().encode("utf-8")
 
+    # ─── PDF Export ───────────────────────────────────────────────
+
+    async def export_executive_pdf(self, days: int = 30) -> bytes:
+        from fpdf import FPDF
+
+        summary = await self.get_executive_summary(days)
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+
+        # Title
+        pdf.set_font("Helvetica", "B", 20)
+        pdf.set_text_color(0, 180, 216)
+        pdf.cell(0, 15, "CVE Executive Report", new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.set_font("Helvetica", "", 10)
+        pdf.set_text_color(120, 120, 120)
+        pdf.cell(0, 6, f"Generated: {summary['generated_at'][:19]} | Period: {days} days", new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.ln(8)
+
+        # Key Metrics Section
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.set_text_color(30, 30, 30)
+        pdf.cell(0, 10, "Key Metrics", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_draw_color(0, 180, 216)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(4)
+
+        metrics = [
+            ("Total CVEs", str(summary["total_cves"])),
+            ("Open CVEs", str(summary["total_open"])),
+            ("Closed CVEs", str(summary["total_closed"])),
+            ("New in Period", str(summary["new_in_period"])),
+            ("Fixed in Period", str(summary["fixed_in_period"])),
+            ("Resolution Rate", f"{summary['resolution_rate']}%"),
+            ("Mean Time to Resolve", f"{summary['mttr_hours']} hours"),
+            ("SLA Compliance", f"{summary['sla_compliance']}%"),
+            ("Risk Score", f"{summary['risk_score']}/100"),
+        ]
+
+        pdf.set_font("Helvetica", "", 11)
+        for label, value in metrics:
+            pdf.set_text_color(80, 80, 80)
+            pdf.cell(90, 8, label, border=0)
+            pdf.set_text_color(30, 30, 30)
+            pdf.set_font("Helvetica", "B", 11)
+            pdf.cell(0, 8, value, new_x="LMARGIN", new_y="NEXT")
+            pdf.set_font("Helvetica", "", 11)
+
+        pdf.ln(6)
+
+        # Severity Distribution
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.set_text_color(30, 30, 30)
+        pdf.cell(0, 10, "Severity Distribution", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_draw_color(0, 180, 216)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(4)
+
+        sev_colors = {
+            "critical": (239, 68, 68),
+            "high": (249, 115, 22),
+            "medium": (234, 179, 8),
+            "low": (59, 130, 246),
+            "info": (100, 116, 139),
+        }
+
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.set_fill_color(240, 240, 240)
+        pdf.cell(60, 8, "Severity", border=1, fill=True)
+        pdf.cell(40, 8, "Count", border=1, fill=True, align="C")
+        pdf.cell(80, 8, "Percentage", border=1, fill=True, align="C")
+        pdf.ln()
+
+        total = summary["total_cves"] or 1
+        pdf.set_font("Helvetica", "", 10)
+        for sev in ["critical", "high", "medium", "low", "info"]:
+            count = summary["severity_distribution"].get(sev, 0)
+            pct = round(count / total * 100, 1)
+            r, g, b = sev_colors.get(sev, (100, 100, 100))
+            pdf.set_text_color(r, g, b)
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.cell(60, 8, sev.upper(), border=1)
+            pdf.set_text_color(30, 30, 30)
+            pdf.set_font("Helvetica", "", 10)
+            pdf.cell(40, 8, str(count), border=1, align="C")
+            pdf.cell(80, 8, f"{pct}%", border=1, align="C")
+            pdf.ln()
+
+        pdf.ln(8)
+
+        # Risk Assessment
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.set_text_color(30, 30, 30)
+        pdf.cell(0, 10, "Risk Assessment", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_draw_color(0, 180, 216)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(4)
+
+        risk = summary["risk_score"]
+        risk_label = "Critical" if risk >= 75 else "High" if risk >= 50 else "Medium" if risk >= 25 else "Low"
+        risk_color = (239, 68, 68) if risk >= 75 else (249, 115, 22) if risk >= 50 else (234, 179, 8) if risk >= 25 else (16, 185, 129)
+
+        pdf.set_font("Helvetica", "", 11)
+        pdf.set_text_color(80, 80, 80)
+        pdf.cell(50, 8, "Risk Level:")
+        pdf.set_text_color(*risk_color)
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.cell(0, 8, f"{risk_label} ({risk}/100)", new_x="LMARGIN", new_y="NEXT")
+
+        sla = summary["sla_compliance"]
+        sla_label = "Healthy" if sla >= 90 else "At Risk" if sla >= 70 else "Critical"
+        sla_color = (16, 185, 129) if sla >= 90 else (234, 179, 8) if sla >= 70 else (239, 68, 68)
+
+        pdf.set_font("Helvetica", "", 11)
+        pdf.set_text_color(80, 80, 80)
+        pdf.cell(50, 8, "SLA Status:")
+        pdf.set_text_color(*sla_color)
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.cell(0, 8, f"{sla_label} ({sla}%)", new_x="LMARGIN", new_y="NEXT")
+
+        # Footer
+        pdf.ln(10)
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.set_text_color(150, 150, 150)
+        pdf.cell(0, 6, "CVE Management Platform - Confidential", align="C")
+
+        return pdf.output()
+
+    async def export_cves_pdf(self, filters: Optional[Dict] = None) -> bytes:
+        from fpdf import FPDF
+
+        query = filters or {}
+        cves = []
+        cursor = self.cves_col.find(query, {"_id": 0}).sort("created_at", -1)
+        async for doc in cursor:
+            cves.append(doc)
+
+        pdf = FPDF(orientation="L")
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+
+        # Title
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.set_text_color(0, 180, 216)
+        pdf.cell(0, 12, "CVE Database Export", new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.set_font("Helvetica", "", 9)
+        pdf.set_text_color(120, 120, 120)
+        pdf.cell(0, 6, f"Total: {len(cves)} CVEs | Generated: {datetime.now(timezone.utc).isoformat()[:19]}", new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.ln(6)
+
+        # Table header
+        col_widths = [35, 65, 22, 22, 18, 40, 28, 47]
+        headers = ["CVE ID", "Title", "Severity", "Status", "CVSS", "Package", "Source", "Detected"]
+
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_fill_color(30, 41, 59)
+        pdf.set_text_color(255, 255, 255)
+        for i, h in enumerate(headers):
+            pdf.cell(col_widths[i], 8, h, border=1, fill=True, align="C")
+        pdf.ln()
+
+        # Table rows
+        pdf.set_font("Helvetica", "", 7)
+        sev_colors = {
+            "critical": (239, 68, 68), "high": (249, 115, 22),
+            "medium": (180, 150, 0), "low": (59, 130, 246), "info": (100, 116, 139),
+        }
+        for cve in cves:
+            sev = cve.get("severity", "info")
+            r, g, b = sev_colors.get(sev, (100, 100, 100))
+
+            pdf.set_text_color(0, 140, 180)
+            pdf.cell(col_widths[0], 7, str(cve.get("cve_id", ""))[:18], border=1)
+            pdf.set_text_color(30, 30, 30)
+            pdf.cell(col_widths[1], 7, str(cve.get("title", ""))[:35], border=1)
+            pdf.set_text_color(r, g, b)
+            pdf.set_font("Helvetica", "B", 7)
+            pdf.cell(col_widths[2], 7, sev.upper(), border=1, align="C")
+            pdf.set_font("Helvetica", "", 7)
+            pdf.set_text_color(30, 30, 30)
+            pdf.cell(col_widths[3], 7, str(cve.get("status", "")).replace("_", " "), border=1, align="C")
+            pdf.cell(col_widths[4], 7, str(cve.get("cvss_score", "")), border=1, align="C")
+            pdf.cell(col_widths[5], 7, str(cve.get("affected_package", ""))[:22], border=1)
+            pdf.cell(col_widths[6], 7, str(cve.get("source", ""))[:15], border=1)
+            detected = str(cve.get("detected_at", ""))[:10]
+            pdf.cell(col_widths[7], 7, detected, border=1, align="C")
+            pdf.ln()
+
+        # Footer
+        pdf.ln(6)
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.set_text_color(150, 150, 150)
+        pdf.cell(0, 6, "CVE Management Platform - Confidential", align="C")
+
+        return pdf.output()
+
+    async def export_team_pdf(self) -> bytes:
+        from fpdf import FPDF
+
+        data = await self.get_team_performance()
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+
+        # Title
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.set_text_color(0, 180, 216)
+        pdf.cell(0, 12, "Team Performance Report", new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.set_font("Helvetica", "", 9)
+        pdf.set_text_color(120, 120, 120)
+        pdf.cell(0, 6, f"Generated: {datetime.now(timezone.utc).isoformat()[:19]}", new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.ln(6)
+
+        if not data.get("teams"):
+            pdf.set_font("Helvetica", "", 12)
+            pdf.set_text_color(100, 100, 100)
+            pdf.cell(0, 10, "No team data available.", new_x="LMARGIN", new_y="NEXT", align="C")
+            return pdf.output()
+
+        # Table
+        col_widths = [40, 20, 20, 20, 22, 25, 15, 15, 15, 15]
+        headers = ["Owner", "Assigned", "Open", "Resolved", "Rate (%)", "Avg MTTR", "Crit", "High", "Med", "Low"]
+
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_fill_color(30, 41, 59)
+        pdf.set_text_color(255, 255, 255)
+        for i, h in enumerate(headers):
+            pdf.cell(col_widths[i], 8, h, border=1, fill=True, align="C")
+        pdf.ln()
+
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_text_color(30, 30, 30)
+        for t in data["teams"]:
+            pdf.cell(col_widths[0], 7, str(t["owner"])[:22], border=1)
+            pdf.cell(col_widths[1], 7, str(t["assigned"]), border=1, align="C")
+            pdf.cell(col_widths[2], 7, str(t["open"]), border=1, align="C")
+            pdf.cell(col_widths[3], 7, str(t["resolved"]), border=1, align="C")
+            rate = t["resolution_rate"]
+            if rate >= 80:
+                pdf.set_text_color(16, 185, 129)
+            elif rate >= 50:
+                pdf.set_text_color(234, 179, 8)
+            else:
+                pdf.set_text_color(239, 68, 68)
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.cell(col_widths[4], 7, f"{rate}%", border=1, align="C")
+            pdf.set_font("Helvetica", "", 8)
+            pdf.set_text_color(30, 30, 30)
+            pdf.cell(col_widths[5], 7, f"{t['avg_resolution_hours']}h", border=1, align="C")
+            pdf.cell(col_widths[6], 7, str(t["critical"]), border=1, align="C")
+            pdf.cell(col_widths[7], 7, str(t["high"]), border=1, align="C")
+            pdf.cell(col_widths[8], 7, str(t["medium"]), border=1, align="C")
+            pdf.cell(col_widths[9], 7, str(t["low"]), border=1, align="C")
+            pdf.ln()
+
+        # Footer
+        pdf.ln(8)
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.set_text_color(150, 150, 150)
+        pdf.cell(0, 6, "CVE Management Platform - Confidential", align="C")
+
+        return pdf.output()
+
+    # ─── Dashboard Trends (for Overview tab) ──────────────────────
+
+    async def get_dashboard_trends(self) -> Dict[str, Any]:
+        now = datetime.now(timezone.utc)
+        periods = {
+            "current": (now - timedelta(days=7), now),
+            "previous": (now - timedelta(days=14), now - timedelta(days=7)),
+        }
+        result = {}
+        for period_name, (start, end) in periods.items():
+            start_iso = start.isoformat()
+            end_iso = end.isoformat()
+            open_count = await self.cves_col.count_documents({
+                "status": {"$in": ["detected", "triaged", "in_progress"]},
+                "created_at": {"$lte": end_iso},
+            })
+            fixed_count = await self.cves_col.count_documents({
+                "status": {"$in": ["fixed", "verified"]},
+                "resolved_at": {"$gte": start_iso, "$lte": end_iso},
+            })
+            new_count = await self.cves_col.count_documents({
+                "created_at": {"$gte": start_iso, "$lte": end_iso},
+            })
+            result[period_name] = {
+                "open": open_count,
+                "fixed": fixed_count,
+                "new": new_count,
+            }
+
+        # 7-day mini trend for sparkline
+        mini_trend = []
+        for i in range(6, -1, -1):
+            day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            count = await self.cves_col.count_documents({
+                "created_at": {"$gte": day_start.isoformat(), "$lt": day_end.isoformat()},
+            })
+            mini_trend.append({
+                "day": day_start.strftime("%a"),
+                "count": count,
+            })
+
+        # Calculate deltas
+        curr = result["current"]
+        prev = result["previous"]
+        deltas = {
+            "open_delta": curr["open"] - prev["open"],
+            "fixed_delta": curr["fixed"] - prev["fixed"],
+            "new_delta": curr["new"] - prev["new"],
+        }
+
+        return {
+            "current_week": curr,
+            "previous_week": prev,
+            "deltas": deltas,
+            "mini_trend": mini_trend,
+        }
+
     # ─── Saved Reports ────────────────────────────────────────────
 
     async def get_saved_reports(self) -> Dict[str, Any]:
