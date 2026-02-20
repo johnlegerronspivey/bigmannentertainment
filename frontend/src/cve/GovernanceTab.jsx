@@ -71,7 +71,19 @@ export const GovernanceTab = ({ onRefresh }) => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  if (loading || !metrics) return <div className="text-center py-16 text-slate-400"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-3" />Loading governance data...</div>;
+  if (loading || !metrics) return (
+    <div data-testid="governance-loading" className="space-y-6 animate-pulse">
+      <div className="flex items-center gap-2 border-b border-slate-700/50 pb-2">
+        {[1,2,3,4].map((i) => <div key={i} className="h-9 w-28 bg-slate-800/60 rounded-lg" />)}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {[...Array(6)].map((_, i) => <div key={i} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5"><div className="h-4 bg-slate-700 rounded w-2/3 mb-3" /><div className="h-7 bg-slate-700 rounded w-1/3" /></div>)}
+      </div>
+      <div className="grid md:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => <div key={i} className="bg-slate-800/60 border border-slate-700/50 rounded-xl h-52" />)}
+      </div>
+    </div>
+  );
 
   const sevPieData = Object.entries(metrics.severity_distribution || {}).filter(([, v]) => v > 0).map(([k, v], i) => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: v, fill: CHART_COLORS[i] }));
   const statusPieData = (ownership?.by_status || []).map((s) => ({ name: s.status.replace("_", " "), value: s.count, fill: STATUS_CHART_COLORS[s.status] || "#64748b" }));
