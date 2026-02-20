@@ -122,10 +122,10 @@ export default function CVEManagementDashboard() {
       {/* Tabs */}
       <div className="border-b border-slate-800/60 bg-slate-900/40">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-1 overflow-x-auto py-1">
+          <div className="flex gap-1 overflow-x-auto py-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
             {visibleTabs.map((t) => (
-              <button key={t.id} data-testid={`tab-${t.id}`} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all whitespace-nowrap ${tab === t.id ? "bg-cyan-500/10 text-cyan-400 font-medium" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
-                <t.icon className="w-4 h-4" /> {t.label}
+              <button key={t.id} data-testid={`tab-${t.id}`} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3 md:px-4 py-2.5 rounded-lg text-xs md:text-sm transition-all whitespace-nowrap ${tab === t.id ? "bg-cyan-500/10 text-cyan-400 font-medium shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                <t.icon className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">{t.label}</span><span className="sm:hidden">{t.label.split(" ")[0]}</span>
                 {t.id === "cves" && dashboard?.open_cves > 0 && <span className="ml-1 px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded text-xs">{dashboard.open_cves}</span>}
                 {t.id === "notifications" && unreadCount > 0 && <span className="ml-1 px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded text-xs">{unreadCount}</span>}
               </button>
