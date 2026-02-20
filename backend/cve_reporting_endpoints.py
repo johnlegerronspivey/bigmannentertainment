@@ -96,6 +96,53 @@ async def export_team_csv():
     )
 
 
+@router.get("/export/executive-pdf")
+async def export_executive_pdf(days: int = Query(30, ge=7, le=365)):
+    svc = get_cve_reporting_service()
+    pdf_bytes = await svc.export_executive_pdf(days=days)
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=executive_report.pdf"},
+    )
+
+
+@router.get("/export/cves-pdf")
+async def export_cves_pdf(
+    severity: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+):
+    svc = get_cve_reporting_service()
+    filters = {}
+    if severity:
+        filters["severity"] = severity
+    if status:
+        filters["status"] = status
+    pdf_bytes = await svc.export_cves_pdf(filters=filters if filters else None)
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=cve_database.pdf"},
+    )
+
+
+@router.get("/export/team-pdf")
+async def export_team_pdf():
+    svc = get_cve_reporting_service()
+    pdf_bytes = await svc.export_team_pdf()
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=team_performance.pdf"},
+    )
+
+
+@router.get("/dashboard-trends")
+async def get_dashboard_trends():
+    svc = get_cve_reporting_service()
+    return await svc.get_dashboard_trends()
+
+
 @router.get("/saved")
 async def get_saved_reports():
     svc = get_cve_reporting_service()
