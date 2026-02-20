@@ -324,11 +324,17 @@ const ExportView = ({ days, savedReports, onDelete }) => {
     document.body.removeChild(a);
   };
 
-  const handleExport = (type) => {
+  const handleExport = (type, format = "csv") => {
     const base = REPORTING_API;
-    if (type === "cves") downloadFile(`${base}/export/cves`, "cve_export.csv");
-    else if (type === "executive") downloadFile(`${base}/export/executive?days=${days}`, "executive_report.csv");
-    else if (type === "team") downloadFile(`${base}/export/team`, "team_performance.csv");
+    if (format === "pdf") {
+      if (type === "cves") downloadFile(`${base}/export/cves-pdf`, "cve_database.pdf");
+      else if (type === "executive") downloadFile(`${base}/export/executive-pdf?days=${days}`, "executive_report.pdf");
+      else if (type === "team") downloadFile(`${base}/export/team-pdf`, "team_performance.pdf");
+    } else {
+      if (type === "cves") downloadFile(`${base}/export/cves`, "cve_export.csv");
+      else if (type === "executive") downloadFile(`${base}/export/executive?days=${days}`, "executive_report.csv");
+      else if (type === "team") downloadFile(`${base}/export/team`, "team_performance.csv");
+    }
   };
 
   const handleSave = async () => {
@@ -344,26 +350,33 @@ const ExportView = ({ days, savedReports, onDelete }) => {
     setSaving(false);
   };
 
+  const EXPORT_CARDS = [
+    { type: "cves", title: "CVE Database", desc: "Full CVE list with all fields", icon: AlertTriangle },
+    { type: "executive", title: "Executive Summary", desc: `Summary for last ${days} days`, icon: BarChart3 },
+    { type: "team", title: "Team Performance", desc: "Per-owner resolution stats", icon: Users },
+  ];
+
   return (
     <div className="space-y-6">
       <h3 className="text-white font-semibold">Export Reports</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { type: "cves", title: "CVE Database", desc: "Full CVE list with all fields", icon: AlertTriangle },
-          { type: "executive", title: "Executive Summary", desc: `Summary for last ${days} days`, icon: BarChart3 },
-          { type: "team", title: "Team Performance", desc: "Per-owner resolution stats", icon: Users },
-        ].map(({ type, title, desc, icon: Icon }) => (
-          <button key={type} data-testid={`export-${type}-btn`} onClick={() => handleExport(type)} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 text-left hover:bg-slate-700/40 transition-colors group">
+        {EXPORT_CARDS.map(({ type, title, desc, icon: Icon }) => (
+          <div key={type} data-testid={`export-card-${type}`} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 hover:border-slate-600/60 transition-colors">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-cyan-500/10 rounded-lg group-hover:bg-cyan-500/20 transition-colors"><Icon className="w-5 h-5 text-cyan-400" /></div>
+              <div className="p-2 bg-cyan-500/10 rounded-lg"><Icon className="w-5 h-5 text-cyan-400" /></div>
               <span className="text-white font-medium text-sm">{title}</span>
             </div>
-            <p className="text-slate-500 text-xs mb-3">{desc}</p>
-            <div className="flex items-center gap-1 text-cyan-400 text-xs font-medium">
-              <Download className="w-3.5 h-3.5" /> Download CSV
+            <p className="text-slate-500 text-xs mb-4">{desc}</p>
+            <div className="flex items-center gap-2">
+              <button data-testid={`export-${type}-csv-btn`} onClick={() => handleExport(type, "csv")} className="flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-600/60 text-slate-200 px-3 py-1.5 rounded-lg text-xs transition-colors border border-slate-600/40">
+                <Download className="w-3.5 h-3.5" /> CSV
+              </button>
+              <button data-testid={`export-${type}-pdf-btn`} onClick={() => handleExport(type, "pdf")} className="flex items-center gap-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 px-3 py-1.5 rounded-lg text-xs transition-colors border border-red-500/30">
+                <FileText className="w-3.5 h-3.5" /> PDF
+              </button>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 
