@@ -102,6 +102,14 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **New Backend Endpoints**: `/export/executive-pdf`, `/export/cves-pdf`, `/export/team-pdf`, `/dashboard-trends`
 - Test report: iteration_33.json (26/26 backend tests, 100% frontend verification)
 
+## Security Audit & Dependency Upgrades (Feb 2026)
+- **CVE-2026-25639 (axios)**: Already patched at v1.13.5
+- **fast-xml-parser**: Upgraded 5.3.4 -> 5.3.7 (fixed CRITICAL entity encoding bypass + HIGH DoS)
+- **minimatch**: Upgraded 3.1.2/5.1.6/9.0.5 -> 10.2.2 (fixed HIGH ReDoS)
+- **hono**: Upgraded 4.11.9 -> 4.12.2 (fixed LOW timing comparison)
+- **ajv**: Upgraded 6.12.6 -> 6.14.0, 8.17.1 -> 8.18.0 (fixed MODERATE ReDoS)
+- Remaining: 8 moderate `bn.js` issues in wagmi/web3modal transitive deps (no fix available upstream)
+
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
