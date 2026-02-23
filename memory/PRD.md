@@ -108,7 +108,8 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **minimatch**: Upgraded 3.1.2/5.1.6/9.0.5 -> 10.2.2 (fixed HIGH ReDoS)
 - **hono**: Upgraded 4.11.9 -> 4.12.2 (fixed LOW timing comparison)
 - **ajv**: Upgraded 6.12.6 -> 6.14.0, 8.17.1 -> 8.18.0 (fixed MODERATE ReDoS)
-- Remaining: 8 moderate `bn.js` issues in wagmi/web3modal transitive deps (no fix available upstream)
+- **bn.js**: Upgraded <5.2.3 -> >=5.2.3 via resolutions (fixed 8 MODERATE infinite loop vulnerabilities in wagmi/web3modal transitive deps)
+- **Final audit: 0 vulnerabilities found** (all severity levels resolved)
 
 ## Prioritized Backlog
 
