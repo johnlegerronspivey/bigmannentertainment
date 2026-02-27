@@ -89,8 +89,10 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ├── iac_service.py             # MODIFIED: Added get_github_repo_info(), get_s3_artifacts(), get_cloudwatch_alarms()
 ├── iac_endpoints.py           # MODIFIED: Added /github/repo, /s3/artifacts, /cloudwatch/alarms endpoints
 ├── tenant_context.py          # FastAPI tenant auth dependencies
-├── cve_management_service.py  # tenant filtering on all queries
-├── ticketing_service.py       # real Jira/ServiceNow API, tenant filtering
+├── tenant_service.py          # MODIFIED: Added analyze_migration(), run_data_migration() methods
+├── tenant_endpoints.py        # MODIFIED: Added /migration-analysis, /migrate-data endpoints
+├── cve_management_service.py  # MODIFIED: Simplified _tenant_filter (strict equality)
+├── ticketing_service.py       # MODIFIED: Simplified _tenant_filter (strict equality), real Jira/ServiceNow API
 ├── sla_tracker_service.py     # per-user prefs, should_notify_user
 ├── sla_ws_manager.py          # user_id-keyed connections
 ├── server.py                  # WS endpoint passes user_id
@@ -99,19 +101,14 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 
 ### Frontend
 ```
-/app/frontend/src/cve/infra/
-├── InfraTab.jsx               # MODIFIED: Added new panels, auto-refresh, S3 navigation
-├── GitHubRepoPanel.jsx        # NEW: Repo info with commits/branches/PRs tabs
-├── S3ArtifactsPanel.jsx       # NEW: S3 bucket browser with filter and prefix navigation
-├── CloudWatchAlarmsPanel.jsx  # NEW: Alarms with state indicators and metric details
-├── LiveLambdaPanel.jsx        # Lambda functions with CloudWatch metrics
-├── GitHubRunsPanel.jsx        # GitHub Actions workflow runs
-├── TerraformStatePanel.jsx    # Terraform state from S3
-├── TerraformModulesPanel.jsx  # Terraform module structure
-├── CdkConstructsPanel.jsx     # CDK construct structure
-├── DeploySteps.jsx            # Deploy command steps
-├── DeploymentLog.jsx          # Deployment history
-└── helpers.jsx                # StatusDot, LiveBadge components
+/app/frontend/src/cve/
+├── TenantMigrationPanel.jsx   # NEW: Migration analysis, execution, and status panel
+├── UserManagementTab.jsx      # MODIFIED: Added sub-tabs (Users & Roles, Data Migration)
+├── infra/
+│   ├── InfraTab.jsx           # MODIFIED: Added new panels, auto-refresh
+│   ├── GitHubRepoPanel.jsx    # NEW: Repo info with commits/branches/PRs tabs
+│   ├── S3ArtifactsPanel.jsx   # NEW: S3 bucket browser
+│   └── CloudWatchAlarmsPanel.jsx # NEW: Alarms with state indicators
 ```
 
 ## Prioritized Backlog
