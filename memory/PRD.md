@@ -112,14 +112,13 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### P1 - P2 Backlog (COMPLETE)
 ### P1 - Data Scoping & Integration (COMPLETE)
 ### P1 - Live Infrastructure Visualization (COMPLETE)
+### P1 - Data Migration for Tenancy (COMPLETE - Feb 27, 2026)
 
 ### P2 - Future Tasks
 - Full Ticketing Configuration UI (admin frontend for Jira/ServiceNow credentials)
-- Data Migration for Tenancy (assign tenant_id to all legacy data)
 - Tenant billing and usage tracking
 - Role-based tenant admin (tenant admin vs super admin)
 - PDF custom report builder with drag-and-drop chart selection
-- Strict tenant isolation (remove backward-compatible legacy doc access)
 - Real-time WebSocket preference-based filtering (broadcast only to matching users)
 
 ## Test Credentials
@@ -127,6 +126,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Tenant: Default Organization (40e6f47e-b021-4605-9e1c-7a0992854f6c)
 
 ## Test Reports
+- iteration_44.json - Tenant Data Migration (19/19 backend 100%, 100% frontend)
 - iteration_43.json - Live Infrastructure Visualization (43/43 backend 100%, 100% frontend)
 - iteration_42.json - Per-tenant scoping, Jira/ServiceNow, Per-user WS prefs (19/19 backend, 100% frontend)
 - iteration_41.json - P2 Backlog Features (86% backend, 100% frontend)
