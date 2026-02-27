@@ -11,7 +11,7 @@ from auth.service import (
     verify_password, get_password_hash, create_access_token,
     create_refresh_token, get_current_user, log_activity,
 )
-from models.core import User, UserCreate, UserLogin, Token, TokenRefresh, ForgotPasswordRequest, ResetPasswordRequest
+from models.core import User, UserSession, UserCreate, UserLogin, Token, TokenRefresh, ForgotPasswordRequest, ResetPasswordRequest
 
 router = APIRouter(tags=["Authentication"])
 
