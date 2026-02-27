@@ -28,6 +28,17 @@ IPI_PRINCIPAL = settings.IPI_PRINCIPAL
 IPN_NUMBER = settings.IPN_NUMBER
 DPID = settings.DPID
 
+
+def calculate_upc_check_digit(upc_11_digits: str) -> str:
+    if len(upc_11_digits) != 11:
+        raise ValueError("UPC must be 11 digits for check digit calculation")
+    odd_sum = sum(int(upc_11_digits[i]) for i in range(0, 11, 2))
+    even_sum = sum(int(upc_11_digits[i]) for i in range(1, 11, 2))
+    total = (even_sum * 3) + odd_sum
+    check_digit = (10 - (total % 10)) % 10
+    return str(check_digit)
+
+
 @router.get("/business/identifiers")
 async def get_business_identifiers(current_user: User = Depends(get_current_user)):
     return BusinessIdentifiers(
