@@ -9,6 +9,15 @@ const ToggleBtn = ({ enabled, onToggle, testId }) => (
   </button>
 );
 
+function getCurrentUserId() {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.sub || null;
+  } catch { return null; }
+}
+
 export const NotificationSettingsView = ({ autoConfig, notifPrefs, fetchAll }) => {
   const [config, setConfig] = useState(null);
   const [prefs, setPrefs] = useState(null);
