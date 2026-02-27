@@ -387,6 +387,90 @@ class CVEReportingService:
             ])
         return output.getvalue().encode("utf-8")
 
+    # ─── PDF Chart Helpers ───────────────────────────────────────
+    def _render_severity_chart(self, severity_dist: Dict, total: int) -> bytes:
+        """Generate severity distribution bar chart as PNG bytes."""
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        sevs = ["critical", "high", "medium", "low", "info"]
+        counts = [severity_dist.get(s, 0) for s in sevs]
+        colors = ["#ef4444", "#f97316", "#eab308", "#3b82f6", "#64748b"]
+
+        fig, ax = plt.subplots(figsize=(5, 2.2), dpi=150)
+        bars = ax.barh(sevs[::-1], counts[::-1], color=colors[::-1], height=0.6, edgecolor="white", linewidth=0.5)
+        for bar, c in zip(bars, counts[::-1]):
+            ax.text(bar.get_width() + 0.3, bar.get_y() + bar.get_height() / 2, str(c),
+                    va="center", fontsize=8, color="#1e293b", fontweight="bold")
+        ax.set_xlim(0, max(counts) * 1.3 if max(counts) else 1)
+        ax.set_xlabel("Count", fontsize=8, color="#64748b")
+        ax.tick_params(axis="both", labelsize=8, colors="#64748b")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        fig.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight", facecolor="white")
+        plt.close(fig)
+        buf.seek(0)
+        return buf.read()
+
+    def _render_risk_gauge(self, score: int) -> bytes:
+        """Generate a risk gauge chart as PNG bytes."""
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        fig, ax = plt.subplots(figsize=(2.5, 1.5), dpi=150, subplot_kw={"projection": "polar"})
+        theta = np.linspace(np.pi, 0, 100)
+        colors_arr = plt.cm.RdYlGn_r(np.linspace(0, 1, 100))
+        for i in range(len(theta) - 1):
+            ax.bar((theta[i] + theta[i + 1]) / 2, 1, width=(theta[i] - theta[i + 1]),
+                   bottom=0.5, color=colors_arr[i], edgecolor="none")
+        needle_angle = np.pi * (1 - score / 100)
+        ax.plot([needle_angle, needle_angle], [0.3, 1.4], color="#1e293b", linewidth=2)
+        ax.plot(needle_angle, 1.4, "o", color="#1e293b", markersize=3)
+        ax.set_ylim(0, 1.6)
+        ax.set_thetamin(0)
+        ax.set_thetamax(180)
+        ax.set_axis_off()
+        ax.text(np.pi / 2, 0.1, f"{score}", ha="center", va="center", fontsize=14, fontweight="bold", color="#1e293b")
+        fig.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight", facecolor="white")
+        plt.close(fig)
+        buf.seek(0)
+        return buf.read()
+
+    def _render_trend_chart(self, trends: List[Dict]) -> bytes:
+        """Generate 7-day trend line chart as PNG bytes."""
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        days = [t["day"] for t in trends]
+        counts = [t["count"] for t in trends]
+
+        fig, ax = plt.subplots(figsize=(5, 1.8), dpi=150)
+        ax.fill_between(range(len(days)), counts, alpha=0.15, color="#06b6d4")
+        ax.plot(range(len(days)), counts, color="#06b6d4", linewidth=2, marker="o", markersize=4)
+        for i, c in enumerate(counts):
+            ax.text(i, c + 0.2, str(c), ha="center", fontsize=7, color="#06b6d4", fontweight="bold")
+        ax.set_xticks(range(len(days)))
+        ax.set_xticklabels(days, fontsize=7, color="#64748b")
+        ax.set_ylabel("New CVEs", fontsize=8, color="#64748b")
+        ax.tick_params(axis="y", labelsize=7, colors="#64748b")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.set_ylim(bottom=0)
+        fig.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight", facecolor="white")
+        plt.close(fig)
+        buf.seek(0)
+        return buf.read()
+
     # ─── PDF Export ───────────────────────────────────────────────
 
     async def export_executive_pdf(self, days: int = 30) -> bytes:
