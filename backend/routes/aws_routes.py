@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, File, Form, UploadFile, Request
 from config.database import db
-from auth.service import get_current_user
+from auth.service import get_current_user, get_current_admin_user
 from models.core import User
 
 router = APIRouter(tags=["AWS"])
