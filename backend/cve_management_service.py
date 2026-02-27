@@ -136,9 +136,16 @@ class CVEManagementService:
     # ═══════════════════════════════════════════════════════════
 
     def _tenant_filter(self, query: Dict, tenant_id: Optional[str] = None) -> Dict:
-        """Inject tenant_id into a MongoDB query if provided."""
+        """Inject tenant_id into a MongoDB query if provided.
+        Includes legacy docs (no tenant_id) for backward compatibility."""
         if tenant_id:
-            query["tenant_id"] = tenant_id
+            query["$or"] = query.pop("$or", []) or []
+            query["$or"].extend([
+                {"tenant_id": tenant_id},
+                {"tenant_id": {"$exists": False}},
+                {"tenant_id": ""},
+            ])
+            # Merge any existing $or from search
         return query
 
     async def create_cve(self, data: Dict[str, Any], tenant_id: Optional[str] = None) -> Dict[str, Any]:
