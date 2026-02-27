@@ -101,22 +101,6 @@ class TicketingService:
         config.pop("_id", None)
         return config
 
-    async def test_connection(self) -> Dict[str, Any]:
-        config = await self.get_config()
-        provider = config.get("provider")
-        if not provider:
-            return {"success": False, "message": "No ticketing provider configured"}
-
-        if config.get("simulation_mode"):
-            return {
-                "success": True,
-                "simulation": True,
-                "message": f"{PROVIDERS.get(provider, {}).get('name', provider)} connection simulated — configure real credentials for live integration",
-            }
-
-        # Real connection test would go here
-        return {"success": True, "simulation": False, "message": f"Connected to {provider}"}
-
     def _has_real_credentials(self, provider: str, settings: Dict) -> bool:
         if provider == "jira":
             return all(settings.get(f) for f in ["base_url", "email", "api_token", "project_key"])
