@@ -54,15 +54,23 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - All 55 regression tests passed (33 deep + 22 original)
 - 4 import bugs found and fixed by testing agent
 
-### Frontend CVE Dashboard Refactoring (COMPLETE - Feb 28, 2026)
+### Frontend CVE Dashboard Refactoring Phase 1 (COMPLETE - Feb 28, 2026)
 - Decomposed InfraTab (995→297 lines), SLATrackerTab (736→121 lines), ReportingTab (513→77 lines)
 - Created `cve/infra/` (8 files), `cve/sla/` (8 files), `cve/reporting/` (7 files)
 - Extracted shared components to `cve/components/` (ChartTooltip, LoadingStates, CodeBlock, Collapsible, RiskGauge)
 - Centralized shared constants to `cve/constants.js` (CHART_COLORS, PIE_COLORS, STATUS_CHART_COLORS)
-- GovernanceTab updated to use shared imports (deduped ~30 lines)
 - Created barrel exports (`cve/index.js`, `cve/components/index.js`)
-- No file over 300 lines; zero code duplication for shared components
 - Frontend regression: 100% pass rate (iteration_36.json)
+
+### Frontend CVE Dashboard Refactoring Phase 2 (COMPLETE - Feb 28, 2026)
+- Decomposed GovernanceTab (428→89 lines orchestrator) into `cve/governance/` (6 files)
+  - OverviewView.jsx, TrendsView.jsx, SLAComplianceView.jsx, OwnershipView.jsx
+- Decomposed RemediationTab (399→132 lines orchestrator) into `cve/remediation/` (7 files)
+  - ItemsView.jsx, CreateView.jsx, BulkView.jsx, AwsFindingsView.jsx, constants.js
+- Updated barrel exports and main dashboard imports
+- Deleted old monolithic GovernanceTab.jsx and RemediationTab.jsx
+- No file over 300 lines; zero code duplication for shared components
+- Frontend regression: 100% pass rate (iteration_37.json)
 
 ## Frontend Directory Structure (Refactored Feb 28, 2026)
 
@@ -107,10 +115,23 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 │   ├── ScannerView.jsx
 │   ├── ExportView.jsx
 │   └── index.js
-├── GovernanceTab.jsx (427, uses shared imports)
+├── governance/           # GovernanceTab decomposed (was 427 lines)
+│   ├── GovernanceTab.jsx (89 orchestrator)
+│   ├── OverviewView.jsx
+│   ├── TrendsView.jsx
+│   ├── SLAComplianceView.jsx
+│   ├── OwnershipView.jsx
+│   └── index.js
+├── remediation/          # RemediationTab decomposed (was 399 lines)
+│   ├── RemediationTab.jsx (132 orchestrator)
+│   ├── ItemsView.jsx
+│   ├── CreateView.jsx
+│   ├── BulkView.jsx
+│   ├── AwsFindingsView.jsx
+│   ├── constants.js
+│   └── index.js
 ├── OverviewTab.jsx
 ├── CVEDatabaseTab.jsx
-├── RemediationTab.jsx
 └── ... (other tabs)
 ```
 
@@ -131,4 +152,5 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - iteration_33.json - PDF Export + Dashboard (26/26 passed)
 - iteration_34.json - Initial Refactoring Regression (22/22 passed)
 - iteration_35.json - Deep Refactoring Regression (33/33 passed)
-- iteration_36.json - Frontend Refactoring Regression (100% pass)
+- iteration_36.json - Frontend Refactoring Phase 1 Regression (100% pass)
+- iteration_37.json - Frontend Refactoring Phase 2 (Governance + Remediation decomposition, 100% pass)
