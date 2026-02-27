@@ -14,7 +14,8 @@ from pydantic import BaseModel
 
 # Import authentication from existing system
 try:
-    from server import get_current_user, User
+    from auth.service import get_current_user
+    from models.core import User
 except:
     # Fallback if not available
     async def get_current_user():

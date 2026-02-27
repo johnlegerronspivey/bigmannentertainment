@@ -8,8 +8,10 @@ import os
 
 # Import authentication from server
 try:
-    from server import get_current_user, get_current_admin_user, User, db
-    print("✅ Successfully imported authentication from server")
+    from auth.service import get_current_user, get_current_admin_user
+    from models.core import User
+    from config.database import db
+    print("✅ Successfully imported authentication from auth module")
 except ImportError:
     # Fallback authentication (for development)
     from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
