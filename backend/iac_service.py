@@ -273,6 +273,182 @@ class IaCService:
     async def get_github_runs(self, limit: int = 15) -> dict:
         return await asyncio.to_thread(self._get_github_runs_sync, limit)
 
+    # ── live GitHub repo info ───────────────────────────────────────
+    def _get_github_repo_info_sync(self) -> dict:
+        """Synchronous: fetch repo info, recent commits, branches, open PRs."""
+        if not self._gh:
+            return {"connected": False, "error": "GitHub token not configured"}
+        if not GITHUB_REPO:
+            return {"connected": True, "error": "GITHUB_REPO not configured"}
+
+        try:
+            repo = self._gh.get_repo(GITHUB_REPO)
+            repo_info = {
+                "name": repo.full_name,
+                "description": repo.description,
+                "default_branch": repo.default_branch,
+                "stars": repo.stargazers_count,
+                "forks": repo.forks_count,
+                "open_issues": repo.open_issues_count,
+                "language": repo.language,
+                "private": repo.private,
+                "size_kb": repo.size,
+                "updated_at": repo.updated_at.isoformat() if repo.updated_at else None,
+                "created_at": repo.created_at.isoformat() if repo.created_at else None,
+            }
+
+            commits = []
+            for c in repo.get_commits()[:10]:
+                commits.append({
+                    "sha": c.sha[:7],
+                    "message": c.commit.message.split("\n")[0][:120],
+                    "author": c.commit.author.name if c.commit.author else "Unknown",
+                    "date": c.commit.author.date.isoformat() if c.commit.author and c.commit.author.date else None,
+                    "html_url": c.html_url,
+                })
+
+            branches = []
+            for b in repo.get_branches():
+                branches.append({
+                    "name": b.name,
+                    "protected": b.protected,
+                    "sha": b.commit.sha[:7],
+                })
+                if len(branches) >= 20:
+                    break
+
+            pulls = []
+            for pr in repo.get_pulls(state="open", sort="updated", direction="desc")[:10]:
+                pulls.append({
+                    "number": pr.number,
+                    "title": pr.title[:120],
+                    "state": pr.state,
+                    "author": pr.user.login if pr.user else "Unknown",
+                    "created_at": pr.created_at.isoformat() if pr.created_at else None,
+                    "updated_at": pr.updated_at.isoformat() if pr.updated_at else None,
+                    "html_url": pr.html_url,
+                    "labels": [l.name for l in pr.labels],
+                    "draft": pr.draft,
+                })
+
+            return {
+                "connected": True,
+                "error": None,
+                "repo": repo_info,
+                "commits": commits,
+                "branches": branches,
+                "pulls": pulls,
+            }
+        except GithubException as e:
+            msg = e.data.get("message", str(e)) if hasattr(e, "data") and e.data else str(e)
+            return {"connected": False, "error": f"GitHub error: {msg[:100]}"}
+        except Exception as e:
+            return {"connected": False, "error": str(e)[:120]}
+
+    async def get_github_repo_info(self) -> dict:
+        return await asyncio.to_thread(self._get_github_repo_info_sync)
+
+    # ── live S3 artifacts ───────────────────────────────────────────
+    def _get_s3_artifacts_sync(self, prefix: str = "", max_keys: int = 50) -> dict:
+        """Synchronous: list objects in the S3 bucket."""
+        if not self._s3_client or not S3_BUCKET:
+            return {"connected": False, "error": "S3 client or bucket not configured", "objects": []}
+
+        try:
+            params = {"Bucket": S3_BUCKET, "MaxKeys": max_keys}
+            if prefix:
+                params["Prefix"] = prefix
+            resp = self._s3_client.list_objects_v2(**params)
+            objects = []
+            for obj in resp.get("Contents", []):
+                objects.append({
+                    "key": obj["Key"],
+                    "size_bytes": obj["Size"],
+                    "size_display": self._format_size(obj["Size"]),
+                    "last_modified": obj["LastModified"].isoformat() if obj.get("LastModified") else None,
+                    "storage_class": obj.get("StorageClass", "STANDARD"),
+                })
+
+            total_size = sum(o["size_bytes"] for o in objects)
+            return {
+                "connected": True,
+                "error": None,
+                "bucket": S3_BUCKET,
+                "prefix": prefix,
+                "objects": objects,
+                "total_objects": len(objects),
+                "total_size": total_size,
+                "total_size_display": self._format_size(total_size),
+                "is_truncated": resp.get("IsTruncated", False),
+            }
+        except ClientError as e:
+            return {"connected": True, "error": f"S3 error: {e.response['Error']['Code']}", "objects": []}
+        except Exception as e:
+            return {"connected": False, "error": str(e)[:120], "objects": []}
+
+    @staticmethod
+    def _format_size(size_bytes: int) -> str:
+        if size_bytes < 1024:
+            return f"{size_bytes} B"
+        elif size_bytes < 1024 * 1024:
+            return f"{size_bytes / 1024:.1f} KB"
+        elif size_bytes < 1024 * 1024 * 1024:
+            return f"{size_bytes / (1024 * 1024):.1f} MB"
+        return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
+
+    async def get_s3_artifacts(self, prefix: str = "", max_keys: int = 50) -> dict:
+        return await asyncio.to_thread(self._get_s3_artifacts_sync, prefix, max_keys)
+
+    # ── live CloudWatch alarms ──────────────────────────────────────
+    def _get_cloudwatch_alarms_sync(self) -> dict:
+        """Synchronous: list CloudWatch alarms."""
+        if not self._cw_client:
+            return {"connected": False, "error": "CloudWatch client not available", "alarms": []}
+
+        try:
+            resp = self._cw_client.describe_alarms(MaxRecords=50)
+            alarms = []
+            for a in resp.get("MetricAlarms", []):
+                alarms.append({
+                    "name": a["AlarmName"],
+                    "state": a["StateValue"],
+                    "metric": a.get("MetricName", ""),
+                    "namespace": a.get("Namespace", ""),
+                    "description": a.get("AlarmDescription", ""),
+                    "threshold": a.get("Threshold"),
+                    "comparison": a.get("ComparisonOperator", ""),
+                    "period": a.get("Period", 0),
+                    "evaluation_periods": a.get("EvaluationPeriods", 0),
+                    "updated_at": a["StateUpdatedTimestamp"].isoformat() if a.get("StateUpdatedTimestamp") else None,
+                })
+
+            composite = []
+            for a in resp.get("CompositeAlarms", []):
+                composite.append({
+                    "name": a["AlarmName"],
+                    "state": a["StateValue"],
+                    "description": a.get("AlarmDescription", ""),
+                    "rule": a.get("AlarmRule", ""),
+                    "updated_at": a["StateUpdatedTimestamp"].isoformat() if a.get("StateUpdatedTimestamp") else None,
+                })
+
+            alarm_count = sum(1 for a in alarms if a["state"] == "ALARM")
+            return {
+                "connected": True,
+                "error": None,
+                "alarms": alarms,
+                "composite_alarms": composite,
+                "total": len(alarms) + len(composite),
+                "in_alarm": alarm_count,
+            }
+        except ClientError as e:
+            return {"connected": True, "error": f"CloudWatch error: {e.response['Error']['Code']}", "alarms": []}
+        except Exception as e:
+            return {"connected": False, "error": str(e)[:120], "alarms": []}
+
+    async def get_cloudwatch_alarms(self) -> dict:
+        return await asyncio.to_thread(self._get_cloudwatch_alarms_sync)
+
     # ── live Terraform state from S3 ────────────────────────────────
     def _get_terraform_state_sync(self, environment: str = "dev") -> dict:
         """Synchronous: read Terraform state file from S3 backend."""
