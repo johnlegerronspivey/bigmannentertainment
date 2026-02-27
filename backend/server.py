@@ -6069,21 +6069,10 @@ api_router.include_router(agency_router)
 
 # Include QLDB router
 
-# CORS configuration for multi-environment setup
-cors_origins = [
-    "http://localhost:3000",  # Local development
-    "https://bigmannentertainment.com",  # Production
-    "https://dev.bigmannentertainment.com",  # Development
-    "https://staging.bigmannentertainment.com",  # Staging
-    "https://d36jfidccx04u0.cloudfront.net",  # Current CloudFront (temporary)
-    "https://social-profile-sync.preview.emergentagent.com",  # Preview URL
-    "https://bme-social-connect.preview.emergentagent.com",  # Current preview URL
-    "https://bme-connect-1.preview.emergentagent.com",
-]
-
+# CORS configuration from settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
