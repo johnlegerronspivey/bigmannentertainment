@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Mail, Bell, Save, Send, ToggleLeft, ToggleRight } from "lucide-react";
+import { Mail, Bell, Save, Send, ToggleLeft, ToggleRight, User } from "lucide-react";
 import { SLA_API, SEVERITY_COLORS, fetcher } from "../shared";
+import { NotificationPreferencesPanel } from "../NotificationPreferencesPanel";
 
 const ToggleBtn = ({ enabled, onToggle, testId }) => (
   <button data-testid={testId} onClick={onToggle} className="text-slate-300">
