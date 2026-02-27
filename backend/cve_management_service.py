@@ -62,34 +62,38 @@ class CVEManagementService:
     # DASHBOARD
     # ═══════════════════════════════════════════════════════════
 
-    async def get_dashboard(self) -> Dict[str, Any]:
-        total_cves = await self.cves_col.count_documents({})
-        open_cves = await self.cves_col.count_documents({"status": {"$in": ["detected", "triaged", "in_progress"]}})
-        fixed_cves = await self.cves_col.count_documents({"status": "fixed"})
-        verified_cves = await self.cves_col.count_documents({"status": "verified"})
-        dismissed_cves = await self.cves_col.count_documents({"status": {"$in": ["dismissed", "wont_fix"]}})
+    async def get_dashboard(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        base_q = self._tenant_filter({}, tenant_id)
+        open_q = self._tenant_filter({"status": {"$in": ["detected", "triaged", "in_progress"]}}, tenant_id)
+        total_cves = await self.cves_col.count_documents(base_q)
+        open_cves = await self.cves_col.count_documents(open_q)
+        fixed_cves = await self.cves_col.count_documents(self._tenant_filter({"status": "fixed"}, tenant_id))
+        verified_cves = await self.cves_col.count_documents(self._tenant_filter({"status": "verified"}, tenant_id))
+        dismissed_cves = await self.cves_col.count_documents(self._tenant_filter({"status": {"$in": ["dismissed", "wont_fix"]}}, tenant_id))
 
         severity_breakdown = {}
         for sev in SEVERITY_LEVELS:
-            severity_breakdown[sev] = await self.cves_col.count_documents({"severity": sev, "status": {"$in": ["detected", "triaged", "in_progress"]}})
+            severity_breakdown[sev] = await self.cves_col.count_documents(
+                self._tenant_filter({"severity": sev, "status": {"$in": ["detected", "triaged", "in_progress"]}}, tenant_id)
+            )
 
-        total_services = await self.services_col.count_documents({})
-        total_sboms = await self.sbom_col.count_documents({})
+        total_services = await self.services_col.count_documents(self._tenant_filter({}, tenant_id))
+        total_sboms = await self.sbom_col.count_documents(self._tenant_filter({}, tenant_id))
 
         recent_cves = []
-        cursor = self.cves_col.find({}, {"_id": 0}).sort("detected_at", -1).limit(10)
+        cursor = self.cves_col.find(self._tenant_filter({}, tenant_id), {"_id": 0}).sort("detected_at", -1).limit(10)
         async for doc in cursor:
             recent_cves.append(doc)
 
         recent_activity = []
-        cursor = self.audit_col.find({}, {"_id": 0}).sort("timestamp", -1).limit(10)
+        cursor = self.audit_col.find(self._tenant_filter({}, tenant_id), {"_id": 0}).sort("timestamp", -1).limit(10)
         async for doc in cursor:
             recent_activity.append(doc)
 
         policies = await self.get_severity_policies()
-        overdue_cves = await self._count_overdue(policies)
+        overdue_cves = await self._count_overdue(policies, tenant_id)
 
-        services_affected = await self.cves_col.distinct("affected_services", {"status": {"$in": ["detected", "triaged", "in_progress"]}})
+        services_affected = await self.cves_col.distinct("affected_services", open_q)
 
         return {
             "total_cves": total_cves,
