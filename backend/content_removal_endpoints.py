@@ -46,7 +46,7 @@ def get_removal_service():
 async def get_current_user_for_removal(authorization: str = Header(None)):
     """Get current user dependency for removal endpoints"""
     try:
-        from server import get_current_user
+        from auth.service import get_current_user
         # Call the actual authentication function
         return await get_current_user(authorization)
     except ImportError:
@@ -57,7 +57,7 @@ async def get_current_user_for_removal(authorization: str = Header(None)):
 async def get_current_admin_user_for_removal(authorization: str = Header(None)):
     """Get current admin user dependency - requires admin role"""
     try:
-        from server import get_current_user
+        from auth.service import get_current_user
         # Get the user first
         user = await get_current_user(authorization)
         
