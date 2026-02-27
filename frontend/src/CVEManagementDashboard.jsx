@@ -151,6 +151,7 @@ export default function CVEManagementDashboard() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        <SLANotificationBanner />
         {tab === "overview" && <OverviewTab dashboard={dashboard} onRefresh={fetchDashboard} loading={loading} />}
         <ChunkErrorBoundary variant="tab">
         <Suspense fallback={<TabFallback />}>
