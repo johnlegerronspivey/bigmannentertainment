@@ -205,25 +205,29 @@ class TicketingService:
             synced += 1
         return {"synced": synced}
 
-    async def bulk_create_tickets(self, severity: str = "critical", limit: int = 10) -> Dict[str, Any]:
-        query = {"severity": severity, "status": {"$nin": ["fixed", "verified", "dismissed", "wont_fix"]}}
+    async def bulk_create_tickets(self, severity: str = "critical", limit: int = 10, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        query = self._tenant_filter(
+            {"severity": severity, "status": {"$nin": ["fixed", "verified", "dismissed", "wont_fix"]}},
+            tenant_id,
+        )
         cursor = self.cves_col.find(query, {"_id": 0, "id": 1}).limit(limit)
         cves = await cursor.to_list(length=limit)
         created = 0
         errors = 0
         for c in cves:
-            result = await self.create_ticket(c["id"])
+            result = await self.create_ticket(c["id"], tenant_id=tenant_id)
             if "error" in result:
                 errors += 1
             else:
                 created += 1
         return {"created": created, "errors": errors, "severity": severity}
 
-    async def get_stats(self) -> Dict[str, Any]:
-        total = await self.tickets_col.count_documents({})
-        open_count = await self.tickets_col.count_documents({"status": "open"})
-        in_progress = await self.tickets_col.count_documents({"status": "in_progress"})
-        closed = await self.tickets_col.count_documents({"status": {"$in": ["closed", "resolved"]}})
+    async def get_stats(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        query = self._tenant_filter({}, tenant_id)
+        total = await self.tickets_col.count_documents(query)
+        open_count = await self.tickets_col.count_documents(self._tenant_filter({"status": "open"}, tenant_id))
+        in_progress = await self.tickets_col.count_documents(self._tenant_filter({"status": "in_progress"}, tenant_id))
+        closed = await self.tickets_col.count_documents(self._tenant_filter({"status": {"$in": ["closed", "resolved"]}}, tenant_id))
         config = await self.get_config()
         return {
             "total": total,
