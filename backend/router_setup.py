@@ -75,6 +75,7 @@ from sla_tracker_endpoints import router as sla_tracker_router
 from cve_reporting_endpoints import router as cve_reporting_router
 from iac_endpoints import router as iac_router
 from ticketing_endpoints import router as ticketing_router
+from tenant_endpoints import router as tenant_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -110,7 +111,8 @@ routers = [
     sla_tracker_router,
     cve_reporting_router,
     iac_router,
-    ticketing_router
+    ticketing_router,
+    tenant_router
 ]
 
 for router in routers:

@@ -198,6 +198,7 @@ async def startup_event():
         ("CVE Reporting", lambda: __import__('cve_reporting_service').initialize_cve_reporting_service(db)),
         ("Infrastructure Automation", lambda: __import__('iac_service').initialize_iac_service(db)),
         ("Ticketing Integration", lambda: __import__('ticketing_service').initialize_ticketing_service(db)),
+        ("Multi-Tenant", lambda: __import__('tenant_service').initialize_tenant_service(db)),
     ]
 
     for name, fn in cve_services:
