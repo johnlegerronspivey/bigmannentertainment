@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer, FileBarChart, Cloud, Loader2 } from "lucide-react";
+import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer, FileBarChart, Cloud, Loader2, Ticket } from "lucide-react";
 import { API, NOTIFICATION_API, RBAC_API, fetcher, ROLE_BADGES } from "./cve/shared";
 import { ChunkErrorBoundary } from "./components/ChunkErrorBoundary";
 import { SLANotificationBanner } from "./cve/SLANotificationBanner";
