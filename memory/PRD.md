@@ -63,36 +63,47 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Frontend: `NotificationPreferencesPanel.jsx` with per-severity channel matrix, quiet hours, mute toggles
 - Integrated into SLA Tracker > Notifications sub-view
 
+### Live Infrastructure Visualization (COMPLETE - Feb 27, 2026)
+- **GitHub Repository Panel**: Live repo info (name, stars, forks, language, size), recent commits (10), branches, open PRs with tabbed UI
+- **S3 Artifacts Panel**: Live S3 bucket browser with file listing, size display, storage class badges, prefix-based navigation, and text filter
+- **CloudWatch Alarms Panel**: Live alarm monitoring with state indicators (OK/ALARM/INSUFFICIENT_DATA), metric details, thresholds
+- **Auto-refresh**: Configurable intervals (Off, 30s, 1m, 5m) with last-updated timestamp
+- **Enhanced Connection Status Bar**: Added CloudWatch to live connection badges (Lambda, S3, GitHub, CloudWatch)
+- **Enhanced Overview Cards**: Added S3 (object count) and CloudWatch Alarms (state) cards alongside existing Terraform, CDK, Lambda, GitHub, Deployments, TF Modules
+- **Backend API additions**: `GET /api/cve/iac/github/repo`, `GET /api/cve/iac/s3/artifacts`, `GET /api/cve/iac/cloudwatch/alarms`
+- All data sourced from real AWS and GitHub APIs using user's credentials
+
 ## Key Files
 
 ### Backend
 ```
 /app/backend/
-├── tenant_context.py          # NEW: FastAPI tenant auth dependencies
-├── cve_management_service.py  # MODIFIED: tenant filtering on all queries
-├── cve_management_endpoints.py # MODIFIED: get_optional_tenant_id dependency
-├── ticketing_service.py       # MODIFIED: real Jira/ServiceNow API, tenant filtering
-├── ticketing_endpoints.py     # MODIFIED: tenant scoping
-├── sla_tracker_service.py     # MODIFIED: per-user prefs, should_notify_user
-├── sla_tracker_endpoints.py   # MODIFIED: user_id param, /check endpoint
-├── sla_ws_manager.py          # MODIFIED: user_id-keyed connections
-├── server.py                  # MODIFIED: WS endpoint passes user_id
-├── models/core.py             # MODIFIED: User has tenant_id, tenant_name
-├── tenant_service.py          # Tenant CRUD operations
-└── tenant_endpoints.py        # Tenant API endpoints
+├── iac_service.py             # MODIFIED: Added get_github_repo_info(), get_s3_artifacts(), get_cloudwatch_alarms()
+├── iac_endpoints.py           # MODIFIED: Added /github/repo, /s3/artifacts, /cloudwatch/alarms endpoints
+├── tenant_context.py          # FastAPI tenant auth dependencies
+├── cve_management_service.py  # tenant filtering on all queries
+├── ticketing_service.py       # real Jira/ServiceNow API, tenant filtering
+├── sla_tracker_service.py     # per-user prefs, should_notify_user
+├── sla_ws_manager.py          # user_id-keyed connections
+├── server.py                  # WS endpoint passes user_id
+└── models/core.py             # User has tenant_id, tenant_name
 ```
 
 ### Frontend
 ```
-/app/frontend/src/
-├── cve/
-│   ├── NotificationPreferencesPanel.jsx  # NEW: per-user WS notification prefs UI
-│   ├── hooks/useSLAWebSocket.js          # MODIFIED: passes userId to WS
-│   ├── sla/NotificationSettingsView.jsx  # MODIFIED: integrates prefs panel
-│   ├── TicketingTab.jsx                  # Ticketing config + ticket list
-│   └── SLANotificationBanner.jsx         # Real-time SLA alert banner
-├── CVEManagementDashboard.jsx            # Main dashboard with all tabs
-└── TenantManagement.jsx                  # Tenant admin page
+/app/frontend/src/cve/infra/
+├── InfraTab.jsx               # MODIFIED: Added new panels, auto-refresh, S3 navigation
+├── GitHubRepoPanel.jsx        # NEW: Repo info with commits/branches/PRs tabs
+├── S3ArtifactsPanel.jsx       # NEW: S3 bucket browser with filter and prefix navigation
+├── CloudWatchAlarmsPanel.jsx  # NEW: Alarms with state indicators and metric details
+├── LiveLambdaPanel.jsx        # Lambda functions with CloudWatch metrics
+├── GitHubRunsPanel.jsx        # GitHub Actions workflow runs
+├── TerraformStatePanel.jsx    # Terraform state from S3
+├── TerraformModulesPanel.jsx  # Terraform module structure
+├── CdkConstructsPanel.jsx     # CDK construct structure
+├── DeploySteps.jsx            # Deploy command steps
+├── DeploymentLog.jsx          # Deployment history
+└── helpers.jsx                # StatusDot, LiveBadge components
 ```
 
 ## Prioritized Backlog
@@ -100,8 +111,11 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### P0 - All Core Features (COMPLETE)
 ### P1 - P2 Backlog (COMPLETE)
 ### P1 - Data Scoping & Integration (COMPLETE)
+### P1 - Live Infrastructure Visualization (COMPLETE)
 
 ### P2 - Future Tasks
+- Full Ticketing Configuration UI (admin frontend for Jira/ServiceNow credentials)
+- Data Migration for Tenancy (assign tenant_id to all legacy data)
 - Tenant billing and usage tracking
 - Role-based tenant admin (tenant admin vs super admin)
 - PDF custom report builder with drag-and-drop chart selection
@@ -113,6 +127,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Tenant: Default Organization (40e6f47e-b021-4605-9e1c-7a0992854f6c)
 
 ## Test Reports
+- iteration_43.json - Live Infrastructure Visualization (43/43 backend 100%, 100% frontend)
 - iteration_42.json - Per-tenant scoping, Jira/ServiceNow, Per-user WS prefs (19/19 backend, 100% frontend)
 - iteration_41.json - P2 Backlog Features (86% backend, 100% frontend)
 - iteration_40.json - ChunkErrorBoundary (100% pass)
