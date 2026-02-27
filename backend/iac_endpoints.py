@@ -89,6 +89,27 @@ async def get_github_runs(limit: int = Query(15, ge=1, le=50)):
     return await svc.get_github_runs(limit=limit)
 
 
+@router.get("/github/repo")
+async def get_github_repo_info():
+    """Fetch GitHub repo info, recent commits, branches, and open PRs."""
+    svc = get_iac_service()
+    return await svc.get_github_repo_info()
+
+
+@router.get("/s3/artifacts")
+async def get_s3_artifacts(prefix: str = Query("", description="S3 key prefix filter"), max_keys: int = Query(50, ge=1, le=200)):
+    """List objects in the configured S3 bucket."""
+    svc = get_iac_service()
+    return await svc.get_s3_artifacts(prefix=prefix, max_keys=max_keys)
+
+
+@router.get("/cloudwatch/alarms")
+async def get_cloudwatch_alarms():
+    """List CloudWatch metric and composite alarms."""
+    svc = get_iac_service()
+    return await svc.get_cloudwatch_alarms()
+
+
 @router.get("/terraform/state")
 async def get_terraform_state(environment: str = Query("dev")):
     """Read Terraform state from S3 backend."""
