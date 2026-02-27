@@ -331,6 +331,21 @@ class SLATrackerService:
                     await self.notifications_col.insert_one({**notif, "_id": notif["id"]})
                     escalations_created += 1
 
+                    # Broadcast individual SLA event via WebSocket
+                    try:
+                        from sla_ws_manager import sla_ws_manager
+                        if pct >= 100:
+                            asyncio.ensure_future(sla_ws_manager.broadcast_breach(
+                                cve_item["cve_id"], cve_item["severity"],
+                                (pct - 100) * cve_item["sla_hours"] / 100
+                            ))
+                        else:
+                            asyncio.ensure_future(sla_ws_manager.broadcast_warning(
+                                cve_item["cve_id"], cve_item["severity"], pct
+                            ))
+                    except Exception:
+                        pass
+
         result = {
             "checked": len(at_risk),
             "escalations_created": escalations_created,
