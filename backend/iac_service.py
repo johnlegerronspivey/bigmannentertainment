@@ -298,7 +298,7 @@ class IaCService:
             }
 
             commits = []
-            for c in repo.get_commits()[:10]:
+            for c in repo.get_commits().get_page(0)[:10]:
                 commits.append({
                     "sha": c.sha[:7],
                     "message": c.commit.message.split("\n")[0][:120],
@@ -308,17 +308,15 @@ class IaCService:
                 })
 
             branches = []
-            for b in repo.get_branches():
+            for b in repo.get_branches().get_page(0)[:20]:
                 branches.append({
                     "name": b.name,
                     "protected": b.protected,
                     "sha": b.commit.sha[:7],
                 })
-                if len(branches) >= 20:
-                    break
 
             pulls = []
-            for pr in repo.get_pulls(state="open", sort="updated", direction="desc")[:10]:
+            for pr in repo.get_pulls(state="open", sort="updated", direction="desc").get_page(0)[:10]:
                 pulls.append({
                     "number": pr.number,
                     "title": pr.title[:120],
