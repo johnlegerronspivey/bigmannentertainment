@@ -139,13 +139,20 @@ class CVEManagementService:
         """Inject tenant_id into a MongoDB query if provided.
         Includes legacy docs (no tenant_id) for backward compatibility."""
         if tenant_id:
-            query["$or"] = query.pop("$or", []) or []
-            query["$or"].extend([
+            tenant_cond = {"$or": [
                 {"tenant_id": tenant_id},
                 {"tenant_id": {"$exists": False}},
                 {"tenant_id": ""},
-            ])
-            # Merge any existing $or from search
+            ]}
+            if "$and" in query:
+                query["$and"].append(tenant_cond)
+            elif "$or" in query:
+                # Wrap existing query in $and to avoid $or conflict
+                existing = dict(query)
+                query.clear()
+                query["$and"] = [existing, tenant_cond]
+            else:
+                query.update(tenant_cond)
         return query
 
     async def create_cve(self, data: Dict[str, Any], tenant_id: Optional[str] = None) -> Dict[str, Any]:
