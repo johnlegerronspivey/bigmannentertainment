@@ -128,7 +128,13 @@ class CVEManagementService:
     # CVE ENTRIES CRUD
     # ═══════════════════════════════════════════════════════════
 
-    async def create_cve(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _tenant_filter(self, query: Dict, tenant_id: Optional[str] = None) -> Dict:
+        """Inject tenant_id into a MongoDB query if provided."""
+        if tenant_id:
+            query["tenant_id"] = tenant_id
+        return query
+
+    async def create_cve(self, data: Dict[str, Any], tenant_id: Optional[str] = None) -> Dict[str, Any]:
         cve_id = data.get("cve_id") or f"CVE-{datetime.now(timezone.utc).strftime('%Y')}-{uuid.uuid4().hex[:6].upper()}"
         now = datetime.now(timezone.utc).isoformat()
         entry = {
@@ -149,6 +155,7 @@ class CVEManagementService:
             "references": data.get("references", []),
             "exploitability": data.get("exploitability", "unknown"),
             "tags": data.get("tags", []),
+            "tenant_id": tenant_id or "",
             "detected_at": now,
             "triaged_at": None,
             "fixed_at": None,
@@ -162,7 +169,7 @@ class CVEManagementService:
 
     async def list_cves(self, status: Optional[str] = None, severity: Optional[str] = None,
                         service: Optional[str] = None, search: Optional[str] = None,
-                        limit: int = 50, skip: int = 0) -> Dict[str, Any]:
+                        limit: int = 50, skip: int = 0, tenant_id: Optional[str] = None) -> Dict[str, Any]:
         query = {}
         if status:
             query["status"] = status
@@ -176,6 +183,7 @@ class CVEManagementService:
                 {"title": {"$regex": search, "$options": "i"}},
                 {"affected_package": {"$regex": search, "$options": "i"}},
             ]
+        self._tenant_filter(query, tenant_id)
         total = await self.cves_col.count_documents(query)
         cursor = self.cves_col.find(query, {"_id": 0}).sort("detected_at", -1).skip(skip).limit(limit)
         items = []
