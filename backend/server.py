@@ -124,63 +124,49 @@ from moderation_endpoints import router as moderation_router
 uploads_dir = Path("/app/uploads")
 uploads_dir.mkdir(exist_ok=True)
 
-# Authentication setup
-SECRET_KEY = os.environ.get("SECRET_KEY", "big-mann-entertainment-secret-key-2025")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
-MAX_LOGIN_ATTEMPTS = 5  
-LOCKOUT_DURATION_MINUTES = 30
-PASSWORD_RESET_TOKEN_EXPIRE_HOURS = 24
-
-# Email configuration for password reset and notifications
-SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-EMAIL_USERNAME = os.environ.get("EMAIL_USERNAME", "no-reply@bigmannentertainment.com")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
-EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "Big Mann Entertainment")
-EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS", "no-reply@bigmannentertainment.com")
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-security = HTTPBearer()
-
-# Stripe setup
-stripe_api_key = os.environ.get('STRIPE_API_KEY')
-
-# Blockchain Configuration
-ETHEREUM_CONTRACT_ADDRESS = os.environ.get('ETHEREUM_CONTRACT_ADDRESS', '0xdfe98870c599734335900ce15e26d1d2ccc062c1')
-ETHEREUM_WALLET_ADDRESS = os.environ.get('ETHEREUM_WALLET_ADDRESS', '0xdfe98870c599734335900ce15e26d1d2ccc062c1')
-INFURA_PROJECT_ID = os.environ.get('INFURA_PROJECT_ID', 'your_infura_project_id')
-BLOCKCHAIN_NETWORK = os.environ.get('BLOCKCHAIN_NETWORK', 'ethereum_mainnet')
-
-# Social Media Settings
-INSTAGRAM_ACCESS_TOKEN = os.environ.get("INSTAGRAM_ACCESS_TOKEN", "")
-TWITTER_API_KEY = os.environ.get("TWITTER_API_KEY", "")
-TWITTER_API_SECRET = os.environ.get("TWITTER_API_SECRET", "")
-TWITTER_ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN", "")
-TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET", "")
-FACEBOOK_ACCESS_TOKEN = os.environ.get("FACEBOOK_ACCESS_TOKEN", "")
-YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
-TIKTOK_CLIENT_ID = os.environ.get("TIKTOK_CLIENT_ID", "")
-TIKTOK_CLIENT_SECRET = os.environ.get("TIKTOK_CLIENT_SECRET", "")
-# Business Configuration from environment variables
-BUSINESS_EIN = os.environ.get('BUSINESS_EIN', '270658077')
-BUSINESS_ADDRESS = os.environ.get('BUSINESS_ADDRESS', '1314 Lincoln Heights Street, Alexander City, Alabama 35010')
-BUSINESS_PHONE = os.environ.get('BUSINESS_PHONE', '(256) 234-5678')
-BUSINESS_NAICS_CODE = os.environ.get('BUSINESS_NAICS_CODE', '512200')  # Sound Recording Industries
-BUSINESS_TIN = os.environ.get('BUSINESS_TIN', '270658077')
-
-# Product and Global Identification Numbers
-UPC_COMPANY_PREFIX = os.environ.get('UPC_COMPANY_PREFIX', '8600043402')
-GLOBAL_LOCATION_NUMBER = os.environ.get('GLOBAL_LOCATION_NUMBER', '0860004340201')
-ISRC_PREFIX = os.environ.get('ISRC_PREFIX', 'QZ9H8')
-PUBLISHER_NUMBER = os.environ.get('PUBLISHER_NUMBER', 'PA04UV')
-IPI_BUSINESS = os.environ.get('IPI_NUMBER_COMPANY', '813048171')  # IPI Business/Company Number
-IPI_PRINCIPAL = os.environ.get('IPI_NUMBER_INDIVIDUAL', '578413032')  # IPI Principal/Individual Number
-IPN_NUMBER = os.environ.get('IPN_NUMBER', '10959387')  # IPI Name Number
-DPID = os.environ.get('DPID', 'PADPIDA2018072700C')  # Digital Provider ID
-BUSINESS_LEGAL_NAME = os.environ.get('BUSINESS_LEGAL_NAME', 'Big Mann Entertainment')
-PRINCIPAL_NAME = os.environ.get('PRINCIPAL_NAME', 'John LeGerron Spivey')
+# === Backward-compatible aliases from settings ===
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
+MAX_LOGIN_ATTEMPTS = settings.MAX_LOGIN_ATTEMPTS
+LOCKOUT_DURATION_MINUTES = settings.LOCKOUT_DURATION_MINUTES
+PASSWORD_RESET_TOKEN_EXPIRE_HOURS = settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS
+SMTP_SERVER = settings.SMTP_SERVER
+SMTP_PORT = settings.SMTP_PORT
+EMAIL_USERNAME = settings.EMAIL_USERNAME
+EMAIL_PASSWORD = settings.EMAIL_PASSWORD
+EMAIL_FROM_NAME = settings.EMAIL_FROM_NAME
+EMAIL_FROM_ADDRESS = settings.EMAIL_FROM_ADDRESS
+stripe_api_key = settings.STRIPE_API_KEY
+ETHEREUM_CONTRACT_ADDRESS = settings.ETHEREUM_CONTRACT_ADDRESS
+ETHEREUM_WALLET_ADDRESS = settings.ETHEREUM_WALLET_ADDRESS
+INFURA_PROJECT_ID = settings.INFURA_PROJECT_ID
+BLOCKCHAIN_NETWORK = settings.BLOCKCHAIN_NETWORK
+INSTAGRAM_ACCESS_TOKEN = settings.INSTAGRAM_ACCESS_TOKEN
+TWITTER_API_KEY = settings.TWITTER_API_KEY
+TWITTER_API_SECRET = settings.TWITTER_API_SECRET
+TWITTER_ACCESS_TOKEN = settings.TWITTER_ACCESS_TOKEN
+TWITTER_ACCESS_TOKEN_SECRET = settings.TWITTER_ACCESS_TOKEN_SECRET
+FACEBOOK_ACCESS_TOKEN = settings.FACEBOOK_ACCESS_TOKEN
+YOUTUBE_API_KEY = settings.YOUTUBE_API_KEY
+TIKTOK_CLIENT_ID = settings.TIKTOK_CLIENT_ID
+TIKTOK_CLIENT_SECRET = settings.TIKTOK_CLIENT_SECRET
+BUSINESS_EIN = settings.BUSINESS_EIN
+BUSINESS_ADDRESS = settings.BUSINESS_ADDRESS
+BUSINESS_PHONE = settings.BUSINESS_PHONE
+BUSINESS_NAICS_CODE = settings.BUSINESS_NAICS_CODE
+BUSINESS_TIN = settings.BUSINESS_TIN
+UPC_COMPANY_PREFIX = settings.UPC_COMPANY_PREFIX
+GLOBAL_LOCATION_NUMBER = settings.GLOBAL_LOCATION_NUMBER
+ISRC_PREFIX = settings.ISRC_PREFIX
+PUBLISHER_NUMBER = settings.PUBLISHER_NUMBER
+IPI_BUSINESS = settings.IPI_BUSINESS
+IPI_PRINCIPAL = settings.IPI_PRINCIPAL
+IPN_NUMBER = settings.IPN_NUMBER
+DPID = settings.DPID
+BUSINESS_LEGAL_NAME = settings.BUSINESS_LEGAL_NAME
+PRINCIPAL_NAME = settings.PRINCIPAL_NAME
 
 # Import performance optimization modules
 from cache_service import cache
