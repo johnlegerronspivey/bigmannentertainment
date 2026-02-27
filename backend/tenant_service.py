@@ -163,3 +163,107 @@ class TenantService:
             {"$set": {"tenant_id": tenant["id"], "tenant_name": tenant["name"]}},
         )
         return {"message": "Default tenant created and users assigned", "tenant": tenant}
+
+    # ── Data Migration for Tenancy ───────────────────────────
+
+    CVE_COLLECTIONS = [
+        "cve_audit_trail", "cve_entries", "cve_escalation_log", "cve_escalation_rules",
+        "cve_notification_preferences", "cve_notifications", "cve_pipeline_configs",
+        "cve_policy_rules", "cve_remediation_items", "cve_sbom_records",
+        "cve_scan_results", "cve_services", "cve_severity_policies",
+        "cve_sla_config", "cve_sla_snapshots", "cve_tickets",
+        "cve_users", "iac_deployments",
+    ]
+
+    def _legacy_filter(self):
+        """Match documents missing tenant_id or with empty tenant_id."""
+        return {"$or": [
+            {"tenant_id": {"$exists": False}},
+            {"tenant_id": ""},
+            {"tenant_id": None},
+        ]}
+
+    async def analyze_migration(self) -> Dict[str, Any]:
+        """Pre-migration analysis: count legacy docs per collection."""
+        legacy_filter = self._legacy_filter()
+        collections = {}
+        total_legacy = 0
+        total_docs = 0
+        for col_name in self.CVE_COLLECTIONS:
+            col = self.db[col_name]
+            total = await col.count_documents({})
+            legacy = await col.count_documents(legacy_filter)
+            migrated = total - legacy
+            collections[col_name] = {
+                "total": total,
+                "legacy_docs": legacy,
+                "already_migrated": migrated,
+            }
+            total_legacy += legacy
+            total_docs += total
+
+        # Also check users without tenant
+        users_legacy = await self.users_col.count_documents(legacy_filter)
+
+        # Get available tenants
+        cursor = self.tenants_col.find({}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "plan": 1})
+        tenants = await cursor.to_list(length=100)
+
+        return {
+            "collections": collections,
+            "total_documents": total_docs,
+            "total_legacy_documents": total_legacy,
+            "migration_needed": total_legacy > 0,
+            "users_without_tenant": users_legacy,
+            "available_tenants": tenants,
+        }
+
+    async def run_data_migration(self, target_tenant_id: str) -> Dict[str, Any]:
+        """Assign target_tenant_id to all legacy documents across CVE collections."""
+        tenant = await self.get_tenant(target_tenant_id)
+        if not tenant:
+            return {"error": "Target tenant not found", "success": False}
+
+        legacy_filter = self._legacy_filter()
+        update_op = {"$set": {"tenant_id": target_tenant_id}}
+        results = {}
+        total_migrated = 0
+
+        for col_name in self.CVE_COLLECTIONS:
+            col = self.db[col_name]
+            before = await col.count_documents(legacy_filter)
+            if before > 0:
+                result = await col.update_many(legacy_filter, update_op)
+                migrated = result.modified_count
+            else:
+                migrated = 0
+            results[col_name] = {"legacy_before": before, "migrated": migrated}
+            total_migrated += migrated
+
+        # Also migrate users without tenant
+        users_before = await self.users_col.count_documents(legacy_filter)
+        if users_before > 0:
+            res = await self.users_col.update_many(
+                legacy_filter,
+                {"$set": {"tenant_id": target_tenant_id, "tenant_name": tenant["name"]}},
+            )
+            results["users"] = {"legacy_before": users_before, "migrated": res.modified_count}
+            total_migrated += res.modified_count
+        else:
+            results["users"] = {"legacy_before": 0, "migrated": 0}
+
+        # Create indexes on tenant_id for performance
+        for col_name in self.CVE_COLLECTIONS:
+            col = self.db[col_name]
+            total = await col.count_documents({})
+            if total > 0:
+                await col.create_index("tenant_id")
+
+        logger.info(f"Tenant data migration complete: {total_migrated} documents migrated to tenant {target_tenant_id}")
+
+        return {
+            "success": True,
+            "target_tenant": {"id": target_tenant_id, "name": tenant["name"]},
+            "total_migrated": total_migrated,
+            "collections": results,
+        }
