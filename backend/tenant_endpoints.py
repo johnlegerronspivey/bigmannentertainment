@@ -57,6 +57,27 @@ async def seed_default_tenant():
     return await svc.seed_default_tenant()
 
 
+# ── Data Migration ───────────────────────────────────────
+
+@router.get("/migration-analysis")
+async def migration_analysis():
+    svc = get_tenant_service()
+    return await svc.analyze_migration()
+
+
+class MigrateDataRequest(BaseModel):
+    target_tenant_id: str
+
+
+@router.post("/migrate-data")
+async def migrate_data(body: MigrateDataRequest):
+    svc = get_tenant_service()
+    result = await svc.run_data_migration(body.target_tenant_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Migration failed"))
+    return result
+
+
 @router.get("/{tenant_id}")
 async def get_tenant(tenant_id: str):
     svc = get_tenant_service()
