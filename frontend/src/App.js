@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation,
 import axios from "axios";
 import { api } from "./utils/apiClient";
 import { PageLoadingOverlay } from "./components/LoadingSkeleton";
+import { ChunkErrorBoundary } from "./components/ChunkErrorBoundary";
 import { toast, Toaster } from "sonner";
 // Route-level lazy imports — each chunk loaded on-demand when the user navigates to its route
 const DDEXERNCreator = lazy(() => import("./DDEXComponents").then(m => ({ default: m.DDEXERNCreator })));
@@ -3836,6 +3837,7 @@ function App() {
       <AuthProvider>
         <div className="App">
           <Navigation />
+          <ChunkErrorBoundary variant="page">
           <Suspense fallback={<PageLoadingOverlay message="Loading page..." />}>
           <Routes>
             {/* Public routes */}
@@ -3988,6 +3990,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
+          </ChunkErrorBoundary>
           
           {/* Footer */}
           <footer className="bg-gray-800 text-white py-8 mt-16">
