@@ -1336,11 +1336,7 @@ async def agency_status():
         ]
     }
 
-class NotificationRequest(BaseModel):
-    email: str
-    subject: str
-    message: str
-    user_name: Optional[str] = "User"
+# NotificationRequest model imported from models/agency.py
 
 # Notification endpoint for admin use
 @api_router.post("/admin/send-notification")
