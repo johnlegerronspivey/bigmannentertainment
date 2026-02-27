@@ -3836,6 +3836,7 @@ function App() {
       <AuthProvider>
         <div className="App">
           <Navigation />
+          <Suspense fallback={<PageLoadingOverlay message="Loading page..." />}>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
@@ -3986,6 +3987,7 @@ function App() {
             {/* 404 Route - Must be last */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           
           {/* Footer */}
           <footer className="bg-gray-800 text-white py-8 mt-16">
