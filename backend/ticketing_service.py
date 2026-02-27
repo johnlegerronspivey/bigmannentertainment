@@ -126,7 +126,7 @@ class TicketingService:
 
     # ── Ticket CRUD ──────────────────────────────────────────
 
-    async def create_ticket(self, cve_id: str) -> Dict[str, Any]:
+    async def create_ticket(self, cve_id: str, tenant_id: Optional[str] = None) -> Dict[str, Any]:
         config = await self.get_config()
         provider = config.get("provider")
         if not provider:
@@ -161,6 +161,7 @@ class TicketingService:
             "severity": severity,
             "assignee": "",
             "simulation": config.get("simulation_mode", True),
+            "tenant_id": tenant_id or "",
             "created_at": now,
             "updated_at": now,
             "synced_at": now,
@@ -168,10 +169,11 @@ class TicketingService:
         await self.tickets_col.insert_one({**ticket, "_id": ticket_id})
         return ticket
 
-    async def list_tickets(self, limit: int = 50, skip: int = 0) -> Dict[str, Any]:
-        cursor = self.tickets_col.find({}, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
+    async def list_tickets(self, limit: int = 50, skip: int = 0, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        query = self._tenant_filter({}, tenant_id)
+        cursor = self.tickets_col.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
         items = await cursor.to_list(length=limit)
-        total = await self.tickets_col.count_documents({})
+        total = await self.tickets_col.count_documents(query)
         return {"items": items, "total": total}
 
     async def get_ticket(self, ticket_id: str) -> Optional[Dict[str, Any]]:
