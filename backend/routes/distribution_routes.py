@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from config.database import db
 from config.platforms import DISTRIBUTION_PLATFORMS
 from auth.service import get_current_user
-from models.core import User
+from models.core import User, DistributionRequest
 
 router = APIRouter(tags=["Distribution"])
 
