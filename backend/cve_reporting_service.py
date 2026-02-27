@@ -561,6 +561,19 @@ class CVEReportingService:
 
         pdf.ln(8)
 
+        # Embedded Severity Distribution Chart
+        try:
+            import tempfile
+            chart_bytes = self._render_severity_chart(summary["severity_distribution"], total)
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp.write(chart_bytes)
+                tmp_path = tmp.name
+            pdf.image(tmp_path, x=15, w=120)
+            os.unlink(tmp_path)
+            pdf.ln(4)
+        except Exception as e:
+            logger.warning(f"Chart render failed: {e}")
+
         # Risk Assessment
         pdf.set_font("Helvetica", "B", 14)
         pdf.set_text_color(30, 30, 30)
