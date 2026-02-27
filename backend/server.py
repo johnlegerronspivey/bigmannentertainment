@@ -197,6 +197,7 @@ async def startup_event():
         ("SLA Tracker", lambda: __import__('sla_tracker_service').initialize_sla_tracker_service(db)),
         ("CVE Reporting", lambda: __import__('cve_reporting_service').initialize_cve_reporting_service(db)),
         ("Infrastructure Automation", lambda: __import__('iac_service').initialize_iac_service(db)),
+        ("Ticketing Integration", lambda: __import__('ticketing_service').initialize_ticketing_service(db)),
     ]
 
     for name, fn in cve_services:
