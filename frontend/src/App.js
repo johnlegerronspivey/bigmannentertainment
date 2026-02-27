@@ -105,6 +105,7 @@ const UsageAnalyticsDashboard = lazy(() => import("./UsageAnalyticsDashboard"));
 const AWSCloudWatchDashboard = lazy(() => import("./AWSCloudWatchComponents"));
 const SecurityAuditDashboard = lazy(() => import("./SecurityAuditDashboard"));
 const CVEManagementDashboard = lazy(() => import("./CVEManagementDashboard"));
+const TenantManagement = lazy(() => import("./TenantManagement"));
 const ContentModerationComponent = lazy(() => import("./ContentModerationComponent"));
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
