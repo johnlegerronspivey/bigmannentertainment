@@ -11,7 +11,7 @@ router = APIRouter(tags=["DAO"])
 async def get_dao_contracts():
     """Get all DAO smart contracts"""
     try:
-        contracts = dao_contract_manager.get_smart_contracts()
+        contracts = dao_contract_manager.get_solidity_contracts()
         
         return {
             "success": True,
