@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Form
 from config.database import db
 from config.platforms import DISTRIBUTION_PLATFORMS
 from auth.service import get_current_user
