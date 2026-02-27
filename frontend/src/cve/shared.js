@@ -30,10 +30,14 @@ export const STATUS_COLORS = {
 };
 
 export const ROLE_BADGES = {
+  super_admin: { bg: "bg-fuchsia-500/20", text: "text-fuchsia-300", label: "Super Admin" },
+  tenant_admin: { bg: "bg-violet-500/20", text: "text-violet-300", label: "Tenant Admin" },
   admin: { bg: "bg-red-500/20", text: "text-red-300", label: "Admin" },
   manager: { bg: "bg-amber-500/20", text: "text-amber-300", label: "Manager" },
   analyst: { bg: "bg-blue-500/20", text: "text-blue-300", label: "Analyst" },
 };
+
+export const ROLE_HIERARCHY = ["analyst", "manager", "admin", "tenant_admin", "super_admin"];
 
 export const fetcher = async (url, opts = {}) => {
   const res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
