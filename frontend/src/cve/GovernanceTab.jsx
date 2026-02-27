@@ -3,42 +3,10 @@ import { AlertTriangle, CheckCircle, CheckCircle2, Target, TrendingUp, Users, Ga
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from "recharts";
 import { API, GOVERNANCE_API, SEVERITY_COLORS, fetcher, StatCard, SeverityBadge } from "./shared";
 import { AssignOwnerModal } from "./AssignOwnerModal";
+import { ChartTooltip, RiskGauge } from "./components";
+import { CHART_COLORS, PIE_COLORS, STATUS_CHART_COLORS } from "./constants";
 
-const CHART_COLORS = ["#ef4444", "#f97316", "#eab308", "#3b82f6", "#64748b"];
-const PIE_COLORS = ["#ef4444", "#f97316", "#eab308", "#3b82f6", "#64748b"];
-const STATUS_CHART_COLORS = { detected: "#ef4444", triaged: "#eab308", in_progress: "#3b82f6", fixed: "#10b981", verified: "#22c55e", dismissed: "#64748b", wont_fix: "#475569" };
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 shadow-xl">
-      <p className="text-slate-300 text-xs mb-1">{label}</p>
-      {payload.map((p, i) => (
-        <p key={i} className="text-xs" style={{ color: p.color }}>{p.name}: <span className="font-semibold">{p.value}</span></p>
-      ))}
-    </div>
-  );
-};
-
-const RiskGauge = ({ score }) => {
-  const color = score >= 75 ? "#ef4444" : score >= 50 ? "#f97316" : score >= 25 ? "#eab308" : "#10b981";
-  const label = score >= 75 ? "Critical" : score >= 50 ? "High" : score >= 25 ? "Medium" : "Low";
-  return (
-    <div data-testid="risk-gauge" className="flex flex-col items-center">
-      <div className="relative w-32 h-32">
-        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-          <circle cx="50" cy="50" r="42" fill="none" stroke="#1e293b" strokeWidth="10" />
-          <circle cx="50" cy="50" r="42" fill="none" stroke={color} strokeWidth="10" strokeDasharray={`${score * 2.64} 264`} strokeLinecap="round" />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-white">{score}</span>
-          <span className="text-xs" style={{ color }}>{label}</span>
-        </div>
-      </div>
-      <p className="text-xs text-slate-400 mt-2">Risk Score</p>
-    </div>
-  );
-};
+const CustomTooltip = ChartTooltip;
 
 export const GovernanceTab = ({ onRefresh }) => {
   const [metrics, setMetrics] = useState(null);
