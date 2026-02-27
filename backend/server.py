@@ -35,7 +35,6 @@ try:
     from email.mime.base import MimeBase
     from email import encoders
 except ImportError:
-    # Fallback for import issues
     import email.mime.text as mime_text
     import email.mime.multipart as mime_multipart
     import email.mime.base as mime_base
@@ -47,10 +46,29 @@ except ImportError:
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# === Refactored imports from extracted modules ===
+from config.database import db, client
+from config.settings import settings
+from config.platforms import DISTRIBUTION_PLATFORMS
+from models.core import (
+    User, UserSession, UserCreate, UserLogin, Token, TokenRefresh,
+    ForgotPasswordRequest, ResetPasswordRequest, UserUpdate,
+    BusinessIdentifiers, ProductIdentifier, MediaContent, MediaUpload,
+    ContentModerationAction, Purchase, DistributionTarget,
+    ContentDistribution, DistributionRequest, SocialPost,
+    NFTCollection, NFTToken, SmartContract, CryptoWallet,
+    ActivityLog, SystemConfig,
+)
+from models.agency import (
+    VerificationStatus, LicenseType, BlockchainNetwork, ContractStandard,
+    AgencyRegistrationRequest, TalentCreationRequest, LicenseContractRequest,
+    NotificationRequest,
+)
+from auth.service import (
+    verify_password, get_password_hash, create_access_token,
+    create_refresh_token, get_current_user, get_current_admin_user,
+    get_admin_user, log_activity, pwd_context, security,
+)
 
 # Import content removal modules
 from content_removal_endpoints import init_removal_service
