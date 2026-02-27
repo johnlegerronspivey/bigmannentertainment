@@ -2,6 +2,8 @@ import os, asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 
 async def check():
+    from dotenv import load_dotenv
+    load_dotenv()
     client = AsyncIOMotorClient(os.environ.get('MONGO_URL'))
     db = client[os.environ.get('DB_NAME')]
     
