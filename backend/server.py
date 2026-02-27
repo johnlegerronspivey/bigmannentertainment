@@ -451,54 +451,7 @@ api_router.include_router(moderation_router)
 # (DISTRIBUTION_PLATFORMS dict with 119 platforms)
 
 
-if False: pass
-if True:
-    # If agency onboarding module is not available, create a dummy router
-    from fastapi import APIRouter
-    agency_router = APIRouter(prefix="/agency", tags=["Agency Onboarding"])
-    
-    @agency_router.get("/status")
-    async def agency_status():
-        return {"status": "Agency onboarding module not available"}
-
-# Import social media strategy endpoints
-
-# Import social media phases 5-10 endpoints
-
-# Import royalty engine endpoints
-
-# Import social media royalty integration endpoints
-
-# Import content ingestion endpoints
-
-# Import comprehensive platform endpoints
-
-# Import content workflow endpoints
-
-# Import transcoding endpoints
-
-# Import distribution endpoints (Function 3)
-
-# Import premium features endpoints
-
-# Import MLC endpoints
-
-# Import MDE endpoints
-
-# Import GS1 endpoints
-
-# Import analytics endpoints (Function 4)
-
-# Import lifecycle endpoints (Function 5)
-
-# Import DAO smart contracts service
 from dao_smart_contracts import dao_contract_manager
-
-# Import Enhanced Features endpoints
-
-# Import AWS Agency Platform endpoints
-
-# Import Snapchat Integration endpoints
 
 # Missing Service Health Endpoints Implementation
 @api_router.get("/licensing/health")
