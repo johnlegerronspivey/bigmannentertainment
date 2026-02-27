@@ -12,7 +12,7 @@ import httpx
 
 # Import authentication
 try:
-    from server import get_current_user
+    from auth.service import get_current_user
 except:
     async def get_current_user():
         return {"id": "test_user", "email": "test@example.com"}
