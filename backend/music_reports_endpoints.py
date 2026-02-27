@@ -12,7 +12,9 @@ import os
 # Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from server import User, get_current_user, db
+from auth.service import get_current_user
+from models.core import User
+from config.database import db
 from music_reports_service import MusicReportsService
 
 # Create router

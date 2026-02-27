@@ -10,7 +10,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 # Import models and services
 from payment_models import PaymentTransaction, CreateCheckoutSessionRequest, CreateCheckoutSessionResponse, PaymentStatusResponse
 from stripe_payment_service import StripePaymentService
-from server import get_current_user, User, db
+from auth.service import get_current_user
+from models.core import User
+from config.database import db
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,9 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from server import User, get_current_user, db
+from auth.service import get_current_user
+from models.core import User
+from config.database import db
 from workflow_enhancement_service import WorkflowEnhancementService
 
 # Create router

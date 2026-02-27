@@ -11,7 +11,9 @@ from decimal import Decimal
 import json
 
 from paypal_payment_service import PayPalPaymentService
-from server import get_current_user, User, db
+from auth.service import get_current_user
+from models.core import User
+from config.database import db
 
 logger = logging.getLogger(__name__)
 
