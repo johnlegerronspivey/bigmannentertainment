@@ -1,0 +1,1 @@
+export { RemediationTab } from "./RemediationTab";
