@@ -236,34 +236,7 @@ async def business_health():
 # Global Health Check Endpoints (outside /api prefix) - Moved to end to avoid frontend routing conflicts
 # These endpoints are added after all other routes to prevent conflicts
 
-# Stripe webhook endpoint (must be on root app, not under /api prefix)
-@app.post("/api/webhook/stripe")
-async def stripe_webhook_handler(request: Request):
-    """Handle Stripe webhook events"""
-    try:
-        # Import here to avoid circular imports
-        from stripe_payment_service import StripePaymentService
-        
-        # Get raw body and signature
-        body = await request.body()
-        stripe_signature = request.headers.get("Stripe-Signature")
-        
-        if not stripe_signature:
-            raise HTTPException(status_code=400, detail="Missing Stripe signature")
-        
-        # Initialize Stripe service
-        stripe_service = StripePaymentService(db)
-        host_url = str(request.base_url).rstrip('/')
-        stripe_service.initialize_stripe_checkout(host_url)
-        
-        # Process webhook
-        webhook_response = await stripe_service.handle_webhook(body, stripe_signature)
-        
-        return {"received": True, "event_type": webhook_response.event_type}
-        
-    except Exception as e:
-        logging.error(f"Webhook error: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Webhook processing failed: {str(e)}")
+# Stripe webhook is handled in server.py directly (needs app reference)
 
 # Basic endpoints for immediate 200 responses
 @router.get("/media/s3/status")
