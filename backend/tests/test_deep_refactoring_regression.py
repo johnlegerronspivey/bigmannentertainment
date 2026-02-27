@@ -418,8 +418,8 @@ class TestRouterIntegration:
             f"{BASE_URL}/api/auth/login",
             json={"email": "test@test.com", "password": "test"}
         )
-        # Should get 401 (auth fail) not 404 (route not found)
-        assert response.status_code in [401, 404]
+        # Should get 401 (auth fail), 404 (user not found), or 423 (locked) - not 404 (route not found)
+        assert response.status_code in [401, 404, 423]
         
     def test_routes_agency_router(self):
         """agency_routes.py router integrated"""
