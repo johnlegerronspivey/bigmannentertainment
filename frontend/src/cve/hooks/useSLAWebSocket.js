@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 const WS_BASE = process.env.REACT_APP_BACKEND_URL
   .replace(/^http/, "ws");
 
-export function useSLAWebSocket() {
+export function useSLAWebSocket(userId) {
   const [events, setEvents] = useState([]);
   const [connected, setConnected] = useState(false);
   const wsRef = useRef(null);
@@ -21,7 +21,8 @@ export function useSLAWebSocket() {
 
     function connect() {
       if (destroyed) return;
-      const ws = new WebSocket(`${WS_BASE}/api/ws/sla`);
+      const params = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
+      const ws = new WebSocket(`${WS_BASE}/api/ws/sla${params}`);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -51,7 +52,6 @@ export function useSLAWebSocket() {
 
     connect();
 
-    // Keepalive ping every 25s
     const ping = setInterval(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send("ping");
@@ -64,7 +64,7 @@ export function useSLAWebSocket() {
       clearTimeout(timerRef.current);
       wsRef.current?.close();
     };
-  }, []);
+  }, [userId]);
 
   return { events, connected, clearEvent, clearAll };
 }
