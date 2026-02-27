@@ -1,0 +1,86 @@
+{
+  "summary": "Completed comprehensive testing of 3 new features: Per-tenant data scoping, Live Jira/ServiceNow integration (simulation mode), and Per-user WebSocket notification preferences. All 19 backend API tests passed. Frontend UI verified with SLA Live Connected banner, Ticketing tab with Jira/ServiceNow config, and NotificationPreferencesPanel with per-severity channels, quiet hours, and mute functionality.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/cve/sla/notification-preferences", "issue": "Legacy global prefs doc may not have new fields (muted_severities, quiet_hours) - backward compatible behavior", "priority": "LOW"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tenant_ticketing_notifications.py",
+    "/app/test_reports/pytest/tenant_ticketing_notifications_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Tenant data scoping uses backward-compatible filter that includes legacy docs without tenant_id field",
+    "Ticketing service correctly detects simulation mode when credentials are incomplete",
+    "Per-user notification preferences properly stores muted_severities, quiet_hours, per_severity channel toggles",
+    "WebSocket SLA manager supports user_id keyed connections for per-user notifications",
+    "NotificationPreferencesPanel component properly integrates with backend API"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_tenant_ticketing_notifications.py"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed)",
+    "frontend": "100% (all UI components verified)"
+  },
+  "test_credentials": {
+    "email": "cveadmin@test.com",
+    "password": "Test1234!",
+    "tenant_id": "40e6f47e-b021-4605-9e1c-7a0992854f6c",
+    "tenant_name": "Default Organization"
+  },
+  "seed_data_creation": "Test CVEs created with tenant_id during testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Three features fully functional: 1) Per-tenant data scoping applies backward-compatible filters ($or with tenant_id match or missing) on CVE dashboard, list, create, ticketing stats/list endpoints. 2) Jira/ServiceNow ticketing in SIMULATION MODE by default - configure real credentials for live integration. 3) Per-user notification preferences at /api/cve/sla/notification-preferences with ?user_id param, includes muted_severities, quiet_hours, per_severity channel toggles. NotificationPreferencesPanel component visible in SLA Tracker > Notifications sub-view.",
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": [
+      "Jira REST API - simulated ticket creation/sync (no real credentials configured)",
+      "ServiceNow REST API - simulated incident creation (no real credentials configured)"
+    ]
+  },
+  "feature_verification": {
+    "per_tenant_data_scoping": {
+      "login_returns_tenant_info": "PASS - user has tenant_id and tenant_name fields",
+      "dashboard_without_auth": "PASS - returns all data (no tenant filter)",
+      "dashboard_with_auth": "PASS - returns tenant-scoped data (backward compatible)",
+      "list_cves_without_auth": "PASS - returns all CVEs",
+      "list_cves_with_auth": "PASS - filters by tenant_id",
+      "create_cve_with_auth": "PASS - sets tenant_id from authenticated user",
+      "ticketing_list_with_auth": "PASS - filters by tenant_id",
+      "ticketing_stats_with_auth": "PASS - filters by tenant_id",
+      "backward_compatibility": "PASS - includes legacy docs without tenant_id"
+    },
+    "ticketing_integration": {
+      "get_config": "PASS",
+      "save_jira_config": "PASS - simulation_mode=true when credentials missing",
+      "save_servicenow_config": "PASS - simulation_mode=true when credentials missing",
+      "test_connection": "PASS - returns success=true, simulation=true",
+      "create_ticket": "PASS - creates simulated ticket with external_key",
+      "frontend_ticketing_tab": "PASS - shows config panel, stats, ticket list, simulation mode indicator"
+    },
+    "per_user_notification_preferences": {
+      "get_default_prefs": "PASS - returns core fields (notify_on_warning, notify_on_breach, per_severity)",
+      "get_user_specific_prefs": "PASS - returns/creates user-specific prefs",
+      "update_user_prefs": "PASS - saves muted_severities, quiet_hours, per_severity toggles",
+      "check_muted_severity": "PASS - returns all false for muted severity",
+      "check_normal_severity": "PASS - returns configured channel values",
+      "frontend_NotificationPreferencesPanel": "PASS - renders in SLA Tracker > Notifications view with per-severity channels, quiet hours, mute toggles",
+      "websocket_user_id_param": "PASS - WebSocket endpoint accepts user_id query param"
+    },
+    "frontend_ui": {
+      "sla_live_connected_banner": "PASS - visible at top of CVE Management dashboard",
+      "sla_tracker_tab": "PASS - shows SLA compliance dashboard, sub-views",
+      "sla_notifications_view": "PASS - shows Auto-Escalation config, Per-Severity Notification Preferences, NotificationPreferencesPanel with per-severity channels/quiet hours/mute",
+      "ticketing_tab": "PASS - shows Jira/ServiceNow config panel, stats, ticket list with SIM badges"
+    }
+  }
+}
