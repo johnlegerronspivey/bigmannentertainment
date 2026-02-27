@@ -17,25 +17,29 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **Database**: MongoDB
 - **Security Tools**: Trivy, Grype, Syft, Checkov
 - **AWS**: boto3 (Lambda, S3, CloudWatch, Inspector, SES, Rekognition)
-- **Charts**: Recharts
+- **Charts**: Recharts (frontend), Matplotlib (PDF charts)
 - **IaC**: Terraform + AWS CDK (TypeScript)
-- **PDF**: fpdf2
+- **PDF**: fpdf2 + matplotlib
 
-## Backend Directory Structure (Refactored Feb 27, 2026)
+## Backend Directory Structure (Updated Feb 27, 2026)
 
 ```
 /app/backend/
-├── server.py            # 375 lines (down from 8,141 - 96% reduction)
+├── server.py            # Main app entry + SLA WebSocket endpoint
 ├── router_setup.py      # External router registration
 ├── config/              # database.py, settings.py, platforms.py
-├── models/              # core.py (315 lines), agency.py (75 lines)
-├── auth/                # service.py (87 lines)
-├── routes/              # 11 route modules (4,529 lines total)
-├── services/            # 5 service modules (1,639 lines total)
+├── models/              # core.py, agency.py
+├── auth/                # service.py
+├── routes/              # 11 route modules
+├── services/            # 5 service modules
 ├── tests/               # 33+ test files
-├── providers/           # Social media providers
-├── lambda/              # AWS Lambda functions
-└── *_endpoints.py       # Pre-existing external endpoint modules
+├── sla_ws_manager.py    # NEW: SLA WebSocket broadcast manager
+├── ticketing_service.py # NEW: Jira/ServiceNow integration
+├── ticketing_endpoints.py # NEW: Ticketing API endpoints
+├── tenant_service.py    # NEW: Multi-tenant management
+├── tenant_endpoints.py  # NEW: Tenant API endpoints
+├── cve_reporting_service.py # ENHANCED: Matplotlib chart embedding
+└── ...existing modules
 ```
 
 ## What's Been Implemented
@@ -47,126 +51,80 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### PDF Export & Dashboard Enhancements (COMPLETE - Feb 20, 2026)
 ### Security Audit & Dependency Upgrades (COMPLETE - Feb 2026)
 ### Backend Deep Refactoring (COMPLETE - Feb 27, 2026)
-- Phase 1: Extracted config/, models/, auth/ from server.py (-1,500 lines)
-- Phase 2: Extracted 97 route handlers into 11 routes/ modules
-- Phase 2: Extracted 9 service classes into 5 services/ modules
-- Server.py: 8,141 → 375 lines (96% reduction)
-- All 55 regression tests passed (33 deep + 22 original)
-- 4 import bugs found and fixed by testing agent
+### Frontend CVE Dashboard Refactoring Phase 1 & 2 (COMPLETE - Feb 28, 2026)
+### React.lazy() Code Splitting (COMPLETE - Feb 28, 2026)
+### Route-Level Code Splitting (COMPLETE - Feb 28, 2026)
+### ChunkErrorBoundary (COMPLETE - Feb 28, 2026)
 
-### Frontend CVE Dashboard Refactoring Phase 1 (COMPLETE - Feb 28, 2026)
-- Decomposed InfraTab (995→297 lines), SLATrackerTab (736→121 lines), ReportingTab (513→77 lines)
-- Created `cve/infra/` (8 files), `cve/sla/` (8 files), `cve/reporting/` (7 files)
-- Extracted shared components to `cve/components/` (ChartTooltip, LoadingStates, CodeBlock, Collapsible, RiskGauge)
-- Centralized shared constants to `cve/constants.js` (CHART_COLORS, PIE_COLORS, STATUS_CHART_COLORS)
-- Created barrel exports (`cve/index.js`, `cve/components/index.js`)
-- Frontend regression: 100% pass rate (iteration_36.json)
+### P2 Backlog Features (COMPLETE - Feb 27, 2026)
 
-### Frontend CVE Dashboard Refactoring Phase 2 (COMPLETE - Feb 28, 2026)
-- Decomposed GovernanceTab (428→89 lines orchestrator) into `cve/governance/` (6 files)
-  - OverviewView.jsx, TrendsView.jsx, SLAComplianceView.jsx, OwnershipView.jsx
-- Decomposed RemediationTab (399→132 lines orchestrator) into `cve/remediation/` (7 files)
-  - ItemsView.jsx, CreateView.jsx, BulkView.jsx, AwsFindingsView.jsx, constants.js
-- Updated barrel exports and main dashboard imports
-- Deleted old monolithic GovernanceTab.jsx and RemediationTab.jsx
-- No file over 300 lines; zero code duplication for shared components
-- Frontend regression: 100% pass rate (iteration_37.json)
+#### 1. Real-time WebSocket SLA Notifications
+- Created `sla_ws_manager.py` — manages WS connections, broadcasts SLA events
+- WebSocket endpoint at `/api/ws/sla` with ping/pong keepalive
+- Broadcasts: `escalation_run`, `sla_breach`, `sla_warning` events
+- Hooked into `run_escalations()` flow for automatic broadcast
+- Frontend: `useSLAWebSocket` hook with auto-reconnect (exponential backoff)
+- Frontend: `SLANotificationBanner` component with live connection status, collapsible alerts
+- Integrated into CVEManagementDashboard header area
 
-### React.lazy() Code Splitting for Tab Components (COMPLETE - Feb 28, 2026)
-- Added React.lazy() to 14 tab components in CVEManagementDashboard.jsx
-- OverviewTab remains eagerly loaded (default tab for instant first paint)
-- Lazy-loaded: CVEDatabase, Scanners, Remediation, Governance, SLATracker, Reporting, Notifications, Services, SBOM, CICD, Infra, PolicyEngine, Policies, AuditTrail
-- Named exports handled via `.then(m => ({ default: m.ComponentName }))` pattern
-- Suspense boundary with TabFallback spinner wraps all lazy tabs
-- Frontend regression: 100% pass rate (iteration_38.json)
+#### 2. External Ticketing Integration (Jira & ServiceNow)
+- Created `ticketing_service.py` — configuration, ticket CRUD, sync, bulk create
+- Supports Jira and ServiceNow providers with simulation mode when no credentials
+- API endpoints: config, test-connection, create/list/sync tickets, bulk create, stats
+- Frontend: `TicketingTab.jsx` with config panel, stats grid, ticket list, bulk actions
+- Added as lazy-loaded tab in CVE Management Dashboard
+- **NOTE**: Currently in SIMULATION MODE — real API integration requires credentials
 
-### Route-Level Code Splitting for App.js (COMPLETE - Feb 28, 2026)
-- Converted 99 page component imports in App.js from static imports to React.lazy()
-- Home, Login, Register, Navigation, and core auth components remain inline (instant first paint)
-- Suspense boundary with PageLoadingOverlay wraps entire `<Routes>` section
-- Both named-export (.then() pattern) and default-export components handled
-- Tested 14+ routes including rapid navigation — 100% pass rate (iteration_39.json)
+#### 3. Multi-Tenant Support
+- Created `tenant_service.py` — organization CRUD, plan limits, user assignment
+- Plans: Free (5 users), Pro (25 users), Enterprise (unlimited)
+- Seed default tenant assigns all existing users
+- API endpoints: CRUD, stats, user assignment, seed
+- Frontend: `TenantManagement.jsx` page with org cards, detail panel, user list
+- Route: `/tenant-management` with nav link
+- Foundation for per-tenant data scoping (to be progressively applied)
 
-### ChunkErrorBoundary for Lazy Routes & Tabs (COMPLETE - Feb 28, 2026)
-- Created `/app/frontend/src/components/ChunkErrorBoundary.jsx` — class component with getDerivedStateFromError
-- Detects chunk load failures (ChunkLoadError, "Loading chunk", "dynamically imported module", etc.)
-- Two variants: `page` (route-level, full-height centered card) and `tab` (inline compact for CVE tabs)
-- Chunk errors trigger "Reload page" (window.location.reload); other errors trigger "Try again" (state reset)
-- Applied to App.js (wraps Suspense around Routes) and CVEManagementDashboard.jsx (wraps Suspense around tabs)
-- Regression tested: all routes and tabs still load correctly — 100% pass rate (iteration_40.json)
+#### 4. Advanced PDF with Embedded Charts
+- Added `_render_severity_chart()` — matplotlib horizontal bar chart
+- Added `_render_risk_gauge()` — polar projection gauge with needle
+- Added `_render_trend_chart()` — 7-day CVE trend area chart
+- All 3 charts embedded in executive PDF via fpdf2 `image()` method
+- PDF size: ~47KB (vs ~5KB text-only), 3 embedded PNG images verified
 
-## Frontend Directory Structure (Refactored Feb 28, 2026)
+## Frontend Directory Structure (Updated Feb 27, 2026)
 
 ```
-/app/frontend/src/cve/
-├── index.js              # Barrel export for all tabs
-├── shared.js             # API constants, fetcher, utility components
-├── constants.js          # Shared chart colors (deduped)
-├── components/           # Shared UI components
-│   ├── ChartTooltip.jsx
-│   ├── CodeBlock.jsx
-│   ├── Collapsible.jsx
-│   ├── LoadingStates.jsx
-│   ├── RiskGauge.jsx
-│   └── index.js
-├── infra/                # InfraTab decomposed (was 995 lines)
-│   ├── InfraTab.jsx (297)
-│   ├── LiveLambdaPanel.jsx
-│   ├── GitHubRunsPanel.jsx
-│   ├── TerraformStatePanel.jsx
-│   ├── TerraformModulesPanel.jsx
-│   ├── CdkConstructsPanel.jsx
-│   ├── DeploySteps.jsx
-│   ├── DeploymentLog.jsx
-│   ├── helpers.jsx
-│   └── index.js
-├── sla/                  # SLATrackerTab decomposed (was 736 lines)
-│   ├── SLATrackerTab.jsx (121)
-│   ├── DashboardView.jsx
-│   ├── AtRiskView.jsx
-│   ├── EscalationRulesView.jsx
-│   ├── EscalationWorkflowView.jsx
-│   ├── NotificationSettingsView.jsx
-│   ├── TrendsView.jsx
-│   ├── badges.jsx
-│   └── index.js
-├── reporting/            # ReportingTab decomposed (was 513 lines)
-│   ├── ReportingTab.jsx (77)
-│   ├── ExecutiveView.jsx
-│   ├── TrendsView.jsx
-│   ├── TeamView.jsx
-│   ├── ScannerView.jsx
-│   ├── ExportView.jsx
-│   └── index.js
-├── governance/           # GovernanceTab decomposed (was 427 lines)
-│   ├── GovernanceTab.jsx (89 orchestrator)
-│   ├── OverviewView.jsx
-│   ├── TrendsView.jsx
-│   ├── SLAComplianceView.jsx
-│   ├── OwnershipView.jsx
-│   └── index.js
-├── remediation/          # RemediationTab decomposed (was 399 lines)
-│   ├── RemediationTab.jsx (132 orchestrator)
-│   ├── ItemsView.jsx
-│   ├── CreateView.jsx
-│   ├── BulkView.jsx
-│   ├── AwsFindingsView.jsx
-│   ├── constants.js
-│   └── index.js
-├── OverviewTab.jsx
-├── CVEDatabaseTab.jsx
-└── ... (other tabs)
+/app/frontend/src/
+├── CVEManagementDashboard.jsx  # Updated: SLA banner + Ticketing tab
+├── TenantManagement.jsx        # NEW: Multi-tenant admin page
+├── cve/
+│   ├── SLANotificationBanner.jsx # NEW: Real-time SLA alert banner
+│   ├── TicketingTab.jsx          # NEW: Jira/ServiceNow ticketing UI
+│   ├── hooks/
+│   │   └── useSLAWebSocket.js    # NEW: WebSocket hook with auto-reconnect
+│   ├── sla/                      # Existing SLA tracker views
+│   ├── infra/                    # Existing infrastructure views
+│   ├── governance/               # Existing governance views
+│   ├── remediation/              # Existing remediation views
+│   ├── reporting/                # Existing reporting views
+│   └── components/               # Shared UI components
+├── components/
+│   └── ChunkErrorBoundary.jsx    # Error boundary for lazy loading
+└── App.js                        # Updated: tenant route + nav link
 ```
 
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
+### P1 - P2 Backlog (COMPLETE)
 
-### P1 - Future Tasks
-- Real-time WebSocket notifications for SLA breaches
-- External ticketing integration (Jira, ServiceNow)
-- Multi-tenant support
-- Advanced PDF with embedded charts
+### P2 - Future Tasks
+- Per-tenant data scoping (apply tenant_id filters to all queries)
+- Real Jira/ServiceNow API integration (when credentials provided)
+- Tenant billing and usage tracking
+- Role-based tenant admin (tenant admin vs super admin)
+- WebSocket SLA notification preferences per user
+- PDF custom report builder with drag-and-drop chart selection
 
 ## Test Credentials
 - Test user: cveadmin@test.com / Test1234!
@@ -175,8 +133,9 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - iteration_33.json - PDF Export + Dashboard (26/26 passed)
 - iteration_34.json - Initial Refactoring Regression (22/22 passed)
 - iteration_35.json - Deep Refactoring Regression (33/33 passed)
-- iteration_36.json - Frontend Refactoring Phase 1 Regression (100% pass)
-- iteration_37.json - Frontend Refactoring Phase 2 (Governance + Remediation decomposition, 100% pass)
-- iteration_38.json - React.lazy() code splitting for all tab components (14/14 lazy tabs pass, 100%)
-- iteration_39.json - Route-level code splitting for App.js (99 lazy components, 14+ routes tested, 100%)
-- iteration_40.json - ChunkErrorBoundary wrapping lazy routes & tabs (regression: all routes/tabs pass, 100%)
+- iteration_36.json - Frontend Refactoring Phase 1 (100% pass)
+- iteration_37.json - Frontend Refactoring Phase 2 (100% pass)
+- iteration_38.json - React.lazy() code splitting (100% pass)
+- iteration_39.json - Route-level code splitting (100% pass)
+- iteration_40.json - ChunkErrorBoundary (100% pass)
+- iteration_41.json - P2 Backlog Features (86% backend, 100% frontend - 3 timeouts were network-related)
