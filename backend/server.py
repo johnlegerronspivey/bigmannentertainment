@@ -253,6 +253,40 @@ api_router.include_router(system_router)
 init_removal_service(db)
 init_org_service(db)
 
+# Initialize Payment Service
+try:
+    import payment_endpoints
+    from payment_service import PaymentService
+    payment_service_instance = PaymentService(db)
+    payment_endpoints.payment_service = payment_service_instance
+except Exception:
+    pass
+
+# Initialize Metadata Parser & Validator Services
+try:
+    import metadata_endpoints
+    import batch_endpoints
+    import reporting_endpoints
+    import rights_endpoints
+    import smart_contract_endpoints
+    import audit_endpoints
+    services_dict = {}
+    metadata_endpoints.init_metadata_services(db, services_dict)
+    batch_endpoints.init_batch_service(db, services_dict)
+    reporting_endpoints.init_reporting_service(db, services_dict)
+    rights_endpoints.init_rights_service(db, services_dict)
+    smart_contract_endpoints.init_contract_service(db, services_dict)
+    audit_endpoints.init_audit_service(db, services_dict)
+except Exception:
+    pass
+
+# Initialize GS1 service
+try:
+    from gs1_endpoints import init_gs1_service
+    init_gs1_service(db)
+except Exception:
+    pass
+
 # Initialize Phase 2 AWS services
 from services.aws_media_svc import CloudFrontService, LambdaProcessingService, RekognitionService
 cloudfront_service = CloudFrontService()
