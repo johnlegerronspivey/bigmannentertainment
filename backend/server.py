@@ -704,69 +704,9 @@ async def check_rights_compliance():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
-# Authentication functions
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-def create_refresh_token():
-    """Create a refresh token"""
-    return secrets.token_urlsafe(32)
-
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    try:
-        token = credentials.credentials
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Could not validate credentials")
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
-    
-    user = await db.users.find_one({"id": user_id})
-    if user is None:
-        raise HTTPException(status_code=401, detail="User not found")
-    
-    # Remove MongoDB _id field to prevent ObjectId serialization issues
-    if "_id" in user:
-        del user["_id"]
-    
-    return User(**user)
-
-async def get_current_admin_user(current_user: User = Depends(get_current_user)):
-    if not current_user.is_admin and current_user.role not in ["admin", "moderator", "super_admin"]:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    return current_user
-
-async def get_admin_user(current_user: User = Depends(get_current_user)):
-    if not current_user.is_admin and current_user.role not in ["admin", "moderator", "super_admin"]:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    return current_user
-
-async def log_activity(user_id: str, action: str, resource_type: str, resource_id: str = None, details: Dict[str, Any] = None, request: Request = None):
-    """Log user activity for auditing purposes"""
-    activity = ActivityLog(
-        user_id=user_id,
-        action=action,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        details=details or {},
-        ip_address=request.client.host if request else None,
-        user_agent=request.headers.get("user-agent") if request else None
-    )
-    await db.activity_logs.insert_one(activity.dict())
+# Auth functions imported from auth/service.py
+# (verify_password, get_password_hash, create_access_token, create_refresh_token,
+#  get_current_user, get_current_admin_user, get_admin_user, log_activity)
 
 # Agency Onboarding Module - Inline Implementation
 # Since the separate module has import issues, implementing directly in server.py
