@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Users, Database } from "lucide-react";
 import { RBAC_API, ROLE_BADGES, fetcher } from "./shared";
+import { TenantMigrationPanel } from "./TenantMigrationPanel";
+
+const SUB_TABS = [
+  { id: "users", label: "Users & Roles", icon: Users },
+  { id: "migration", label: "Data Migration", icon: Database },
+];
 
 export const UserManagementTab = ({ currentRole }) => {
+  const [subTab, setSubTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState({});
