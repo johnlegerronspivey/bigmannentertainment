@@ -331,11 +331,21 @@ class SLATrackerService:
                     await self.notifications_col.insert_one({**notif, "_id": notif["id"]})
                     escalations_created += 1
 
-        return {
+        result = {
             "checked": len(at_risk),
             "escalations_created": escalations_created,
             "rules_applied": len(rules),
         }
+
+        # Broadcast escalation result via WebSocket
+        try:
+            from sla_ws_manager import sla_ws_manager
+            import asyncio
+            asyncio.ensure_future(sla_ws_manager.broadcast_escalation(result))
+        except Exception as e:
+            logger.warning(f"SLA WS broadcast failed: {e}")
+
+        return result
 
     async def get_escalation_log(self, limit: int = 50) -> Dict[str, Any]:
         """Get recent escalation log entries."""
