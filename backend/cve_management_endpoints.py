@@ -103,9 +103,9 @@ async def cve_health():
 # ─── Dashboard ─────────────────────────────────────────────────
 
 @router.get("/dashboard")
-async def get_dashboard():
+async def get_dashboard(tenant_id: Optional[str] = Depends(get_optional_tenant_id)):
     service = get_cve_management_service()
-    return await service.get_dashboard()
+    return await service.get_dashboard(tenant_id=tenant_id)
 
 
 # ─── CVE Entries ───────────────────────────────────────────────
@@ -118,15 +118,16 @@ async def list_cves(
     search: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
     skip: int = Query(0, ge=0),
+    tenant_id: Optional[str] = Depends(get_optional_tenant_id),
 ):
     svc = get_cve_management_service()
-    return await svc.list_cves(status=status, severity=severity, service=service, search=search, limit=limit, skip=skip)
+    return await svc.list_cves(status=status, severity=severity, service=service, search=search, limit=limit, skip=skip, tenant_id=tenant_id)
 
 
 @router.post("/entries")
-async def create_cve(body: CVECreate):
+async def create_cve(body: CVECreate, tenant_id: Optional[str] = Depends(get_optional_tenant_id)):
     svc = get_cve_management_service()
-    return await svc.create_cve(body.dict())
+    return await svc.create_cve(body.dict(), tenant_id=tenant_id)
 
 
 @router.get("/entries/{cve_entry_id}")
