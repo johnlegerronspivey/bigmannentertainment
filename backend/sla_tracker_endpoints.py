@@ -123,15 +123,26 @@ async def update_auto_escalation_config(body: AutoEscalationConfig):
 # ─── Phase 2: Notification Preferences ───────────────────────
 
 @router.get("/notification-preferences")
-async def get_notification_preferences():
+async def get_notification_preferences(user_id: Optional[str] = Query(None)):
     svc = get_sla_tracker_service()
-    return await svc.get_notification_preferences()
+    return await svc.get_notification_preferences(user_id=user_id)
 
 
 @router.put("/notification-preferences")
-async def update_notification_preferences(body: NotificationPreferences):
+async def update_notification_preferences(body: NotificationPreferences, user_id: Optional[str] = Query(None)):
     svc = get_sla_tracker_service()
-    return await svc.update_notification_preferences(body.dict())
+    return await svc.update_notification_preferences(body.dict(), user_id=user_id)
+
+
+@router.get("/notification-preferences/check")
+async def check_should_notify(
+    user_id: str = Query(...),
+    event_type: str = Query("sla_breach"),
+    severity: str = Query("critical"),
+):
+    """Check if a specific user should receive a given notification type."""
+    svc = get_sla_tracker_service()
+    return await svc.should_notify_user(user_id, event_type, severity)
 
 
 # ─── Phase 2: Escalation Workflow ────────────────────────────
