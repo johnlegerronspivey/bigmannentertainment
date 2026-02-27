@@ -150,21 +150,23 @@ export default function CVEManagementDashboard() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {tab === "overview" && <OverviewTab dashboard={dashboard} onRefresh={fetchDashboard} loading={loading} />}
-        {tab === "cves" && <CVEDatabaseTab onRefresh={fetchDashboard} />}
-        {tab === "scanners" && <ScannersTab onRefresh={fetchDashboard} />}
-        {tab === "remediation" && <RemediationTab onRefresh={fetchDashboard} />}
-        {tab === "governance" && <GovernanceTab onRefresh={fetchDashboard} />}
-        {tab === "sla-tracker" && <SLATrackerTab onRefresh={fetchDashboard} />}
-        {tab === "reporting" && <ReportingTab />}
-        {tab === "notifications" && <NotificationsTab onRefresh={fetchDashboard} unreadCount={unreadCount} onUnreadUpdate={fetchUnread} />}
-        {tab === "services" && <ServicesTab onRefresh={fetchDashboard} />}
-        {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
-        {tab === "cicd" && <CICDTab onRefresh={fetchDashboard} />}
-        {tab === "infra" && <InfraTab onRefresh={fetchDashboard} />}
-        {tab === "policy-engine" && <PolicyEngineTab onRefresh={fetchDashboard} />}
-        {tab === "policies" && <PoliciesTab onRefresh={fetchDashboard} />}
-        {tab === "audit" && <AuditTrailTab />}
-        {tab === "users" && hasPerm("users.view") && <UserManagementTab currentRole={cveRole} />}
+        <Suspense fallback={<TabFallback />}>
+          {tab === "cves" && <CVEDatabaseTab onRefresh={fetchDashboard} />}
+          {tab === "scanners" && <ScannersTab onRefresh={fetchDashboard} />}
+          {tab === "remediation" && <RemediationTab onRefresh={fetchDashboard} />}
+          {tab === "governance" && <GovernanceTab onRefresh={fetchDashboard} />}
+          {tab === "sla-tracker" && <SLATrackerTab onRefresh={fetchDashboard} />}
+          {tab === "reporting" && <ReportingTab />}
+          {tab === "notifications" && <NotificationsTab onRefresh={fetchDashboard} unreadCount={unreadCount} onUnreadUpdate={fetchUnread} />}
+          {tab === "services" && <ServicesTab onRefresh={fetchDashboard} />}
+          {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
+          {tab === "cicd" && <CICDTab onRefresh={fetchDashboard} />}
+          {tab === "infra" && <InfraTab onRefresh={fetchDashboard} />}
+          {tab === "policy-engine" && <PolicyEngineTab onRefresh={fetchDashboard} />}
+          {tab === "policies" && <PoliciesTab onRefresh={fetchDashboard} />}
+          {tab === "audit" && <AuditTrailTab />}
+          {tab === "users" && hasPerm("users.view") && <UserManagementTab currentRole={cveRole} />}
+        </Suspense>
       </div>
     </div>
   );
