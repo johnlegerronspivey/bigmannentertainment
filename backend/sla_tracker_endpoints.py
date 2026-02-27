@@ -42,6 +42,10 @@ class NotificationPreferences(BaseModel):
     notify_on_warning: bool = True
     notify_on_breach: bool = True
     notify_on_escalation: bool = True
+    muted_severities: List[str] = []
+    quiet_hours_enabled: bool = False
+    quiet_hours_start: str = "22:00"
+    quiet_hours_end: str = "07:00"
     per_severity: Dict[str, Dict[str, bool]] = {}
 
 
