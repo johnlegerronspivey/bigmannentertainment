@@ -708,64 +708,9 @@ async def check_rights_compliance():
 # (verify_password, get_password_hash, create_access_token, create_refresh_token,
 #  get_current_user, get_current_admin_user, get_admin_user, log_activity)
 
-# Agency Onboarding Module - Inline Implementation
-# Since the separate module has import issues, implementing directly in server.py
-
-class VerificationStatus(str, Enum):
-    PENDING = "pending"
-    VERIFIED = "verified"
-    REJECTED = "rejected"
-    SUSPENDED = "suspended"
-
-class LicenseType(str, Enum):
-    EXCLUSIVE = "exclusive"
-    NON_EXCLUSIVE = "non_exclusive"
-    RIGHTS_MANAGED = "rights_managed"
-    ROYALTY_FREE = "royalty_free"
-
-class BlockchainNetwork(str, Enum):
-    ETHEREUM = "ethereum"
-    SOLANA = "solana"
-    POLYGON = "polygon"
-
-class ContractStandard(str, Enum):
-    ERC721 = "erc721"
-    ERC1155 = "erc1155"
-    SPL_TOKEN = "spl_token"
-
-# Request Models
-class AgencyRegistrationRequest(BaseModel):
-    name: str = Field(..., min_length=2, max_length=200)
-    business_registration_number: Optional[str] = None
-    contact_info: Dict[str, Any]
-    wallet_addresses: Dict[str, str]
-    business_type: Optional[str] = None
-    tax_id: Optional[str] = None
-    operating_countries: List[str] = Field(default_factory=list)
-
-class TalentCreationRequest(BaseModel):
-    name: str = Field(..., min_length=2, max_length=100)
-    stage_name: Optional[str] = None
-    bio: str = Field(default="", max_length=2000)
-    age_range: Optional[str] = None
-    gender: Optional[str] = None
-    ethnicity: Optional[str] = None
-    categories: List[str] = Field(default_factory=list)
-    skills: List[str] = Field(default_factory=list)
-    languages: List[str] = Field(default_factory=list)
-
-class LicenseContractRequest(BaseModel):
-    asset_id: str
-    talent_id: Optional[str] = None
-    blockchain_network: str
-    contract_standard: str
-    license_type: str
-    base_price: float = Field(..., gt=0)
-    royalty_splits: Dict[str, float]
-    usage_terms: Dict[str, Any]
-    exclusivity: bool = False
-    duration_months: Optional[int] = None
-    territory: List[str] = Field(default_factory=lambda: ["worldwide"])
+# Agency models imported from models/agency.py
+# (VerificationStatus, LicenseType, BlockchainNetwork, ContractStandard,
+#  AgencyRegistrationRequest, TalentCreationRequest, LicenseContractRequest)
 
 # Create agency router - REPLACE THE OLD ONE
 agency_router = APIRouter(prefix="/agency", tags=["Agency Onboarding"])
