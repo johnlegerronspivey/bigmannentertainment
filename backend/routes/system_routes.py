@@ -9,6 +9,9 @@ from config.platforms import DISTRIBUTION_PLATFORMS
 from config.settings import settings
 from auth.service import get_current_user
 from models.core import User
+from cache_service import cache
+from performance_monitor import perf_monitor
+from db_optimizer import DatabaseOptimizer
 
 router = APIRouter(tags=["System"])
 

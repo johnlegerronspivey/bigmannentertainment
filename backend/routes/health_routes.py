@@ -1,6 +1,6 @@
 """Service health check endpoints."""
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 from fastapi import APIRouter
 from config.database import db

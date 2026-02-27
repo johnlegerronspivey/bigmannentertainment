@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Request
 from config.database import db
 from config.settings import settings
-from auth.service import get_current_user
+from auth.service import get_current_user, log_activity
 from models.core import User, ProductIdentifier, BusinessIdentifiers
 
 router = APIRouter(tags=["Business"])
