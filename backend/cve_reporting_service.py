@@ -604,6 +604,41 @@ class CVEReportingService:
         pdf.set_font("Helvetica", "B", 11)
         pdf.cell(0, 8, f"{sla_label} ({sla}%)", new_x="LMARGIN", new_y="NEXT")
 
+        # Embedded Risk Gauge
+        try:
+            import tempfile
+            gauge_bytes = self._render_risk_gauge(risk)
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp.write(gauge_bytes)
+                tmp_path = tmp.name
+            pdf.image(tmp_path, x=60, w=60)
+            os.unlink(tmp_path)
+            pdf.ln(4)
+        except Exception as e:
+            logger.warning(f"Gauge render failed: {e}")
+
+        # 7-Day Trend Chart
+        try:
+            import tempfile
+            trends = await self.get_dashboard_trends()
+            mini_trend = trends.get("mini_trend", [])
+            if mini_trend:
+                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_text_color(30, 30, 30)
+                pdf.cell(0, 10, "7-Day CVE Trend", new_x="LMARGIN", new_y="NEXT")
+                pdf.set_draw_color(0, 180, 216)
+                pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+                pdf.ln(4)
+                trend_bytes = self._render_trend_chart(mini_trend)
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                    tmp.write(trend_bytes)
+                    tmp_path = tmp.name
+                pdf.image(tmp_path, x=15, w=140)
+                os.unlink(tmp_path)
+                pdf.ln(4)
+        except Exception as e:
+            logger.warning(f"Trend chart render failed: {e}")
+
         # Footer
         pdf.ln(10)
         pdf.set_font("Helvetica", "I", 8)
