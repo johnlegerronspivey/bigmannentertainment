@@ -1,0 +1,1 @@
+export { ReportingTab } from "./ReportingTab";
