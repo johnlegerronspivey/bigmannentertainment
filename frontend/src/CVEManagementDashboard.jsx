@@ -45,6 +45,7 @@ const TABS = [
   { id: "sbom", label: "SBOM", icon: Layers },
   { id: "cicd", label: "CI/CD", icon: GitBranch },
   { id: "infra", label: "Infrastructure", icon: Cloud },
+  { id: "ticketing", label: "Ticketing", icon: Ticket },
   { id: "policy-engine", label: "Policy Engine", icon: Lock },
   { id: "policies", label: "SLA Policies", icon: Settings },
   { id: "audit", label: "Audit Trail", icon: Activity },
