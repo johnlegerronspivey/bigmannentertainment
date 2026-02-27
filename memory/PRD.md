@@ -54,6 +54,66 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - All 55 regression tests passed (33 deep + 22 original)
 - 4 import bugs found and fixed by testing agent
 
+### Frontend CVE Dashboard Refactoring (COMPLETE - Feb 28, 2026)
+- Decomposed InfraTab (995→297 lines), SLATrackerTab (736→121 lines), ReportingTab (513→77 lines)
+- Created `cve/infra/` (8 files), `cve/sla/` (8 files), `cve/reporting/` (7 files)
+- Extracted shared components to `cve/components/` (ChartTooltip, LoadingStates, CodeBlock, Collapsible, RiskGauge)
+- Centralized shared constants to `cve/constants.js` (CHART_COLORS, PIE_COLORS, STATUS_CHART_COLORS)
+- GovernanceTab updated to use shared imports (deduped ~30 lines)
+- Created barrel exports (`cve/index.js`, `cve/components/index.js`)
+- No file over 300 lines; zero code duplication for shared components
+- Frontend regression: 100% pass rate (iteration_36.json)
+
+## Frontend Directory Structure (Refactored Feb 28, 2026)
+
+```
+/app/frontend/src/cve/
+├── index.js              # Barrel export for all tabs
+├── shared.js             # API constants, fetcher, utility components
+├── constants.js          # Shared chart colors (deduped)
+├── components/           # Shared UI components
+│   ├── ChartTooltip.jsx
+│   ├── CodeBlock.jsx
+│   ├── Collapsible.jsx
+│   ├── LoadingStates.jsx
+│   ├── RiskGauge.jsx
+│   └── index.js
+├── infra/                # InfraTab decomposed (was 995 lines)
+│   ├── InfraTab.jsx (297)
+│   ├── LiveLambdaPanel.jsx
+│   ├── GitHubRunsPanel.jsx
+│   ├── TerraformStatePanel.jsx
+│   ├── TerraformModulesPanel.jsx
+│   ├── CdkConstructsPanel.jsx
+│   ├── DeploySteps.jsx
+│   ├── DeploymentLog.jsx
+│   ├── helpers.jsx
+│   └── index.js
+├── sla/                  # SLATrackerTab decomposed (was 736 lines)
+│   ├── SLATrackerTab.jsx (121)
+│   ├── DashboardView.jsx
+│   ├── AtRiskView.jsx
+│   ├── EscalationRulesView.jsx
+│   ├── EscalationWorkflowView.jsx
+│   ├── NotificationSettingsView.jsx
+│   ├── TrendsView.jsx
+│   ├── badges.jsx
+│   └── index.js
+├── reporting/            # ReportingTab decomposed (was 513 lines)
+│   ├── ReportingTab.jsx (77)
+│   ├── ExecutiveView.jsx
+│   ├── TrendsView.jsx
+│   ├── TeamView.jsx
+│   ├── ScannerView.jsx
+│   ├── ExportView.jsx
+│   └── index.js
+├── GovernanceTab.jsx (427, uses shared imports)
+├── OverviewTab.jsx
+├── CVEDatabaseTab.jsx
+├── RemediationTab.jsx
+└── ... (other tabs)
+```
+
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
@@ -71,3 +131,4 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - iteration_33.json - PDF Export + Dashboard (26/26 passed)
 - iteration_34.json - Initial Refactoring Regression (22/22 passed)
 - iteration_35.json - Deep Refactoring Regression (33/33 passed)
+- iteration_36.json - Frontend Refactoring Regression (100% pass)
