@@ -2,11 +2,12 @@
 CVE Management API Endpoints - Phase 1: CVE Brain & Core Dashboard
 """
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
 from cve_management_service import get_cve_management_service
+from tenant_context import get_optional_tenant_id
 
 router = APIRouter(prefix="/cve", tags=["CVE Management"])
 
