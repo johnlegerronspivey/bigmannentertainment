@@ -25,52 +25,68 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **CI/CD**: GitHub Actions (Lambda artifact build + upload)
 - **PDF Generation**: fpdf2 (for report exports)
 
+## Backend Directory Structure (Refactored Feb 27, 2026)
+
+```
+/app/backend/
+├── server.py                      # Main FastAPI app (~6595 lines, reduced from 8141)
+├── router_setup.py                # Central router registration
+├── config/                        # Extracted configuration
+│   ├── database.py                # MongoDB connection (db, client)
+│   ├── settings.py                # All env vars & constants
+│   └── platforms.py               # 119 distribution platform configs
+├── models/                        # Extracted Pydantic models
+│   ├── core.py                    # User, Token, Media, Purchase, NFT, etc.
+│   └── agency.py                  # Agency onboarding models
+├── auth/                          # Extracted authentication
+│   └── service.py                 # verify_password, create_token, get_current_user
+├── routes/                        # Route packages (for future endpoints)
+├── services/                      # Service packages (for future services)
+├── tests/                         # 31 test files
+├── providers/                     # Social media providers
+├── lambda/                        # AWS Lambda functions
+├── *_endpoints.py                 # API endpoint modules
+├── *_service.py                   # Business logic services
+└── *_models.py                    # Domain-specific models
+```
+
 ## Key Files
 
-### Backend
+### Backend Core
+- `/app/backend/server.py` - Main FastAPI app entry point
+- `/app/backend/router_setup.py` - Central router registration
+- `/app/backend/config/database.py` - MongoDB connection
+- `/app/backend/config/settings.py` - Environment variables
+- `/app/backend/config/platforms.py` - 119 distribution platform configs
+- `/app/backend/models/core.py` - Core Pydantic models
+- `/app/backend/models/agency.py` - Agency models
+- `/app/backend/auth/service.py` - Auth functions
+
+### CVE Management
 - `/app/backend/cve_management_service.py` - Core CVE brain service (Phase 1)
 - `/app/backend/cve_management_endpoints.py` - CVE API endpoints (prefix: /api/cve)
 - `/app/backend/scanner_service.py` - Multi-scanner orchestration (Phase 2)
-- `/app/backend/scanner_endpoints.py` - Scanner API endpoints (prefix: /api/cve/scanners)
+- `/app/backend/scanner_endpoints.py` - Scanner API endpoints
 - `/app/backend/remediation_service.py` - Remediation & GitHub/AWS integration (Phase 3)
-- `/app/backend/remediation_endpoints.py` - Remediation API endpoints (prefix: /api/cve/remediation)
 - `/app/backend/governance_service.py` - Governance analytics service (Phase 4)
-- `/app/backend/governance_endpoints.py` - Governance API endpoints (prefix: /api/cve/governance)
 - `/app/backend/notification_service.py` - Notification & reporting service (Phase 5)
-- `/app/backend/notification_endpoints.py` - Notification API endpoints
 - `/app/backend/rbac_service.py` - RBAC service (Phase 6)
-- `/app/backend/rbac_endpoints.py` - RBAC API endpoints
-- `/app/backend/sla_tracker_service.py` - SLA Tracker service (Phase 1 + Phase 2)
-- `/app/backend/sla_tracker_endpoints.py` - SLA API endpoints (prefix: /api/cve/sla)
-- `/app/backend/cve_reporting_service.py` - Advanced Reporting service (CSV + PDF export + dashboard trends)
-- `/app/backend/cve_reporting_endpoints.py` - Reporting API endpoints (prefix: /api/cve/reporting)
-- `/app/backend/iac_service.py` - Infrastructure Automation service (LIVE AWS/GitHub + CDK/TF parsing)
-- `/app/backend/iac_endpoints.py` - IaC API endpoints (prefix: /api/cve/iac)
+- `/app/backend/sla_tracker_service.py` - SLA Tracker service
+- `/app/backend/cve_reporting_service.py` - Advanced Reporting service
+- `/app/backend/iac_service.py` - Infrastructure Automation service
 
 ### Frontend (Refactored)
 - `/app/frontend/src/CVEManagementDashboard.jsx` - Thin orchestrator with responsive tabs
 - `/app/frontend/src/cve/shared.js` - Shared constants, API URLs, utility components
-- `/app/frontend/src/cve/OverviewTab.jsx` - Enhanced dashboard with trend indicators, sparkline
-- `/app/frontend/src/cve/CVEDatabaseTab.jsx` - CVE listing with debounced search, active filter chips
-- `/app/frontend/src/cve/AssignOwnerModal.jsx` - Owner assignment modal
-- `/app/frontend/src/cve/ScannersTab.jsx` - Security scanner tools
-- `/app/frontend/src/cve/RemediationTab.jsx` - GitHub issues/PRs, AWS findings
-- `/app/frontend/src/cve/GovernanceTab.jsx` - Charts, risk gauge, trends (with skeleton loading)
-- `/app/frontend/src/cve/NotificationsTab.jsx` - Notifications, preferences
-- `/app/frontend/src/cve/ServicesTab.jsx` - Service registry + SBOMTab
-- `/app/frontend/src/cve/CICDTab.jsx` - Pipeline generator
-- `/app/frontend/src/cve/PolicyEngineTab.jsx` - Policy-as-code rules engine
-- `/app/frontend/src/cve/PoliciesTab.jsx` - SLA policies config + AuditTrailTab
-- `/app/frontend/src/cve/UserManagementTab.jsx` - User management with RBAC
+- `/app/frontend/src/cve/OverviewTab.jsx` - Enhanced dashboard with trend indicators
+- `/app/frontend/src/cve/CVEDatabaseTab.jsx` - CVE listing with debounced search
 - `/app/frontend/src/cve/SLATrackerTab.jsx` - SLA Tracker with 6 sub-views
 - `/app/frontend/src/cve/ReportingTab.jsx` - Advanced Reporting with CSV + PDF export
-- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data + Terraform + CDK
+- `/app/frontend/src/cve/InfraTab.jsx` - Infrastructure Automation with LIVE data
 
 ### Infrastructure as Code
 - `/app/infra-terraform/` - Production-grade Terraform repository (47+ files)
-- `/app/infra-terraform/modules/` - 12 reusable modules
-- `/app/infra-cdk/` - CDK TypeScript project for Programmatic DOOH platform
-- `/app/infra-cdk/lib/constructs/` - 8 constructs
+- `/app/infra-cdk/` - CDK TypeScript project
 
 ## What's Been Implemented
 
@@ -81,35 +97,18 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Governance dashboards, Notifications, User Management & RBAC
 
 ### Enhanced SLA Tracking Phase 1 & 2 (COMPLETE)
-- SLA Dashboard, At-Risk CVEs, Configurable escalation rules
-- Auto-Escalation Scheduler, Proactive Email Notifications
-
 ### Advanced Reporting & Analytics (COMPLETE)
-- Executive Summary, Trends, Team Performance, Scanner Effectiveness, Export
-
 ### Infrastructure Automation (COMPLETE)
-- Terraform configs, Lambda function, GitHub Actions CI/CD
-- Live AWS/GitHub data integration
-- Terraform Modules Repository (12 modules)
-- CDK TypeScript Project + VPC Module
-
 ### PDF Export & Dashboard Enhancements (COMPLETE - Feb 20, 2026)
-- **PDF Export**: Professional formatted PDF reports (Executive, CVE Database, Team Performance)
-- **Dashboard Trends**: 7-day mini sparkline, week-over-week delta indicators
-- **Search Improvements**: Debounced search (350ms), active filter chips with clear all
-- **Loading Skeletons**: Animated skeleton states in Overview, Governance tabs
-- **Responsive Tabs**: Better tab navigation on mobile/tablet viewports
-- **New Backend Endpoints**: `/export/executive-pdf`, `/export/cves-pdf`, `/export/team-pdf`, `/dashboard-trends`
-- Test report: iteration_33.json (26/26 backend tests, 100% frontend verification)
-
-## Security Audit & Dependency Upgrades (Feb 2026)
-- **CVE-2026-25639 (axios)**: Already patched at v1.13.5
-- **fast-xml-parser**: Upgraded 5.3.4 -> 5.3.7 (fixed CRITICAL entity encoding bypass + HIGH DoS)
-- **minimatch**: Upgraded 3.1.2/5.1.6/9.0.5 -> 10.2.2 (fixed HIGH ReDoS)
-- **hono**: Upgraded 4.11.9 -> 4.12.2 (fixed LOW timing comparison)
-- **ajv**: Upgraded 6.12.6 -> 6.14.0, 8.17.1 -> 8.18.0 (fixed MODERATE ReDoS)
-- **bn.js**: Upgraded <5.2.3 -> >=5.2.3 via resolutions (fixed 8 MODERATE infinite loop vulnerabilities in wagmi/web3modal transitive deps)
-- **Final audit: 0 vulnerabilities found** (all severity levels resolved)
+### Security Audit & Dependency Upgrades (COMPLETE - Feb 2026)
+### Backend Codebase Refactoring (COMPLETE - Feb 27, 2026)
+- Extracted `config/` (database, settings, platforms) from server.py
+- Extracted `models/` (core, agency) from server.py
+- Extracted `auth/` (service) from server.py
+- Updated 17 dependent files to import from new module locations
+- Reduced server.py from 8141 to 6595 lines (-19%)
+- Created ARCHITECTURE.md documentation
+- All 22 regression tests passed (100%)
 
 ## Prioritized Backlog
 
@@ -121,15 +120,11 @@ All phases 1-6 complete with Enhanced SLA, Reporting, Live IaC, Terraform, CDK, 
 - Integration with external ticketing systems (Jira, ServiceNow)
 - Multi-tenant support
 - Advanced PDF with embedded charts/graphs
+- Further server.py decomposition (extract remaining inline endpoints)
 
 ## Test Credentials
 - Test user: cveadmin@test.com / Test1234!
 
 ## Test Reports
-- iteration_3.json - Advanced Reporting & Analytics
-- iteration_28.json - Enhanced SLA Tracking Phase 2
-- iteration_29.json - IaC Integration (Local)
-- iteration_30.json - IaC Live AWS/GitHub Integration (30/30 tests passed)
-- iteration_31.json - Terraform Modules Repository (15/15 tests passed)
-- iteration_32.json - CDK Constructs + VPC Module (25/25 tests passed)
 - iteration_33.json - PDF Export + Dashboard Enhancements (26/26 tests passed)
+- iteration_34.json - Backend Refactoring Regression (22/22 tests passed)
