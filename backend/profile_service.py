@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 import os
 
 # MongoDB connection (from existing server.py)
-from server import db
+from config.database import db
 
 class ProfileService:
     """Service for managing creator profiles"""

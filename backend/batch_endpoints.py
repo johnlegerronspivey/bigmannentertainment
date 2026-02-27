@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any, List
 import logging
 from datetime import datetime
 
-from server import get_current_user, get_current_admin_user as require_admin
+from auth.service import get_current_user, get_current_admin_user as require_admin
 from metadata_models import MetadataValidationConfig
 from batch_processing_service import BatchProcessingService
 
