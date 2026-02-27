@@ -1,8 +1,9 @@
 """Admin endpoints - notifications, user management, content moderation."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Form
 from config.database import db
+from config.platforms import DISTRIBUTION_PLATFORMS
 from auth.service import get_current_user, get_current_admin_user
 from models.core import User, MediaContent
 from models.agency import NotificationRequest
@@ -282,60 +283,4 @@ async def get_admin_analytics(current_user: User = Depends(get_current_admin_use
         }
     }
 
-# Include other endpoint routers
-
-# Initialize Payment Service
-try:
-    import payment_endpoints
-    from payment_service import PaymentService
-    
-    # Initialize the payment service with database
-    payment_service_instance = PaymentService(db)
-    payment_endpoints.payment_service = payment_service_instance
-    print("✅ Payment service initialized successfully")
-except ImportError as e:
-    print(f"⚠️ Payment service initialization failed: {str(e)}")
-except Exception as e:
-    print(f"⚠️ Payment service initialization error: {str(e)}")
-
-# Initialize Metadata Parser & Validator Services
-try:
-    import metadata_endpoints
-    import batch_endpoints
-    import reporting_endpoints
-    import rights_endpoints
-    import smart_contract_endpoints
-    import audit_endpoints
-    
-    # Initialize metadata services with database
-    services_dict = {}
-    metadata_endpoints.init_metadata_services(db, services_dict)
-    batch_endpoints.init_batch_service(db, services_dict)
-    reporting_endpoints.init_reporting_service(db, services_dict)
-    rights_endpoints.init_rights_service(db, services_dict)
-    smart_contract_endpoints.init_contract_service(db, services_dict)
-    audit_endpoints.init_audit_service(db, services_dict)
-    print("✅ Metadata Parser & Validator services initialized successfully")
-    print("✅ Batch Processing service initialized successfully")
-    print("✅ Advanced Reporting service initialized successfully")
-    print("✅ Rights & Compliance service initialized successfully")
-    print("✅ Smart Contract & DAO services initialized successfully")
-    print("✅ Audit Trail & Logging services initialized successfully")
-except ImportError as e:
-    print(f"⚠️ Metadata services initialization failed: {str(e)}")
-except Exception as e:
-    print(f"⚠️ Metadata services initialization error: {str(e)}")
-
-# Initialize GS1 service
-try:
-    from gs1_endpoints import init_gs1_service
-    init_gs1_service(db)
-    print("✅ GS1 Asset Registry service initialized successfully")
-except ImportError as e:
-    print(f"⚠️ GS1 service not available: {e}")
-
-# Include all routers in the api_router to get /api prefix
-
-# Integration Hub Health Endpoints (MLC, MDE, pDOOH)
-@router.get("/mlc/health")
 
