@@ -171,3 +171,4 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - iteration_37.json - Frontend Refactoring Phase 2 (Governance + Remediation decomposition, 100% pass)
 - iteration_38.json - React.lazy() code splitting for all tab components (14/14 lazy tabs pass, 100%)
 - iteration_39.json - Route-level code splitting for App.js (99 lazy components, 14+ routes tested, 100%)
+- iteration_40.json - ChunkErrorBoundary wrapping lazy routes & tabs (regression: all routes/tabs pass, 100%)
