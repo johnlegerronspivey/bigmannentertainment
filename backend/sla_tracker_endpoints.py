@@ -3,11 +3,12 @@ SLA Tracker API Endpoints - Enhanced SLA Tracking (Phase 2)
 Includes auto-escalation config, escalation workflows, notification prefs, and digest.
 """
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 
 from sla_tracker_service import get_sla_tracker_service
+from tenant_context import get_optional_tenant_id
 
 router = APIRouter(prefix="/cve/sla", tags=["SLA Tracker"])
 
