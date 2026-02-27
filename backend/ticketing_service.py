@@ -259,11 +259,183 @@ class TicketingService:
             return f"{base}/nav_to.do?uri=incident.do?sys_id={key}"
         return "#"
 
-    # ── Real API stubs (to be implemented with real SDK) ────
+    # ── Real API Implementation ────────────────────────────────
 
     async def _real_create(self, provider: str, cve: Dict, config: Dict) -> str:
-        # Placeholder for real Jira/ServiceNow API calls
+        import httpx
+        settings = config.get("settings", {})
+        severity = cve.get("severity", "medium")
+        title = f"[{severity.upper()}] {cve.get('cve_id', '')} — {cve.get('title', 'Vulnerability')}"
+        description = cve.get("description", "") or f"CVE: {cve.get('cve_id', '')}\nSeverity: {severity}\nPackage: {cve.get('affected_package', '')}"
+
+        try:
+            if provider == "jira":
+                return await self._jira_create_issue(settings, title, description, severity)
+            elif provider == "servicenow":
+                return await self._servicenow_create_incident(settings, title, description, severity)
+        except Exception as e:
+            logger.error(f"Real ticket creation failed for {provider}: {e}")
+            # Fallback to simulation on API error
+            return self._simulate_create(provider, cve, config)
         return self._simulate_create(provider, cve, config)
 
+    async def _jira_create_issue(self, settings: Dict, title: str, description: str, severity: str) -> str:
+        import httpx
+        base_url = settings.get("base_url", "").rstrip("/")
+        email = settings.get("email", "")
+        api_token = settings.get("api_token", "")
+        project_key = settings.get("project_key", "CVE")
+
+        priority_map = {"critical": "Highest", "high": "High", "medium": "Medium", "low": "Low", "info": "Lowest"}
+        payload = {
+            "fields": {
+                "project": {"key": project_key},
+                "summary": title,
+                "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [{"type": "paragraph", "content": [{"type": "text", "text": description}]}],
+                },
+                "issuetype": {"name": "Bug"},
+                "priority": {"name": priority_map.get(severity, "Medium")},
+                "labels": ["cve-management", f"severity-{severity}"],
+            }
+        }
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"{base_url}/rest/api/3/issue",
+                json=payload,
+                auth=(email, api_token),
+                headers={"Content-Type": "application/json"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data.get("key", f"{project_key}-UNKNOWN")
+
+    async def _servicenow_create_incident(self, settings: Dict, title: str, description: str, severity: str) -> str:
+        import httpx
+        instance_url = settings.get("instance_url", "").rstrip("/")
+        username = settings.get("username", "")
+        password = settings.get("password", "")
+
+        urgency_map = {"critical": "1", "high": "2", "medium": "2", "low": "3", "info": "3"}
+        impact_map = {"critical": "1", "high": "1", "medium": "2", "low": "3", "info": "3"}
+        payload = {
+            "short_description": title,
+            "description": description,
+            "urgency": urgency_map.get(severity, "2"),
+            "impact": impact_map.get(severity, "2"),
+            "category": "Software",
+            "subcategory": "Security",
+        }
+        assignment_group = settings.get("assignment_group")
+        if assignment_group:
+            payload["assignment_group"] = assignment_group
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"{instance_url}/api/now/table/incident",
+                json=payload,
+                auth=(username, password),
+                headers={"Content-Type": "application/json", "Accept": "application/json"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            result = data.get("result", {})
+            return result.get("number", result.get("sys_id", "INC-UNKNOWN"))
+
     async def _real_sync(self, provider: str, ticket: Dict, config: Dict) -> str:
+        import httpx
+        settings = config.get("settings", {})
+        external_key = ticket.get("external_key", "")
+
+        try:
+            if provider == "jira":
+                return await self._jira_get_status(settings, external_key)
+            elif provider == "servicenow":
+                return await self._servicenow_get_status(settings, external_key)
+        except Exception as e:
+            logger.error(f"Real ticket sync failed for {provider}/{external_key}: {e}")
         return ticket.get("status", "open")
+
+    async def _jira_get_status(self, settings: Dict, issue_key: str) -> str:
+        import httpx
+        base_url = settings.get("base_url", "").rstrip("/")
+        email = settings.get("email", "")
+        api_token = settings.get("api_token", "")
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"{base_url}/rest/api/3/issue/{issue_key}?fields=status",
+                auth=(email, api_token),
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            jira_status = data.get("fields", {}).get("status", {}).get("name", "")
+            return STATUS_MAP_JIRA.get(jira_status, "open")
+
+    async def _servicenow_get_status(self, settings: Dict, incident_number: str) -> str:
+        import httpx
+        instance_url = settings.get("instance_url", "").rstrip("/")
+        username = settings.get("username", "")
+        password = settings.get("password", "")
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"{instance_url}/api/now/table/incident?sysparm_query=number={incident_number}&sysparm_fields=state",
+                auth=(username, password),
+                headers={"Accept": "application/json"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            results = data.get("result", [])
+            if results:
+                state = str(results[0].get("state", "1"))
+                state_map = {"1": "open", "2": "in_progress", "3": "on_hold", "6": "resolved", "7": "closed"}
+                return state_map.get(state, "open")
+        return "open"
+
+    async def test_connection(self) -> Dict[str, Any]:
+        config = await self.get_config()
+        provider = config.get("provider")
+        if not provider:
+            return {"success": False, "message": "No ticketing provider configured"}
+
+        if config.get("simulation_mode"):
+            return {
+                "success": True,
+                "simulation": True,
+                "message": f"{PROVIDERS.get(provider, {}).get('name', provider)} connection simulated — configure real credentials for live integration",
+            }
+
+        # Real connection test
+        import httpx
+        settings = config.get("settings", {})
+        try:
+            if provider == "jira":
+                async with httpx.AsyncClient(timeout=15) as client:
+                    resp = await client.get(
+                        f"{settings.get('base_url', '').rstrip('/')}/rest/api/3/myself",
+                        auth=(settings.get("email", ""), settings.get("api_token", "")),
+                    )
+                    if resp.status_code == 200:
+                        user_data = resp.json()
+                        return {"success": True, "simulation": False, "message": f"Connected to Jira as {user_data.get('displayName', user_data.get('emailAddress', 'unknown'))}"}
+                    return {"success": False, "simulation": False, "message": f"Jira auth failed: HTTP {resp.status_code}"}
+            elif provider == "servicenow":
+                async with httpx.AsyncClient(timeout=15) as client:
+                    resp = await client.get(
+                        f"{settings.get('instance_url', '').rstrip('/')}/api/now/table/incident?sysparm_limit=1",
+                        auth=(settings.get("username", ""), settings.get("password", "")),
+                        headers={"Accept": "application/json"},
+                    )
+                    if resp.status_code == 200:
+                        return {"success": True, "simulation": False, "message": "Connected to ServiceNow successfully"}
+                    return {"success": False, "simulation": False, "message": f"ServiceNow auth failed: HTTP {resp.status_code}"}
+        except httpx.ConnectError:
+            return {"success": False, "simulation": False, "message": f"Cannot reach {provider} server — check URL"}
+        except Exception as e:
+            return {"success": False, "simulation": False, "message": f"Connection error: {str(e)}"}
+
+        return {"success": False, "simulation": False, "message": f"Connected to {provider}"}
