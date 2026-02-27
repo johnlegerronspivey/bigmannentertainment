@@ -70,6 +70,11 @@ class TicketingService:
         self.tickets_col = db["cve_tickets"]
         self.cves_col = db["cve_entries"]
 
+    def _tenant_filter(self, query: Dict, tenant_id: Optional[str] = None) -> Dict:
+        if tenant_id:
+            query["tenant_id"] = tenant_id
+        return query
+
     # ── Configuration ────────────────────────────────────────
 
     async def get_config(self) -> Dict[str, Any]:
