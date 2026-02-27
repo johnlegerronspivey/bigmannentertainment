@@ -73,6 +73,14 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **Backend API additions**: `GET /api/cve/iac/github/repo`, `GET /api/cve/iac/s3/artifacts`, `GET /api/cve/iac/cloudwatch/alarms`
 - All data sourced from real AWS and GitHub APIs using user's credentials
 
+### Tenant Data Migration (COMPLETE - Feb 27, 2026)
+- **Migration Analysis API**: `GET /api/tenants/migration-analysis` returns per-collection breakdown of total/legacy/migrated documents with available tenants
+- **Migration Execution API**: `POST /api/tenants/migrate-data` assigns target tenant_id to all legacy documents across 18 CVE collections + users
+- **Auto-indexing**: Creates MongoDB `tenant_id` indexes on all migrated collections for query performance
+- **Simplified _tenant_filter**: Removed backward-compatible `$or` logic (legacy doc fallback) from `cve_management_service.py` and `ticketing_service.py` — now strict equality
+- **Admin UI Panel**: New "Data Migration" sub-tab under Users & RBAC with summary cards (Total/Legacy/Status), collection breakdown table, and one-click migration with tenant selector
+- **Migration result**: 275 legacy documents migrated to Default Organization tenant across 18 collections
+
 ## Key Files
 
 ### Backend
