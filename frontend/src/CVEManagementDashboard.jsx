@@ -1,20 +1,33 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer, FileBarChart, Cloud } from "lucide-react";
+import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer, FileBarChart, Cloud, Loader2 } from "lucide-react";
 import { API, NOTIFICATION_API, RBAC_API, fetcher, ROLE_BADGES } from "./cve/shared";
+
+// Eagerly load the default tab for instant first paint
 import { OverviewTab } from "./cve/OverviewTab";
-import { CVEDatabaseTab } from "./cve/CVEDatabaseTab";
-import { ScannersTab } from "./cve/ScannersTab";
-import { RemediationTab } from "./cve/remediation";
-import { GovernanceTab } from "./cve/governance";
-import { NotificationsTab } from "./cve/NotificationsTab";
-import { ServicesTab, SBOMTab } from "./cve/ServicesTab";
-import { CICDTab } from "./cve/CICDTab";
-import { PolicyEngineTab } from "./cve/PolicyEngineTab";
-import { PoliciesTab, AuditTrailTab } from "./cve/PoliciesTab";
-import { UserManagementTab } from "./cve/UserManagementTab";
-import { SLATrackerTab } from "./cve/sla";
-import { ReportingTab } from "./cve/reporting";
-import { InfraTab } from "./cve/infra";
+
+// Lazy-load all other tabs — only fetched when the user navigates to them
+const CVEDatabaseTab = lazy(() => import("./cve/CVEDatabaseTab").then(m => ({ default: m.CVEDatabaseTab })));
+const ScannersTab = lazy(() => import("./cve/ScannersTab").then(m => ({ default: m.ScannersTab })));
+const RemediationTab = lazy(() => import("./cve/remediation").then(m => ({ default: m.RemediationTab })));
+const GovernanceTab = lazy(() => import("./cve/governance").then(m => ({ default: m.GovernanceTab })));
+const NotificationsTab = lazy(() => import("./cve/NotificationsTab").then(m => ({ default: m.NotificationsTab })));
+const ServicesTab = lazy(() => import("./cve/ServicesTab").then(m => ({ default: m.ServicesTab })));
+const SBOMTab = lazy(() => import("./cve/ServicesTab").then(m => ({ default: m.SBOMTab })));
+const CICDTab = lazy(() => import("./cve/CICDTab").then(m => ({ default: m.CICDTab })));
+const PolicyEngineTab = lazy(() => import("./cve/PolicyEngineTab").then(m => ({ default: m.PolicyEngineTab })));
+const PoliciesTab = lazy(() => import("./cve/PoliciesTab").then(m => ({ default: m.PoliciesTab })));
+const AuditTrailTab = lazy(() => import("./cve/PoliciesTab").then(m => ({ default: m.AuditTrailTab })));
+const UserManagementTab = lazy(() => import("./cve/UserManagementTab").then(m => ({ default: m.UserManagementTab })));
+const SLATrackerTab = lazy(() => import("./cve/sla").then(m => ({ default: m.SLATrackerTab })));
+const ReportingTab = lazy(() => import("./cve/reporting").then(m => ({ default: m.ReportingTab })));
+const InfraTab = lazy(() => import("./cve/infra").then(m => ({ default: m.InfraTab })));
+
+const TabFallback = () => (
+  <div className="flex items-center justify-center py-20">
+    <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
+    <span className="ml-3 text-slate-400 text-sm">Loading...</span>
+  </div>
+);
 
 const TABS = [
   { id: "overview", label: "Overview", icon: Shield },
