@@ -73,6 +73,28 @@ export const UserManagementTab = ({ currentRole }) => {
 
   return (
     <div data-testid="user-management-tab" className="space-y-6">
+      {/* Sub-tab navigation */}
+      <div className="flex gap-2 border-b border-slate-700/50 pb-1">
+        {SUB_TABS.map((st) => (
+          <button
+            key={st.id}
+            data-testid={`subtab-${st.id}`}
+            onClick={() => setSubTab(st.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm transition-colors ${
+              subTab === st.id
+                ? "bg-slate-800/80 text-cyan-400 font-medium border-b-2 border-cyan-400"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/30"
+            }`}
+          >
+            <st.icon className="w-4 h-4" /> {st.label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "migration" && <TenantMigrationPanel />}
+
+      {subTab === "users" && (
+      <>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-white">User Management</h2>
