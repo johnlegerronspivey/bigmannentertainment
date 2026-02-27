@@ -289,9 +289,9 @@ class TestAdditionalEndpoints:
         pytest.skip("Authentication failed")
     
     def test_cve_dashboard_trends(self, auth_token):
-        """GET /api/cve/dashboard/trends should return trend data"""
+        """GET /api/cve/reporting/dashboard-trends should return trend data"""
         response = requests.get(
-            f"{BASE_URL}/api/cve/dashboard/trends",
+            f"{BASE_URL}/api/cve/reporting/dashboard-trends",
             headers={"Authorization": f"Bearer {auth_token}"}
         )
         assert response.status_code == 200
