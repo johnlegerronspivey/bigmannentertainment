@@ -145,9 +145,12 @@ export const NotificationSettingsView = ({ autoConfig, notifPrefs, fetchAll }) =
           })}
         </div>
         <button data-testid="save-notif-prefs-btn" onClick={savePrefs} disabled={saving === "prefs"} className="flex items-center gap-2 px-4 py-2 mt-5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm transition-colors disabled:opacity-50">
-          <Save className="w-4 h-4" /> {saving === "prefs" ? "Saving..." : "Save Notification Preferences"}
+          <Save className="w-4 h-4" /> {saving === "prefs" ? "Saving..." : "Save Global Preferences"}
         </button>
       </div>
+
+      {/* Per-User WebSocket Notification Preferences */}
+      <NotificationPreferencesPanel userId={getCurrentUserId()} />
 
       {/* SLA Digest */}
       <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-6">
