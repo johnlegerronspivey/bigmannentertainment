@@ -23,6 +23,7 @@ const UserManagementTab = lazy(() => import("./cve/UserManagementTab").then(m =>
 const SLATrackerTab = lazy(() => import("./cve/sla").then(m => ({ default: m.SLATrackerTab })));
 const ReportingTab = lazy(() => import("./cve/reporting").then(m => ({ default: m.ReportingTab })));
 const InfraTab = lazy(() => import("./cve/infra").then(m => ({ default: m.InfraTab })));
+const TicketingTab = lazy(() => import("./cve/TicketingTab").then(m => ({ default: m.TicketingTab })));
 
 const TabFallback = () => (
   <div className="flex items-center justify-center py-20">
