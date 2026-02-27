@@ -71,18 +71,10 @@ class TicketingService:
         self.cves_col = db["cve_entries"]
 
     def _tenant_filter(self, query: Dict, tenant_id: Optional[str] = None) -> Dict:
+        """Inject tenant_id into a MongoDB query if provided.
+        Strict mode: only matches documents with the exact tenant_id."""
         if tenant_id:
-            tenant_cond = {"$or": [
-                {"tenant_id": tenant_id},
-                {"tenant_id": {"$exists": False}},
-                {"tenant_id": ""},
-            ]}
-            if "$or" in query:
-                existing = dict(query)
-                query.clear()
-                query["$and"] = [existing, tenant_cond]
-            else:
-                query.update(tenant_cond)
+            query["tenant_id"] = tenant_id
         return query
 
     # ── Configuration ────────────────────────────────────────
