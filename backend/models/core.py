@@ -24,6 +24,8 @@ class User(BaseModel):
     is_admin: bool = False
     is_verified: bool = False
     role: str = "user"
+    tenant_id: Optional[str] = ""
+    tenant_name: Optional[str] = ""
     last_login: Optional[datetime] = None
     login_count: int = 0
     account_status: str = "active"
