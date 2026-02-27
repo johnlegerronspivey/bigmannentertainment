@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { Shield, AlertTriangle, RefreshCw, Scan, Server, Layers, GitBranch, Lock, Settings, Activity, Wrench, BarChart3, Bell, Users, Timer, FileBarChart, Cloud, Loader2 } from "lucide-react";
 import { API, NOTIFICATION_API, RBAC_API, fetcher, ROLE_BADGES } from "./cve/shared";
+import { ChunkErrorBoundary } from "./components/ChunkErrorBoundary";
 
 // Eagerly load the default tab for instant first paint
 import { OverviewTab } from "./cve/OverviewTab";
@@ -150,6 +151,7 @@ export default function CVEManagementDashboard() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {tab === "overview" && <OverviewTab dashboard={dashboard} onRefresh={fetchDashboard} loading={loading} />}
+        <ChunkErrorBoundary variant="tab">
         <Suspense fallback={<TabFallback />}>
           {tab === "cves" && <CVEDatabaseTab onRefresh={fetchDashboard} />}
           {tab === "scanners" && <ScannersTab onRefresh={fetchDashboard} />}
@@ -167,6 +169,7 @@ export default function CVEManagementDashboard() {
           {tab === "audit" && <AuditTrailTab />}
           {tab === "users" && hasPerm("users.view") && <UserManagementTab currentRole={cveRole} />}
         </Suspense>
+        </ChunkErrorBoundary>
       </div>
     </div>
   );
