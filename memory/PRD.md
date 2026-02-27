@@ -87,6 +87,14 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Both named-export (.then() pattern) and default-export components handled
 - Tested 14+ routes including rapid navigation — 100% pass rate (iteration_39.json)
 
+### ChunkErrorBoundary for Lazy Routes & Tabs (COMPLETE - Feb 28, 2026)
+- Created `/app/frontend/src/components/ChunkErrorBoundary.jsx` — class component with getDerivedStateFromError
+- Detects chunk load failures (ChunkLoadError, "Loading chunk", "dynamically imported module", etc.)
+- Two variants: `page` (route-level, full-height centered card) and `tab` (inline compact for CVE tabs)
+- Chunk errors trigger "Reload page" (window.location.reload); other errors trigger "Try again" (state reset)
+- Applied to App.js (wraps Suspense around Routes) and CVEManagementDashboard.jsx (wraps Suspense around tabs)
+- Regression tested: all routes and tabs still load correctly — 100% pass rate (iteration_40.json)
+
 ## Frontend Directory Structure (Refactored Feb 28, 2026)
 
 ```
