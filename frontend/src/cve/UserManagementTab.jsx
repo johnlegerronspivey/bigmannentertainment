@@ -205,6 +205,8 @@ export const UserManagementTab = ({ currentRole }) => {
           </div>
         </div>
       )}
+      </>
+      )}
     </div>
   );
 };
