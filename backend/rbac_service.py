@@ -1,18 +1,60 @@
 """
 Phase 6: RBAC Service for CVE Management Platform
-Roles: admin, manager, analyst
+Roles: super_admin, tenant_admin, admin, manager, analyst
 """
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List
 from motor.motor_asyncio import AsyncIOMotorDatabase
+
+# Role hierarchy (higher index = more privileged)
+ROLE_HIERARCHY = ["analyst", "manager", "admin", "tenant_admin", "super_admin"]
 
 # Role definitions with permissions
 ROLES = {
-    "admin": {
-        "label": "Admin",
-        "description": "Full platform access including user management",
+    "super_admin": {
+        "label": "Super Admin",
+        "description": "Global platform admin — manages all tenants and cross-tenant operations",
         "permissions": [
             "users.view", "users.manage",
+            "tenants.view", "tenants.create", "tenants.delete", "tenants.manage",
+            "migration.view", "migration.run",
+            "cves.view", "cves.create", "cves.edit", "cves.delete", "cves.assign",
+            "scans.run", "scans.view",
+            "remediation.view", "remediation.manage",
+            "governance.view",
+            "notifications.view", "notifications.manage",
+            "policies.view", "policies.manage",
+            "services.view", "services.manage",
+            "reports.view", "reports.export",
+            "audit.view",
+            "sbom.view", "sbom.generate",
+            "cicd.view", "cicd.manage",
+        ],
+    },
+    "tenant_admin": {
+        "label": "Tenant Admin",
+        "description": "Organization admin — manages users and settings within own tenant",
+        "permissions": [
+            "users.view", "users.manage",
+            "tenants.view_own",
+            "cves.view", "cves.create", "cves.edit", "cves.delete", "cves.assign",
+            "scans.run", "scans.view",
+            "remediation.view", "remediation.manage",
+            "governance.view",
+            "notifications.view", "notifications.manage",
+            "policies.view", "policies.manage",
+            "services.view", "services.manage",
+            "reports.view", "reports.export",
+            "audit.view",
+            "sbom.view", "sbom.generate",
+            "cicd.view", "cicd.manage",
+        ],
+    },
+    "admin": {
+        "label": "Admin",
+        "description": "Full CVE platform access within own tenant",
+        "permissions": [
+            "users.view",
             "cves.view", "cves.create", "cves.edit", "cves.delete", "cves.assign",
             "scans.run", "scans.view",
             "remediation.view", "remediation.manage",
