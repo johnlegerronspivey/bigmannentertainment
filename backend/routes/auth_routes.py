@@ -28,20 +28,6 @@ MAX_LOGIN_ATTEMPTS = settings.MAX_LOGIN_ATTEMPTS
 LOCKOUT_DURATION_MINUTES = settings.LOCKOUT_DURATION_MINUTES
 PASSWORD_RESET_TOKEN_EXPIRE_HOURS = settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS
 
-def calculate_upc_check_digit(upc_11_digits: str) -> str:
-    """Calculate check digit for UPC code using the standard algorithm"""
-    if len(upc_11_digits) != 11:
-        raise ValueError("UPC must be 11 digits for check digit calculation")
-    
-    odd_sum = sum(int(upc_11_digits[i]) for i in range(0, 11, 2))  # Digits at positions 1, 3, 5, 7, 9, 11
-    even_sum = sum(int(upc_11_digits[i]) for i in range(1, 11, 2))  # Digits at positions 2, 4, 6, 8, 10
-    
-    # Corrected UPC-A algorithm: (even_sum * 3) + odd_sum
-    total = (even_sum * 3) + odd_sum
-    check_digit = (10 - (total % 10)) % 10
-    
-    return str(check_digit)
-
 # API Endpoints
 @router.post("/auth/register", response_model=Token)
 async def register_user(user_data: UserCreate, request: Request):
