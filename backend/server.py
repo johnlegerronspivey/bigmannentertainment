@@ -334,6 +334,26 @@ async def stripe_webhook_handler(request: Request):
 # ============================================================
 # Global Health Check Endpoints (outside /api prefix)
 # ============================================================
+# ============================================================
+# SLA WebSocket Endpoint
+# ============================================================
+from fastapi import WebSocket, WebSocketDisconnect
+from sla_ws_manager import sla_ws_manager
+
+@app.websocket("/api/ws/sla")
+async def sla_websocket_endpoint(websocket: WebSocket):
+    await sla_ws_manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Client can send "ping" to keep alive
+            if data == "ping":
+                await websocket.send_text('{"type":"pong"}')
+    except WebSocketDisconnect:
+        sla_ws_manager.disconnect(websocket)
+    except Exception:
+        sla_ws_manager.disconnect(websocket)
+
 @app.get("/")
 async def root():
     return {"message": "Big Mann Entertainment API", "version": "1.0.0", "status": "operational"}
