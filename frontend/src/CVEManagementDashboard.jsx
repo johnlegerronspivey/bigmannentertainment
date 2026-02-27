@@ -12,9 +12,9 @@ import { CICDTab } from "./cve/CICDTab";
 import { PolicyEngineTab } from "./cve/PolicyEngineTab";
 import { PoliciesTab, AuditTrailTab } from "./cve/PoliciesTab";
 import { UserManagementTab } from "./cve/UserManagementTab";
-import { SLATrackerTab } from "./cve/SLATrackerTab";
-import { ReportingTab } from "./cve/ReportingTab";
-import { InfraTab } from "./cve/InfraTab";
+import { SLATrackerTab } from "./cve/sla";
+import { ReportingTab } from "./cve/reporting";
+import { InfraTab } from "./cve/infra";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: Shield },
