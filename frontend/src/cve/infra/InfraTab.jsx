@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Cloud, Server, GitBranch, Terminal, Box, Activity, RefreshCw, Zap,
-  Database, Package, Clock, Code, Rocket
+  Database, Package, Clock, Code, Rocket, HardDrive, Bell
 } from "lucide-react";
 import { fetcher } from "../shared";
 import { Collapsible, CodeBlock } from "../components";
@@ -10,11 +10,21 @@ import { DeploySteps } from "./DeploySteps";
 import { DeploymentLog } from "./DeploymentLog";
 import { LiveLambdaPanel } from "./LiveLambdaPanel";
 import { GitHubRunsPanel } from "./GitHubRunsPanel";
+import { GitHubRepoPanel } from "./GitHubRepoPanel";
 import { TerraformStatePanel } from "./TerraformStatePanel";
 import { TerraformModulesPanel, TerraformEnvsPanel } from "./TerraformModulesPanel";
 import { CdkConstructsPanel } from "./CdkConstructsPanel";
+import { S3ArtifactsPanel } from "./S3ArtifactsPanel";
+import { CloudWatchAlarmsPanel } from "./CloudWatchAlarmsPanel";
 
 const IAC_API = `${process.env.REACT_APP_BACKEND_URL}/api/cve/iac`;
+
+const REFRESH_INTERVALS = [
+  { label: "Off", value: 0 },
+  { label: "30s", value: 30 },
+  { label: "1m", value: 60 },
+  { label: "5m", value: 300 },
+];
 
 export const InfraTab = ({ onRefresh }) => {
   const [overview, setOverview] = useState(null);
@@ -29,10 +39,17 @@ export const InfraTab = ({ onRefresh }) => {
   const [liveStatus, setLiveStatus] = useState(null);
   const [lambdaLive, setLambdaLive] = useState(null);
   const [ghRuns, setGhRuns] = useState(null);
+  const [ghRepo, setGhRepo] = useState(null);
   const [tfState, setTfState] = useState(null);
   const [tfModules, setTfModules] = useState(null);
   const [cdkData, setCdkData] = useState(null);
+  const [s3Data, setS3Data] = useState(null);
+  const [s3Prefix, setS3Prefix] = useState("");
+  const [cwAlarms, setCwAlarms] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(0);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const intervalRef = useRef(null);
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -45,17 +62,34 @@ export const InfraTab = ({ onRefresh }) => {
       fetcher(`${IAC_API}/live-status`).catch(() => null),
       fetcher(`${IAC_API}/lambda/live`).catch(() => null),
       fetcher(`${IAC_API}/github/runs`).catch(() => null),
+      fetcher(`${IAC_API}/github/repo`).catch(() => null),
       fetcher(`${IAC_API}/terraform/state?environment=${selectedEnv}`).catch(() => null),
       fetcher(`${IAC_API}/terraform/modules`).catch(() => null),
       fetcher(`${IAC_API}/cdk/constructs`).catch(() => null),
-    ]).then(([ov, tf, lm, wf, dep, ls, ll, gr, ts, tm, cdk]) => {
+      fetcher(`${IAC_API}/s3/artifacts?prefix=${s3Prefix}&max_keys=50`).catch(() => null),
+      fetcher(`${IAC_API}/cloudwatch/alarms`).catch(() => null),
+    ]).then(([ov, tf, lm, wf, dep, ls, ll, gr, gri, ts, tm, cdk, s3, cw]) => {
       setOverview(ov); setTerraform(tf); setLambda(lm); setWorkflow(wf);
       setDeployments(dep); setLiveStatus(ls); setLambdaLive(ll); setGhRuns(gr);
-      setTfState(ts); setTfModules(tm); setCdkData(cdk); setLoading(false);
+      setGhRepo(gri); setTfState(ts); setTfModules(tm); setCdkData(cdk);
+      setS3Data(s3); setCwAlarms(cw);
+      setLoading(false);
+      setLastRefresh(new Date());
     });
-  }, [selectedEnv]);
+  }, [selectedEnv, s3Prefix]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Auto-refresh
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (autoRefresh > 0) {
+      intervalRef.current = setInterval(() => {
+        loadData();
+      }, autoRefresh * 1000);
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [autoRefresh, loadData]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -68,6 +102,11 @@ export const InfraTab = ({ onRefresh }) => {
       fetcher(`${IAC_API}/terraform/state?environment=${selectedEnv}`).then(setTfState).catch(() => setTfState(null));
     }
   }, [selectedEnv, loading]);
+
+  const handleS3Navigate = (prefix) => {
+    setS3Prefix(prefix);
+    fetcher(`${IAC_API}/s3/artifacts?prefix=${prefix}&max_keys=50`).then(setS3Data).catch(() => setS3Data(null));
+  };
 
   const handleRecordDeploy = async () => {
     setRecording(true);
@@ -115,14 +154,42 @@ export const InfraTab = ({ onRefresh }) => {
             <LiveBadge connected={conn?.github?.connected} detail={conn?.github?.detail} />
             <span className="text-xs text-slate-500">GitHub</span>
           </div>
+          <div className="flex items-center gap-1.5" data-testid="conn-cloudwatch">
+            <LiveBadge connected={cwAlarms?.connected} detail={cwAlarms?.error || `${cwAlarms?.total || 0} alarms`} />
+            <span className="text-xs text-slate-500">CloudWatch</span>
+          </div>
         </div>
-        <button data-testid="refresh-live-btn" onClick={handleRefresh} className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Auto-refresh selector */}
+          <div className="flex items-center gap-1 bg-slate-900/60 rounded-lg px-2 py-1 border border-slate-700/40">
+            <Clock className="w-3 h-3 text-slate-500" />
+            {REFRESH_INTERVALS.map(({ label, value }) => (
+              <button
+                key={value}
+                data-testid={`auto-refresh-${value}`}
+                onClick={() => setAutoRefresh(value)}
+                className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
+                  autoRefresh === value ? "bg-cyan-500/20 text-cyan-300" : "text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <button data-testid="refresh-live-btn" onClick={handleRefresh} className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Refresh
+          </button>
+        </div>
+        {lastRefresh && (
+          <div className="text-[10px] text-slate-600 w-full text-right">
+            Last updated: {lastRefresh.toLocaleTimeString()}
+            {autoRefresh > 0 && <span className="ml-2 text-cyan-500/60">Auto-refresh: {autoRefresh}s</span>}
+          </div>
+        )}
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
         <div data-testid="stat-terraform" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-violet-500/10"><Cloud className="w-5 h-5 text-violet-400" /></div>
@@ -158,12 +225,36 @@ export const InfraTab = ({ onRefresh }) => {
         <div data-testid="stat-github-actions" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-cyan-500/10"><GitBranch className="w-5 h-5 text-cyan-400" /></div>
-            <span className="text-slate-400 text-sm">GitHub Actions</span>
+            <span className="text-slate-400 text-sm">GitHub</span>
           </div>
           <div className="flex items-center gap-2">
             <StatusDot ok={overview?.github_actions?.configured || ghRuns?.connected} />
             <span className="text-white font-semibold">
-              {ghRuns?.connected ? (ghRuns.runs?.length > 0 ? `${ghRuns.runs.length} Runs` : "Connected") : overview?.github_actions?.configured ? "Active" : "Missing"}
+              {ghRepo?.connected ? ghRepo.repo?.name?.split("/")[1] || "Connected" : "Missing"}
+            </span>
+          </div>
+        </div>
+        <div data-testid="stat-s3" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-teal-500/10"><HardDrive className="w-5 h-5 text-teal-400" /></div>
+            <span className="text-slate-400 text-sm">S3</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatusDot ok={s3Data?.connected} />
+            <span className="text-white font-semibold">
+              {s3Data?.connected ? `${s3Data.total_objects} Objects` : "Offline"}
+            </span>
+          </div>
+        </div>
+        <div data-testid="stat-cloudwatch" className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-red-500/10"><Bell className="w-5 h-5 text-red-400" /></div>
+            <span className="text-slate-400 text-sm">Alarms</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatusDot ok={cwAlarms?.connected && cwAlarms?.in_alarm === 0} />
+            <span className={`font-semibold ${cwAlarms?.in_alarm > 0 ? "text-red-400" : "text-white"}`}>
+              {cwAlarms?.connected ? (cwAlarms.in_alarm > 0 ? `${cwAlarms.in_alarm} Active` : `${cwAlarms.total} OK`) : "Offline"}
             </span>
           </div>
         </div>
@@ -198,12 +289,29 @@ export const InfraTab = ({ onRefresh }) => {
         </div>
       </div>
 
+      {/* Live Panels */}
       <Collapsible title="AWS Lambda Functions (Live)" icon={Zap} defaultOpen testId="section-lambda-live" badge={<LiveBadge connected={lambdaLive?.connected} detail={lambdaLive?.error || "OK"} />}>
         <LiveLambdaPanel data={lambdaLive} />
       </Collapsible>
 
+      <Collapsible title="GitHub Repository" icon={GitBranch} defaultOpen testId="section-github-repo" badge={<LiveBadge connected={ghRepo?.connected} detail={ghRepo?.error || "OK"} />}>
+        <GitHubRepoPanel data={ghRepo} />
+      </Collapsible>
+
       <Collapsible title="GitHub Actions Runs (Live)" icon={GitBranch} testId="section-github-runs" badge={<LiveBadge connected={ghRuns?.connected} detail={ghRuns?.error || "OK"} />}>
         <GitHubRunsPanel data={ghRuns} />
+      </Collapsible>
+
+      <Collapsible title="S3 Artifacts" icon={HardDrive} defaultOpen testId="section-s3-artifacts" badge={<LiveBadge connected={s3Data?.connected} detail={s3Data?.error || `${s3Data?.total_objects || 0} objects`} />}>
+        <S3ArtifactsPanel data={s3Data} onNavigate={handleS3Navigate} />
+      </Collapsible>
+
+      <Collapsible title="CloudWatch Alarms" icon={Bell} defaultOpen testId="section-cloudwatch-alarms" badge={
+        cwAlarms?.in_alarm > 0
+          ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-500/15 text-red-300 border border-red-500/30">{cwAlarms.in_alarm} ALARM</span>
+          : <LiveBadge connected={cwAlarms?.connected} detail={cwAlarms?.error || `${cwAlarms?.total || 0} alarms`} />
+      }>
+        <CloudWatchAlarmsPanel data={cwAlarms} />
       </Collapsible>
 
       <Collapsible title={`Terraform State — ${selectedEnv.toUpperCase()} (Live)`} icon={Database} testId="section-terraform-state" badge={<LiveBadge connected={tfState?.connected} detail={tfState?.error || "OK"} />}>
