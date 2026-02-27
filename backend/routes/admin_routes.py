@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, Form
 from config.database import db
 from config.platforms import DISTRIBUTION_PLATFORMS
 from auth.service import get_current_user, get_current_admin_user
-from models.core import User, MediaContent
+from models.core import User, MediaContent, UserUpdate
 from models.agency import NotificationRequest
 
 router = APIRouter(tags=["Admin"])
