@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from config.database import db
 from config.settings import settings
 from auth.service import get_current_user
-from models.core import User, ProductIdentifier
+from models.core import User, ProductIdentifier, BusinessIdentifiers
 
 router = APIRouter(tags=["Business"])
 
