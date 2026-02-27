@@ -168,6 +168,7 @@ export default function CVEManagementDashboard() {
           {tab === "sbom" && <SBOMTab onRefresh={fetchDashboard} />}
           {tab === "cicd" && <CICDTab onRefresh={fetchDashboard} />}
           {tab === "infra" && <InfraTab onRefresh={fetchDashboard} />}
+          {tab === "ticketing" && <TicketingTab onRefresh={fetchDashboard} />}
           {tab === "policy-engine" && <PolicyEngineTab onRefresh={fetchDashboard} />}
           {tab === "policies" && <PoliciesTab onRefresh={fetchDashboard} />}
           {tab === "audit" && <AuditTrailTab />}
