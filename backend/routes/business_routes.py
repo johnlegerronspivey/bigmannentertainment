@@ -4,7 +4,7 @@ import hashlib
 import random
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from config.database import db
 from config.settings import settings
 from auth.service import get_current_user
