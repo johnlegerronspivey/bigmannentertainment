@@ -1,3 +1,8 @@
+"""
+Distribution platform configurations.
+Extracted from server.py - 119 platforms across social media, streaming, radio, TV, etc.
+"""
+
 DISTRIBUTION_PLATFORMS = {
     # Major Social Media Platforms (12 platforms)
     "instagram": {
