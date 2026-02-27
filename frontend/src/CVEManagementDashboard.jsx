@@ -4,8 +4,8 @@ import { API, NOTIFICATION_API, RBAC_API, fetcher, ROLE_BADGES } from "./cve/sha
 import { OverviewTab } from "./cve/OverviewTab";
 import { CVEDatabaseTab } from "./cve/CVEDatabaseTab";
 import { ScannersTab } from "./cve/ScannersTab";
-import { RemediationTab } from "./cve/RemediationTab";
-import { GovernanceTab } from "./cve/GovernanceTab";
+import { RemediationTab } from "./cve/remediation";
+import { GovernanceTab } from "./cve/governance";
 import { NotificationsTab } from "./cve/NotificationsTab";
 import { ServicesTab, SBOMTab } from "./cve/ServicesTab";
 import { CICDTab } from "./cve/CICDTab";
