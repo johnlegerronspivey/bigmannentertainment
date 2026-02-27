@@ -110,10 +110,13 @@ class CVEManagementService:
             "recent_activity": recent_activity,
         }
 
-    async def _count_overdue(self, policies: Dict) -> int:
+    async def _count_overdue(self, policies: Dict, tenant_id: Optional[str] = None) -> int:
         count = 0
         now = datetime.now(timezone.utc)
-        cursor = self.cves_col.find({"status": {"$in": ["detected", "triaged", "in_progress"]}}, {"_id": 0})
+        cursor = self.cves_col.find(
+            self._tenant_filter({"status": {"$in": ["detected", "triaged", "in_progress"]}}, tenant_id),
+            {"_id": 0}
+        )
         async for cve in cursor:
             sev = cve.get("severity", "medium")
             policy = policies.get(sev, {})
