@@ -1,0 +1,1 @@
+export { InfraTab } from "./InfraTab";
