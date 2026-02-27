@@ -20,27 +20,7 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - **Charts**: Recharts (frontend), Matplotlib (PDF charts)
 - **IaC**: Terraform + AWS CDK (TypeScript)
 - **PDF**: fpdf2 + matplotlib
-
-## Backend Directory Structure (Updated Feb 27, 2026)
-
-```
-/app/backend/
-├── server.py            # Main app entry + SLA WebSocket endpoint
-├── router_setup.py      # External router registration
-├── config/              # database.py, settings.py, platforms.py
-├── models/              # core.py, agency.py
-├── auth/                # service.py
-├── routes/              # 11 route modules
-├── services/            # 5 service modules
-├── tests/               # 33+ test files
-├── sla_ws_manager.py    # NEW: SLA WebSocket broadcast manager
-├── ticketing_service.py # NEW: Jira/ServiceNow integration
-├── ticketing_endpoints.py # NEW: Ticketing API endpoints
-├── tenant_service.py    # NEW: Multi-tenant management
-├── tenant_endpoints.py  # NEW: Tenant API endpoints
-├── cve_reporting_service.py # ENHANCED: Matplotlib chart embedding
-└── ...existing modules
-```
+- **HTTP Client**: httpx (for Jira/ServiceNow API calls)
 
 ## What's Been Implemented
 
@@ -55,87 +35,86 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### React.lazy() Code Splitting (COMPLETE - Feb 28, 2026)
 ### Route-Level Code Splitting (COMPLETE - Feb 28, 2026)
 ### ChunkErrorBoundary (COMPLETE - Feb 28, 2026)
-
 ### P2 Backlog Features (COMPLETE - Feb 27, 2026)
 
-#### 1. Real-time WebSocket SLA Notifications
-- Created `sla_ws_manager.py` — manages WS connections, broadcasts SLA events
-- WebSocket endpoint at `/api/ws/sla` with ping/pong keepalive
-- Broadcasts: `escalation_run`, `sla_breach`, `sla_warning` events
-- Hooked into `run_escalations()` flow for automatic broadcast
-- Frontend: `useSLAWebSocket` hook with auto-reconnect (exponential backoff)
-- Frontend: `SLANotificationBanner` component with live connection status, collapsible alerts
-- Integrated into CVEManagementDashboard header area
+### Per-Tenant Data Scoping (COMPLETE - Feb 27, 2026)
+- Added `tenant_id` and `tenant_name` fields to User model
+- Created `tenant_context.py` with `get_optional_tenant_id` and `get_required_tenant_id` FastAPI dependencies
+- CVEManagementService: `_tenant_filter()` uses backward-compatible `$or` to include legacy docs without tenant_id
+- Tenant filtering applied to: `get_dashboard`, `list_cves`, `create_cve`, `_count_overdue`
+- Ticketing: `list_tickets`, `create_ticket`, `bulk_create_tickets`, `get_stats` all accept `tenant_id`
+- Endpoints use `Depends(get_optional_tenant_id)` for seamless auth-based scoping
+- New CVEs and tickets get `tenant_id` set from authenticated user
 
-#### 2. External Ticketing Integration (Jira & ServiceNow)
-- Created `ticketing_service.py` — configuration, ticket CRUD, sync, bulk create
-- Supports Jira and ServiceNow providers with simulation mode when no credentials
-- API endpoints: config, test-connection, create/list/sync tickets, bulk create, stats
-- Frontend: `TicketingTab.jsx` with config panel, stats grid, ticket list, bulk actions
-- Added as lazy-loaded tab in CVE Management Dashboard
-- **NOTE**: Currently in SIMULATION MODE — real API integration requires credentials
+### Live Jira/ServiceNow Integration (COMPLETE - Feb 27, 2026)
+- Implemented real Jira REST API v3 calls: create issue (`POST /rest/api/3/issue`), get status
+- Implemented real ServiceNow REST API: create incident, get status by number
+- Real `test_connection` endpoint: validates Jira auth via `/rest/api/3/myself`, ServiceNow via incident table
+- Simulation mode auto-detected when credentials are incomplete
+- Graceful fallback to simulation if real API call fails
+- httpx used for async HTTP with 30s timeout
 
-#### 3. Multi-Tenant Support
-- Created `tenant_service.py` — organization CRUD, plan limits, user assignment
-- Plans: Free (5 users), Pro (25 users), Enterprise (unlimited)
-- Seed default tenant assigns all existing users
-- API endpoints: CRUD, stats, user assignment, seed
-- Frontend: `TenantManagement.jsx` page with org cards, detail panel, user list
-- Route: `/tenant-management` with nav link
-- Foundation for per-tenant data scoping (to be progressively applied)
+### Per-User WebSocket Notification Preferences (COMPLETE - Feb 27, 2026)
+- Per-user preference storage with `sla_notif_prefs:{user_id}` key in MongoDB
+- New fields: `muted_severities`, `quiet_hours_enabled`, `quiet_hours_start/end`, per-severity `ws` channel toggle
+- `should_notify_user()` method checks: muted severities, quiet hours, event type toggles, per-severity channels
+- New API endpoint: `GET /api/cve/sla/notification-preferences/check` for real-time notification decision
+- WebSocket manager upgraded to user_id-keyed connections
+- Frontend: `NotificationPreferencesPanel.jsx` with per-severity channel matrix, quiet hours, mute toggles
+- Integrated into SLA Tracker > Notifications sub-view
 
-#### 4. Advanced PDF with Embedded Charts
-- Added `_render_severity_chart()` — matplotlib horizontal bar chart
-- Added `_render_risk_gauge()` — polar projection gauge with needle
-- Added `_render_trend_chart()` — 7-day CVE trend area chart
-- All 3 charts embedded in executive PDF via fpdf2 `image()` method
-- PDF size: ~47KB (vs ~5KB text-only), 3 embedded PNG images verified
+## Key Files
 
-## Frontend Directory Structure (Updated Feb 27, 2026)
+### Backend
+```
+/app/backend/
+├── tenant_context.py          # NEW: FastAPI tenant auth dependencies
+├── cve_management_service.py  # MODIFIED: tenant filtering on all queries
+├── cve_management_endpoints.py # MODIFIED: get_optional_tenant_id dependency
+├── ticketing_service.py       # MODIFIED: real Jira/ServiceNow API, tenant filtering
+├── ticketing_endpoints.py     # MODIFIED: tenant scoping
+├── sla_tracker_service.py     # MODIFIED: per-user prefs, should_notify_user
+├── sla_tracker_endpoints.py   # MODIFIED: user_id param, /check endpoint
+├── sla_ws_manager.py          # MODIFIED: user_id-keyed connections
+├── server.py                  # MODIFIED: WS endpoint passes user_id
+├── models/core.py             # MODIFIED: User has tenant_id, tenant_name
+├── tenant_service.py          # Tenant CRUD operations
+└── tenant_endpoints.py        # Tenant API endpoints
+```
 
+### Frontend
 ```
 /app/frontend/src/
-├── CVEManagementDashboard.jsx  # Updated: SLA banner + Ticketing tab
-├── TenantManagement.jsx        # NEW: Multi-tenant admin page
 ├── cve/
-│   ├── SLANotificationBanner.jsx # NEW: Real-time SLA alert banner
-│   ├── TicketingTab.jsx          # NEW: Jira/ServiceNow ticketing UI
-│   ├── hooks/
-│   │   └── useSLAWebSocket.js    # NEW: WebSocket hook with auto-reconnect
-│   ├── sla/                      # Existing SLA tracker views
-│   ├── infra/                    # Existing infrastructure views
-│   ├── governance/               # Existing governance views
-│   ├── remediation/              # Existing remediation views
-│   ├── reporting/                # Existing reporting views
-│   └── components/               # Shared UI components
-├── components/
-│   └── ChunkErrorBoundary.jsx    # Error boundary for lazy loading
-└── App.js                        # Updated: tenant route + nav link
+│   ├── NotificationPreferencesPanel.jsx  # NEW: per-user WS notification prefs UI
+│   ├── hooks/useSLAWebSocket.js          # MODIFIED: passes userId to WS
+│   ├── sla/NotificationSettingsView.jsx  # MODIFIED: integrates prefs panel
+│   ├── TicketingTab.jsx                  # Ticketing config + ticket list
+│   └── SLANotificationBanner.jsx         # Real-time SLA alert banner
+├── CVEManagementDashboard.jsx            # Main dashboard with all tabs
+└── TenantManagement.jsx                  # Tenant admin page
 ```
 
 ## Prioritized Backlog
 
 ### P0 - All Core Features (COMPLETE)
 ### P1 - P2 Backlog (COMPLETE)
+### P1 - Data Scoping & Integration (COMPLETE)
 
 ### P2 - Future Tasks
-- Per-tenant data scoping (apply tenant_id filters to all queries)
-- Real Jira/ServiceNow API integration (when credentials provided)
 - Tenant billing and usage tracking
 - Role-based tenant admin (tenant admin vs super admin)
-- WebSocket SLA notification preferences per user
 - PDF custom report builder with drag-and-drop chart selection
+- Strict tenant isolation (remove backward-compatible legacy doc access)
+- Real-time WebSocket preference-based filtering (broadcast only to matching users)
 
 ## Test Credentials
 - Test user: cveadmin@test.com / Test1234!
+- Tenant: Default Organization (40e6f47e-b021-4605-9e1c-7a0992854f6c)
 
 ## Test Reports
-- iteration_33.json - PDF Export + Dashboard (26/26 passed)
-- iteration_34.json - Initial Refactoring Regression (22/22 passed)
-- iteration_35.json - Deep Refactoring Regression (33/33 passed)
-- iteration_36.json - Frontend Refactoring Phase 1 (100% pass)
-- iteration_37.json - Frontend Refactoring Phase 2 (100% pass)
-- iteration_38.json - React.lazy() code splitting (100% pass)
-- iteration_39.json - Route-level code splitting (100% pass)
+- iteration_42.json - Per-tenant scoping, Jira/ServiceNow, Per-user WS prefs (19/19 backend, 100% frontend)
+- iteration_41.json - P2 Backlog Features (86% backend, 100% frontend)
 - iteration_40.json - ChunkErrorBoundary (100% pass)
-- iteration_41.json - P2 Backlog Features (86% backend, 100% frontend - 3 timeouts were network-related)
+- iteration_39.json - Route-level code splitting (100% pass)
+- iteration_38.json - React.lazy() code splitting (100% pass)
