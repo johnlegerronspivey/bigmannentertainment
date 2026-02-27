@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import authentication function
 try:
-    from server import get_current_admin_user, get_current_user
+    from auth.service import get_current_admin_user, get_current_user
 except ImportError:
     # Fallback if import fails
     def get_current_admin_user():

@@ -568,7 +568,7 @@ async def generate_comprehensive_platform_licenses(
     try:
         # Import with error handling
         try:
-            from server import DISTRIBUTION_PLATFORMS
+            from config.platforms import DISTRIBUTION_PLATFORMS
         except ImportError as e:
             logger.error(f"Failed to import DISTRIBUTION_PLATFORMS: {e}")
             raise HTTPException(status_code=500, detail="Failed to load distribution platforms configuration")

@@ -125,7 +125,7 @@ class SocialMediaStrategyService:
         self.campaigns_collection = db.social_media_campaigns
         
         # Get social media platforms from main server
-        from server import DISTRIBUTION_PLATFORMS
+        from config.platforms import DISTRIBUTION_PLATFORMS
         self.all_platforms = DISTRIBUTION_PLATFORMS
         
         # Filter to get only social media platforms
