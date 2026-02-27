@@ -493,34 +493,86 @@ class SLATrackerService:
         return config
 
     # ─── Phase 2: Notification Preferences ────────────────────
-    async def get_notification_preferences(self) -> Dict[str, Any]:
-        doc = await self.sla_config_col.find_one({"key": "sla_notif_prefs"}, {"_id": 0})
+    async def get_notification_preferences(self, user_id: Optional[str] = None) -> Dict[str, Any]:
+        key = f"sla_notif_prefs:{user_id}" if user_id else "sla_notif_prefs"
+        doc = await self.sla_config_col.find_one({"key": key}, {"_id": 0})
+        if not doc:
+            # Fall back to global defaults
+            doc = await self.sla_config_col.find_one({"key": "sla_notif_prefs"}, {"_id": 0})
         if not doc:
             doc = {
-                "key": "sla_notif_prefs",
+                "key": key,
+                "user_id": user_id or "",
                 "notify_on_warning": True,
                 "notify_on_breach": True,
                 "notify_on_escalation": True,
+                "muted_severities": [],
+                "quiet_hours_enabled": False,
+                "quiet_hours_start": "22:00",
+                "quiet_hours_end": "07:00",
                 "per_severity": {
-                    "critical": {"email": True, "in_app": True},
-                    "high": {"email": True, "in_app": True},
-                    "medium": {"email": False, "in_app": True},
-                    "low": {"email": False, "in_app": True},
+                    "critical": {"email": True, "in_app": True, "ws": True},
+                    "high": {"email": True, "in_app": True, "ws": True},
+                    "medium": {"email": False, "in_app": True, "ws": True},
+                    "low": {"email": False, "in_app": True, "ws": False},
                 },
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
-            await self.sla_config_col.insert_one({**doc, "_id": "sla_notif_prefs"})
+            await self.sla_config_col.insert_one({**doc, "_id": key})
         doc.pop("key", None)
         return doc
 
-    async def update_notification_preferences(self, prefs: Dict[str, Any]) -> Dict[str, Any]:
-        prefs["key"] = "sla_notif_prefs"
+    async def update_notification_preferences(self, prefs: Dict[str, Any], user_id: Optional[str] = None) -> Dict[str, Any]:
+        key = f"sla_notif_prefs:{user_id}" if user_id else "sla_notif_prefs"
+        prefs["key"] = key
+        prefs["user_id"] = user_id or ""
         prefs["updated_at"] = datetime.now(timezone.utc).isoformat()
         await self.sla_config_col.update_one(
-            {"key": "sla_notif_prefs"}, {"$set": prefs}, upsert=True
+            {"key": key}, {"$set": prefs}, upsert=True
         )
         prefs.pop("key", None)
         return prefs
+
+    async def should_notify_user(self, user_id: str, event_type: str, severity: str) -> Dict[str, bool]:
+        """Check if a user should receive a specific notification type."""
+        prefs = await self.get_notification_preferences(user_id=user_id)
+
+        # Check muted severities
+        muted = prefs.get("muted_severities", [])
+        if severity in muted:
+            return {"email": False, "in_app": False, "ws": False}
+
+        # Check quiet hours
+        if prefs.get("quiet_hours_enabled", False):
+            now = datetime.now(timezone.utc)
+            try:
+                start_h, start_m = map(int, prefs.get("quiet_hours_start", "22:00").split(":"))
+                end_h, end_m = map(int, prefs.get("quiet_hours_end", "07:00").split(":"))
+                current_minutes = now.hour * 60 + now.minute
+                start_minutes = start_h * 60 + start_m
+                end_minutes = end_h * 60 + end_m
+                if start_minutes > end_minutes:
+                    in_quiet = current_minutes >= start_minutes or current_minutes < end_minutes
+                else:
+                    in_quiet = start_minutes <= current_minutes < end_minutes
+                if in_quiet:
+                    return {"email": False, "in_app": True, "ws": False}
+            except (ValueError, TypeError):
+                pass
+
+        # Check per-event-type toggle
+        type_map = {"sla_warning": "notify_on_warning", "sla_breach": "notify_on_breach", "escalation_run": "notify_on_escalation"}
+        toggle_key = type_map.get(event_type, "notify_on_warning")
+        if not prefs.get(toggle_key, True):
+            return {"email": False, "in_app": False, "ws": False}
+
+        # Check per-severity settings
+        sev_prefs = prefs.get("per_severity", {}).get(severity, {"email": False, "in_app": True, "ws": True})
+        return {
+            "email": sev_prefs.get("email", False),
+            "in_app": sev_prefs.get("in_app", True),
+            "ws": sev_prefs.get("ws", True),
+        }
 
     # ─── Phase 2: Escalation Workflow ─────────────────────────
     async def acknowledge_escalation(self, log_id: str, acknowledged_by: str = "") -> Dict[str, Any]:
