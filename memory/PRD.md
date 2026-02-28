@@ -89,10 +89,12 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ├── iac_service.py             # MODIFIED: Added get_github_repo_info(), get_s3_artifacts(), get_cloudwatch_alarms()
 ├── iac_endpoints.py           # MODIFIED: Added /github/repo, /s3/artifacts, /cloudwatch/alarms endpoints
 ├── tenant_context.py          # FastAPI tenant auth dependencies
-├── tenant_service.py          # MODIFIED: Added analyze_migration(), run_data_migration() methods
-├── tenant_endpoints.py        # MODIFIED: Added /migration-analysis, /migrate-data endpoints
-├── cve_management_service.py  # MODIFIED: Simplified _tenant_filter (strict equality)
-├── ticketing_service.py       # MODIFIED: Simplified _tenant_filter (strict equality), real Jira/ServiceNow API
+├── tenant_service.py          # Tenant CRUD + migration analysis/execution
+├── tenant_endpoints.py        # MODIFIED: Auth-protected with _require_super_admin(), _require_tenant_view()
+├── rbac_service.py            # MODIFIED: 5-role RBAC hierarchy, can_assign_role(), tenant-scoped queries
+├── rbac_endpoints.py          # MODIFIED: Role hierarchy enforcement, tenant scoping, sync endpoint
+├── cve_management_service.py  # Simplified _tenant_filter (strict equality)
+├── ticketing_service.py       # Simplified _tenant_filter (strict equality), real Jira/ServiceNow API
 ├── sla_tracker_service.py     # per-user prefs, should_notify_user
 ├── sla_ws_manager.py          # user_id-keyed connections
 ├── server.py                  # WS endpoint passes user_id
