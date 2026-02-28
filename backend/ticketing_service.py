@@ -146,7 +146,7 @@ class TicketingService:
     # ── Ticket CRUD ──────────────────────────────────────────
 
     async def create_ticket(self, cve_id: str, tenant_id: Optional[str] = None) -> Dict[str, Any]:
-        config = await self.get_config()
+        config = await self.get_config(tenant_id)
         provider = config.get("provider")
         if not provider:
             return {"error": "No ticketing provider configured"}
