@@ -93,6 +93,8 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ├── tenant_endpoints.py        # MODIFIED: Auth-protected with _require_super_admin(), _require_tenant_view()
 ├── rbac_service.py            # MODIFIED: 5-role RBAC hierarchy, can_assign_role(), tenant-scoped queries
 ├── rbac_endpoints.py          # MODIFIED: Role hierarchy enforcement, tenant scoping, sync endpoint
+├── ticketing_service.py       # MODIFIED: Per-tenant config, credential masking, get_config_masked()
+├── ticketing_endpoints.py     # MODIFIED: Auth-protected config (super_admin/tenant_admin), per-tenant
 ├── cve_management_service.py  # Simplified _tenant_filter (strict equality)
 ├── ticketing_service.py       # Simplified _tenant_filter (strict equality), real Jira/ServiceNow API
 ├── sla_tracker_service.py     # per-user prefs, should_notify_user
