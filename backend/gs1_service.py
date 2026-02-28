@@ -5,6 +5,7 @@ Core business logic for GS1 identifier generation, validation, and management
 
 import asyncio
 import hashlib
+import os
 import qrcode
 import io
 import base64
