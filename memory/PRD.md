@@ -134,6 +134,15 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 - Frontend: Tenants management panel (stats, create/delete), role dropdowns filtered by hierarchy
 - Backend tenant_id backfill on cve_users, sync endpoint for data consistency
 
+### P1 - Full Ticketing Configuration UI (COMPLETE - Feb 28, 2026)
+- Auth-protected config endpoints: only super_admin/tenant_admin can manage ticketing config
+- Per-tenant configuration: each org gets its own Jira/ServiceNow setup
+- Credential masking: API responses never expose full tokens (shows ••••XXXX)
+- Smart merge: saving masked values preserves existing real credentials
+- Redesigned frontend: provider cards, field help text, eye toggle for secrets, connection banner
+- Live/Simulation/Unconfigured status indicator, Disconnect button, Test Connection
+- Stats cards showing ticket counts and mode
+
 ### P2 - Future Tasks
 - Full Ticketing Configuration UI (admin frontend for Jira/ServiceNow credentials)
 - Tenant billing and usage tracking
