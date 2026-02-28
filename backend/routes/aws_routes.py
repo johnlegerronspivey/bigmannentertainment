@@ -143,11 +143,10 @@ async def upload_metadata_file(
             # Send notification if requested
             if send_notification:
                 try:
-                    await email_service.send_file_upload_notification(
-                        current_user.email,
-                        current_user.full_name,
-                        file.filename,
-                        "metadata"
+                    await enhanced_email_service.send_email_with_fallback(
+                        to_email=current_user.email,
+                        subject="Metadata Upload Complete",
+                        html_content=f"<p>Hi {current_user.full_name},</p><p>Your metadata file <strong>{file.filename}</strong> has been uploaded successfully.</p>"
                     )
                 except Exception as e:
                     print(f"Failed to send notification: {str(e)}")
