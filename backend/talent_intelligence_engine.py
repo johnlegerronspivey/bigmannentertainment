@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Gemini Integration via emergentintegrations
+# Gemini Integration
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 
@@ -124,7 +124,7 @@ class TalentIntelligenceEngine:
     
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get("EMERGENT_LLM_KEY")
+        self.api_key = os.environ.get("EMERGENT_LLM_KEY")  # LLM API key
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
         

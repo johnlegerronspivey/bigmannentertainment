@@ -220,7 +220,7 @@ class StripePaymentService:
             raise HTTPException(status_code=500, detail="Stripe checkout not initialized")
         
         try:
-            # Process webhook with emergentintegrations
+            # Process webhook with stripe integration
             webhook_response = await self.stripe_checkout.handle_webhook(webhook_body, stripe_signature)
             
             logger.info(f"Webhook received: {webhook_response.event_type} for session {webhook_response.session_id}")
