@@ -94,16 +94,9 @@
                 const observer = new MutationObserver(function(mutations) {
                     mutations.forEach(function(mutation) {
                         mutation.addedNodes.forEach(function(node) {
-                            if (node.tagName === 'SCRIPT') {
+                            if (node.tagName === 'SCRIPT' || node.tagName === 'IFRAME') {
                                 const src = node.src || '';
-                                if (blockList.some(blocked => src.includes(blocked))) {
-                                    console.log('[BME] Blocked injected script:', src);
-                                    node.remove();
-                                }
-                            } else if (node.tagName === 'IFRAME') {
-                                const src = node.src || '';
-                                if (blockList.some(blocked => src.includes(blocked))) {
-                                    console.log('[BME] Blocked injected iframe:', src);
+                                if (isBlocked(src)) {
                                     node.remove();
                                 }
                             }
@@ -148,9 +141,7 @@
                 const message = args.join(' ');
                 if (message.includes('connect.facebook.net') || 
                     message.includes('fbevents') ||
-                    message.includes('api.emergent.sh') ||
-                    message.includes('app.emergent.sh')) {
-                    // Suppress external platform errors
+                    blockPatterns.some(p => p.test(message))) {
                     return;
                 }
                 originalConsoleError.apply(console, args);
