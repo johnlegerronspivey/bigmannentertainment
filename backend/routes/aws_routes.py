@@ -3,6 +3,7 @@ import os
 import json
 import uuid
 import hashlib
+import logging
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, File, Form, UploadFile, Request
@@ -12,14 +13,18 @@ from models.core import User
 
 router = APIRouter(tags=["AWS"])
 
-# Lazy service imports to avoid circular dependencies
-def _get_s3_service():
-    from services.s3_svc import S3Service
-    return S3Service()
+# Initialize AWS services
+from services.s3_svc import S3Service
+from services.ses_transactional_svc import SESService, EnhancedEmailNotificationService
+from services.aws_media_svc import CloudFrontService, LambdaService, RekognitionService
 
-def _get_ses_service():
-    from services.ses_transactional_svc import ses_service
-    return ses_service
+s3_service = S3Service()
+ses_service = SESService()
+enhanced_email_service = EnhancedEmailNotificationService()
+cloudfront_service = CloudFrontService()
+lambda_service = LambdaService()
+rekognition_service = RekognitionService()
+services_dict = {}
 
 # AWS S3 Enhanced Media Endpoints
 @router.post("/metadata/upload")
