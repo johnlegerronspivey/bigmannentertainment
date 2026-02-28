@@ -50,11 +50,12 @@
             // Block platform analytics domains
             const blockPatterns = [/\.emergent\.sh/, /loading-preview/];
             
+            const isBlocked = (src) => blockList.some(b => src.includes(b)) || blockPatterns.some(p => p.test(src));
+            
             Node.prototype.appendChild = function(child) {
                 if (child.tagName === 'SCRIPT' || child.tagName === 'IFRAME') {
                     const src = child.src || child.getAttribute('src') || '';
-                    if (blockList.some(blocked => src.includes(blocked))) {
-                        console.log('[BME] Blocked external tracking script:', src);
+                    if (isBlocked(src)) {
                         return child;
                     }
                 }
@@ -64,8 +65,7 @@
             Node.prototype.insertBefore = function(child, reference) {
                 if (child.tagName === 'SCRIPT' || child.tagName === 'IFRAME') {
                     const src = child.src || child.getAttribute('src') || '';
-                    if (blockList.some(blocked => src.includes(blocked))) {
-                        console.log('[BME] Blocked external tracking script:', src);
+                    if (isBlocked(src)) {
                         return child;
                     }
                 }
