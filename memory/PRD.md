@@ -119,18 +119,30 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### P1 - Live Infrastructure Visualization (COMPLETE)
 ### P1 - Data Migration for Tenancy (COMPLETE - Feb 27, 2026)
 
+### P1 - Role-based Tenant Admin (COMPLETE - Feb 28, 2026)
+- Added `super_admin` and `tenant_admin` roles to 5-level RBAC hierarchy
+- Role hierarchy: super_admin > tenant_admin > admin > manager > analyst
+- `super_admin`: Global platform admin — manages all tenants, cross-tenant user visibility, migration, tenant CRUD
+- `tenant_admin`: Organization admin — manages users and settings within own tenant only
+- `admin`: Retains full CVE platform access but loses `users.manage` (now view-only)
+- Role hierarchy enforcement: actors can only assign roles strictly below their own level
+- Tenant scoping: non-super_admin users see only their tenant's users
+- Protected tenant endpoints: all tenant CRUD requires super_admin; read access for tenant_admin (own tenant)
+- Frontend: Tenants management panel (stats, create/delete), role dropdowns filtered by hierarchy
+- Backend tenant_id backfill on cve_users, sync endpoint for data consistency
+
 ### P2 - Future Tasks
 - Full Ticketing Configuration UI (admin frontend for Jira/ServiceNow credentials)
 - Tenant billing and usage tracking
-- Role-based tenant admin (tenant admin vs super admin)
 - PDF custom report builder with drag-and-drop chart selection
 - Real-time WebSocket preference-based filtering (broadcast only to matching users)
 
 ## Test Credentials
-- Test user: cveadmin@test.com / Test1234!
+- Super Admin: cveadmin@test.com / Test1234! (cve_role: super_admin)
 - Tenant: Default Organization (40e6f47e-b021-4605-9e1c-7a0992854f6c)
 
 ## Test Reports
+- iteration_45.json - Role-based Tenant Admin (11/11 backend 100%, 100% frontend)
 - iteration_44.json - Tenant Data Migration (19/19 backend 100%, 100% frontend)
 - iteration_43.json - Live Infrastructure Visualization (43/43 backend 100%, 100% frontend)
 - iteration_42.json - Per-tenant scoping, Jira/ServiceNow, Per-user WS prefs (19/19 backend, 100% frontend)
