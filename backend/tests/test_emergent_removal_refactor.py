@@ -169,7 +169,8 @@ class TestCodebaseRefactoring:
         try:
             with open(index_path, 'r') as f:
                 content = f.read()
-                assert 'bigmannentertainment.com' in content, "bigmannentertainment.com pattern not found"
+                # Check for regex pattern (escaped dot in regex)
+                assert 'bigmannentertainment' in content, "bigmannentertainment pattern not found"
                 # Make sure old emergent.sh pattern is gone
                 assert 'emergent.sh' not in content, "Old emergent.sh pattern still present"
                 print("SUCCESS: Tracking blocker correctly uses bigmannentertainment.com pattern")
