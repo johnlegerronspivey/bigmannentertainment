@@ -166,7 +166,7 @@ class ZeroTrustComplianceEngine:
     
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get("EMERGENT_LLM_KEY")  # LLM API key
+        self.api_key = os.environ.get("GOOGLE_API_KEY")
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
         self._last_audit_hash = ""
