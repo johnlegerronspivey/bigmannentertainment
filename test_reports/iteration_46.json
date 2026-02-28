@@ -1,0 +1,59 @@
+{
+  "summary": "Ticketing Configuration UI testing complete - Full Jira/ServiceNow integration config with auth-protected endpoints and masked credentials working correctly",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_ticketing_config.py",
+    "/app/test_reports/pytest/ticketing_config_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_ticketing_config.py"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100% (all UI components verified)"
+  },
+  "test_credentials": {
+    "super_admin": "cveadmin@test.com / Test1234!"
+  },
+  "seed_data_creation": "No new seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Ticketing config is stored per-tenant using key ticketing_config:{tenant_id}. The config masking preserves real tokens when masked values are sent back. Test connection makes real HTTP calls to Jira/ServiceNow APIs.",
+  "tests_performed": {
+    "backend_api_tests": {
+      "GET_providers": "PASS - Returns jira and servicenow with required fields (base_url, email, api_token, project_key for Jira; instance_url, username, password, assignment_group for ServiceNow)",
+      "GET_config_masked": "PASS - Returns masked credentials (api_token shows ••••XXXX format)",
+      "PUT_config_auth": "PASS - Returns 403 without auth token",
+      "PUT_config_super_admin": "PASS - Super admin can save config, returns masked response",
+      "PUT_config_preserves_token": "PASS - Sending masked value (••••XXXX) preserves existing real token in database",
+      "POST_test_connection_auth": "PASS - Returns 403 without super_admin/tenant_admin auth",
+      "POST_test_connection": "PASS - Returns connection test result (simulation or real)",
+      "GET_stats": "PASS - Returns ticket counts (total, open, in_progress, closed) and simulation_mode",
+      "GET_tickets": "PASS - Returns ticket list with items and total count",
+      "config_tenant_id": "PASS - Config includes tenant_id field for per-tenant isolation",
+      "invalid_token_rejected": "PASS - Invalid/expired token returns 401/403",
+      "disconnect_clears_provider": "PASS - Empty provider clears configuration"
+    },
+    "frontend_ui_tests": {
+      "connection_banner": "PASS - Shows 'No ticketing provider configured' / 'Simulation Mode' / 'Live' based on config state",
+      "config_panel_visibility": "PASS - Config panel visible for super_admin with 'Admin only' label",
+      "provider_cards": "PASS - Jira and ServiceNow cards displayed with descriptions",
+      "credential_fields": "PASS - All fields (base_url, email, api_token, project_key) with proper placeholders and help text",
+      "eye_toggle_secrets": "PASS - Eye toggle works to show/hide api_token",
+      "save_button_states": "PASS - Shows 'Save Configuration' when dirty, 'Saved' after save",
+      "test_connection_button": "PASS - Test Connection button works, shows result (e.g., 'Jira auth failed: HTTP 401')",
+      "stats_cards": "PASS - Shows Total Tickets, Open, In Progress, Closed, Mode (LIVE/SIM)",
+      "disconnect_button": "PASS - Disconnect button visible when provider configured"
+    }
+  }
+}
