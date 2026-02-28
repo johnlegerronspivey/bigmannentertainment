@@ -15,14 +15,14 @@ router = APIRouter(tags=["AWS"])
 
 # Initialize AWS services
 from services.s3_svc import S3Service
-from services.ses_transactional_svc import SESService, EnhancedEmailNotificationService
-from services.aws_media_svc import CloudFrontService, LambdaService, RekognitionService
+from services.ses_transactional_svc import SESService, EmailNotificationService
+from services.aws_media_svc import CloudFrontService, LambdaProcessingService, RekognitionService
 
 s3_service = S3Service()
 ses_service = SESService()
-enhanced_email_service = EnhancedEmailNotificationService()
+enhanced_email_service = EmailNotificationService()
 cloudfront_service = CloudFrontService()
-lambda_service = LambdaService()
+lambda_service = LambdaProcessingService()
 rekognition_service = RekognitionService()
 services_dict = {}
 
