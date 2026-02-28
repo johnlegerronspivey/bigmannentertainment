@@ -104,13 +104,14 @@ Additionally, an infrastructure automation pipeline for CVE remediation using Te
 ### Frontend
 ```
 /app/frontend/src/cve/
-├── TenantMigrationPanel.jsx   # NEW: Migration analysis, execution, and status panel
-├── UserManagementTab.jsx      # MODIFIED: Added sub-tabs (Users & Roles, Data Migration)
+├── shared.js                  # MODIFIED: ROLE_BADGES (5 roles), ROLE_HIERARCHY array
+├── UserManagementTab.jsx      # MODIFIED: TenantManagementPanel, assignableRoles(), 3 sub-tabs for super_admin
+├── TenantMigrationPanel.jsx   # Migration analysis, execution, and status panel
 ├── infra/
-│   ├── InfraTab.jsx           # MODIFIED: Added new panels, auto-refresh
-│   ├── GitHubRepoPanel.jsx    # NEW: Repo info with commits/branches/PRs tabs
-│   ├── S3ArtifactsPanel.jsx   # NEW: S3 bucket browser
-│   └── CloudWatchAlarmsPanel.jsx # NEW: Alarms with state indicators
+│   ├── InfraTab.jsx           # Added new panels, auto-refresh
+│   ├── GitHubRepoPanel.jsx    # Repo info with commits/branches/PRs tabs
+│   ├── S3ArtifactsPanel.jsx   # S3 bucket browser
+│   └── CloudWatchAlarmsPanel.jsx # Alarms with state indicators
 ```
 
 ## Prioritized Backlog
