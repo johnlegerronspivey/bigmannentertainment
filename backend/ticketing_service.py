@@ -79,29 +79,62 @@ class TicketingService:
 
     # ── Configuration ────────────────────────────────────────
 
-    async def get_config(self) -> Dict[str, Any]:
-        doc = await self.config_col.find_one({"_id": "ticketing_config"})
+    def _config_key(self, tenant_id: Optional[str] = None) -> str:
+        if tenant_id:
+            return f"ticketing_config:{tenant_id}"
+        return "ticketing_config"
+
+    async def get_config(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        doc = await self.config_col.find_one({"_id": self._config_key(tenant_id)})
         if not doc:
-            return {"provider": "", "configured": False, "simulation_mode": True, "settings": {}}
+            # Fallback to global config for backward compat
+            if tenant_id:
+                doc = await self.config_col.find_one({"_id": "ticketing_config"})
+            if not doc:
+                return {"provider": "", "configured": False, "simulation_mode": True, "settings": {}, "tenant_id": tenant_id or ""}
         doc.pop("_id", None)
         return doc
 
-    async def save_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def get_config_masked(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        """Return config with sensitive fields masked for API responses."""
+        config = await self.get_config(tenant_id)
+        masked_settings = {}
+        secret_fields = {"api_token", "password"}
+        for k, v in config.get("settings", {}).items():
+            if k in secret_fields and v:
+                masked_settings[k] = "••••" + v[-4:] if len(v) > 4 else "••••"
+            else:
+                masked_settings[k] = v
+        return {**config, "settings": masked_settings}
+
+    async def save_config(self, data: Dict[str, Any], tenant_id: Optional[str] = None) -> Dict[str, Any]:
         provider = data.get("provider", "")
         settings = data.get("settings", {})
+
+        # Merge: if a secret field comes in masked (starts with ••••), keep existing value
+        existing = await self.get_config(tenant_id)
+        existing_settings = existing.get("settings", {})
+        secret_fields = {"api_token", "password"}
+        for f in secret_fields:
+            if settings.get(f, "").startswith("••••") and existing_settings.get(f):
+                settings[f] = existing_settings[f]
+
         simulation = not self._has_real_credentials(provider, settings)
+        key = self._config_key(tenant_id)
 
         config = {
-            "_id": "ticketing_config",
+            "_id": key,
             "provider": provider,
             "configured": bool(provider),
             "simulation_mode": simulation,
             "settings": settings,
+            "tenant_id": tenant_id or "",
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
-        await self.config_col.replace_one({"_id": "ticketing_config"}, config, upsert=True)
+        await self.config_col.replace_one({"_id": key}, config, upsert=True)
         config.pop("_id", None)
-        return config
+        # Return masked version
+        return await self.get_config_masked(tenant_id)
 
     def _has_real_credentials(self, provider: str, settings: Dict) -> bool:
         if provider == "jira":
