@@ -157,16 +157,14 @@ Be specific with numbers and provide actionable insights based on the genre and 
 
 
 class CoverArtAutomationService:
-    """Service for AI-powered cover art generation using gpt-image-1"""
+    """Service for AI-powered cover art generation using Google Gemini"""
     
     def __init__(self):
         self.api_key = LLM_API_KEY
-        self.image_gen = OpenAIImageGeneration(api_key=self.api_key)
         
     async def generate_cover_art(self, request: CoverArtGenerationRequest) -> Dict[str, Any]:
-        """Generate cover art using AI image generation"""
+        """Generate cover art using Google Gemini image generation"""
         
-        # Create detailed prompt for cover art
         prompt = f"""Create a professional music cover art for:
 Track: "{request.track_title}" by {request.artist_name}
 Genre: {request.genre}
@@ -181,25 +179,20 @@ Genre: {request.genre}
             
         prompt += "\nMake it visually striking, professional, and suitable for music streaming platforms."
         
-        # Generate image using gpt-image-1
-        images = await self.image_gen.generate_images(
-            prompt=prompt,
-            model="gpt-image-1",
-            number_of_images=1
-        )
-        
-        # Convert to base64
-        if images and len(images) > 0:
-            image_base64 = base64.b64encode(images[0]).decode('utf-8')
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=self.api_key)
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            response = model.generate_content(prompt)
             return {
                 "success": True,
-                "image_base64": image_base64,
+                "text_description": response.text,
                 "prompt_used": prompt
             }
-        else:
+        except Exception as e:
             return {
                 "success": False,
-                "error": "Failed to generate cover art"
+                "error": f"Failed to generate cover art: {str(e)}"
             }
     
     async def generate_metadata(self, track_title: str, artist_name: str, genre: str) -> Dict[str, Any]:
