@@ -1,6 +1,6 @@
 import os
 import asyncio
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent, FileContentWithMimeType
+from llm_service import LlmChat, UserMessage, ImageContent, FileContentWithMimeType
 from dotenv import load_dotenv
 
 load_dotenv()

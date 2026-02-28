@@ -10,8 +10,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage
-from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
+from llm_service import LlmChat, UserMessage
 
 from enhanced_features_models import (
     ReleaseOptimizationRequest,
@@ -25,7 +24,7 @@ from enhanced_features_models import (
 
 load_dotenv()
 
-LLM_API_KEY = os.getenv("EMERGENT_LLM_KEY", "")
+LLM_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 
 
 class AIReleaseOptimizationService:

@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import os
 from dotenv import load_dotenv
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from llm_service import LlmChat, UserMessage
 
 # Load environment variables
 load_dotenv()

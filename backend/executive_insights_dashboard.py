@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from llm_service import LlmChat, UserMessage
 
 
 class TimeRange(str, Enum):

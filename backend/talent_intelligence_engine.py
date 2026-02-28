@@ -29,7 +29,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Gemini Integration
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from llm_service import LlmChat, UserMessage
 
 
 class TalentScoreCategory(str, Enum):
