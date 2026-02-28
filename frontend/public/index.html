@@ -36,9 +36,6 @@
             const originalInsertBefore = Node.prototype.insertBefore;
             
             const blockList = [
-                'api.emergent.sh',
-                'app.emergent.sh',
-                'emergent.sh/loading-preview',
                 'connect.facebook.net',
                 'fbevents.js',
                 'facebook.net',
@@ -49,6 +46,9 @@
                 'mpc-prod',
                 'gameplay.blitzllama'
             ];
+            
+            // Block platform analytics domains
+            const blockPatterns = [/\.emergent\.sh/, /loading-preview/];
             
             Node.prototype.appendChild = function(child) {
                 if (child.tagName === 'SCRIPT' || child.tagName === 'IFRAME') {
