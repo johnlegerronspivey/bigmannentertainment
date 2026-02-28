@@ -1,10 +1,10 @@
 import React from "react";
-import { Shield, Timer, Clock, AlertTriangle } from "lucide-react";
+import { Shield, Timer, Clock, AlertTriangle, Zap, CheckCircle2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { SEVERITY_COLORS, StatCard } from "../shared";
 import { ChartTooltip } from "../components";
 
-export const DashboardView = ({ dashboard }) => {
+export const DashboardView = ({ dashboard, metrics }) => {
   const sevBarData = Object.entries(dashboard.severity_stats || {}).map(([sev, d]) => ({
     severity: sev.charAt(0).toUpperCase() + sev.slice(1),
     "Within SLA": d.within_sla, Warning: d.warning, Breached: d.breached,
@@ -23,11 +23,17 @@ export const DashboardView = ({ dashboard }) => {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <StatCard icon={Shield} label="Total Open" value={dashboard.total_open} color="text-white" />
         <StatCard icon={Timer} label="Within SLA" value={dashboard.total_within_sla} color="text-emerald-400" />
         <StatCard icon={Clock} label="Warning" value={dashboard.total_warning} color="text-amber-400" />
         <StatCard icon={AlertTriangle} label="Breached" value={dashboard.total_breached} color="text-red-400" />
+        {metrics && (
+          <>
+            <StatCard icon={Zap} label="MTTR" value={metrics.overall_mttr_hours > 0 ? `${metrics.overall_mttr_days}d` : "--"} color="text-cyan-400" subtext="Mean time to resolve" />
+            <StatCard icon={CheckCircle2} label="Resolved" value={metrics.total_resolved} color="text-emerald-400" subtext={`${metrics.resolved_this_week} this week`} />
+          </>
+        )}
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(dashboard.severity_stats || {}).map(([sev, d]) => {
