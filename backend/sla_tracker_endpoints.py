@@ -55,6 +55,49 @@ class EscalationAction(BaseModel):
     resolution_note: str = ""
 
 
+# ─── SLA Policies ─────────────────────────────────────────────
+
+class SLAPolicy(BaseModel):
+    severity: str
+    sla_hours: int
+
+
+class SLAPoliciesUpdate(BaseModel):
+    policies: List[SLAPolicy]
+
+
+@router.get("/policies")
+async def get_sla_policies():
+    svc = get_sla_tracker_service()
+    return await svc.get_sla_policies()
+
+
+@router.put("/policies")
+async def update_sla_policies(body: SLAPoliciesUpdate):
+    svc = get_sla_tracker_service()
+    return await svc.update_sla_policies([p.dict() for p in body.policies])
+
+
+# ─── SLA Metrics & Analytics ─────────────────────────────────
+
+@router.get("/metrics")
+async def get_sla_metrics():
+    svc = get_sla_tracker_service()
+    return await svc.get_sla_metrics()
+
+
+@router.get("/team-performance")
+async def get_team_performance():
+    svc = get_sla_tracker_service()
+    return await svc.get_team_performance()
+
+
+@router.get("/breach-timeline")
+async def get_breach_timeline(days: int = Query(30, ge=7, le=90)):
+    svc = get_sla_tracker_service()
+    return await svc.get_breach_timeline(days=days)
+
+
 # ─── Phase 1 Endpoints ───────────────────────────────────────
 
 @router.get("/dashboard")
