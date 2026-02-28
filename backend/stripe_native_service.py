@@ -1,6 +1,6 @@
 """
 Native Stripe integration
-Drop-in replacement for emergentintegrations.payments.stripe.checkout
+Provides StripeCheckout, CheckoutSessionRequest/Response classes
 """
 
 import stripe

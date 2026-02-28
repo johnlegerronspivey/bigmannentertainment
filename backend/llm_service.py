@@ -1,6 +1,5 @@
 """
 LLM Service - Native Google Gemini integration
-Drop-in replacement for emergentintegrations.llm.chat
 All LLM calls route through Google Gemini API
 """
 
