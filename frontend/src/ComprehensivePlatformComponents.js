@@ -14,7 +14,7 @@ import { MDEIntegration } from './MDEIntegrationComponents';
 import { GS1AssetRegistry } from './GS1AssetRegistryComponents';
 import PDOOHCampaignManager from './PDOOHCampaignManager';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'https://social-profile-sync.preview.emergentagent.com';
+const API = process.env.REACT_APP_BACKEND_URL;
 
 // Global error handler utility
 const handleApiError = (error, context) => {

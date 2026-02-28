@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ImageUpload.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://social-profile-sync.preview.emergentagent.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const MediaUploadComponent = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -247,7 +247,7 @@ const MediaUploadComponent = () => {
     <div className="media-upload-container">
       <div className="upload-header">
         <img 
-          src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" 
+          src="/big-mann-logo.png" 
           alt="Big Mann Entertainment" 
           className="logo"
         />
