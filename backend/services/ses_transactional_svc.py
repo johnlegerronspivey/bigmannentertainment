@@ -314,8 +314,3 @@ class EmailNotificationService:
             logging.error(f"SES file upload notification failed: {e}")
             return False
 
-# Initialize AWS services
-s3_service = S3Service()
-ses_service = SESService()
-enhanced_email_service = EmailNotificationService()
-
