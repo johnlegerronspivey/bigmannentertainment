@@ -198,11 +198,11 @@ class TicketingService:
     async def get_ticket(self, ticket_id: str) -> Optional[Dict[str, Any]]:
         return await self.tickets_col.find_one({"id": ticket_id}, {"_id": 0})
 
-    async def sync_ticket(self, ticket_id: str) -> Optional[Dict[str, Any]]:
+    async def sync_ticket(self, ticket_id: str, tenant_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         ticket = await self.tickets_col.find_one({"id": ticket_id})
         if not ticket:
             return None
-        config = await self.get_config()
+        config = await self.get_config(tenant_id)
         if config.get("simulation_mode"):
             new_status = ticket.get("status", "open")
         else:
