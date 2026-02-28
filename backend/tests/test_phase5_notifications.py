@@ -13,7 +13,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://cve-remediation.preview.emergentagent.com")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8001")
 NOTIFICATION_API = f"{BASE_URL}/api/cve/notifications"
 REPORTS_API = f"{BASE_URL}/api/cve/reports"
 

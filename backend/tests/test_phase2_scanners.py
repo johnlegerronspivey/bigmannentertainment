@@ -8,7 +8,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://dep-guardian.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001').rstrip('/')
 SCANNER_API = f"{BASE_URL}/api/cve/scanners"
 
 # Long timeout for real scanner operations (tools run actual scans)

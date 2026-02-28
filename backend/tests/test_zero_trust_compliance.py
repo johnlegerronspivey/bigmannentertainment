@@ -492,7 +492,7 @@ def setup_base_url():
     """Ensure BASE_URL is set"""
     global BASE_URL
     if not BASE_URL:
-        BASE_URL = "https://talent-intel-4.preview.emergentagent.com"
+        BASE_URL = "http://localhost:8001"
     print(f"Testing against: {BASE_URL}")
 
 

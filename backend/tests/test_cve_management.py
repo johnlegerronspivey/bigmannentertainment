@@ -9,7 +9,7 @@ import os
 import uuid
 
 # Use the public backend URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://dep-guardian.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
 API = f"{BASE_URL}/api/cve"
 
 

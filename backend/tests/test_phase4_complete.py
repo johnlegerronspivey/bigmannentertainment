@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://cve-infra.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8001").rstrip("/")
 
 # Known CVE IDs from context
 CVE_HIGH = "b06d16c4-6ea7-4cbc-8383-f42c0ef4c3e8"
