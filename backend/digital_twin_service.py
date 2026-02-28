@@ -214,14 +214,13 @@ class DigitalTwinService:
     
     def __init__(self, db):
         self.db = db
-        # Use Google API key for image generation (user's preference)
         self.google_api_key = os.environ.get("GOOGLE_API_KEY")
-        self.llm_api_key = os.environ.get("EMERGENT_LLM_KEY")
+        self.llm_api_key = self.google_api_key
         self.image_api_key = self.google_api_key
-        self.text_api_key = self.llm_api_key or self.google_api_key
+        self.text_api_key = self.google_api_key
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
-        self.image_model = "gemini-2.5-flash-image"  # Nano Banana
+        self.image_model = "gemini-2.5-flash-image"
     
     def _get_chat(self, session_id: str, system_message: str) -> LlmChat:
         chat = LlmChat(
