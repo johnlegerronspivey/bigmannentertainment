@@ -135,7 +135,7 @@ class SESService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <img src="/big-mann-logo.png" alt="Big Mann Entertainment Logo">
                     <h1>Big Mann Entertainment</h1>
                     <p>Complete Media Distribution Empire</p>
                 </div>
@@ -256,7 +256,7 @@ class SESService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <img src="/big-mann-logo.png" alt="Big Mann Entertainment Logo">
                     <h1>Big Mann Entertainment</h1>
                     <p>Complete Media Distribution Empire</p>
                 </div>
@@ -401,7 +401,7 @@ class SESService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo">
+                    <img src="/big-mann-logo.png" alt="Big Mann Entertainment Logo">
                     <h1>Big Mann Entertainment</h1>
                     <p>Complete Media Distribution Empire</p>
                 </div>
@@ -543,7 +543,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey">
+                    <img src="/big-mann-logo.png" alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey">
                     <h1>Big Mann Entertainment</h1>
                 </div>
                 
@@ -629,7 +629,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey">
+                    <img src="/big-mann-logo.png" alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey">
                     <h1>Big Mann Entertainment</h1>
                 </div>
                 
@@ -694,7 +694,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="https://customer-assets.emergentagent.com/job_rightshub-1/artifacts/st1hihar_Big%20Mann%20Entertainment%20Logo.png" alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey">
+                    <img src="/big-mann-logo.png" alt="Big Mann Entertainment Logo - Owned by John LeGerron Spivey">
                     <h1>Big Mann Entertainment</h1>
                 </div>
                 
