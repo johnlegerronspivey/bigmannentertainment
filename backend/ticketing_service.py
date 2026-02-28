@@ -415,8 +415,8 @@ class TicketingService:
                 return state_map.get(state, "open")
         return "open"
 
-    async def test_connection(self) -> Dict[str, Any]:
-        config = await self.get_config()
+    async def test_connection(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+        config = await self.get_config(tenant_id)
         provider = config.get("provider")
         if not provider:
             return {"success": False, "message": "No ticketing provider configured"}
