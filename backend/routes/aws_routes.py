@@ -26,6 +26,9 @@ lambda_service = LambdaProcessingService()
 rekognition_service = RekognitionService()
 services_dict = {}
 
+# Import helper functions from media routes
+from routes.media_routes import validate_media_metadata, handle_metadata_file_upload
+
 # AWS S3 Enhanced Media Endpoints
 @router.post("/metadata/upload")
 async def upload_metadata_file(
