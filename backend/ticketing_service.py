@@ -247,7 +247,7 @@ class TicketingService:
         open_count = await self.tickets_col.count_documents(self._tenant_filter({"status": "open"}, tenant_id))
         in_progress = await self.tickets_col.count_documents(self._tenant_filter({"status": "in_progress"}, tenant_id))
         closed = await self.tickets_col.count_documents(self._tenant_filter({"status": {"$in": ["closed", "resolved"]}}, tenant_id))
-        config = await self.get_config()
+        config = await self.get_config(tenant_id)
         return {
             "total": total,
             "open": open_count,
