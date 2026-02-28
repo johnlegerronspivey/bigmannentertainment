@@ -41,7 +41,7 @@ class GS1Service:
         # GS1 Company Prefix (Big Mann Entertainment official prefix)
         self.company_prefix = "08600043402"  # Official GS1 company prefix
         self.legal_entity_gln = "0860004340201"  # Legal Entity Global Location Number
-        self.base_uri = "https://social-profile-sync.preview.emergentagent.com"
+        self.base_uri = os.environ.get("FRONTEND_URL", "https://bigmannentertainment.com")
         
         # Initialize collections (only schedule if an event loop is running)
         try:

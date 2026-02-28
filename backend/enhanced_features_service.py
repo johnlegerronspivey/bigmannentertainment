@@ -1,6 +1,6 @@
 """
 Enhanced Features Service Layer
-Implements AI-powered features using Emergent LLM integrations
+Implements AI-powered features using LLM integrations
 """
 
 import os
@@ -10,7 +10,6 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
-# Import Emergent LLM integrations
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
 
@@ -26,15 +25,14 @@ from enhanced_features_models import (
 
 load_dotenv()
 
-# Get Emergent LLM key
-EMERGENT_LLM_KEY = os.getenv("EMERGENT_LLM_KEY", "")
+LLM_API_KEY = os.getenv("EMERGENT_LLM_KEY", "")
 
 
 class AIReleaseOptimizationService:
     """Service for AI-powered release optimization using GPT-5"""
     
     def __init__(self):
-        self.api_key = EMERGENT_LLM_KEY
+        self.api_key = LLM_API_KEY
         
     async def analyze_release(self, request: ReleaseOptimizationRequest) -> ReleaseOptimization:
         """Analyze release and generate platform recommendations using GPT-5"""
@@ -163,7 +161,7 @@ class CoverArtAutomationService:
     """Service for AI-powered cover art generation using gpt-image-1"""
     
     def __init__(self):
-        self.api_key = EMERGENT_LLM_KEY
+        self.api_key = LLM_API_KEY
         self.image_gen = OpenAIImageGeneration(api_key=self.api_key)
         
     async def generate_cover_art(self, request: CoverArtGenerationRequest) -> Dict[str, Any]:
@@ -256,7 +254,7 @@ class GlobalMarketService:
     """Service for global market support and localization"""
     
     def __init__(self):
-        self.api_key = EMERGENT_LLM_KEY
+        self.api_key = LLM_API_KEY
         
     def get_market_platforms(self, market: str) -> List[str]:
         """Get region-specific streaming platforms"""

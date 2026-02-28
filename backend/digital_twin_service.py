@@ -216,11 +216,9 @@ class DigitalTwinService:
         self.db = db
         # Use Google API key for image generation (user's preference)
         self.google_api_key = os.environ.get("GOOGLE_API_KEY")
-        self.emergent_api_key = os.environ.get("EMERGENT_LLM_KEY")
-        # Image generation: Google API key (with billing enabled)
+        self.llm_api_key = os.environ.get("EMERGENT_LLM_KEY")
         self.image_api_key = self.google_api_key
-        # Text generation: Emergent key or Google key
-        self.text_api_key = self.emergent_api_key or self.google_api_key
+        self.text_api_key = self.llm_api_key or self.google_api_key
         self.model_provider = "gemini"
         self.model_name = "gemini-2.5-flash"
         self.image_model = "gemini-2.5-flash-image"  # Nano Banana
@@ -267,7 +265,7 @@ class DigitalTwinService:
             error_msg = str(e)
             # Handle quota errors gracefully
             if "429" in error_msg or "quota" in error_msg.lower():
-                print(f"Image generation quota exceeded. Using Emergent key or wait for quota reset.")
+                print(f"Image generation quota exceeded. Wait for quota reset.")
             else:
                 print(f"Image generation error: {error_msg[:150]}")
             return None

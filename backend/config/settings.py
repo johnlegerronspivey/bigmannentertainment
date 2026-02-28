@@ -83,9 +83,7 @@ class Settings:
         "https://dev.bigmannentertainment.com",
         "https://staging.bigmannentertainment.com",
         "https://d36jfidccx04u0.cloudfront.net",
-        "https://social-profile-sync.preview.emergentagent.com",
-        "https://bme-social-connect.preview.emergentagent.com",
-        "https://bme-connect-1.preview.emergentagent.com",
+        os.environ.get("REACT_APP_BACKEND_URL", ""),
     ]
 
 

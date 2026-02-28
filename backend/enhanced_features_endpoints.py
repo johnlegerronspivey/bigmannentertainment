@@ -539,6 +539,6 @@ async def enhanced_features_health():
         "ai_integration": {
             "gpt5_text": "configured",
             "gpt_image1": "configured",
-            "emergent_llm_key": "active"
+            "llm_key": "active"
         }
     }
