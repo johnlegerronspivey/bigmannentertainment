@@ -457,6 +457,256 @@ class SLATrackerService:
 
         return snapshot
 
+    # ─── SLA Policies CRUD ─────────────────────────────────────
+    async def get_sla_policies(self) -> Dict[str, Any]:
+        """Get SLA policy configuration per severity."""
+        sla_map = await self._get_sla_hours()
+        policies = []
+        for sev in ["critical", "high", "medium", "low"]:
+            doc = await self.policies_col.find_one({"severity": sev}, {"_id": 0})
+            policies.append({
+                "severity": sev,
+                "sla_hours": sla_map.get(sev, SEVERITY_SLA_DEFAULTS.get(sev, 168)),
+                "is_default": doc is None,
+                "updated_at": doc.get("updated_at", "") if doc else "",
+            })
+        return {"policies": policies, "defaults": SEVERITY_SLA_DEFAULTS}
+
+    async def update_sla_policies(self, policies: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Update SLA hours per severity."""
+        now = datetime.now(timezone.utc).isoformat()
+        saved = []
+        for p in policies:
+            sev = p.get("severity")
+            hours = p.get("sla_hours")
+            if sev not in SEVERITY_SLA_DEFAULTS or not isinstance(hours, (int, float)) or hours < 1:
+                continue
+            await self.policies_col.update_one(
+                {"severity": sev},
+                {"$set": {"severity": sev, "sla_hours": int(hours), "updated_at": now}},
+                upsert=True,
+            )
+            saved.append({"severity": sev, "sla_hours": int(hours), "updated_at": now, "is_default": False})
+        return {"policies": saved}
+
+    # ─── SLA Metrics & Analytics ──────────────────────────────
+    async def get_sla_metrics(self) -> Dict[str, Any]:
+        """Compute MTTR, resolution rates, breach analytics."""
+        now = datetime.now(timezone.utc)
+        sla_map = await self._get_sla_hours()
+
+        # Resolved CVEs (fixed or verified)
+        resolved = []
+        async for doc in self.cves_col.find(
+            {"status": {"$in": ["fixed", "verified"]}}, {"_id": 0}
+        ):
+            resolved.append(doc)
+
+        # Open CVEs
+        open_cves = []
+        async for doc in self.cves_col.find(
+            {"status": {"$in": ["detected", "triaged", "in_progress"]}}, {"_id": 0}
+        ):
+            open_cves.append(doc)
+
+        # Calculate MTTR per severity
+        mttr_by_severity = {}
+        resolution_within_sla = {}
+        for sev in ["critical", "high", "medium", "low"]:
+            sla_hours = sla_map.get(sev, 168)
+            sev_resolved = [c for c in resolved if c.get("severity") == sev]
+            times = []
+            within = 0
+            for cve in sev_resolved:
+                detected_str = cve.get("detected_at") or cve.get("created_at", "")
+                resolved_str = cve.get("fixed_at") or cve.get("verified_at") or cve.get("updated_at", "")
+                if not detected_str or not resolved_str:
+                    continue
+                try:
+                    d = datetime.fromisoformat(detected_str.replace("Z", "+00:00"))
+                    r = datetime.fromisoformat(resolved_str.replace("Z", "+00:00"))
+                    hours = (r - d).total_seconds() / 3600
+                    if hours >= 0:
+                        times.append(hours)
+                        if hours <= sla_hours:
+                            within += 1
+                except (ValueError, TypeError):
+                    continue
+
+            avg_mttr = round(sum(times) / len(times), 1) if times else 0
+            mttr_by_severity[sev] = {
+                "avg_hours": avg_mttr,
+                "avg_days": round(avg_mttr / 24, 1),
+                "min_hours": round(min(times), 1) if times else 0,
+                "max_hours": round(max(times), 1) if times else 0,
+                "sample_size": len(times),
+                "sla_hours": sla_hours,
+            }
+            resolution_within_sla[sev] = {
+                "resolved_total": len(sev_resolved),
+                "within_sla": within,
+                "breached": len(sev_resolved) - within,
+                "rate_pct": round((within / len(sev_resolved) * 100) if sev_resolved else 100, 1),
+            }
+
+        # Overall MTTR
+        all_times = []
+        for sev_data in mttr_by_severity.values():
+            if sev_data["sample_size"] > 0:
+                all_times.extend([sev_data["avg_hours"]] * sev_data["sample_size"])
+        overall_mttr = round(sum(all_times) / len(all_times), 1) if all_times else 0
+
+        # Time to triage
+        triage_times = []
+        for cve in resolved + open_cves:
+            detected_str = cve.get("detected_at") or cve.get("created_at", "")
+            triaged_str = cve.get("triaged_at", "")
+            if not detected_str or not triaged_str or triaged_str == "None":
+                continue
+            try:
+                d = datetime.fromisoformat(detected_str.replace("Z", "+00:00"))
+                t = datetime.fromisoformat(triaged_str.replace("Z", "+00:00"))
+                h = (t - d).total_seconds() / 3600
+                if h >= 0:
+                    triage_times.append(h)
+            except (ValueError, TypeError):
+                continue
+        avg_triage = round(sum(triage_times) / len(triage_times), 1) if triage_times else 0
+
+        # Weekly stats
+        week_ago = now - timedelta(days=7)
+        resolved_this_week = sum(
+            1 for c in resolved
+            if self._parse_date(c.get("fixed_at") or c.get("verified_at") or "") and
+               self._parse_date(c.get("fixed_at") or c.get("verified_at") or "") >= week_ago
+        )
+
+        return {
+            "overall_mttr_hours": overall_mttr,
+            "overall_mttr_days": round(overall_mttr / 24, 1),
+            "avg_triage_hours": avg_triage,
+            "total_resolved": len(resolved),
+            "total_open": len(open_cves),
+            "resolved_this_week": resolved_this_week,
+            "mttr_by_severity": mttr_by_severity,
+            "resolution_within_sla": resolution_within_sla,
+            "generated_at": now.isoformat(),
+        }
+
+    def _parse_date(self, date_str: str) -> Optional[datetime]:
+        if not date_str or date_str == "None":
+            return None
+        try:
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            return None
+
+    # ─── Team Performance ─────────────────────────────────────
+    async def get_team_performance(self) -> Dict[str, Any]:
+        """Get per-assignee/team SLA performance metrics."""
+        sla_map = await self._get_sla_hours()
+
+        all_cves = []
+        async for doc in self.cves_col.find({}, {"_id": 0}):
+            all_cves.append(doc)
+
+        assignee_stats = {}
+        for cve in all_cves:
+            assignee = cve.get("assigned_to") or "Unassigned"
+            if assignee not in assignee_stats:
+                assignee_stats[assignee] = {
+                    "assignee": assignee,
+                    "team": cve.get("assigned_team", ""),
+                    "total": 0,
+                    "open": 0,
+                    "resolved": 0,
+                    "breached": 0,
+                    "within_sla": 0,
+                    "mttr_hours_list": [],
+                }
+
+            stats = assignee_stats[assignee]
+            stats["total"] += 1
+            severity = cve.get("severity", "medium")
+            sla_hours = sla_map.get(severity, 168)
+
+            if cve.get("status") in ["fixed", "verified"]:
+                stats["resolved"] += 1
+                detected_str = cve.get("detected_at") or cve.get("created_at", "")
+                resolved_str = cve.get("fixed_at") or cve.get("verified_at") or ""
+                dt_d = self._parse_date(detected_str)
+                dt_r = self._parse_date(resolved_str)
+                if dt_d and dt_r:
+                    h = (dt_r - dt_d).total_seconds() / 3600
+                    stats["mttr_hours_list"].append(h)
+                    if h <= sla_hours:
+                        stats["within_sla"] += 1
+                    else:
+                        stats["breached"] += 1
+            else:
+                stats["open"] += 1
+                detected_str = cve.get("detected_at") or cve.get("created_at", "")
+                dt_d = self._parse_date(detected_str)
+                if dt_d:
+                    now = datetime.now(timezone.utc)
+                    elapsed_h = (now - dt_d).total_seconds() / 3600
+                    if elapsed_h > sla_hours:
+                        stats["breached"] += 1
+
+        # Compute averages
+        result = []
+        for assignee, stats in assignee_stats.items():
+            mttr_list = stats.pop("mttr_hours_list")
+            avg_mttr = round(sum(mttr_list) / len(mttr_list), 1) if mttr_list else 0
+            compliance = round(
+                (stats["within_sla"] / stats["resolved"] * 100) if stats["resolved"] else 100, 1
+            )
+            result.append({
+                **stats,
+                "avg_mttr_hours": avg_mttr,
+                "avg_mttr_days": round(avg_mttr / 24, 1),
+                "compliance_pct": compliance,
+            })
+
+        result.sort(key=lambda x: (-x["compliance_pct"], x["avg_mttr_hours"]))
+        return {"team": result}
+
+    # ─── Breach Timeline ──────────────────────────────────────
+    async def get_breach_timeline(self, days: int = 30) -> Dict[str, Any]:
+        """Get a timeline of SLA breach events for the past N days."""
+        now = datetime.now(timezone.utc)
+        sla_map = await self._get_sla_hours()
+
+        open_cves = []
+        async for doc in self.cves_col.find(
+            {"status": {"$in": ["detected", "triaged", "in_progress"]}}, {"_id": 0}
+        ):
+            open_cves.append(doc)
+
+        timeline_by_day = {}
+        for i in range(days, -1, -1):
+            day = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+            timeline_by_day[day] = {"date": day, "label": (now - timedelta(days=i)).strftime("%b %d"), "new_breaches": 0, "critical": 0, "high": 0, "medium": 0, "low": 0}
+
+        for cve in open_cves:
+            severity = cve.get("severity", "medium")
+            sla_hours = sla_map.get(severity, 168)
+            detected_str = cve.get("detected_at") or cve.get("created_at", "")
+            dt_d = self._parse_date(detected_str)
+            if not dt_d:
+                continue
+            breach_time = dt_d + timedelta(hours=sla_hours)
+            if breach_time > now:
+                continue  # Not yet breached
+            breach_day = breach_time.strftime("%Y-%m-%d")
+            if breach_day in timeline_by_day:
+                timeline_by_day[breach_day]["new_breaches"] += 1
+                if severity in timeline_by_day[breach_day]:
+                    timeline_by_day[breach_day][severity] += 1
+
+        timeline = sorted(timeline_by_day.values(), key=lambda x: x["date"])
+        return {"timeline": timeline, "period_days": days}
+
     # ─── Phase 2: Auto-Escalation Config ──────────────────────
     async def get_auto_escalation_config(self) -> Dict[str, Any]:
         doc = await self.sla_config_col.find_one({"key": "auto_escalation"}, {"_id": 0})
