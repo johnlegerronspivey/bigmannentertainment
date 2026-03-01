@@ -905,6 +905,18 @@ async def get_domain_status():
     # Required DNS records
     status["dns_records"] = _get_required_dns_records(domain)
 
+    # Route53 status
+    if route53_service.available:
+        zone = route53_service.get_zone_info()
+        status["route53"] = {
+            "status": "connected",
+            "zone_id": zone["id"] if zone else None,
+            "record_count": zone["record_count"] if zone else 0,
+            "name_servers": zone["name_servers"] if zone else [],
+        }
+    else:
+        status["route53"] = {"status": "unavailable"}
+
     return status
 
 
