@@ -248,6 +248,7 @@ from routes.health_routes import router as health_router
 from routes.business_routes import router as business_router
 from routes.media_routes import router as media_router
 from routes.aws_routes import router as aws_router
+from routes.domain_routes import router as domain_router
 from routes.distribution_routes import router as distribution_router
 from routes.system_routes import router as system_router
 
@@ -260,6 +261,7 @@ api_router.include_router(health_router)
 api_router.include_router(business_router)
 api_router.include_router(media_router)
 api_router.include_router(aws_router)
+api_router.include_router(domain_router)
 api_router.include_router(distribution_router)
 api_router.include_router(system_router)
 
