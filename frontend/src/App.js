@@ -107,6 +107,7 @@ const SecurityAuditDashboard = lazy(() => import("./SecurityAuditDashboard"));
 const CVEManagementDashboard = lazy(() => import("./CVEManagementDashboard"));
 const TenantManagement = lazy(() => import("./TenantManagement"));
 const ContentModerationComponent = lazy(() => import("./ContentModerationComponent"));
+const DomainConfigPage = lazy(() => import("./admin/DomainConfigPage"));
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
