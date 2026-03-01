@@ -17,6 +17,7 @@ router = APIRouter(tags=["AWS"])
 from services.s3_svc import S3Service
 from services.ses_transactional_svc import SESService, EmailNotificationService
 from services.aws_media_svc import CloudFrontService, LambdaProcessingService, RekognitionService
+from services.route53_svc import Route53Service
 
 s3_service = S3Service()
 ses_service = SESService()
@@ -24,6 +25,7 @@ enhanced_email_service = EmailNotificationService()
 cloudfront_service = CloudFrontService()
 lambda_service = LambdaProcessingService()
 rekognition_service = RekognitionService()
+route53_service = Route53Service()
 services_dict = {}
 
 # Import helper functions from media routes
