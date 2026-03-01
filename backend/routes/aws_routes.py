@@ -855,3 +855,212 @@ async def get_phase2_status():
         }
     }
 
+
+# ============================================================
+# Domain Configuration Endpoints
+# ============================================================
+
+@router.get("/domain/status")
+async def get_domain_status():
+    """Get domain configuration status for bigmannentertainment.com"""
+    domain = "bigmannentertainment.com"
+    status = {
+        "domain": domain,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "ses": {"status": "unknown"},
+        "dns_records": [],
+        "cloudfront": {"status": "unknown"},
+    }
+
+    # Check SES domain identity
+    if ses_service.ses_available:
+        try:
+            identities = ses_service.ses_client.list_identities(IdentityType="Domain")
+            domain_identities = identities.get("Identities", [])
+            if domain in domain_identities:
+                attrs = ses_service.ses_client.get_identity_verification_attributes(
+                    Identities=[domain]
+                )
+                ver = attrs.get("VerificationAttributes", {}).get(domain, {})
+                status["ses"] = {
+                    "status": ver.get("VerificationStatus", "NotStarted"),
+                    "domain_registered": True,
+                }
+            else:
+                status["ses"] = {"status": "NotStarted", "domain_registered": False}
+        except Exception as e:
+            status["ses"] = {"status": "error", "error": str(e)}
+
+    # Check CloudFront
+    if cloudfront_service.cloudfront_available:
+        status["cloudfront"] = {
+            "status": "configured",
+            "domain": cloudfront_service.distribution_domain,
+        }
+    else:
+        status["cloudfront"] = {"status": "not_configured"}
+
+    # Required DNS records
+    status["dns_records"] = _get_required_dns_records(domain)
+
+    return status
+
+
+@router.post("/domain/ses/verify")
+async def verify_ses_domain(current_user: User = Depends(get_current_admin_user)):
+    """Initiate SES domain identity verification for bigmannentertainment.com"""
+    domain = "bigmannentertainment.com"
+    if not ses_service.ses_available:
+        raise HTTPException(status_code=503, detail="SES service unavailable")
+    try:
+        # Verify domain identity
+        result = ses_service.ses_client.verify_domain_identity(Domain=domain)
+        verification_token = result.get("VerificationToken", "")
+
+        # Get DKIM tokens
+        dkim = ses_service.ses_client.verify_domain_dkim(Domain=domain)
+        dkim_tokens = dkim.get("DkimTokens", [])
+
+        dns_records = [
+            {
+                "type": "TXT",
+                "name": f"_amazonses.{domain}",
+                "value": verification_token,
+                "purpose": "SES Domain Verification",
+            }
+        ]
+        for token in dkim_tokens:
+            dns_records.append({
+                "type": "CNAME",
+                "name": f"{token}._domainkey.{domain}",
+                "value": f"{token}.dkim.amazonses.com",
+                "purpose": "DKIM Email Authentication",
+            })
+
+        # SPF record
+        dns_records.append({
+            "type": "TXT",
+            "name": domain,
+            "value": "v=spf1 include:amazonses.com ~all",
+            "purpose": "SPF Email Authentication",
+        })
+
+        # DMARC record
+        dns_records.append({
+            "type": "TXT",
+            "name": f"_dmarc.{domain}",
+            "value": "v=DMARC1; p=quarantine; rua=mailto:dmarc@bigmannentertainment.com",
+            "purpose": "DMARC Policy",
+        })
+
+        return {
+            "status": "verification_initiated",
+            "domain": domain,
+            "dns_records_to_add": dns_records,
+            "instructions": (
+                "Add these DNS records to your domain registrar. "
+                "Verification typically takes 1-72 hours after records propagate."
+            ),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SES domain verification failed: {str(e)}")
+
+
+@router.get("/domain/ses/check")
+async def check_ses_domain_verification(current_user: User = Depends(get_current_admin_user)):
+    """Check SES domain verification status"""
+    domain = "bigmannentertainment.com"
+    if not ses_service.ses_available:
+        raise HTTPException(status_code=503, detail="SES service unavailable")
+    try:
+        attrs = ses_service.ses_client.get_identity_verification_attributes(
+            Identities=[domain]
+        )
+        ver = attrs.get("VerificationAttributes", {}).get(domain, {})
+        dkim_attrs = ses_service.ses_client.get_identity_dkim_attributes(
+            Identities=[domain]
+        )
+        dkim = dkim_attrs.get("DkimAttributes", {}).get(domain, {})
+        return {
+            "domain": domain,
+            "verification_status": ver.get("VerificationStatus", "NotStarted"),
+            "dkim_enabled": dkim.get("DkimEnabled", False),
+            "dkim_verification_status": dkim.get("DkimVerificationStatus", "NotStarted"),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/domain/dns-guide")
+async def get_dns_configuration_guide():
+    """Get complete DNS configuration guide for bigmannentertainment.com"""
+    domain = "bigmannentertainment.com"
+    return {
+        "domain": domain,
+        "required_records": _get_required_dns_records(domain),
+        "instructions": {
+            "step_1": "Log into your domain registrar (GoDaddy, Namecheap, Route53, etc.)",
+            "step_2": "Navigate to DNS management for bigmannentertainment.com",
+            "step_3": "Add each DNS record listed below",
+            "step_4": "Wait 1-48 hours for DNS propagation",
+            "step_5": "Use /api/aws/domain/ses/check to verify email domain",
+            "step_6": "Use /api/aws/domain/status to verify all services",
+        },
+    }
+
+
+def _get_required_dns_records(domain: str):
+    """Build the list of recommended DNS records."""
+    cloudfront_dist = os.getenv("CLOUDFRONT_DISTRIBUTION_ID", "")
+    return [
+        {
+            "type": "A",
+            "name": domain,
+            "value": "Your server IP or load balancer",
+            "purpose": "Main website",
+            "priority": "required",
+        },
+        {
+            "type": "CNAME",
+            "name": f"www.{domain}",
+            "value": domain,
+            "purpose": "WWW redirect",
+            "priority": "required",
+        },
+        {
+            "type": "CNAME",
+            "name": f"api.{domain}",
+            "value": domain,
+            "purpose": "API subdomain",
+            "priority": "recommended",
+        },
+        {
+            "type": "CNAME",
+            "name": f"cdn.{domain}",
+            "value": f"{cloudfront_dist}.cloudfront.net" if cloudfront_dist else "d36jfidccx04u0.cloudfront.net",
+            "purpose": "CDN / CloudFront",
+            "priority": "recommended",
+        },
+        {
+            "type": "TXT",
+            "name": domain,
+            "value": "v=spf1 include:amazonses.com ~all",
+            "purpose": "SPF - Email authentication",
+            "priority": "required",
+        },
+        {
+            "type": "TXT",
+            "name": f"_dmarc.{domain}",
+            "value": "v=DMARC1; p=quarantine; rua=mailto:dmarc@bigmannentertainment.com",
+            "purpose": "DMARC - Email policy",
+            "priority": "recommended",
+        },
+        {
+            "type": "MX",
+            "name": domain,
+            "value": "10 inbound-smtp.us-east-1.amazonaws.com",
+            "purpose": "Email receiving via SES",
+            "priority": "optional",
+        },
+    ]
+
