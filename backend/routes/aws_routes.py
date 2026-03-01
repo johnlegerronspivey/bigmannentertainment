@@ -631,56 +631,6 @@ async def send_ses_welcome_email(
             detail=f"Welcome email failed: {str(e)}"
         )
 
-@router.get("/aws/health")
-async def aws_services_health_check():
-    """Check health of AWS services"""
-    health_status = {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "services": {}
-    }
-    
-    # Check S3 connectivity
-    try:
-        s3_service.s3_client.head_bucket(Bucket=s3_service.bucket_name)
-        health_status["services"]["s3"] = {
-            "status": "healthy",
-            "bucket": s3_service.bucket_name,
-            "region": os.getenv('AWS_REGION', 'us-east-1')
-        }
-    except Exception as e:
-        health_status["services"]["s3"] = {
-            "status": "unhealthy", 
-            "error": str(e)
-        }
-        health_status["status"] = "degraded"
-    
-    # Check SES connectivity
-    if ses_service.ses_available:
-        try:
-            quota = ses_service.ses_client.get_send_quota()
-            health_status["services"]["ses"] = {
-                "status": "healthy",
-                "max_send_rate": quota.get('MaxSendRate', 'unknown'),
-                "max_24hr_send": quota.get('Max24HourSend', 'unknown'),
-                "sent_24hr": quota.get('SentLast24Hours', 'unknown')
-            }
-        except Exception as e:
-            health_status["services"]["ses"] = {
-                "status": "unhealthy",
-                "error": str(e)
-            }
-            health_status["status"] = "degraded"
-    else:
-        health_status["services"]["ses"] = {
-            "status": "unavailable",
-            "message": "SES permissions not configured - using SMTP fallback",
-            "fallback": "smtp"
-        }
-        # Don't mark overall status as degraded since we have SMTP fallback
-    
-    return health_status
-
 # Content Distribution Endpoints
 
 @router.post("/aws/media/process/{file_type}")
