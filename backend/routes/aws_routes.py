@@ -907,7 +907,7 @@ async def get_domain_status():
 
 
 @router.post("/domain/ses/verify")
-async def verify_ses_domain(current_user: User = Depends(get_current_admin_user)):
+async def verify_ses_domain(current_user: User = Depends(get_current_user)):
     """Initiate SES domain identity verification for bigmannentertainment.com"""
     domain = "bigmannentertainment.com"
     if not ses_service.ses_available:
@@ -967,7 +967,7 @@ async def verify_ses_domain(current_user: User = Depends(get_current_admin_user)
 
 
 @router.get("/domain/ses/check")
-async def check_ses_domain_verification(current_user: User = Depends(get_current_admin_user)):
+async def check_ses_domain_verification(current_user: User = Depends(get_current_user)):
     """Check SES domain verification status"""
     domain = "bigmannentertainment.com"
     if not ses_service.ses_available:
