@@ -806,6 +806,7 @@ const Navigation = () => {
                     <Link to="/admin/ddex" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">DDEX Admin</Link>
                     <Link to="/admin/sponsorship" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sponsorship Admin</Link>
                     <Link to="/admin/industry" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Industry Admin</Link>
+                    <Link to="/admin/domain" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Domain Config</Link>
                   </div>
                 )}
               </div>
