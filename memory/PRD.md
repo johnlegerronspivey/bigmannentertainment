@@ -1,59 +1,75 @@
-# Big Mann Entertainment - CVE Management Platform PRD
+# Big Mann Entertainment - PRD
 
 ## Original Problem Statement
-Multi-tenant CVE management platform with role-based administration, ticketing integration, SLA tracking, and comprehensive security features.
+Configure the application to work with the custom domain `bigmannentertainment.com`, including a Domain Configuration admin page, AWS Route53 DNS auto-management, SES email verification, and CloudFront CDN status monitoring.
 
 ## Core Requirements
-- Role-based tenant admin (super_admin, tenant_admin)
-- Full Ticketing Configuration UI (Jira/ServiceNow)
-- SLA Tracking Dashboard
-- Per-tenant data scoping
-- Per-user notifications
-- PDF reports
-- Dashboard trends
-- Live infrastructure visualization
-
-## What's Been Implemented
-- All core features listed above
-- SLA Tracking Dashboard (MTTR, resolution rates, breach timelines, team performance)
-- Role-based access control
-- Live Jira integration
-- Data migration for tenancy
-- **Branding cleanup** (Feb 28, 2026) — Removed all user-visible references to "Emergent"
-- **Integration Migration** (Feb 28, 2026) — Native Google Gemini + Stripe SDKs
-- **AWS Integration** (Feb 28, 2026) — Live S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, CloudWatch, Inspector, Detective, RDS
-- **Domain Configuration** (Mar 1, 2026) — bigmannentertainment.com:
-  - CORS, manifest.json, robots.txt, canonical URL
-  - Security headers middleware (HSTS, X-Frame-Options, XSS Protection, etc.)
-  - SES domain verification endpoints + DNS guide
-- **Route53 DNS Integration** (Mar 1, 2026):
-  - Live Route53 service connecting to hosted zone Z21AGOWAOOGWWZ
-  - Auto-configure endpoint: creates SPF, DMARC, DKIM (3 CNAMEs), SES verification TXT, WWW CNAME, MX
-  - CRUD for individual DNS records (add/update/delete)
-  - Admin UI at /admin/domain with auto-configure, records table, add/delete, name servers display
-  - Successfully auto-configured 8/8 DNS records; SES domain now verified
+1. Custom domain configuration for `bigmannentertainment.com`
+2. Admin panel "Domain Configuration" page
+3. SES, CloudFront, Route53 status display
+4. Required DNS records listing
+5. One-click Route53 DNS auto-configure
+6. Manual DNS record add/delete
+7. Admin user (`cveadmin@test.com`) with correct permissions
 
 ## Architecture
-- **Frontend:** React + Shadcn UI
-- **Backend:** FastAPI + MongoDB
-- **Auth:** JWT-based with super_admin/tenant_admin roles
-- **LLM:** Google Gemini via native google-generativeai SDK
-- **Payments:** Stripe via native stripe SDK
-- **AWS:** S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, CloudWatch, Inspector, Detective, RDS, Route53
+```
+/app
+├── backend/
+│   ├── routes/
+│   │   ├── aws_routes.py          # S3, SES email, CDN, Lambda, Rekognition media endpoints
+│   │   ├── domain_routes.py       # Domain config + Route53 DNS management endpoints
+│   │   ├── health_routes.py       # Health checks (payment, metadata, AWS, etc.)
+│   │   ├── admin_routes.py
+│   │   ├── auth_routes.py
+│   │   ├── agency_routes.py
+│   │   ├── business_routes.py
+│   │   ├── dao_routes.py
+│   │   ├── distribution_routes.py
+│   │   ├── licensing_routes.py
+│   │   ├── media_routes.py
+│   │   └── system_routes.py
+│   ├── services/
+│   │   ├── route53_svc.py         # AWS Route53 API service
+│   │   ├── s3_svc.py
+│   │   ├── ses_transactional_svc.py
+│   │   └── aws_media_svc.py
+│   └── server.py
+└── frontend/
+    ├── src/admin/DomainConfigPage.jsx
+    ├── public/manifest.json
+    └── public/robots.txt
+```
+
+## What's Been Implemented
+- Domain Configuration page with SES/CloudFront/Route53 status
+- Route53 DNS auto-configure (8 records)
+- Manual DNS record CRUD
+- Security headers middleware (CSP, HSTS)
+- SEO files (robots.txt, manifest.json)
+- Admin access fix for cveadmin@test.com
+- **Refactored aws_routes.py** into domain_routes.py + health_routes.py (Feb 2026)
+
+## Key API Endpoints
+- `GET /api/domain/status` - Domain configuration status
+- `POST /api/domain/ses/verify` - SES domain verification
+- `GET /api/domain/ses/check` - SES verification status
+- `GET /api/domain/dns-guide` - DNS configuration guide
+- `GET /api/route53/zone` - Route53 hosted zone info
+- `GET /api/route53/records` - List DNS records
+- `POST /api/route53/record` - Create/update DNS record
+- `DELETE /api/route53/record` - Delete DNS record
+- `POST /api/route53/auto-configure` - Auto-configure all DNS records
+- `GET /api/aws/health` - AWS services health check
+- `GET /api/phase2/status` - Phase 2 services status
+
+## 3rd Party Integrations
+- AWS: S3, SES, CloudFront, Lambda, Rekognition, Route53, GuardDuty, CloudWatch, Inspector, Detective, RDS, Organizations
+- Jira (ticketing), Stripe (payments), Google Generative AI
 
 ## Credentials
-- Super Admin: cveadmin@test.com / Test1234!
-- Tenant Admin: enterprise@test.com / test
-
-## Key Files
-- `/app/backend/services/route53_svc.py` — Route53Service class
-- `/app/backend/routes/aws_routes.py` — AWS + Domain + Route53 endpoints
-- `/app/backend/server.py` — Security headers middleware
-- `/app/backend/config/settings.py` — CORS configuration
-- `/app/frontend/src/admin/DomainConfigPage.jsx` — Domain config admin UI
-- `/app/frontend/public/manifest.json` — PWA manifest
-- `/app/frontend/public/robots.txt` — SEO robots file
+- Super Admin: `cveadmin@test.com` / `Test1234!`
 
 ## Backlog
-- P1: User verification of all completed features (SLA Dashboard, Ticketing, etc.)
-- Future tasks: TBD based on user feedback
+- P1: User verification of all completed features (SLA Dashboard, RBAC, Ticketing, etc.)
+- P2: Further route file splits if needed
