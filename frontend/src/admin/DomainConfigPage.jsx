@@ -49,8 +49,8 @@ export default function DomainConfigPage() {
     setLoading(true);
     try {
       const [statusRes, guideRes] = await Promise.all([
-        fetch(`${API}/api/aws/domain/status`),
-        fetch(`${API}/api/aws/domain/dns-guide`),
+        fetch(`${API}/api/domain/status`),
+        fetch(`${API}/api/domain/dns-guide`),
       ]);
       if (statusRes.ok) setDomainStatus(await statusRes.json());
       if (guideRes.ok) setDnsGuide(await guideRes.json());
@@ -66,7 +66,7 @@ export default function DomainConfigPage() {
     setVerifying(true);
     setVerifyResult(null);
     try {
-      const res = await fetch(`${API}/api/aws/domain/ses/verify`, {
+      const res = await fetch(`${API}/api/domain/ses/verify`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       });
