@@ -527,312 +527,200 @@ const Navigation = () => {
             )}
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link to="/library" className="hover:text-purple-200">Library</Link>
-            <Link to="/upload" className="hover:text-purple-200">Upload</Link>
-            <Link to="/image-upload" className="hover:text-purple-200">Image Upload & NFT</Link>
-            <Link to="/rights-compliance" className="hover:text-purple-200">Rights & Compliance</Link>
-            <Link to="/smart-contracts" className="hover:text-purple-200">Smart Contracts</Link>
-            <Link to="/audit-trail" className="hover:text-purple-200">Audit Trail</Link>
-            <Link to="/distribute" className="hover:text-purple-200">Distribute</Link>
-            <Link to="/platforms" className="hover:text-purple-200">Platforms</Link>
-            <Link to="/about" className="hover:text-purple-200">About</Link>
+          {/* Desktop Navigation - Consolidated into dropdown groups */}
+          <div className="hidden md:flex items-center space-x-3">
+
+            {/* Content Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { closeAllDropdowns(); setIsContentDropdownOpen(!isContentDropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-content-dropdown"
+              >
+                Content <span className="ml-1 text-xs">▼</span>
+              </button>
+              {isContentDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-52 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/library" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Library</Link>
+                  <Link to="/upload" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Upload</Link>
+                  <Link to="/image-upload" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Image Upload & NFT</Link>
+                  <Link to="/distribute" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Distribute</Link>
+                  <Link to="/creative-studio" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Creative Studio</Link>
+                  <Link to="/platforms" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Platforms</Link>
+                </div>
+              )}
+            </div>
 
             {/* Business Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
-                className="hover:text-purple-200 flex items-center"
+                onClick={() => { closeAllDropdowns(); setIsBusinessDropdownOpen(!isBusinessDropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-business-dropdown"
               >
-                Business <span className="ml-1">▼</span>
+                Business <span className="ml-1 text-xs">▼</span>
               </button>
               {isBusinessDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
-                  <Link to="/business" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Business Identifiers</Link>
-                  <Link to="/ddex" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">DDEX</Link>
-                  <Link to="/sponsorship" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sponsorship</Link>
-                  <Link to="/tax" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Tax Management</Link>
-                  <Link to="/licensing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Licensing</Link>
-                  <Link to="/comprehensive-licensing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🎯 Comprehensive Licensing</Link>
-                  <Link to="/content-removal" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🚨 Content Removal</Link>
-                  <Link to="/gs1" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">GS1</Link>
-                  <Link to="/social-strategy" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <span className="mr-3">🚀</span>
-                    Social Media Strategy
-                  </Link>
-                  <Link to="/content-ingestion" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <span className="mr-3">📤</span>
-                    Content Ingestion & Metadata
-                  </Link>
-                  <Link to="/comprehensive-workflow" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <span className="mr-3">🎯</span>
-                    End-to-End Workflow
-                  </Link>
-                  <Link to="/social-media-phases-5-10" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <span className="mr-3">🚀</span>
-                    Social Media Phases 5-10
-                  </Link>
-                  <Link to="/real-time-royalty-engine" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <span className="mr-3">💰</span>
-                    Real-Time Royalty Engine
-                  </Link>
-                  <Link to="/workflow-integration" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <span className="mr-3">⚡</span>
-                    Workflow Integration Hub
-                  </Link>
-                  <Link to="/support-center" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <span className="mr-3">🎧</span>
-                    Support Center
-                  </Link>
+                <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600 max-h-80 overflow-y-auto">
+                  <Link to="/business" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Business Identifiers</Link>
+                  <Link to="/ddex" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>DDEX</Link>
+                  <Link to="/sponsorship" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Sponsorship</Link>
+                  <Link to="/tax" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Tax Management</Link>
+                  <Link to="/licensing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Licensing</Link>
+                  <Link to="/comprehensive-licensing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Comprehensive Licensing</Link>
+                  <Link to="/content-removal" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Content Removal</Link>
+                  <Link to="/gs1" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>GS1</Link>
+                  <Link to="/social-strategy" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Social Media Strategy</Link>
+                  <Link to="/content-ingestion" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Content Ingestion</Link>
+                  <Link to="/comprehensive-workflow" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>End-to-End Workflow</Link>
+                  <Link to="/social-media-phases-5-10" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Social Media Phases 5-10</Link>
+                  <Link to="/real-time-royalty-engine" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Real-Time Royalty Engine</Link>
+                  <Link to="/workflow-integration" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Workflow Integration Hub</Link>
+                  <Link to="/support-center" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Support Center</Link>
                 </div>
               )}
             </div>
 
-            {/* Creator Profile Link - Enhanced visibility */}
-            <Link 
-              to="/profile/settings" 
-              className="bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium"
-              title="Manage your creator profile"
-            >
-              <span>👤</span>
-              <span>Profile</span>
-            </Link>
-
-            {/* DAO Governance Link - Enhanced visibility */}
-            <Link 
-              to="/dao" 
-              className="bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium"
-              title="DAO Governance & Proposals"
-            >
-              <span>🏛️</span>
-              <span>DAO</span>
-            </Link>
-
-            {/* Social Media Link */}
-            <Link 
-              to="/social" 
-              className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium"
-              title="Social Media Dashboard"
-            >
-              <span>📱</span>
-              <span>Social</span>
-            </Link>
-
-            {/* Ethereum Dropdown */}
+            {/* Web3 & Blockchain Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsEthereumDropdownOpen(!isEthereumDropdownOpen)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-                title="Ethereum Features"
+                onClick={() => { closeAllDropdowns(); setIsWeb3DropdownOpen(!isWeb3DropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-web3-dropdown"
               >
-                <span>⚡</span>
-                <span>Ethereum</span>
-                <span className="ml-1">▼</span>
+                Web3 <span className="ml-1 text-xs">▼</span>
               </button>
-              {isEthereumDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
-                  <Link to="/ethereum/deploy" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">🚀 Deploy Contracts</Link>
-                  <Link to="/ethereum/transactions" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">📜 Transaction History</Link>
-                  <Link to="/ethereum/dao-voting" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">🏛️ DAO Voting</Link>
-                  <Link to="/smart-contracts" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">📋 Smart Contracts</Link>
+              {isWeb3DropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-52 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/dao" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>DAO Governance</Link>
+                  <Link to="/dao-v2" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>DAO 2.0</Link>
+                  <Link to="/ethereum/deploy" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Deploy Contracts</Link>
+                  <Link to="/ethereum/transactions" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Transaction History</Link>
+                  <Link to="/ethereum/dao-voting" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>DAO Voting</Link>
+                  <Link to="/smart-contracts" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Smart Contracts</Link>
+                  <Link to="/digital-twins" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Digital Twins</Link>
+                  <Link to="/marketplace" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Royalty Marketplace</Link>
                 </div>
               )}
             </div>
 
-            {/* Enterprise Command Center */}
-            <Link 
-              to="/enterprise" 
-              className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Enterprise Command Center"
-            >
-              <span>🧠</span>
-              <span>Enterprise</span>
-            </Link>
+            {/* Security Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { closeAllDropdowns(); setIsSecurityDropdownOpen(!isSecurityDropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-security-dropdown"
+              >
+                Security <span className="ml-1 text-xs">▼</span>
+              </button>
+              {isSecurityDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-52 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/rights-compliance" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Rights & Compliance</Link>
+                  <Link to="/audit-trail" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Audit Trail</Link>
+                  <Link to="/cve-management" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>CVE Brain</Link>
+                  <Link to="/security-audit" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Security Audit</Link>
+                  <Link to="/macie" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Macie PII Detection</Link>
+                  <Link to="/tenant-management" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Tenant Management</Link>
+                </div>
+              )}
+            </div>
 
-            {/* Digital Twins */}
-            <Link 
-              to="/digital-twins" 
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Digital Twin Studio"
-            >
-              <span>👤</span>
-              <span>Digital Twins</span>
-            </Link>
+            {/* AWS & Tools Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { closeAllDropdowns(); setIsToolsDropdownOpen(!isToolsDropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-tools-dropdown"
+              >
+                Tools <span className="ml-1 text-xs">▼</span>
+              </button>
+              {isToolsDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/aws-enterprise" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>AWS Enterprise</Link>
+                  <Link to="/cloudwatch" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>CloudWatch Monitoring</Link>
+                  <Link to="/agency-automation" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Agency Automation</Link>
+                  <Link to="/usage-analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Usage Analytics</Link>
+                  <Link to="/qldb" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Dispute Ledger</Link>
+                  <Link to="/enterprise" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Enterprise Command</Link>
+                </div>
+              )}
+            </div>
 
-            {/* Royalty Marketplace */}
-            <Link 
-              to="/marketplace" 
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Royalty Marketplace"
-            >
-              <span>💰</span>
-              <span>Marketplace</span>
-            </Link>
-
-            {/* AWS Enterprise Mapping */}
-            <Link 
-              to="/aws-enterprise" 
-              className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="AWS Enterprise Mapping"
-            >
-              <span>☁️</span>
-              <span>AWS</span>
-            </Link>
-
-            {/* Agency Success Automation */}
-            <Link 
-              to="/agency-automation" 
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Agency Success Automation"
-            >
-              <span>🚀</span>
-              <span>Automation</span>
-            </Link>
-
-            {/* DAO 2.0 Governance */}
-            <Link 
-              to="/dao-v2" 
-              className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="DAO 2.0 Governance"
-            >
-              <span>🏛️</span>
-              <span>DAO 2.0</span>
-            </Link>
-
-            {/* Creative Studio */}
-            <Link 
-              to="/creative-studio" 
-              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Creative Studio for Agencies"
-            >
-              <span>🎨</span>
-              <span>Studio</span>
-            </Link>
-
-            {/* AWS Macie PII Detection */}
-            <Link 
-              to="/macie" 
-              className="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="AWS Macie PII Detection"
-            >
-              <span>🔒</span>
-              <span>Macie</span>
-            </Link>
-
-            {/* Dispute Ledger */}
-            <Link 
-              to="/qldb" 
-              className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Dispute Ledger (PostgreSQL)"
-              data-testid="nav-ledger-link"
-            >
-              <span>📘</span>
-              <span>Ledger</span>
-            </Link>
-
-            {/* Usage Analytics */}
-            <Link 
-              to="/usage-analytics" 
-              className="bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Usage Analytics Dashboard"
-              data-testid="nav-analytics-link"
-            >
-              <span>📊</span>
-              <span>Analytics</span>
-            </Link>
-
-            {/* AWS CloudWatch Monitoring */}
-            <Link 
-              to="/cloudwatch" 
-              className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="AWS CloudWatch Monitoring"
-              data-testid="nav-cloudwatch-link"
-            >
-              <span>📈</span>
-              <span>CloudWatch</span>
-            </Link>
-
-            {/* Security Audit */}
-            <Link 
-              to="/security-audit" 
-              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="Security Audit Monitor"
-              data-testid="nav-security-audit-link"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-              <span>Security</span>
-            </Link>
-
-            {/* CVE Management */}
-            <Link 
-              to="/cve-management" 
-              className="bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-700 hover:to-blue-800 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium"
-              title="CVE Management Platform"
-              data-testid="nav-cve-management-link"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-              <span>CVE Brain</span>
-            </Link>
-
-            {/* Tenant Management */}
-            <Link
-              to="/tenant-management"
-              className="hover:text-purple-200 flex items-center gap-1 text-sm"
-              title="Multi-Tenant Management"
-              data-testid="nav-tenant-management-link"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-              Tenants
-            </Link>
-            
             {/* Industry Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsIndustryDropdownOpen(!isIndustryDropdownOpen)}
-                className="hover:text-purple-200 flex items-center"
+                onClick={() => { closeAllDropdowns(); setIsIndustryDropdownOpen(!isIndustryDropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-industry-dropdown"
               >
-                Industry <span className="ml-1">▼</span>
+                Industry <span className="ml-1 text-xs">▼</span>
               </button>
               {isIndustryDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
-                  <Link to="/industry" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Dashboard</Link>
-                  <Link to="/industry/partners" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Partners</Link>
-                  <Link to="/industry/coverage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Coverage</Link>
-                  <Link to="/industry/identifiers" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Identifiers</Link>
-                  <Link to="/music-reports" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Music Reports</Link>
-                  <Link to="/agency/register" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Agency Registration</Link>
-                  <Link to="/agency/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Agency Portal</Link>
+                  <Link to="/industry" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Dashboard</Link>
+                  <Link to="/industry/partners" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Partners</Link>
+                  <Link to="/industry/coverage" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Coverage</Link>
+                  <Link to="/industry/identifiers" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Identifiers</Link>
+                  <Link to="/music-reports" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Music Reports</Link>
+                  <Link to="/agency/register" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Agency Registration</Link>
+                  <Link to="/agency/dashboard" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Agency Portal</Link>
                 </div>
               )}
             </div>
-
-            <Link to="/earnings" className="hover:text-purple-200">Earnings</Link>
-            <Link to="/payments" className="hover:text-purple-200">Payments</Link>
-            <Link to="/pricing" className="hover:text-purple-200">Pricing</Link>
 
             {/* Label Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsLabelDropdownOpen(!isLabelDropdownOpen)}
-                className="hover:text-purple-200 flex items-center"
+                onClick={() => { closeAllDropdowns(); setIsLabelDropdownOpen(!isLabelDropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-label-dropdown"
               >
-                Label <span className="ml-1">▼</span>
+                Label <span className="ml-1 text-xs">▼</span>
               </button>
               {isLabelDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
-                  <Link to="/label/dashboard" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Label Dashboard</Link>
-                  <Link to="/label/directory" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">🏢 Label Directory</Link>
-                  <Link to="/uln" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">UL Network</Link>
-                  <Link to="/label/projects" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700">Project Management</Link>
-                  <Link to="/label/marketing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marketing</Link>
-                  <Link to="/label/financial" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Financial Management</Link>
-                  <Link to="/label/royalties" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Royalty Splits</Link>
+                  <Link to="/label/dashboard" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Label Dashboard</Link>
+                  <Link to="/label/directory" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Label Directory</Link>
+                  <Link to="/uln" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>UL Network</Link>
+                  <Link to="/label/projects" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Project Management</Link>
+                  <Link to="/label/marketing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Marketing</Link>
+                  <Link to="/label/financial" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Financial Management</Link>
+                  <Link to="/label/royalties" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Royalty Splits</Link>
                 </div>
               )}
             </div>
 
-            <button onClick={handleLogout} className="hover:text-purple-200">Logout</button>
+            {/* Finance Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { closeAllDropdowns(); setIsFinanceDropdownOpen(!isFinanceDropdownOpen); }}
+                className="hover:text-purple-200 flex items-center text-sm"
+                data-testid="nav-finance-dropdown"
+              >
+                Finance <span className="ml-1 text-xs">▼</span>
+              </button>
+              {isFinanceDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-44 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                  <Link to="/earnings" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Earnings</Link>
+                  <Link to="/payments" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Payments</Link>
+                  <Link to="/pricing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Pricing</Link>
+                </div>
+              )}
+            </div>
+
+            <Link to="/social" className="hover:text-purple-200 text-sm" data-testid="nav-social-link">Social</Link>
+            <Link to="/about" className="hover:text-purple-200 text-sm">About</Link>
+
+            <Link 
+              to="/profile/settings" 
+              className="bg-purple-700 hover:bg-purple-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors font-medium text-sm"
+              data-testid="nav-profile-link"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              Profile
+            </Link>
+
+            <button onClick={handleLogout} className="hover:text-purple-200 text-sm">Logout</button>
           </div>
 
           {/* Mobile menu button */}
