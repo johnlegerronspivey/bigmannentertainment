@@ -1066,3 +1066,107 @@ def _get_required_dns_records(domain: str):
         },
     ]
 
+
+
+# ============================================================
+# Route53 DNS Management Endpoints
+# ============================================================
+
+@router.get("/route53/zone")
+async def get_route53_zone():
+    """Get Route53 hosted zone info for bigmannentertainment.com"""
+    if not route53_service.available:
+        raise HTTPException(status_code=503, detail="Route53 service unavailable")
+    info = route53_service.get_zone_info()
+    if not info:
+        raise HTTPException(status_code=404, detail="Hosted zone not found")
+    return info
+
+
+@router.get("/route53/records")
+async def list_route53_records():
+    """List all DNS records in the hosted zone"""
+    if not route53_service.available:
+        raise HTTPException(status_code=503, detail="Route53 service unavailable")
+    return {"records": route53_service.list_records()}
+
+
+@router.post("/route53/record")
+async def upsert_route53_record(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    """Create or update a DNS record"""
+    if not route53_service.available:
+        raise HTTPException(status_code=503, detail="Route53 service unavailable")
+    body = await request.json()
+    name = body.get("name", "")
+    rtype = body.get("type", "")
+    values = body.get("values", [])
+    ttl = body.get("ttl", 300)
+    if not name or not rtype or not values:
+        raise HTTPException(status_code=400, detail="name, type, and values are required")
+    try:
+        route53_service.upsert_record(name, rtype, values, ttl)
+        return {"status": "ok", "action": "UPSERT", "name": name, "type": rtype}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/route53/record")
+async def delete_route53_record(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a DNS record"""
+    if not route53_service.available:
+        raise HTTPException(status_code=503, detail="Route53 service unavailable")
+    body = await request.json()
+    name = body.get("name", "")
+    rtype = body.get("type", "")
+    values = body.get("values", [])
+    ttl = body.get("ttl", 300)
+    if not name or not rtype or not values:
+        raise HTTPException(status_code=400, detail="name, type, and values are required")
+    try:
+        route53_service.delete_record(name, rtype, values, ttl)
+        return {"status": "ok", "action": "DELETE", "name": name, "type": rtype}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/route53/auto-configure")
+async def auto_configure_dns(current_user: User = Depends(get_current_user)):
+    """Auto-configure all required DNS records (SES, DKIM, SPF, DMARC, WWW, MX)"""
+    if not route53_service.available:
+        raise HTTPException(status_code=503, detail="Route53 service unavailable")
+
+    domain = "bigmannentertainment.com"
+    ses_token = ""
+    dkim_tokens = []
+
+    # Fetch SES verification token and DKIM tokens
+    if ses_service.ses_available:
+        try:
+            result = ses_service.ses_client.verify_domain_identity(Domain=domain)
+            ses_token = result.get("VerificationToken", "")
+            dkim = ses_service.ses_client.verify_domain_dkim(Domain=domain)
+            dkim_tokens = dkim.get("DkimTokens", [])
+        except Exception as e:
+            logging.warning(f"SES token fetch failed: {e}")
+
+    try:
+        results = route53_service.auto_configure(ses_token, dkim_tokens)
+        succeeded = sum(1 for r in results if r["status"] == "ok")
+        failed = sum(1 for r in results if r["status"] == "error")
+        return {
+            "status": "completed",
+            "domain": domain,
+            "total": len(results),
+            "succeeded": succeeded,
+            "failed": failed,
+            "results": results,
+            "message": f"Auto-configured {succeeded}/{len(results)} DNS records. DNS propagation may take up to 48 hours.",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
