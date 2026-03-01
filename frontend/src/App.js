@@ -371,6 +371,24 @@ const Navigation = () => {
   const [isBusinessDropdownOpen, setIsBusinessDropdownOpen] = useState(false);
   const [isEthereumDropdownOpen, setIsEthereumDropdownOpen] = useState(false);
   const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState(false);
+  const [isContentDropdownOpen, setIsContentDropdownOpen] = useState(false);
+  const [isWeb3DropdownOpen, setIsWeb3DropdownOpen] = useState(false);
+  const [isSecurityDropdownOpen, setIsSecurityDropdownOpen] = useState(false);
+  const [isToolsDropdownOpen, setIsToolsDropdownOpen] = useState(false);
+  const [isFinanceDropdownOpen, setIsFinanceDropdownOpen] = useState(false);
+
+  const closeAllDropdowns = () => {
+    setIsLabelDropdownOpen(false);
+    setIsAdminDropdownOpen(false);
+    setIsBusinessDropdownOpen(false);
+    setIsEthereumDropdownOpen(false);
+    setIsIndustryDropdownOpen(false);
+    setIsContentDropdownOpen(false);
+    setIsWeb3DropdownOpen(false);
+    setIsSecurityDropdownOpen(false);
+    setIsToolsDropdownOpen(false);
+    setIsFinanceDropdownOpen(false);
+  };
 
   const handleLogout = async () => {
     await logout();
