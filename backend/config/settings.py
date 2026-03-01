@@ -80,8 +80,11 @@ class Settings:
     CORS_ORIGINS = [
         "http://localhost:3000",
         "https://bigmannentertainment.com",
+        "https://www.bigmannentertainment.com",
         "https://dev.bigmannentertainment.com",
         "https://staging.bigmannentertainment.com",
+        "https://api.bigmannentertainment.com",
+        "https://cdn.bigmannentertainment.com",
         "https://d36jfidccx04u0.cloudfront.net",
         os.environ.get("REACT_APP_BACKEND_URL", ""),
     ]

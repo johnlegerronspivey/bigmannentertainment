@@ -1,0 +1,24 @@
+{
+  "short_name": "Big Mann Ent",
+  "name": "Big Mann Entertainment",
+  "description": "Professional Music Distribution Platform by John LeGerron Spivey",
+  "icons": [
+    {
+      "src": "/big-mann-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/big-mann-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#7c3aed",
+  "background_color": "#0f172a",
+  "scope": "/",
+  "orientation": "any",
+  "categories": ["entertainment", "music", "business"]
+}
