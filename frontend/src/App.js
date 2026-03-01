@@ -3999,6 +3999,7 @@ function App() {
             <Route path="/admin/ddex" element={<AdminRoute><DDEXAdminDashboard /></AdminRoute>} />
             <Route path="/admin/sponsorship" element={<AdminRoute><AdminSponsorshipOverview /></AdminRoute>} />
             <Route path="/admin/industry" element={<AdminRoute><IndustryDashboard /></AdminRoute>} />
+            <Route path="/admin/domain" element={<AdminRoute><DomainConfigPage /></AdminRoute>} />
             
             {/* 404 Route - Must be last */}
             <Route path="*" element={<NotFound />} />
