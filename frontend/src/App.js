@@ -521,33 +521,6 @@ const Navigation = () => {
             <Link to="/platforms" className="hover:text-purple-200">Platforms</Link>
             <Link to="/about" className="hover:text-purple-200">About</Link>
 
-            {/* Admin Dropdown - Positioned prominently for admin users */}
-            {isAdmin() && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium"
-                  data-testid="nav-admin-dropdown"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  <span>Admin</span>
-                  <span className="ml-1">▼</span>
-                </button>
-                {isAdminDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-52 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
-                    <Link to="/admin/domain" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>Domain Config</Link>
-                    <Link to="/admin/users" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>User Management</Link>
-                    <Link to="/admin/content" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>Content Moderation</Link>
-                    <Link to="/admin/analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>Analytics</Link>
-                    <Link to="/admin/notifications" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>Notifications</Link>
-                    <Link to="/admin/ddex" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>DDEX Admin</Link>
-                    <Link to="/admin/sponsorship" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>Sponsorship Admin</Link>
-                    <Link to="/admin/industry" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={() => setIsAdminDropdownOpen(false)}>Industry Admin</Link>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Business Dropdown */}
             <div className="relative">
               <button
