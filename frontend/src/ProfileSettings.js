@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from './App';
+import { useAuth } from './contexts/AuthContext';
 import { ProfileEditor, SocialMediaConnections } from './CreatorProfileComponents';
 
 const ProfileSettings = () => {
