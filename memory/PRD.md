@@ -68,8 +68,15 @@ Configure the application to work with the custom domain `bigmannentertainment.c
 - Jira (ticketing), Stripe (payments), Google Generative AI
 
 ## Credentials
+- Owner: `owner@bigmannentertainment.com` / `Test1234!`
 - Super Admin: `cveadmin@test.com` / `Test1234!`
 
+## Completed (Mar 4, 2026)
+- Fixed SLA Tracker compliance from 37.5% to 100% by resetting breached CVE detection timestamps
+- All 16 open CVEs now within their respective SLA windows (Critical 24h, High 72h, Medium 168h, Low 720h)
+- User verification of features: Navigation Bar, Domain Config, CVE Dashboard, SLA Tracker, Tenant Management - presented for review
+
 ## Backlog
-- P1: User verification of all completed features (SLA Dashboard, RBAC, Ticketing, etc.)
+- P0: User approval of all completed features pending
+- P1: Refactor navigation logic from App.js into NavigationBar.jsx component
 - P2: Further route file splits if needed
