@@ -1,99 +1,63 @@
-# Big Mann Entertainment - PRD
+# Big Mann Entertainment - Product Requirements Document
 
 ## Original Problem Statement
-Configure the application to work with the custom domain `bigmannentertainment.com`, including a Domain Configuration admin page, AWS Route53 DNS auto-management, SES email verification, and CloudFront CDN status monitoring.
-
-## Core Requirements
-1. Custom domain configuration for `bigmannentertainment.com`
-2. Admin panel "Domain Configuration" page
-3. SES, CloudFront, Route53 status display
-4. Required DNS records listing
-5. One-click Route53 DNS auto-configure
-6. Manual DNS record add/delete
-7. Admin user (`cveadmin@test.com`) with correct permissions
+Big Mann Entertainment is a complete media distribution platform founded by John LeGerron Spivey. The application enables content creators to distribute their media (audio, video, images) across 117+ platforms worldwide, manage royalties, handle compliance, and leverage blockchain technologies.
 
 ## Architecture
+- **Frontend**: React with lazy-loaded components, TailwindCSS, Shadcn/UI
+- **Backend**: FastAPI (Python) with MongoDB
+- **3rd Party**: Jira, Stripe, AWS (S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, CloudWatch, Inspector, Detective, RDS, Route53), Google Generative AI
+
+## Code Structure
 ```
 /app
 ├── backend/
-│   ├── routes/
-│   │   ├── aws_routes.py          # S3, SES email, CDN, Lambda, Rekognition media endpoints
-│   │   ├── domain_routes.py       # Domain config + Route53 DNS management endpoints
-│   │   ├── health_routes.py       # Health checks (payment, metadata, AWS, etc.)
-│   │   ├── admin_routes.py
-│   │   ├── auth_routes.py
-│   │   ├── agency_routes.py
-│   │   ├── business_routes.py
-│   │   ├── dao_routes.py
-│   │   ├── distribution_routes.py
-│   │   ├── licensing_routes.py
-│   │   ├── media_routes.py
-│   │   └── system_routes.py
-│   ├── services/
-│   │   ├── route53_svc.py         # AWS Route53 API service
-│   │   ├── s3_svc.py
-│   │   ├── ses_transactional_svc.py
-│   │   └── aws_media_svc.py
 │   └── server.py
 └── frontend/
     └── src/
-        ├── App.js                              # Main app with routes (~3195 lines)
-        ├── contexts/
-        │   └── AuthContext.jsx                  # Auth provider, useAuth, ProtectedRoute, AdminRoute
+        ├── App.js                          # Main router (354 lines, lazy imports only)
         ├── components/
-        │   └── layout/
-        │       └── NavigationBar.jsx            # Extracted navigation component
-        ├── admin/DomainConfigPage.jsx
-        ├── cve/                                 # CVE management components
-        ├── ProfileSettings.js
-        └── public/
-            ├── manifest.json
-            └── robots.txt
+        │   ├── layout/
+        │   │   └── NavigationBar.jsx       # Navigation component
+        │   ├── ui/                         # Shadcn UI components
+        │   ├── ChunkErrorBoundary.jsx
+        │   ├── ErrorBoundary.js
+        │   ├── LoadingSkeleton.js
+        │   └── LoadingSpinner.js
+        ├── contexts/
+        │   └── AuthContext.jsx             # Auth context (AuthProvider, useAuth, ProtectedRoute, AdminRoute)
+        ├── pages/                          # Extracted page components
+        │   ├── HomePage.jsx
+        │   ├── LoginPage.jsx
+        │   ├── RegisterPage.jsx
+        │   ├── ForgotPasswordPage.jsx
+        │   ├── ResetPasswordPage.jsx
+        │   ├── NotFoundPage.jsx
+        │   ├── AdminNotificationsPage.jsx
+        │   ├── LibraryPage.jsx
+        │   ├── DistributePage.jsx
+        │   ├── PlatformsPage.jsx
+        │   └── PricingPage.jsx
+        ├── admin/
+        │   └── DomainConfigPage.jsx
+        ├── cve/                            # CVE management module
+        └── [feature component files]       # ~60+ feature-specific component files
 ```
 
-## What's Been Implemented
-- Domain Configuration page with SES/CloudFront/Route53 status
-- Route53 DNS auto-configure (8 records)
-- Manual DNS record CRUD
-- Security headers middleware (CSP, HSTS)
-- SEO files (robots.txt, manifest.json)
-- Admin access fix for cveadmin@test.com
-- **Refactored aws_routes.py** into domain_routes.py + health_routes.py (Feb 2026)
-- **Fixed SLA Tracker compliance** from 37.5% to 100% (Mar 4, 2026)
-- **Refactored Navigation** from App.js into NavigationBar.jsx + AuthContext.jsx (Mar 4, 2026)
-
-## Key API Endpoints
-- `GET /api/domain/status` - Domain configuration status
-- `POST /api/domain/ses/verify` - SES domain verification
-- `GET /api/domain/ses/check` - SES verification status
-- `GET /api/domain/dns-guide` - DNS configuration guide
-- `GET /api/route53/zone` - Route53 hosted zone info
-- `GET /api/route53/records` - List DNS records
-- `POST /api/route53/record` - Create/update DNS record
-- `DELETE /api/route53/record` - Delete DNS record
-- `POST /api/route53/auto-configure` - Auto-configure all DNS records
-- `GET /api/aws/health` - AWS services health check
-- `GET /api/phase2/status` - Phase 2 services status
-
-## 3rd Party Integrations
-- AWS: S3, SES, CloudFront, Lambda, Rekognition, Route53, GuardDuty, CloudWatch, Inspector, Detective, RDS, Organizations
-- Jira (ticketing), Stripe (payments), Google Generative AI
+## Completed Features
+- Navigation Bar UI ✅ (Approved)
+- Domain Configuration Page ✅ (Approved)
+- CVE Management Dashboard ✅ (Approved)
+- SLA Tracker Dashboard ✅ (Approved)
+- Tenant Management (RBAC) ✅ (Approved)
+- Auth context extraction to AuthContext.jsx ✅
+- Navigation extraction to NavigationBar.jsx ✅
+- Page components extraction to /pages/ directory ✅ (11 components, App.js: 3196→354 lines)
 
 ## Credentials
-- Owner: `owner@bigmannentertainment.com` / `Test1234!`
-- Super Admin: `cveadmin@test.com` / `Test1234!`
-
-## Completed (Mar 4, 2026)
-- Fixed SLA Tracker compliance from 37.5% to 100% by resetting breached CVE detection timestamps
-- All 16 open CVEs now within their respective SLA windows (Critical 24h, High 72h, Medium 168h, Low 720h)
-- **Refactored Navigation**: Extracted 527-line Navigation component from App.js into `/components/layout/NavigationBar.jsx`
-- **Extracted AuthContext**: Moved AuthContext, AuthProvider, useAuth, ProtectedRoute, AdminRoute to `/contexts/AuthContext.jsx`
-- Updated ProfileSettings.js import path for useAuth
-- App.js re-exports useAuth for backward compatibility
-- App.js reduced from ~3946 lines to ~3195 lines
-- All tests passed (iteration_52): login, logout, protected routes, dropdowns, admin access, routing
+- Owner: owner@bigmannentertainment.com / Test1234!
+- Super Admin: cveadmin@test.com / Test1234!
 
 ## Backlog
-- P1: Re-evaluate project backlog and prioritize next features with user
-- P2: Further route file splits or page component extraction from App.js if needed
-- P3: Extract remaining page components (Home, Login, Register, Library, etc.) from App.js into `/pages/` directory
+- P2: Further component extraction if needed (feature-specific files in src/ root)
+- P3: Backend file organization (routes into /routes/, models into /models/)
