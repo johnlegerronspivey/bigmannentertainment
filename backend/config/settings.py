@@ -76,18 +76,27 @@ class Settings:
     # Frontend
     FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
-    # CORS Origins
-    CORS_ORIGINS = [
-        "http://localhost:3000",
-        "https://bigmannentertainment.com",
-        "https://www.bigmannentertainment.com",
-        "https://dev.bigmannentertainment.com",
-        "https://staging.bigmannentertainment.com",
-        "https://api.bigmannentertainment.com",
-        "https://cdn.bigmannentertainment.com",
-        "https://d36jfidccx04u0.cloudfront.net",
-        os.environ.get("REACT_APP_BACKEND_URL", ""),
-    ]
+    # CORS Origins - respect env var, fallback to known domains
+    _cors_env = os.environ.get('CORS_ORIGINS', '')
+    if _cors_env.strip('"').strip("'") == '*':
+        CORS_ORIGINS = ["*"]
+    else:
+        CORS_ORIGINS = [
+            origin.strip() for origin in _cors_env.split(',') if origin.strip()
+        ] if _cors_env and _cors_env.strip('"').strip("'") != '*' else []
+        CORS_ORIGINS.extend([
+            "http://localhost:3000",
+            "https://bigmannentertainment.com",
+            "https://www.bigmannentertainment.com",
+            "https://dev.bigmannentertainment.com",
+            "https://staging.bigmannentertainment.com",
+            "https://api.bigmannentertainment.com",
+            "https://cdn.bigmannentertainment.com",
+            "https://d36jfidccx04u0.cloudfront.net",
+        ])
+        _preview = os.environ.get("REACT_APP_BACKEND_URL", "")
+        if _preview:
+            CORS_ORIGINS.append(_preview)
 
 
 settings = Settings()
