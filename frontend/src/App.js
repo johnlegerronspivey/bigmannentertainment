@@ -122,6 +122,7 @@ const CVEManagementDashboard = lazy(() => import("./CVEManagementDashboard"));
 const TenantManagement = lazy(() => import("./TenantManagement"));
 const ContentModerationComponent = lazy(() => import("./ContentModerationComponent"));
 const DomainConfigPage = lazy(() => import("./admin/DomainConfigPage"));
+const RDSUpgradePage = lazy(() => import("./pages/RDSUpgradePage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -316,6 +317,7 @@ function App() {
             <Route path="/admin/sponsorship" element={<AdminRoute><AdminSponsorshipOverview /></AdminRoute>} />
             <Route path="/admin/industry" element={<AdminRoute><IndustryDashboard /></AdminRoute>} />
             <Route path="/admin/domain" element={<AdminRoute><DomainConfigPage /></AdminRoute>} />
+            <Route path="/admin/rds-upgrade" element={<AdminRoute><RDSUpgradePage /></AdminRoute>} />
             
             {/* 404 Route - Must be last */}
             <Route path="*" element={<NotFoundPage />} />

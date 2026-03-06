@@ -121,6 +121,7 @@ const NavigationBar = () => {
                 {isAdminDropdownOpen && (
                   <div className="absolute top-full left-0 mt-2 w-52 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
                     <Link to="/admin/domain" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Domain Config</Link>
+                    <Link to="/admin/rds-upgrade" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-rds-upgrade">RDS Upgrade</Link>
                     <Link to="/admin/users" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>User Management</Link>
                     <Link to="/admin/content" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Content Moderation</Link>
                     <Link to="/admin/analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Analytics</Link>

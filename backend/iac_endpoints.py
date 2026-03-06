@@ -20,6 +20,12 @@ class DeploymentRecord(BaseModel):
     notes: str = ""
 
 
+class RDSUpgradeRequest(BaseModel):
+    instance_id: str
+    target_version: str
+    apply_immediately: bool = True
+
+
 # ── existing endpoints (local file-based) ──────────────────────────
 
 @router.get("/overview")
@@ -64,6 +70,36 @@ async def get_deployment_commands(environment: str):
         raise HTTPException(status_code=400, detail="Invalid environment. Use dev, staging, or prod.")
     svc = get_iac_service()
     return await svc.get_deployment_commands(environment)
+
+
+# ── RDS management endpoints ────────────────────────────────────────
+
+@router.get("/rds/instances")
+async def get_rds_instances():
+    """List all PostgreSQL RDS instances with version and status info."""
+    svc = get_iac_service()
+    return await svc.get_rds_instances()
+
+
+@router.get("/rds/upgrade-targets/{instance_id}")
+async def get_rds_upgrade_targets(instance_id: str):
+    """Get available minor version upgrade targets for a specific RDS instance."""
+    svc = get_iac_service()
+    return await svc.get_rds_upgrade_targets(instance_id)
+
+
+@router.post("/rds/upgrade")
+async def upgrade_rds_instance(data: RDSUpgradeRequest):
+    """Initiate a minor version upgrade on an RDS PostgreSQL instance."""
+    svc = get_iac_service()
+    result = await svc.upgrade_rds_instance(
+        instance_id=data.instance_id,
+        target_version=data.target_version,
+        apply_immediately=data.apply_immediately,
+    )
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Upgrade failed"))
+    return result
 
 
 # ── NEW live data endpoints ─────────────────────────────────────────

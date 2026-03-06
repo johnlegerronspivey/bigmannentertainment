@@ -94,6 +94,7 @@ class IaCService:
         self._lambda_client = _build_boto3_client("lambda")
         self._s3_client = _build_boto3_client("s3")
         self._cw_client = _build_boto3_client("cloudwatch")
+        self._rds_client = _build_boto3_client("rds")
         self._gh = _build_github_client()
 
     # ── connection health ───────────────────────────────────────────
@@ -672,6 +673,163 @@ class IaCService:
             "total_constructs": len(constructs),
             "total_services": sum(len(c["services"]) for c in constructs),
         }
+
+    # ── live RDS data ──────────────────────────────────────────────
+    def _get_rds_instances_sync(self) -> dict:
+        """Synchronous: fetch all RDS PostgreSQL instances with their details."""
+        if not self._rds_client:
+            return {"connected": False, "error": "RDS client not available", "instances": []}
+
+        instances = []
+        try:
+            paginator = self._rds_client.get_paginator("describe_db_instances")
+            for page in paginator.paginate():
+                for db in page.get("DBInstances", []):
+                    if db.get("Engine", "").startswith("postgres"):
+                        instances.append({
+                            "db_instance_id": db["DBInstanceIdentifier"],
+                            "engine": db["Engine"],
+                            "engine_version": db["EngineVersion"],
+                            "db_instance_class": db.get("DBInstanceClass", ""),
+                            "status": db.get("DBInstanceStatus", ""),
+                            "endpoint": db.get("Endpoint", {}).get("Address", ""),
+                            "port": db.get("Endpoint", {}).get("Port", 5432),
+                            "allocated_storage_gb": db.get("AllocatedStorage", 0),
+                            "multi_az": db.get("MultiAZ", False),
+                            "storage_type": db.get("StorageType", ""),
+                            "auto_minor_version_upgrade": db.get("AutoMinorVersionUpgrade", False),
+                            "availability_zone": db.get("AvailabilityZone", ""),
+                            "backup_retention_period": db.get("BackupRetentionPeriod", 0),
+                            "preferred_maintenance_window": db.get("PreferredMaintenanceWindow", ""),
+                            "pending_modified_values": db.get("PendingModifiedValues", {}),
+                            "ca_certificate_identifier": db.get("CACertificateIdentifier", ""),
+                            "storage_encrypted": db.get("StorageEncrypted", False),
+                            "publicly_accessible": db.get("PubliclyAccessible", False),
+                            "instance_create_time": db.get("InstanceCreateTime").isoformat() if db.get("InstanceCreateTime") else None,
+                        })
+        except ClientError as e:
+            return {"connected": True, "error": f"DescribeDBInstances failed: {e.response['Error']['Code']}", "instances": []}
+        except Exception as e:
+            return {"connected": True, "error": str(e)[:200], "instances": []}
+
+        return {"connected": True, "error": None, "instances": instances, "total": len(instances)}
+
+    async def get_rds_instances(self) -> dict:
+        return await asyncio.to_thread(self._get_rds_instances_sync)
+
+    def _get_rds_upgrade_targets_sync(self, instance_id: str) -> dict:
+        """Synchronous: get valid minor version upgrade targets for a specific RDS instance."""
+        if not self._rds_client:
+            return {"connected": False, "error": "RDS client not available", "targets": []}
+
+        try:
+            # First get the current instance info
+            resp = self._rds_client.describe_db_instances(DBInstanceIdentifier=instance_id)
+            dbs = resp.get("DBInstances", [])
+            if not dbs:
+                return {"connected": True, "error": f"Instance '{instance_id}' not found", "targets": []}
+
+            db = dbs[0]
+            current_version = db["EngineVersion"]
+            engine = db["Engine"]
+            current_major = ".".join(current_version.split(".")[:1])  # e.g. "16" from "16.3"
+
+            # Get all available engine versions for the same major version
+            targets = []
+            paginator = self._rds_client.get_paginator("describe_db_engine_versions")
+            for page in paginator.paginate(Engine=engine):
+                for ver in page.get("DBEngineVersions", []):
+                    ver_str = ver["EngineVersion"]
+                    ver_major = ".".join(ver_str.split(".")[:1])
+                    # Only include same-major versions that are newer
+                    if ver_major == current_major and ver_str > current_version:
+                        valid_targets = ver.get("ValidUpgradeTarget", [])
+                        targets.append({
+                            "engine_version": ver_str,
+                            "description": ver.get("DBEngineVersionDescription", ""),
+                            "auto_upgrade": ver.get("SupportsGlobalDatabases", False),
+                            "status": ver.get("Status", "available"),
+                            "is_valid_target": False,
+                        })
+
+            # Also check direct valid upgrade targets from the engine version API
+            resp2 = self._rds_client.describe_db_engine_versions(
+                Engine=engine,
+                EngineVersion=current_version
+            )
+            direct_targets = []
+            for ev in resp2.get("DBEngineVersions", []):
+                for t in ev.get("ValidUpgradeTarget", []):
+                    if not t.get("IsMajorVersionUpgrade", True):
+                        direct_targets.append(t["EngineVersion"])
+
+            # Mark which targets are valid direct upgrades
+            for t in targets:
+                if t["engine_version"] in direct_targets:
+                    t["is_valid_target"] = True
+
+            # Add any direct targets not already in the list
+            existing_versions = {t["engine_version"] for t in targets}
+            for dt_ver in direct_targets:
+                if dt_ver not in existing_versions:
+                    targets.append({
+                        "engine_version": dt_ver,
+                        "description": f"PostgreSQL {dt_ver}",
+                        "auto_upgrade": False,
+                        "status": "available",
+                        "is_valid_target": True,
+                    })
+
+            # Sort targets by version descending
+            targets.sort(key=lambda x: x["engine_version"], reverse=True)
+
+            return {
+                "connected": True,
+                "error": None,
+                "instance_id": instance_id,
+                "current_version": current_version,
+                "engine": engine,
+                "targets": targets,
+                "total": len(targets),
+            }
+
+        except ClientError as e:
+            return {"connected": True, "error": f"RDS error: {e.response['Error']['Code']} - {e.response['Error'].get('Message', '')}", "targets": []}
+        except Exception as e:
+            return {"connected": True, "error": str(e)[:200], "targets": []}
+
+    async def get_rds_upgrade_targets(self, instance_id: str) -> dict:
+        return await asyncio.to_thread(self._get_rds_upgrade_targets_sync, instance_id)
+
+    def _upgrade_rds_instance_sync(self, instance_id: str, target_version: str, apply_immediately: bool = True) -> dict:
+        """Synchronous: initiate a minor version upgrade on an RDS instance."""
+        if not self._rds_client:
+            return {"success": False, "error": "RDS client not available"}
+
+        try:
+            resp = self._rds_client.modify_db_instance(
+                DBInstanceIdentifier=instance_id,
+                EngineVersion=target_version,
+                ApplyImmediately=apply_immediately,
+                AllowMajorVersionUpgrade=False,
+            )
+            db = resp.get("DBInstance", {})
+            return {
+                "success": True,
+                "error": None,
+                "instance_id": db.get("DBInstanceIdentifier", instance_id),
+                "target_version": target_version,
+                "apply_immediately": apply_immediately,
+                "status": db.get("DBInstanceStatus", ""),
+                "pending_modified_values": db.get("PendingModifiedValues", {}),
+            }
+        except ClientError as e:
+            return {"success": False, "error": f"RDS error: {e.response['Error']['Code']} - {e.response['Error'].get('Message', '')}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)[:200]}
+
+    async def upgrade_rds_instance(self, instance_id: str, target_version: str, apply_immediately: bool = True) -> dict:
+        return await asyncio.to_thread(self._upgrade_rds_instance_sync, instance_id, target_version, apply_immediately)
 
     # ── existing methods (kept for backward compatibility) ──────────
     async def get_overview(self) -> dict:
