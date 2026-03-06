@@ -53,6 +53,11 @@ Big Mann Entertainment is a complete media distribution platform founded by John
 - Auth context extraction to AuthContext.jsx ✅
 - Navigation extraction to NavigationBar.jsx ✅
 - Page components extraction to /pages/ directory ✅ (11 components, App.js: 3196→354 lines)
+- **Amazon RDS PostgreSQL Minor Version Upgrade** ✅ (Tested Feb 2026)
+  - Backend: GET /api/cve/iac/rds/instances, GET /api/cve/iac/rds/upgrade-targets/{id}, POST /api/cve/iac/rds/upgrade
+  - Frontend: /admin/rds-upgrade page (AdminRoute)
+  - Live AWS RDS: bigmann-profiles-db (PostgreSQL 17.4, upgradable to 17.5-17.9)
+  - Files: iac_service.py (RDS methods), iac_endpoints.py (RDS routes), pages/RDSUpgradePage.jsx
 
 ## Credentials
 - Owner: owner@bigmannentertainment.com / Test1234!
