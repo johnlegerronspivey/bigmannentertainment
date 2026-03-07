@@ -53,17 +53,23 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error fetching user profile:', error);
       
-      const token = localStorage.getItem('token');
-      if (token && !error.message.includes('Session expired')) {
-        setUser({ 
-          email: 'owner@bigmannentertainment.com', 
-          role: 'user',
-          temp: true 
-        });
+      if (error.message === 'Session expired') {
+        // Token was invalid/expired — already cleared by apiClient
+        clearAuth();
+      } else {
+        // Network error or other transient failure — keep token, set temp user
+        const token = localStorage.getItem('token');
+        if (token) {
+          setUser({ 
+            email: 'user',
+            role: 'user',
+            temp: true 
+          });
+        }
       }
+    } finally {
       setLoading(false);
     }
-    setLoading(false);
   };
 
   const clearAuth = () => {

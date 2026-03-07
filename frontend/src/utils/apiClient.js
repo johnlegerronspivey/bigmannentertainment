@@ -99,11 +99,10 @@ export async function apiRequest(endpoint, options = {}) {
   try {
     const response = await fetchWithRetry(url, fetchOptions);
     
-    // Handle unauthorized - clear token and redirect to login
+    // Handle unauthorized - clear token, let callers handle redirect
     if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
       throw new Error('Session expired');
     }
     
