@@ -167,6 +167,15 @@ DISTRIBUTION_PLATFORMS = {
         "credentials_required": ["user_id", "auth_token", "user_agent"],
         "description": "Content subscription and monetization platform for creators"
     },
+    "fansly": {
+        "type": "social_media",
+        "name": "Fansly",
+        "api_endpoint": "https://apiv3.fansly.com/api/v1",
+        "supported_formats": ["image", "video", "audio"],
+        "max_file_size": 500 * 1024 * 1024,
+        "credentials_required": ["auth_token", "user_agent"],
+        "description": "Creator subscription platform for exclusive content and fan engagement"
+    },
 
     # Major Music Streaming Platforms (16 platforms)
     "spotify": {

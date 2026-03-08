@@ -125,6 +125,15 @@ class DistributionTrackerService:
                 supported_formats=["mp4"],
                 delivery_time_estimate="2-4 hours"
             ),
+            "fansly": PlatformInfo(
+                id="fansly",
+                name="Fansly",
+                category=PlatformCategory.SOCIAL_MEDIA,
+                api_endpoint="https://apiv3.fansly.com/api/v1",
+                max_file_size=500 * 1024 * 1024,  # 500MB
+                supported_formats=["jpg", "png", "mp4", "mp3", "gif"],
+                delivery_time_estimate="1-2 hours"
+            ),
             "youtube": PlatformInfo(
                 id="youtube",
                 name="YouTube",
