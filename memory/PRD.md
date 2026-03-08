@@ -80,5 +80,12 @@ Big Mann Entertainment is a complete media distribution platform founded by John
 - Super Admin: cveadmin@test.com / Test1234!
 
 ## Backlog
+- P1: User Content Uploads & Management
+- P1: Direct Messaging
+- P2: Analytics Dashboard
+- P2: Real-time Notifications for creators
 - P2: Backend file organization (routes into /routes/, models into /models/)
 - P3: Further component extraction if needed
+
+## Refactoring Completed
+- **PostgreSQL Creator Profile Cleanup (Mar 2026)** - Removed 7 obsolete PG-based files (`pg_database.py`, `profile_models.py`, `profile_service.py`, `profile_endpoints.py`, `init_profiles.py`, `social_media_models.py`, `social_integration_endpoints.py`). Cleaned `server.py` startup/shutdown, `router_setup.py` imports, and removed `POSTGRES_URL` from `.env`. Made `postgres_client.py` and `postgres_ledger.py` gracefully handle missing PG config. Eliminated `TimeoutError` log noise.

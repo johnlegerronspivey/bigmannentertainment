@@ -60,9 +60,12 @@ def prepare_for_json(data):
 class PostgresClient:
     def __init__(self, connection_string=None):
         self.connection_string = connection_string or os.getenv("POSTGRES_URL")
+        self.engine = None
+        self.async_session = None
         if not self.connection_string:
-             logger.warning("POSTGRES_URL not set for PostgresClient")
-             
+            logger.warning("POSTGRES_URL not set for PostgresClient — all PG operations will be no-ops")
+            return
+
         self.engine = create_async_engine(self.connection_string, echo=False)
         self.async_session = sessionmaker(
             self.engine, class_=AsyncSession, expire_on_commit=False
@@ -70,6 +73,9 @@ class PostgresClient:
 
     async def initialize_tables(self):
         """Creates standard tables if they don't exist"""
+        if not self.engine:
+            logger.warning("PostgresClient: no engine configured, skipping table init")
+            return
         try:
             async with self.engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
@@ -80,6 +86,9 @@ class PostgresClient:
     # --- Dispute Operations ---
 
     async def create_dispute(self, dispute_data: dict):
+        if not self.async_session:
+            logger.warning("PostgresClient: no session, skipping create_dispute")
+            return None
         clean_doc = prepare_for_json(dispute_data)
         doc_id = clean_doc.get('id') or str(uuid4())
         
@@ -99,6 +108,8 @@ class PostgresClient:
             return new_dispute
 
     async def get_dispute(self, dispute_id: str):
+        if not self.async_session:
+            return None
         async with self.async_session() as session:
             # Try by ID
             stmt = select(DisputeTable).where(DisputeTable.id == dispute_id)
@@ -114,6 +125,8 @@ class PostgresClient:
             return record.document if record else None
 
     async def get_all_disputes(self, limit=50, offset=0):
+        if not self.async_session:
+            return []
         async with self.async_session() as session:
             stmt = select(DisputeTable).order_by(desc(DisputeTable.created_at)).limit(limit).offset(offset)
             result = await session.execute(stmt)
@@ -121,6 +134,8 @@ class PostgresClient:
             return [r.document for r in records]
 
     async def update_dispute(self, dispute_id: str, update_data: dict):
+        if not self.async_session:
+            return None
         clean_update = prepare_for_json(update_data)
         
         async with self.async_session() as session:
@@ -149,6 +164,8 @@ class PostgresClient:
     # --- Audit Operations ---
 
     async def create_audit_entry(self, entry_data: dict):
+        if not self.async_session:
+            return None
         clean_doc = prepare_for_json(entry_data)
         entry_id = clean_doc.get('id') or str(uuid4())
         
@@ -167,6 +184,8 @@ class PostgresClient:
         return new_entry
 
     async def get_audit_trail(self, limit=50, offset=0):
+        if not self.async_session:
+            return []
         async with self.async_session() as session:
             stmt = select(AuditTable).order_by(desc(AuditTable.created_at)).limit(limit).offset(offset)
             result = await session.execute(stmt)

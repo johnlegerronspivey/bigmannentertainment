@@ -8,9 +8,7 @@ from uln_endpoints import uln_router
 from uln_blockchain_endpoints import router as blockchain_router
 from ethereum_endpoints import router as ethereum_router
 from ethereum_advanced_endpoints import router as ethereum_advanced_router
-from profile_endpoints import router as profile_router
 from social_oauth_service import router as oauth_router
-from social_integration_endpoints import router as social_integration_router
 from aws_organizations_endpoints import router as aws_organizations_router
 from enterprise_phase1_endpoints import router as enterprise_phase1_router
 from digital_twin_endpoints import router as digital_twin_router
@@ -83,8 +81,8 @@ api_router = APIRouter(prefix="/api")
 # Include Routers
 routers = [
     content_removal_router, workflow_integration_router, support_router, uln_router,
-    blockchain_router, ethereum_router, ethereum_advanced_router, profile_router,
-    oauth_router, social_integration_router, aws_organizations_router, enterprise_phase1_router,
+    blockchain_router, ethereum_router, ethereum_advanced_router,
+    oauth_router, aws_organizations_router, enterprise_phase1_router,
     digital_twin_router, royalty_marketplace_router, aws_enterprise_mapping_router,
     agency_automation_router, dao_v2_router, creative_studio_router, macie_router,
     guardduty_router, qldb_router, # agency_router excluded

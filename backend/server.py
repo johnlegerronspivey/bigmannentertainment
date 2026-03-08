@@ -161,15 +161,6 @@ async def apply_rate_limiting(request: Request, call_next):
 # ============================================================
 @app.on_event("startup")
 async def startup_event():
-    postgres_url = os.getenv("POSTGRES_URL")
-    if postgres_url:
-        try:
-            from pg_database import init_db
-            await init_db()
-            print("PostgreSQL database initialized")
-        except Exception as e:
-            print(f"PostgreSQL initialization failed: {str(e)}")
-
     print("Creating database indexes...")
     await DatabaseOptimizer.ensure_indexes(db)
 
@@ -222,13 +213,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    postgres_url = os.getenv("POSTGRES_URL")
-    if postgres_url:
-        try:
-            from pg_database import close_db
-            await close_db()
-        except Exception as e:
-            print(f"PostgreSQL shutdown error: {str(e)}")
+    pass
 
 # ============================================================
 # Router Setup

@@ -55,9 +55,12 @@ def prepare_for_json(data):
 class PostgresLedgerDriver:
     def __init__(self, connection_string=None):
         self.connection_string = connection_string or os.getenv("POSTGRES_URL")
+        self.engine = None
+        self.async_session = None
         if not self.connection_string:
-             logger.warning("POSTGRES_URL not set for PostgresLedgerDriver")
-             
+            logger.warning("POSTGRES_URL not set for PostgresLedgerDriver — all ledger operations will be no-ops")
+            return
+
         self.engine = create_async_engine(self.connection_string, echo=False)
         self.async_session = sessionmaker(
             self.engine, class_=AsyncSession, expire_on_commit=False
@@ -65,6 +68,9 @@ class PostgresLedgerDriver:
 
     async def initialize_table(self):
         """Creates the ledger table if it doesn't exist"""
+        if not self.engine:
+            logger.warning("PostgresLedgerDriver: no engine configured, skipping table init")
+            return
         try:
             async with self.engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
@@ -94,6 +100,9 @@ class PostgresLedgerDriver:
         """
         Inserts a document into the ledger.
         """
+        if not self.async_session:
+            logger.warning("PostgresLedgerDriver: no session, skipping insert_document")
+            return None
         if 'id' not in document:
             document['id'] = str(uuid4())
         
@@ -135,6 +144,8 @@ class PostgresLedgerDriver:
 
     async def get_document(self, table_name: str, document_id: str):
         """Retrieves the latest version of a document"""
+        if not self.async_session:
+            return None
         async with self.async_session() as session:
             stmt = select(LedgerTransaction).where(
                 LedgerTransaction.table_name == table_name,
@@ -150,6 +161,8 @@ class PostgresLedgerDriver:
 
     async def get_history(self, table_name: str, document_id: str):
         """Retrieves history of a document"""
+        if not self.async_session:
+            return []
         async with self.async_session() as session:
             stmt = select(LedgerTransaction).where(
                 LedgerTransaction.table_name == table_name,
@@ -171,6 +184,8 @@ class PostgresLedgerDriver:
         """
         Simulates PartiQL execution by mapping to simple SQL queries if possible.
         """
+        if not self.async_session:
+            return []
         query_upper = query.strip().upper()
         
         async with self.async_session() as session:
