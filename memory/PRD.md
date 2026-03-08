@@ -15,54 +15,56 @@ Big Mann Entertainment is a complete media distribution platform founded by John
 │   └── server.py
 └── frontend/
     └── src/
-        ├── App.js                          # Main router (354 lines, lazy imports only)
+        ├── App.js
         ├── components/
-        │   ├── layout/
-        │   │   └── NavigationBar.jsx       # Navigation component
-        │   ├── ui/                         # Shadcn UI components
+        │   ├── layout/NavigationBar.jsx
+        │   ├── ui/ (Shadcn UI components)
         │   ├── ChunkErrorBoundary.jsx
         │   ├── ErrorBoundary.js
         │   ├── LoadingSkeleton.js
         │   └── LoadingSpinner.js
-        ├── contexts/
-        │   └── AuthContext.jsx             # Auth context (AuthProvider, useAuth, ProtectedRoute, AdminRoute)
-        ├── pages/                          # Extracted page components
-        │   ├── HomePage.jsx
-        │   ├── LoginPage.jsx
-        │   ├── RegisterPage.jsx
-        │   ├── ForgotPasswordPage.jsx
-        │   ├── ResetPasswordPage.jsx
-        │   ├── NotFoundPage.jsx
-        │   ├── AdminNotificationsPage.jsx
-        │   ├── LibraryPage.jsx
-        │   ├── DistributePage.jsx
-        │   ├── PlatformsPage.jsx
-        │   └── PricingPage.jsx
-        ├── admin/
-        │   └── DomainConfigPage.jsx
-        ├── cve/                            # CVE management module
-        └── [feature component files]       # ~60+ feature-specific component files
+        ├── contexts/AuthContext.jsx
+        ├── pages/
+        │   ├── HomePage.jsx, LoginPage.jsx, RegisterPage.jsx
+        │   ├── ForgotPasswordPage.jsx, ResetPasswordPage.jsx
+        │   ├── NotFoundPage.jsx, AdminNotificationsPage.jsx
+        │   ├── LibraryPage.jsx, DistributePage.jsx
+        │   ├── PlatformsPage.jsx, PricingPage.jsx
+        │   └── RDSUpgradePage.jsx
+        ├── admin/DomainConfigPage.jsx
+        ├── cve/ (CVE management module)
+        └── utils/apiClient.js
 ```
 
 ## Completed Features
-- Navigation Bar UI ✅ (Approved)
-- Domain Configuration Page ✅ (Approved)
-- CVE Management Dashboard ✅ (Approved)
-- SLA Tracker Dashboard ✅ (Approved)
-- Tenant Management (RBAC) ✅ (Approved)
-- Auth context extraction to AuthContext.jsx ✅
-- Navigation extraction to NavigationBar.jsx ✅
-- Page components extraction to /pages/ directory ✅ (11 components, App.js: 3196→354 lines)
-- **Amazon RDS PostgreSQL Minor Version Upgrade** ✅ (Tested Feb 2026)
-  - Backend: GET /api/cve/iac/rds/instances, GET /api/cve/iac/rds/upgrade-targets/{id}, POST /api/cve/iac/rds/upgrade
-  - Frontend: /admin/rds-upgrade page (AdminRoute)
-  - Live AWS RDS: bigmann-profiles-db (PostgreSQL 17.4, upgradable to 17.5-17.9)
-  - Files: iac_service.py (RDS methods), iac_endpoints.py (RDS routes), pages/RDSUpgradePage.jsx
+- Navigation Bar UI
+- Domain Configuration Page
+- CVE Management Dashboard
+- SLA Tracker Dashboard
+- Tenant Management (RBAC)
+- Auth context extraction to AuthContext.jsx
+- Navigation extraction to NavigationBar.jsx
+- Page components extraction to /pages/ directory (11 components)
+- Amazon RDS PostgreSQL Minor Version Upgrade (Feb 2026)
+- Added "Fansly" to platform list
+- **P0 Account Lockout Fix (Feb 2026)**
+  - Root cause: expired lockout didn't reset failed_login_attempts, so one wrong password immediately re-locked
+  - Fix: auto-clear expired lockouts, MAX_LOGIN_ATTEMPTS 5->10, LOCKOUT_DURATION 30->15 min
+  - Added admin endpoints: GET /api/auth/admin/locked-accounts, POST /api/auth/admin/unlock-account
+  - Error messages now show remaining attempts
+  - All 20 tests passing (16 backend + 4 frontend)
+
+## Auth System Configuration
+- MAX_LOGIN_ATTEMPTS: 10
+- LOCKOUT_DURATION_MINUTES: 15
+- Auto-clear expired lockouts on next login attempt
+- Admin can unlock accounts via /api/auth/admin/unlock-account
 
 ## Credentials
 - Owner: owner@bigmannentertainment.com / Test1234!
 - Super Admin: cveadmin@test.com / Test1234!
 
 ## Backlog
-- P2: Further component extraction if needed (feature-specific files in src/ root)
+- P1: Re-evaluate full project backlog with user
+- P2: Further component extraction if needed
 - P3: Backend file organization (routes into /routes/, models into /models/)
