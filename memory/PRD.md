@@ -1,7 +1,7 @@
 # Big Mann Entertainment - Product Requirements Document
 
 ## Original Problem Statement
-Big Mann Entertainment is a complete media distribution platform founded by John LeGerron Spivey. The application enables content creators to distribute their media (audio, video, images) across 117+ platforms worldwide, manage royalties, handle compliance, and leverage blockchain technologies.
+Big Mann Entertainment is a complete media distribution platform founded by John LeGerron Spivey. The application enables content creators to distribute their media (audio, video, images) across 120+ platforms worldwide, manage royalties, handle compliance, and leverage blockchain technologies.
 
 ## Architecture
 - **Frontend**: React with lazy-loaded components, TailwindCSS, Shadcn/UI
@@ -12,27 +12,24 @@ Big Mann Entertainment is a complete media distribution platform founded by John
 ```
 /app
 ├── backend/
-│   └── server.py
+│   ├── server.py
+│   ├── routes/
+│   │   ├── creator_profile_routes.py  (NEW - MongoDB creator profiles)
+│   │   ├── watermark_routes.py        (NEW - Content watermarking)
+│   │   ├── subscription_routes.py     (NEW - Subscription tiers)
+│   │   ├── auth_routes.py, admin_routes.py, ...
+│   ├── config/, models/, auth/, services/
+│   └── router_setup.py
 └── frontend/
     └── src/
         ├── App.js
-        ├── components/
-        │   ├── layout/NavigationBar.jsx
-        │   ├── ui/ (Shadcn UI components)
-        │   ├── ChunkErrorBoundary.jsx
-        │   ├── ErrorBoundary.js
-        │   ├── LoadingSkeleton.js
-        │   └── LoadingSpinner.js
-        ├── contexts/AuthContext.jsx
         ├── pages/
-        │   ├── HomePage.jsx, LoginPage.jsx, RegisterPage.jsx
-        │   ├── ForgotPasswordPage.jsx, ResetPasswordPage.jsx
-        │   ├── NotFoundPage.jsx, AdminNotificationsPage.jsx
-        │   ├── LibraryPage.jsx, DistributePage.jsx
-        │   ├── PlatformsPage.jsx, PricingPage.jsx
-        │   └── RDSUpgradePage.jsx
-        ├── admin/DomainConfigPage.jsx
-        ├── cve/ (CVE management module)
+        │   ├── CreatorProfilesPage.jsx  (NEW)
+        │   ├── WatermarkPage.jsx        (NEW)
+        │   ├── SubscriptionPage.jsx     (NEW)
+        │   ├── HomePage.jsx, LoginPage.jsx, ...
+        ├── components/layout/NavigationBar.jsx
+        ├── contexts/AuthContext.jsx
         └── utils/apiClient.js
 ```
 
@@ -44,15 +41,33 @@ Big Mann Entertainment is a complete media distribution platform founded by John
 - Tenant Management (RBAC)
 - Auth context extraction to AuthContext.jsx
 - Navigation extraction to NavigationBar.jsx
-- Page components extraction to /pages/ directory (11 components)
+- Page components extraction to /pages/ directory
 - Amazon RDS PostgreSQL Minor Version Upgrade (Feb 2026)
 - Added "Fansly" to platform list
 - **P0 Account Lockout Fix (Feb 2026)**
-  - Root cause: expired lockout didn't reset failed_login_attempts, so one wrong password immediately re-locked
-  - Fix: auto-clear expired lockouts, MAX_LOGIN_ATTEMPTS 5->10, LOCKOUT_DURATION 30->15 min
-  - Added admin endpoints: GET /api/auth/admin/locked-accounts, POST /api/auth/admin/unlock-account
-  - Error messages now show remaining attempts
-  - All 20 tests passing (16 backend + 4 frontend)
+- **Creator Profiles (Mar 2026)** - MongoDB-based profile system with create/edit/browse/search
+- **Content Watermarking (Mar 2026)** - Customizable text watermarks with live preview, save/download
+- **Subscription Tiers (Mar 2026)** - Free/Pro/Enterprise plans with Stripe checkout integration
+
+## New Feature Details
+
+### Creator Profiles
+- **Backend**: `/api/creator-profiles` (POST, GET /me, PUT /me, GET /browse, GET /u/{username})
+- **Frontend**: `/creator-profiles` page with My Profile tab and Browse Creators tab
+- **Data**: MongoDB `creator_profiles` collection
+- **Fields**: display_name, username, bio, tagline, location, genres, social_links, stats, subscription_tier
+
+### Content Watermarking
+- **Backend**: `/api/watermark` (GET/PUT /settings, POST /preview, POST /apply)
+- **Frontend**: `/watermark` page with settings panel and image upload/preview
+- **Data**: MongoDB `watermark_settings` collection
+- **Features**: Custom text, position (6 options), opacity, font size, color, rotation, tiled mode
+
+### Subscription Tiers
+- **Backend**: `/api/subscriptions` (GET /tiers, GET /me, POST /checkout, POST /confirm, POST /cancel)
+- **Frontend**: `/subscription` page with 3 tier cards and billing toggle
+- **Data**: MongoDB `subscriptions` collection
+- **Tiers**: Free ($0), Pro ($9.99/mo), Enterprise ($29.99/mo) with Stripe checkout
 
 ## Auth System Configuration
 - MAX_LOGIN_ATTEMPTS: 10
@@ -65,6 +80,5 @@ Big Mann Entertainment is a complete media distribution platform founded by John
 - Super Admin: cveadmin@test.com / Test1234!
 
 ## Backlog
-- P1: Re-evaluate full project backlog with user
-- P2: Further component extraction if needed
-- P3: Backend file organization (routes into /routes/, models into /models/)
+- P2: Backend file organization (routes into /routes/, models into /models/)
+- P3: Further component extraction if needed
