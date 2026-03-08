@@ -150,6 +150,7 @@ const NavigationBar = () => {
                   <Link to="/image-upload" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Image Upload & NFT</Link>
                   <Link to="/distribute" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Distribute</Link>
                   <Link to="/creative-studio" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Creative Studio</Link>
+                  <Link to="/watermark" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-watermark">Watermarking</Link>
                   <Link to="/platforms" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Platforms</Link>
                 </div>
               )}
@@ -315,6 +316,9 @@ const NavigationBar = () => {
             <Link to="/social" className="hover:text-purple-200 text-sm" data-testid="nav-social-link">Social</Link>
             <Link to="/about" className="hover:text-purple-200 text-sm" data-testid="nav-about-link">About</Link>
 
+            <Link to="/creator-profiles" className="hover:text-purple-200 text-sm" data-testid="nav-creator-profiles-link">Creator Profile</Link>
+            <Link to="/subscription" className="hover:text-purple-200 text-sm" data-testid="nav-subscription-link">Plans</Link>
+
             <Link 
               to="/profile/settings" 
               className="bg-purple-700 hover:bg-purple-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors font-medium text-sm"
@@ -362,6 +366,27 @@ const NavigationBar = () => {
               
               {/* Profile & DAO Links - Highlighted in Mobile Menu */}
               <div className="border-t border-purple-600 mt-2 pt-2">
+                <Link 
+                  to="/creator-profiles" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>Creator Profile</span>
+                </Link>
+                <Link 
+                  to="/watermark" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>Watermarking</span>
+                </Link>
+                <Link 
+                  to="/subscription" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>Plans</span>
+                </Link>
                 <Link 
                   to="/profile/settings" 
                   className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"

@@ -123,6 +123,9 @@ const TenantManagement = lazy(() => import("./TenantManagement"));
 const ContentModerationComponent = lazy(() => import("./ContentModerationComponent"));
 const DomainConfigPage = lazy(() => import("./admin/DomainConfigPage"));
 const RDSUpgradePage = lazy(() => import("./pages/RDSUpgradePage"));
+const CreatorProfilesPage = lazy(() => import("./pages/CreatorProfilesPage"));
+const WatermarkPage = lazy(() => import("./pages/WatermarkPage"));
+const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -219,6 +222,9 @@ function App() {
             <Route path="/earnings" element={<ProtectedRoute><EarningsComponent /></ProtectedRoute>} />
             <Route path="/earnings/dashboard" element={<ProtectedRoute><EarningsDashboard /></ProtectedRoute>} />
             <Route path="/image-upload" element={<ProtectedRoute><ImageUploadComponent /></ProtectedRoute>} />
+            <Route path="/creator-profiles" element={<ProtectedRoute><CreatorProfilesPage /></ProtectedRoute>} />
+            <Route path="/watermark" element={<ProtectedRoute><WatermarkPage /></ProtectedRoute>} />
+            <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
 
             {/* Business routes */}
             <Route path="/business" element={<ProtectedRoute><BusinessIdentifiers /></ProtectedRoute>} />
