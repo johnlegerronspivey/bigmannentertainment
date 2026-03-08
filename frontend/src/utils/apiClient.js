@@ -99,17 +99,28 @@ export async function apiRequest(endpoint, options = {}) {
   try {
     const response = await fetchWithRetry(url, fetchOptions);
     
-    // Handle unauthorized - clear token, let callers handle redirect
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      throw new Error('Session expired');
-    }
-    
-    // Parse response
+    // Parse response body first so we can use the real error message
     const data = await response.json().catch(() => ({}));
     
+    // Handle unauthorized
+    if (response.status === 401) {
+      // Only clear auth for non-login endpoints (actual session expiry)
+      const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register');
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+      // Use the backend's actual error message
+      const serverMessage = data.detail || data.message || data.error;
+      throw new Error(serverMessage || (isAuthEndpoint ? 'Invalid credentials' : 'Session expired. Please log in again.'));
+    }
+    
     if (!response.ok) {
+      // Use backend error message if available, otherwise fallback
+      const serverMessage = data.detail || data.message || data.error;
+      if (serverMessage) {
+        throw new Error(serverMessage);
+      }
       const errorInfo = parseErrorResponse(data, response.status);
       throw new Error(errorInfo.message);
     }
