@@ -1,4 +1,5 @@
 """Authentication endpoints - register, login, password management."""
+import os
 import re
 import uuid
 import secrets
@@ -144,7 +145,20 @@ async def login_user(login_data: UserLogin, request: Request):
     
     # Check if account is locked
     if user.locked_until and user.locked_until > datetime.utcnow():
-        raise HTTPException(status_code=423, detail="Account is temporarily locked due to too many failed attempts")
+        remaining = int((user.locked_until - datetime.utcnow()).total_seconds() / 60) + 1
+        raise HTTPException(
+            status_code=423,
+            detail=f"Account is temporarily locked. Try again in {remaining} minute(s)."
+        )
+    
+    # Auto-clear expired lockout: reset failed attempts so user gets a fresh start
+    if user.locked_until and user.locked_until <= datetime.utcnow():
+        await db.users.update_one(
+            {"id": user.id},
+            {"$set": {"failed_login_attempts": 0, "locked_until": None}}
+        )
+        user.failed_login_attempts = 0
+        user.locked_until = None
     
     # Verify password
     password_hash = user_doc.get("password_hash")
@@ -155,6 +169,7 @@ async def login_user(login_data: UserLogin, request: Request):
         # Increment failed attempts
         failed_attempts = user.failed_login_attempts + 1
         locked_until = None
+        remaining_attempts = MAX_LOGIN_ATTEMPTS - failed_attempts
         
         if failed_attempts >= MAX_LOGIN_ATTEMPTS:
             locked_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
@@ -169,7 +184,16 @@ async def login_user(login_data: UserLogin, request: Request):
             }
         )
         
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        if locked_until:
+            raise HTTPException(
+                status_code=423,
+                detail=f"Too many failed attempts. Account locked for {LOCKOUT_DURATION_MINUTES} minutes."
+            )
+        
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid email or password. {remaining_attempts} attempt(s) remaining."
+        )
     
     # Check if account is active
     if not user.is_active:
@@ -328,6 +352,47 @@ async def logout_user(current_user: User = Depends(get_current_user), request: R
         await log_activity(current_user.id, "logout", "user", current_user.id, {}, request)
     
     return {"message": "Successfully logged out"}
+
+@router.post("/auth/admin/unlock-account")
+async def admin_unlock_account(request: Request, current_user: User = Depends(get_current_user)):
+    """Admin endpoint to unlock a user account."""
+    if not current_user.is_admin and current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    body = await request.json()
+    email = body.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    result = await db.users.update_one(
+        {"email": email},
+        {"$set": {"failed_login_attempts": 0, "locked_until": None}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await log_activity(current_user.id, "admin_unlock_account", "user", None, {"unlocked_email": email}, request)
+    return {"message": f"Account {email} has been unlocked successfully"}
+
+
+@router.get("/auth/admin/locked-accounts")
+async def get_locked_accounts(current_user: User = Depends(get_current_user)):
+    """Admin endpoint to list all currently locked accounts."""
+    if not current_user.is_admin and current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    locked_users = await db.users.find(
+        {"locked_until": {"$gt": datetime.utcnow()}},
+        {"_id": 0, "email": 1, "full_name": 1, "failed_login_attempts": 1, "locked_until": 1}
+    ).to_list(100)
+    
+    for u in locked_users:
+        if u.get("locked_until"):
+            u["locked_until"] = u["locked_until"].isoformat()
+    
+    return {"locked_accounts": locked_users}
+
 
 @router.post("/auth/forgot-password")
 async def forgot_password(request_data: ForgotPasswordRequest, request: Request):
