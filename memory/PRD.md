@@ -29,10 +29,10 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 
 ### Phase 4 - Refactoring (2026-03-09)
 - **server.py Refactoring** - Extracted middleware, startup logic, WebSocket routes, and webhook routes into dedicated modules. server.py reduced from 429 to 156 lines (64% reduction).
-  - `middleware.py` — Performance tracking, security headers, rate limiting
-  - `startup.py` — Database indexes, service initialization, shutdown handler
-  - `routes/websocket_routes.py` — SLA and notification WebSocket endpoints
-  - `routes/webhook_routes.py` — Stripe webhook endpoint
+  - `middleware.py` -- Performance tracking, security headers, rate limiting
+  - `startup.py` -- Database indexes, service initialization, shutdown handler
+  - `routes/websocket_routes.py` -- SLA and notification WebSocket endpoints
+  - `routes/webhook_routes.py` -- Stripe webhook endpoint
 
 ### Phase 5 - Social Media Platform Connections (2026-03-09)
 - **120 Platform Connections Dashboard** - Full credential management system for all 120 distribution platforms (social media, music streaming, podcasts, radio, TV/video streaming, live streaming, blockchain, Web3 music, NFT marketplaces, model agencies, rights organizations, music licensing)
@@ -46,12 +46,27 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 
 ### Phase 6 - Real-Time Platform Analytics (2026-03-09)
 - **Analytics Tab** - New tab on Social Dashboard displaying real-time metrics for all 120 connected platforms
-- **Aggregate Metrics** - 6 key metrics: Total Followers (8.2M), Total Likes, Comments, Shares, Impressions, Avg Engagement Rate
+- **Aggregate Metrics** - 6 key metrics: Total Followers, Total Likes, Comments, Shares, Impressions, Avg Engagement Rate
 - **Category Breakdown** - 16 category cards showing per-category followers, avg engagement, growth rate
 - **Platform Performance Table** - Sortable table of all 120 platforms with sparkline trend charts (7-day), growth rate indicators, follower counts, engagement rates
 - **Refresh Metrics** - One-click refresh button to update all platform metrics
-- **API Endpoints**: `GET /api/social/metrics/dashboard`, `GET /api/social/metrics/platforms`, `POST /api/social/metrics/refresh`
-- **Note**: Metrics are deterministically generated server-side (not from live external APIs)
+
+### Phase 7 - Live Social Media API Integrations (2026-03-09)
+- **Live API Adapters** - 14 platform adapters that use stored credentials to make real API calls: Twitter/X, YouTube, Instagram, Facebook, Spotify, TikTok, LinkedIn, Twitch, SoundCloud, Reddit, YouTube Music, Threads, Spotify Podcasts, WhatsApp Business
+  - Backend service: `/app/backend/services/live_metrics_service.py`
+- **Graceful Fallback** - When live API calls fail or credentials are empty, automatically falls back to simulated metrics
+- **Metric Caching** - Live metrics cached in MongoDB (`platform_live_metrics` collection) with 5-minute TTL to avoid excessive API calls
+- **Data Source Indicators** - Every metric response includes `data_source: "live" | "simulated"` field
+- **Live/Simulated Counts** - All metrics endpoints return `live_count` and `simulated_count` at top level
+- **Connection Metadata** - `has_live_api` and `has_real_credentials` fields on each connection
+- **Frontend UI Updates**:
+  - "Live API Integration Active" info banner explaining data sources
+  - Live/Simulated count badges on analytics tab header
+  - SIM/LIVE data source badges on each platform row in performance table
+  - Legend explaining LIVE = Real API data, SIM = Simulated estimates
+  - "API" badge on platform connection cards with live adapter support
+  - Category cards show live count when applicable
+- **New API Endpoint**: `GET /api/social/live-supported` - Lists all 14 platforms with live API adapters
 
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
@@ -79,14 +94,15 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `GET /api/analytics/overview` - Dashboard stats
 - `POST /api/webhook/stripe` - Stripe webhook handler
 - `GET /api/social/platforms` - List all 120 platforms (public)
-- `GET /api/social/connections` - List all platforms with connection status (auth)
+- `GET /api/social/connections` - List all platforms with connection status, has_live_api, has_real_credentials (auth)
 - `POST /api/social/credentials/{platform_id}` - Save credentials (auth)
 - `GET /api/social/credentials/{platform_id}` - Get masked credentials (auth)
 - `DELETE /api/social/credentials/{platform_id}` - Disconnect platform (auth)
 - `POST /api/social/disconnect/{provider}` - Disconnect alias (auth)
-- `GET /api/social/metrics/dashboard` - Aggregate metrics: followers, likes, comments, shares, impressions, reach, engagement (auth)
-- `GET /api/social/metrics/platforms` - Per-platform metrics with categories and 7-day trend data (auth)
-- `POST /api/social/metrics/refresh` - Refresh metrics for all connected platforms (auth)
+- `GET /api/social/live-supported` - List 14 platforms with live API adapters (public)
+- `GET /api/social/metrics/dashboard` - Aggregate metrics with live_count/simulated_count (auth)
+- `GET /api/social/metrics/platforms` - Per-platform metrics with data_source and has_live_api (auth)
+- `POST /api/social/metrics/refresh` - Force refresh metrics with live API attempts (auth)
 - `POST /api/social/bulk-connect` - Bulk connect platforms (auth)
 - `POST /api/social/post` - Create social post (auth)
 - `GET /api/social/posts` - List user posts (auth)
@@ -99,6 +115,8 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `subscriptions`: subscription data
 - `platform_credentials`: `{ user_id, platform_id, credentials, display_name, status, connected_at, updated_at }`
 - `social_posts`: `{ id, user_id, platforms, content, media_urls, status, posted_at, created_at }`
+- `platform_live_metrics`: `{ user_id, platform_id, metrics, refreshed_at }` (cached live API results, 5-min TTL)
+- `platform_metrics`: `{ user_id, platform_id, metrics, data_source, refreshed_at }` (refresh history)
 
 ## Notification Types
 - `new_message` - When a user receives a direct message (blue icon)
@@ -110,14 +128,16 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - PayPal (payments)
 - AWS Services (S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, CloudWatch, etc.)
 - Google Generative AI
+- Social Media Live APIs (Twitter v2, YouTube Data v3, Instagram Graph, Facebook Graph, Spotify Web, TikTok, LinkedIn, Twitch Helix, SoundCloud, Reddit)
 
 ## Test Credentials
 - Owner: `owner@bigmannentertainment.com` / `Test1234!`
 - Admin: `cveadmin@test.com` / `Test1234!`
 
 ## Backlog
-- **P1**: Implement live social media API integrations (use stored credentials to actually connect to platform APIs)
 - **P1**: Post-scheduling functionality to connected social media accounts
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: More notification event types (content likes, new content uploads, system alerts)
 - **P2**: User Verification pending for "New Comment" notification feature
+- **P2**: Automated anomaly detection for social media metrics
+- **P3**: Audience demographics and best-time-to-post insights
