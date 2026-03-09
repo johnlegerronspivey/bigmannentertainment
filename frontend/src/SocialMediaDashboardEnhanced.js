@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Search, Globe, Music, Radio, Tv, Film, Shield, Link, Headphones, Image, Volume2, Camera, Users, FileText, Database, Video, Mic, ChevronDown, ChevronUp, Check, X, Plus, Settings, BarChart3, Send, RefreshCw, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Search, Globe, Music, Radio, Tv, Film, Shield, Link, Headphones, Image, Volume2, Camera, Users, FileText, Database, Video, Mic, ChevronDown, ChevronUp, Check, X, Plus, Settings, BarChart3, Send, RefreshCw, Trash2, Eye, EyeOff, Loader2, TrendingUp, TrendingDown, Activity, Heart, MessageCircle, Share2, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -175,12 +175,102 @@ const CategorySection = ({ type, platforms, onConnect, onDisconnect, defaultOpen
   );
 };
 
+/* ─── Mini Sparkline ───────────────────────────────────────────────── */
+const Sparkline = ({ data, color = '#3b82f6', height = 32 }) => {
+  if (!data || data.length < 2) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const w = 100;
+  const points = data.map((v, i) => `${(i / (data.length - 1)) * w},${height - ((v - min) / range) * (height - 4) - 2}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
+      <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
+    </svg>
+  );
+};
+
+/* ─── Format Number ───────────────────────────────────────────────── */
+const formatNum = (n) => {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toString();
+};
+
+/* ─── Analytics Platform Row ──────────────────────────────────────── */
+const AnalyticsPlatformRow = ({ platform }) => {
+  const meta = CATEGORY_META[platform.type] || CATEGORY_META.social_media;
+  const Icon = meta.Icon;
+  const isGrowing = platform.growth_rate > 0;
+  return (
+    <div className="flex items-center gap-4 px-4 py-3 hover:bg-white/[.02] transition" data-testid={`analytics-row-${platform.platform_id}`}>
+      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${meta.color} flex items-center justify-center shrink-0`}>
+        <Icon size={14} className="text-white" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm text-white font-medium truncate">{platform.name}</p>
+        <p className="text-[10px] text-gray-500">{platform.type.replace(/_/g, ' ')}</p>
+      </div>
+      <div className="text-right w-20">
+        <p className="text-sm font-semibold text-white">{formatNum(platform.followers)}</p>
+        <p className="text-[10px] text-gray-500">followers</p>
+      </div>
+      <div className="text-right w-16">
+        <p className="text-sm font-semibold text-cyan-400">{platform.engagement_rate}%</p>
+        <p className="text-[10px] text-gray-500">engage</p>
+      </div>
+      <div className="w-20 hidden sm:block">
+        <Sparkline data={platform.daily_followers} color={isGrowing ? '#10b981' : '#ef4444'} height={24} />
+      </div>
+      <div className={`flex items-center gap-0.5 text-xs font-medium w-16 justify-end ${isGrowing ? 'text-emerald-400' : 'text-red-400'}`}>
+        {isGrowing ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+        {Math.abs(platform.growth_rate)}%
+      </div>
+    </div>
+  );
+};
+
+/* ─── Category Metrics Card ───────────────────────────────────────── */
+const CategoryMetricsCard = ({ cat }) => {
+  const meta = CATEGORY_META[cat.type] || CATEGORY_META.social_media;
+  const Icon = meta.Icon;
+  return (
+    <div className="bg-[#1a1d2e] rounded-xl border border-white/5 p-4 hover:border-white/10 transition" data-testid={`cat-metric-${cat.type}`}>
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${meta.color} flex items-center justify-center`}>
+          <Icon size={14} className="text-white" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">{cat.label}</p>
+          <p className="text-[10px] text-gray-500">{cat.platform_count} platform{cat.platform_count !== 1 ? 's' : ''}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <p className="text-lg font-bold text-white">{formatNum(cat.total_followers)}</p>
+          <p className="text-[10px] text-gray-500">followers</p>
+        </div>
+        <div>
+          <p className="text-lg font-bold text-cyan-400">{cat.avg_engagement}%</p>
+          <p className="text-[10px] text-gray-500">avg engage</p>
+        </div>
+        <div>
+          <p className={`text-lg font-bold ${cat.avg_growth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{cat.avg_growth >= 0 ? '+' : ''}{cat.avg_growth}%</p>
+          <p className="text-[10px] text-gray-500">growth</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─── Main Dashboard ──────────────────────────────────────────────── */
 const SocialMediaDashboardEnhanced = () => {
   const [connections, setConnections] = useState([]);
   const [dashboardData, setDashboardData] = useState(null);
+  const [platformMetrics, setPlatformMetrics] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('connections');
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -201,7 +291,14 @@ const SocialMediaDashboardEnhanced = () => {
     try {
       const res = await axios.get(`${BACKEND_URL}/api/social/metrics/dashboard`, authHeaders());
       setDashboardData(res.data);
-    } catch { setDashboardData({ platforms: [], total_followers: 0, total_posts: 0, avg_engagement: 0, connected_count: 0, total_platforms: 0 }); }
+    } catch { setDashboardData({ platforms: [], total_followers: 0, total_posts: 0, avg_engagement: 0, connected_count: 0, total_platforms: 0, total_likes: 0, total_comments: 0, total_shares: 0, total_impressions: 0, total_reach: 0 }); }
+  }, []);
+
+  const fetchPlatformMetrics = useCallback(async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/social/metrics/platforms`, authHeaders());
+      setPlatformMetrics(res.data);
+    } catch { setPlatformMetrics({ platforms: [], categories: [], total_connected: 0 }); }
   }, []);
 
   const fetchPosts = useCallback(async () => {
@@ -212,8 +309,17 @@ const SocialMediaDashboardEnhanced = () => {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchConnections(), fetchDashboard(), fetchPosts()]).finally(() => setLoading(false));
-  }, [fetchConnections, fetchDashboard, fetchPosts]);
+    Promise.all([fetchConnections(), fetchDashboard(), fetchPlatformMetrics(), fetchPosts()]).finally(() => setLoading(false));
+  }, [fetchConnections, fetchDashboard, fetchPlatformMetrics, fetchPosts]);
+
+  const handleRefreshMetrics = async () => {
+    setRefreshing(true);
+    try {
+      await axios.post(`${BACKEND_URL}/api/social/metrics/refresh`, {}, authHeaders());
+      await Promise.all([fetchDashboard(), fetchPlatformMetrics()]);
+    } catch {}
+    finally { setRefreshing(false); }
+  };
 
   const handleDisconnect = async (platformId) => {
     if (!window.confirm('Disconnect this platform?')) return;
@@ -275,6 +381,7 @@ const SocialMediaDashboardEnhanced = () => {
 
   const tabs = [
     { id: 'connections', label: 'Platforms', Icon: Settings, count: totalPlatforms },
+    { id: 'analytics', label: 'Analytics', Icon: Activity, count: totalConnected },
     { id: 'overview', label: 'Overview', Icon: BarChart3, count: totalConnected },
     { id: 'post', label: 'Create Post', Icon: Send },
     { id: 'posts', label: 'Posts', Icon: FileText, count: posts.length },
@@ -290,7 +397,7 @@ const SocialMediaDashboardEnhanced = () => {
             <p className="text-sm text-gray-400 mt-1">{totalConnected} of {totalPlatforms} platforms connected</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => { fetchConnections(); fetchDashboard(); }} className="px-3 py-2 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 transition text-sm flex items-center gap-1.5" data-testid="refresh-btn">
+            <button onClick={() => { fetchConnections(); fetchDashboard(); fetchPlatformMetrics(); }} className="px-3 py-2 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 transition text-sm flex items-center gap-1.5" data-testid="refresh-btn">
               <RefreshCw size={14} /> Refresh
             </button>
             <button onClick={handleConnectAll} disabled={connectingAll} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition text-sm font-medium flex items-center gap-1.5 disabled:opacity-50" data-testid="connect-all-btn">
@@ -353,6 +460,110 @@ const SocialMediaDashboardEnhanced = () => {
               Object.entries(grouped).map(([type, platforms]) => (
                 <CategorySection key={type} type={type} platforms={platforms} onConnect={p => setModalPlatform(p)} onDisconnect={handleDisconnect} defaultOpen={type === 'social_media'} />
               ))
+            )}
+          </div>
+        )}
+
+        {/* ── Analytics Tab ── */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6" data-testid="analytics-tab">
+            {totalConnected === 0 ? (
+              <div className="bg-[#1a1d2e] rounded-xl p-12 text-center border border-white/5">
+                <Activity size={48} className="mx-auto text-gray-600 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">No Platforms Connected</h3>
+                <p className="text-sm text-gray-400 mb-4">Connect platforms to view analytics and metrics</p>
+                <button onClick={() => setActiveTab('connections')} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm" data-testid="analytics-connect-cta">Connect Platforms</button>
+              </div>
+            ) : (
+              <>
+                {/* Refresh bar */}
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-400">Showing metrics for <span className="text-white font-medium">{totalConnected}</span> connected platforms</p>
+                  <button onClick={handleRefreshMetrics} disabled={refreshing} className="px-3 py-1.5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 transition text-xs flex items-center gap-1.5 disabled:opacity-50" data-testid="refresh-metrics-btn">
+                    <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'Refreshing...' : 'Refresh Metrics'}
+                  </button>
+                </div>
+
+                {/* Aggregate Metrics */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" data-testid="aggregate-metrics">
+                  <div className="bg-[#1a1d2e] rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users size={14} className="text-blue-400" />
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">Followers</p>
+                    </div>
+                    <p className="text-xl font-bold text-white" data-testid="metric-total-followers">{formatNum(dashboardData?.total_followers || 0)}</p>
+                  </div>
+                  <div className="bg-[#1a1d2e] rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Heart size={14} className="text-rose-400" />
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">Likes</p>
+                    </div>
+                    <p className="text-xl font-bold text-white" data-testid="metric-total-likes">{formatNum(dashboardData?.total_likes || 0)}</p>
+                  </div>
+                  <div className="bg-[#1a1d2e] rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageCircle size={14} className="text-amber-400" />
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">Comments</p>
+                    </div>
+                    <p className="text-xl font-bold text-white" data-testid="metric-total-comments">{formatNum(dashboardData?.total_comments || 0)}</p>
+                  </div>
+                  <div className="bg-[#1a1d2e] rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Share2 size={14} className="text-emerald-400" />
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">Shares</p>
+                    </div>
+                    <p className="text-xl font-bold text-white" data-testid="metric-total-shares">{formatNum(dashboardData?.total_shares || 0)}</p>
+                  </div>
+                  <div className="bg-[#1a1d2e] rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap size={14} className="text-cyan-400" />
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">Impressions</p>
+                    </div>
+                    <p className="text-xl font-bold text-white" data-testid="metric-total-impressions">{formatNum(dashboardData?.total_impressions || 0)}</p>
+                  </div>
+                  <div className="bg-[#1a1d2e] rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Activity size={14} className="text-violet-400" />
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">Avg Engagement</p>
+                    </div>
+                    <p className="text-xl font-bold text-white" data-testid="metric-avg-engagement">{dashboardData?.avg_engagement || 0}%</p>
+                  </div>
+                </div>
+
+                {/* Category Breakdown */}
+                {platformMetrics?.categories?.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-3">Category Breakdown</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" data-testid="category-breakdown">
+                      {platformMetrics.categories.map(cat => (
+                        <CategoryMetricsCard key={cat.type} cat={cat} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Top Platforms Table */}
+                <div className="bg-[#1a1d2e] rounded-xl border border-white/5 overflow-hidden">
+                  <div className="flex items-center justify-between p-4 border-b border-white/5">
+                    <h3 className="text-sm font-semibold text-white">Platform Performance</h3>
+                    <p className="text-[10px] text-gray-500">{platformMetrics?.platforms?.length || 0} platforms</p>
+                  </div>
+                  {/* Table header */}
+                  <div className="flex items-center gap-4 px-4 py-2 text-[10px] text-gray-500 uppercase tracking-wider border-b border-white/5 bg-white/[.01]">
+                    <div className="w-8 shrink-0" />
+                    <div className="flex-1">Platform</div>
+                    <div className="text-right w-20">Followers</div>
+                    <div className="text-right w-16">Engage</div>
+                    <div className="w-20 hidden sm:block text-center">Trend</div>
+                    <div className="text-right w-16">Growth</div>
+                  </div>
+                  <div className="max-h-[500px] overflow-y-auto divide-y divide-white/[.03]" data-testid="platform-performance-list">
+                    {(platformMetrics?.platforms || []).map(p => (
+                      <AnalyticsPlatformRow key={p.platform_id} platform={p} />
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
