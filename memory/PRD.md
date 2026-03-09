@@ -23,112 +23,77 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Analytics Dashboard** - Creator insights on content & subscribers
 
 ### Phase 3 (2026-03-09)
-- **File Preview in Content Management** - Image thumbnails, audio player with controls, video player for uploaded content. Backend file-serving endpoint at `/api/user-content/file/{file_id}`.
-- **Real-time Notifications** - Bell icon with unread badge in navbar, dropdown panel, full `/notifications` page with pagination/filters, WebSocket for real-time push. Auto-triggers on new messages, subscription confirmations, and new comments.
-- **New Comment Notifications** - Full comment system on content items. Users can add, view, and delete comments. Content owners receive `new_comment` notifications when other users comment (self-comments excluded). Frontend shows expandable comment section on each content card.
+- **File Preview in Content Management** - Image thumbnails, audio player with controls, video player for uploaded content
+- **Real-time Notifications** - Bell icon with unread badge, dropdown panel, full notifications page, WebSocket push
+- **New Comment Notifications** - Comment system on content items with real-time notification to content owners
 
 ### Phase 4 - Refactoring (2026-03-09)
-- **server.py Refactoring** - Extracted middleware, startup logic, WebSocket routes, and webhook routes into dedicated modules. server.py reduced from 429 to 156 lines (64% reduction).
-  - `middleware.py` -- Performance tracking, security headers, rate limiting
-  - `startup.py` -- Database indexes, service initialization, shutdown handler
-  - `routes/websocket_routes.py` -- SLA and notification WebSocket endpoints
-  - `routes/webhook_routes.py` -- Stripe webhook endpoint
+- **server.py Refactoring** - Extracted middleware, startup logic, WebSocket/webhook routes into dedicated modules
 
 ### Phase 5 - Social Media Platform Connections (2026-03-09)
-- **120 Platform Connections Dashboard** - Full credential management system for all 120 distribution platforms (social media, music streaming, podcasts, radio, TV/video streaming, live streaming, blockchain, Web3 music, NFT marketplaces, model agencies, rights organizations, music licensing)
-  - Backend: `/app/backend/routes/social_connections_routes.py`
-  - Frontend: `/app/frontend/src/SocialMediaDashboardEnhanced.js` at route `/social`
-- **Credential Management UI** - Modal-based credential entry with dynamic fields per platform, masked credential display, connect/disconnect per platform
+- **120 Platform Connections Dashboard** - Credential management for all 120 distribution platforms
+- **Credential Management UI** - Modal-based credential entry with dynamic fields per platform
 - **Bulk Connect** - One-click "Connect All" for all 120 platforms
-- **Dashboard Metrics** - Overview tab with connected platform counts and summaries
+- **Dashboard Metrics** - Overview tab with connected platform counts
 - **Social Posts** - Create and list posts to connected platforms
-- **Search & Filters** - Search by platform name, filter by category (16 categories) and connection status
 
 ### Phase 6 - Real-Time Platform Analytics (2026-03-09)
-- **Analytics Tab** - New tab on Social Dashboard displaying real-time metrics for all 120 connected platforms
-- **Aggregate Metrics** - 6 key metrics: Total Followers, Total Likes, Comments, Shares, Impressions, Avg Engagement Rate
-- **Category Breakdown** - 16 category cards showing per-category followers, avg engagement, growth rate
-- **Platform Performance Table** - Sortable table of all 120 platforms with sparkline trend charts (7-day), growth rate indicators, follower counts, engagement rates
-- **Refresh Metrics** - One-click refresh button to update all platform metrics
+- **Analytics Tab** - Aggregate metrics, category breakdown, platform performance table with sparkline trends
+- **Refresh Metrics** - One-click refresh for all platform metrics
 
 ### Phase 7 - Live Social Media API Integrations (2026-03-09)
-- **Live API Adapters** - 14 platform adapters that use stored credentials to make real API calls: Twitter/X, YouTube, Instagram, Facebook, Spotify, TikTok, LinkedIn, Twitch, SoundCloud, Reddit, YouTube Music, Threads, Spotify Podcasts, WhatsApp Business
-  - Backend service: `/app/backend/services/live_metrics_service.py`
-- **Graceful Fallback** - When live API calls fail or credentials are empty, automatically falls back to simulated metrics
-- **Metric Caching** - Live metrics cached in MongoDB (`platform_live_metrics` collection) with 5-minute TTL to avoid excessive API calls
-- **Data Source Indicators** - Every metric response includes `data_source: "live" | "simulated"` field
-- **Live/Simulated Counts** - All metrics endpoints return `live_count` and `simulated_count` at top level
-- **Connection Metadata** - `has_live_api` and `has_real_credentials` fields on each connection
-- **Frontend UI Updates**:
-  - "Live API Integration Active" info banner explaining data sources
-  - Live/Simulated count badges on analytics tab header
-  - SIM/LIVE data source badges on each platform row in performance table
-  - Legend explaining LIVE = Real API data, SIM = Simulated estimates
-  - "API" badge on platform connection cards with live adapter support
-  - Category cards show live count when applicable
-- **New API Endpoint**: `GET /api/social/live-supported` - Lists all 14 platforms with live API adapters
+- **14 Live API Adapters** - Twitter/X, YouTube, Instagram, Facebook, Spotify, TikTok, LinkedIn, Twitch, SoundCloud, Reddit, YouTube Music, Threads, Spotify Podcasts, WhatsApp Business
+- **Graceful Fallback** - Falls back to simulated metrics when API calls fail
+- **Metric Caching** - 5-minute TTL in MongoDB
+- **Data Source Indicators** - LIVE/SIM badges on every metric, live/simulated count summaries
+
+### Phase 8 - URL-Based Platform Connections (2026-03-09)
+- **URL Connect System** - Users paste profile URLs instead of API keys to connect platforms
+- **Auto-Detection** - Platform and username auto-detected from URL patterns (21 platform URL formats)
+- **13 URL Metric Adapters** - YouTube, Twitter, Reddit, TikTok, Instagram, Twitch, SoundCloud, Spotify, Facebook, LinkedIn, Pinterest, Threads, Vimeo
+- **Real Public Data** - TikTok URL (e.g. @khaby.lame) returns real 160.3M followers
+- **Dual-Mode Modal** - Frontend credential modal has "Profile URL" / "API Keys" toggle tabs
+- **Platform Badges** - API (cyan), URL (purple), via URL (green) badges on platform cards
+- **Bulk URL Connect** - Connect multiple platforms by pasting multiple profile URLs
+- **New Endpoints**:
+  - `GET /api/social/url-supported` - 13 platforms with URL adapters
+  - `POST /api/social/url-detect` - Auto-detect platform from URL
+  - `POST /api/social/connect-url` - Connect platform via profile URL
+  - `POST /api/social/connect-url/bulk` - Bulk URL connection
 
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`
 - **Key Routes**: `/app/backend/routes/` (22 modular routers)
-- **External Routes**: `/app/backend/router_setup.py` (50+ external endpoint modules)
-- **Key Pages**: `/app/frontend/src/pages/`
 - **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
 
 ## Key API Endpoints
-- `GET /api/user-content/` - List user content
-- `POST /api/user-content/upload` - Upload content
-- `GET /api/user-content/file/{file_id}` - Serve file for preview (public, no auth)
-- `POST /api/user-content/{content_id}/comments` - Add comment (auth required)
-- `GET /api/user-content/{content_id}/comments` - List comments (public)
-- `DELETE /api/user-content/comments/{comment_id}` - Delete comment (auth required)
-- `GET /api/notifications` - List notifications (supports `unread_only`, pagination)
-- `GET /api/notifications/unread-count` - Get unread notification count
-- `PUT /api/notifications/{id}/read` - Mark notification as read
-- `PUT /api/notifications/read-all` - Mark all notifications as read
-- `DELETE /api/notifications/{id}` - Delete a notification
-- `GET /api/messages/conversations` - List conversations
-- `POST /api/messages/send` - Send message (also triggers notification)
-- `GET /api/analytics/overview` - Dashboard stats
-- `POST /api/webhook/stripe` - Stripe webhook handler
-- `GET /api/social/platforms` - List all 120 platforms (public)
-- `GET /api/social/connections` - List all platforms with connection status, has_live_api, has_real_credentials (auth)
-- `POST /api/social/credentials/{platform_id}` - Save credentials (auth)
-- `GET /api/social/credentials/{platform_id}` - Get masked credentials (auth)
-- `DELETE /api/social/credentials/{platform_id}` - Disconnect platform (auth)
-- `POST /api/social/disconnect/{provider}` - Disconnect alias (auth)
-- `GET /api/social/live-supported` - List 14 platforms with live API adapters (public)
-- `GET /api/social/metrics/dashboard` - Aggregate metrics with live_count/simulated_count (auth)
-- `GET /api/social/metrics/platforms` - Per-platform metrics with data_source and has_live_api (auth)
-- `POST /api/social/metrics/refresh` - Force refresh metrics with live API attempts (auth)
-- `POST /api/social/bulk-connect` - Bulk connect platforms (auth)
-- `POST /api/social/post` - Create social post (auth)
-- `GET /api/social/posts` - List user posts (auth)
+- Content: `GET/POST /api/user-content/`, `GET /api/user-content/file/{file_id}`
+- Comments: `POST/GET /api/user-content/{id}/comments`, `DELETE /api/user-content/comments/{id}`
+- Notifications: `GET /api/notifications`, `GET /api/notifications/unread-count`, `PUT /api/notifications/{id}/read`
+- Messages: `GET /api/messages/conversations`, `POST /api/messages/send`
+- Analytics: `GET /api/analytics/overview`
+- Social Platforms: `GET /api/social/platforms`, `GET /api/social/connections`
+- Social Credentials: `POST/GET/DELETE /api/social/credentials/{platform_id}`
+- URL Connect: `POST /api/social/connect-url`, `POST /api/social/connect-url/bulk`, `POST /api/social/url-detect`, `GET /api/social/url-supported`
+- Live Metrics: `GET /api/social/live-supported`, `GET /api/social/metrics/dashboard`, `GET /api/social/metrics/platforms`, `POST /api/social/metrics/refresh`
+- Bulk: `POST /api/social/bulk-connect`
+- Posts: `POST /api/social/post`, `GET /api/social/posts`
 
 ## DB Collections
-- `notifications`: `{ user_id, type, title, message, link, sender_id, sender_name, read, created_at }`
-- `content_comments`: `{ content_id, user_id, user_name, text, created_at }`
-- `user_content`: `{ user_id, file_id, title, description, content_type, file_size, tags, visibility, stats, ... }`
-- `messages`, `conversations`: messaging data
-- `subscriptions`: subscription data
-- `platform_credentials`: `{ user_id, platform_id, credentials, display_name, status, connected_at, updated_at }`
+- `notifications`, `content_comments`, `user_content`, `messages`, `conversations`, `subscriptions`
+- `platform_credentials`: `{ user_id, platform_id, credentials (incl. profile_url), display_name, status, connection_method, connected_at }`
 - `social_posts`: `{ id, user_id, platforms, content, media_urls, status, posted_at, created_at }`
-- `platform_live_metrics`: `{ user_id, platform_id, metrics, refreshed_at }` (cached live API results, 5-min TTL)
-- `platform_metrics`: `{ user_id, platform_id, metrics, data_source, refreshed_at }` (refresh history)
-
-## Notification Types
-- `new_message` - When a user receives a direct message (blue icon)
-- `new_subscriber` - When a subscription is activated (green icon)
-- `new_comment` - When another user comments on content (amber icon)
+- `platform_live_metrics`: `{ user_id, platform_id, metrics, refreshed_at }` (5-min TTL cache)
+- `platform_metrics`: `{ user_id, platform_id, metrics, data_source, refreshed_at }`
 
 ## 3rd Party Integrations
-- Stripe (payments)
-- PayPal (payments)
-- AWS Services (S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, CloudWatch, etc.)
+- Stripe, PayPal (payments)
+- AWS Services (S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, etc.)
 - Google Generative AI
 - Social Media Live APIs (Twitter v2, YouTube Data v3, Instagram Graph, Facebook Graph, Spotify Web, TikTok, LinkedIn, Twitch Helix, SoundCloud, Reddit)
+- URL-based public scraping (YouTube, Twitter, Reddit, TikTok, Instagram, Twitch, SoundCloud, Spotify, Facebook, Pinterest, Threads, Vimeo)
 
 ## Test Credentials
 - Owner: `owner@bigmannentertainment.com` / `Test1234!`
