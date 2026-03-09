@@ -129,6 +129,7 @@ const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
 const ContentManagementPage = lazy(() => import("./pages/ContentManagementPage"));
 const MessagingPage = lazy(() => import("./pages/MessagingPage"));
 const CreatorAnalyticsPage = lazy(() => import("./pages/CreatorAnalyticsPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -231,6 +232,7 @@ function App() {
             <Route path="/content-management" element={<ProtectedRoute><ContentManagementPage /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><MessagingPage /></ProtectedRoute>} />
             <Route path="/creator-analytics" element={<ProtectedRoute><CreatorAnalyticsPage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
             {/* Business routes */}
             <Route path="/business" element={<ProtectedRoute><BusinessIdentifiers /></ProtectedRoute>} />

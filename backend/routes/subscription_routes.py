@@ -7,6 +7,7 @@ from typing import Optional
 from datetime import datetime, timezone
 from config.database import db
 from auth.service import get_current_user
+from routes.notification_routes import create_notification
 import os
 import logging
 
@@ -218,6 +219,18 @@ async def confirm_subscription(request: Request, current_user=Depends(get_curren
                 {"user_id": user_id},
                 {"$set": {"subscription_tier": tier_id}},
             )
+
+            # Notify the user about successful subscription
+            try:
+                await create_notification(
+                    recipient_id=user_id,
+                    notif_type="new_subscriber",
+                    title="Subscription Activated",
+                    message=f"Your {tier_id.title()} plan is now active. Enjoy your new features!",
+                    link="/subscription",
+                )
+            except Exception:
+                pass
 
             return {"status": "active", "tier": tier_id}
 

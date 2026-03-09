@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from config.database import db
 from auth.service import get_current_user
+from routes.notification_routes import create_notification
 
 router = APIRouter(prefix="/messages", tags=["Direct Messaging"])
 
@@ -94,6 +95,23 @@ async def send_message(data: SendMessage, current_user=Depends(get_current_user)
     }
     result = await db.messages.insert_one(msg_doc)
     msg_doc["_id"] = result.inserted_id
+
+    # Trigger notification for the recipient
+    sender_user = await db.users.find_one({"id": sender_id}, {"_id": 0, "full_name": 1, "email": 1})
+    sender_name = (sender_user or {}).get("full_name") or (sender_user or {}).get("email", "Someone")
+    try:
+        await create_notification(
+            recipient_id=data.recipient_id,
+            notif_type="new_message",
+            title="New Message",
+            message=f"{sender_name}: {data.content[:80]}",
+            link="/messages",
+            sender_id=sender_id,
+            sender_name=sender_name,
+        )
+    except Exception:
+        pass
+
     return serialize_doc(msg_doc)
 
 

@@ -242,6 +242,7 @@ from routes.subscription_routes import router as subscription_router
 from routes.content_routes import router as content_router
 from routes.messaging_routes import router as messaging_router
 from routes.analytics_routes import router as analytics_router
+from routes.notification_routes import router as notification_router, ws_manager as notif_ws_manager
 
 api_router.include_router(licensing_router)
 api_router.include_router(agency_router)
@@ -261,6 +262,7 @@ api_router.include_router(subscription_router)
 api_router.include_router(content_router)
 api_router.include_router(messaging_router)
 api_router.include_router(analytics_router)
+api_router.include_router(notification_router)
 
 # Initialize content removal and AWS organizations services
 init_removal_service(db)
@@ -367,6 +369,23 @@ async def sla_websocket_endpoint(websocket: WebSocket):
         sla_ws_manager.disconnect(websocket, user_id=user_id)
     except Exception:
         sla_ws_manager.disconnect(websocket, user_id=user_id)
+
+@app.websocket("/api/ws/notifications")
+async def notifications_websocket(websocket: WebSocket):
+    user_id = websocket.query_params.get("user_id")
+    if not user_id:
+        await websocket.close(code=4001)
+        return
+    await notif_ws_manager.connect(websocket, user_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text('{"type":"pong"}')
+    except WebSocketDisconnect:
+        notif_ws_manager.disconnect(websocket, user_id)
+    except Exception:
+        notif_ws_manager.disconnect(websocket, user_id)
 
 @app.get("/")
 async def root():

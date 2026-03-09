@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 const NavigationBar = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -322,6 +323,8 @@ const NavigationBar = () => {
             <Link to="/creator-analytics" className="hover:text-purple-200 text-sm" data-testid="nav-analytics-link">Analytics</Link>
             <Link to="/subscription" className="hover:text-purple-200 text-sm" data-testid="nav-subscription-link">Plans</Link>
 
+            <NotificationBell />
+
             <Link 
               to="/profile/settings" 
               className="bg-purple-700 hover:bg-purple-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors font-medium text-sm"
@@ -396,6 +399,14 @@ const NavigationBar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <span>Messages</span>
+                </Link>
+                <Link 
+                  to="/notifications" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                  data-testid="nav-mobile-notifications-link"
+                >
+                  <span>Notifications</span>
                 </Link>
                 <Link 
                   to="/creator-analytics" 
