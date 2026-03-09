@@ -27,13 +27,21 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Real-time Notifications** - Bell icon with unread badge in navbar, dropdown panel, full `/notifications` page with pagination/filters, WebSocket for real-time push. Auto-triggers on new messages, subscription confirmations, and new comments.
 - **New Comment Notifications** - Full comment system on content items. Users can add, view, and delete comments. Content owners receive `new_comment` notifications when other users comment (self-comments excluded). Frontend shows expandable comment section on each content card.
 
+### Phase 4 - Refactoring (2026-03-09)
+- **server.py Refactoring** - Extracted middleware, startup logic, WebSocket routes, and webhook routes into dedicated modules. server.py reduced from 429 to 156 lines (64% reduction).
+  - `middleware.py` — Performance tracking, security headers, rate limiting
+  - `startup.py` — Database indexes, service initialization, shutdown handler
+  - `routes/websocket_routes.py` — SLA and notification WebSocket endpoints
+  - `routes/webhook_routes.py` — Stripe webhook endpoint
+
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`
-- **Key Routes**: `/app/backend/routes/` (modular routers)
+- **Key Routes**: `/app/backend/routes/` (21 modular routers)
+- **External Routes**: `/app/backend/router_setup.py` (50+ external endpoint modules)
 - **Key Pages**: `/app/frontend/src/pages/`
-- **Real-time**: WebSocket at `/api/ws/notifications`
+- **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
 
 ## Key API Endpoints
 - `GET /api/user-content/` - List user content
@@ -49,7 +57,8 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `DELETE /api/notifications/{id}` - Delete a notification
 - `GET /api/messages/conversations` - List conversations
 - `POST /api/messages/send` - Send message (also triggers notification)
-- `GET /api/analytics/stats` - Dashboard stats
+- `GET /api/analytics/overview` - Dashboard stats
+- `POST /api/webhook/stripe` - Stripe webhook handler
 
 ## DB Collections
 - `notifications`: `{ user_id, type, title, message, link, sender_id, sender_name, read, created_at }`
@@ -74,6 +83,5 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Admin: `cveadmin@test.com` / `Test1234!`
 
 ## Backlog
-- **P1**: Refactor remaining `server.py` logic into dedicated route files
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: More notification event types (content likes, new content uploads, system alerts)
