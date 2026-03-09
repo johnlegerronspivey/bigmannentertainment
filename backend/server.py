@@ -78,6 +78,7 @@ from routes.analytics_routes import router as analytics_router
 from routes.notification_routes import router as notification_router
 from routes.websocket_routes import router as websocket_router
 from routes.webhook_routes import router as webhook_router
+from routes.social_connections_routes import router as social_connections_router
 from moderation_endpoints import router as moderation_router
 
 core_routers = [
@@ -87,7 +88,7 @@ core_routers = [
     creator_profile_router, watermark_router, subscription_router,
     content_router, messaging_router, analytics_router,
     notification_router, websocket_router, webhook_router,
-    moderation_router,
+    social_connections_router, moderation_router,
 ]
 
 for r in core_routers:

@@ -34,11 +34,21 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
   - `routes/websocket_routes.py` — SLA and notification WebSocket endpoints
   - `routes/webhook_routes.py` — Stripe webhook endpoint
 
+### Phase 5 - Social Media Platform Connections (2026-03-09)
+- **120 Platform Connections Dashboard** - Full credential management system for all 120 distribution platforms (social media, music streaming, podcasts, radio, TV/video streaming, live streaming, blockchain, Web3 music, NFT marketplaces, model agencies, rights organizations, music licensing)
+  - Backend: `/app/backend/routes/social_connections_routes.py`
+  - Frontend: `/app/frontend/src/SocialMediaDashboardEnhanced.js` at route `/social`
+- **Credential Management UI** - Modal-based credential entry with dynamic fields per platform, masked credential display, connect/disconnect per platform
+- **Bulk Connect** - One-click "Connect All" for all 120 platforms
+- **Dashboard Metrics** - Overview tab with connected platform counts and summaries
+- **Social Posts** - Create and list posts to connected platforms
+- **Search & Filters** - Search by platform name, filter by category (16 categories) and connection status
+
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`
-- **Key Routes**: `/app/backend/routes/` (21 modular routers)
+- **Key Routes**: `/app/backend/routes/` (22 modular routers)
 - **External Routes**: `/app/backend/router_setup.py` (50+ external endpoint modules)
 - **Key Pages**: `/app/frontend/src/pages/`
 - **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
@@ -59,6 +69,16 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `POST /api/messages/send` - Send message (also triggers notification)
 - `GET /api/analytics/overview` - Dashboard stats
 - `POST /api/webhook/stripe` - Stripe webhook handler
+- `GET /api/social/platforms` - List all 120 platforms (public)
+- `GET /api/social/connections` - List all platforms with connection status (auth)
+- `POST /api/social/credentials/{platform_id}` - Save credentials (auth)
+- `GET /api/social/credentials/{platform_id}` - Get masked credentials (auth)
+- `DELETE /api/social/credentials/{platform_id}` - Disconnect platform (auth)
+- `POST /api/social/disconnect/{provider}` - Disconnect alias (auth)
+- `GET /api/social/metrics/dashboard` - Dashboard metrics (auth)
+- `POST /api/social/bulk-connect` - Bulk connect platforms (auth)
+- `POST /api/social/post` - Create social post (auth)
+- `GET /api/social/posts` - List user posts (auth)
 
 ## DB Collections
 - `notifications`: `{ user_id, type, title, message, link, sender_id, sender_name, read, created_at }`
@@ -66,6 +86,8 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `user_content`: `{ user_id, file_id, title, description, content_type, file_size, tags, visibility, stats, ... }`
 - `messages`, `conversations`: messaging data
 - `subscriptions`: subscription data
+- `platform_credentials`: `{ user_id, platform_id, credentials, display_name, status, connected_at, updated_at }`
+- `social_posts`: `{ id, user_id, platforms, content, media_urls, status, posted_at, created_at }`
 
 ## Notification Types
 - `new_message` - When a user receives a direct message (blue icon)
