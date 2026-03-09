@@ -13,7 +13,7 @@ from pathlib import Path
 from config.database import db
 from auth.service import get_current_user
 
-router = APIRouter(prefix="/content", tags=["Content Management"])
+router = APIRouter(prefix="/user-content", tags=["Content Management"])
 
 UPLOAD_DIR = Path("/app/uploads/content")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)

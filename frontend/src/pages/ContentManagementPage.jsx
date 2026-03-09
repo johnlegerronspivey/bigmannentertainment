@@ -21,7 +21,7 @@ function ContentManagementPage() {
 
   const loadContent = useCallback(async () => {
     try {
-      let url = `/content?limit=20`;
+      let url = `/user-content?limit=20`;
       if (filterType) url += `&content_type=${filterType}`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
       const data = await api.get(url);
@@ -64,7 +64,7 @@ function ContentManagementPage() {
           else reject(new Error(xhr.responseText || "Upload failed"));
         });
         xhr.addEventListener("error", () => reject(new Error("Network error")));
-        xhr.open("POST", `${BACKEND_URL}/api/content/upload`);
+        xhr.open("POST", `${BACKEND_URL}/api/user-content/upload`);
         if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         xhr.send(formData);
       });
@@ -83,7 +83,7 @@ function ContentManagementPage() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this content? This cannot be undone.")) return;
     try {
-      await api.delete(`/content/${id}`);
+      await api.delete(`/user-content/${id}`);
       toast.success("Content deleted");
       loadContent();
     } catch (err) {
@@ -103,7 +103,7 @@ function ContentManagementPage() {
 
   const handleUpdate = async () => {
     try {
-      await api.put(`/content/${editingId}`, {
+      await api.put(`/user-content/${editingId}`, {
         title: editForm.title,
         description: editForm.description,
         tags: editForm.tags.split(",").map((t) => t.trim()).filter(Boolean),
