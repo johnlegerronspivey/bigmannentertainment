@@ -151,6 +151,7 @@ const NavigationBar = () => {
                   <Link to="/distribute" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Distribute</Link>
                   <Link to="/creative-studio" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Creative Studio</Link>
                   <Link to="/watermark" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-watermark">Watermarking</Link>
+                  <Link to="/content-management" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-content-management">My Content</Link>
                   <Link to="/platforms" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Platforms</Link>
                 </div>
               )}
@@ -317,6 +318,8 @@ const NavigationBar = () => {
             <Link to="/about" className="hover:text-purple-200 text-sm" data-testid="nav-about-link">About</Link>
 
             <Link to="/creator-profiles" className="hover:text-purple-200 text-sm" data-testid="nav-creator-profiles-link">Creator Profile</Link>
+            <Link to="/messages" className="hover:text-purple-200 text-sm" data-testid="nav-messages-link">Messages</Link>
+            <Link to="/creator-analytics" className="hover:text-purple-200 text-sm" data-testid="nav-analytics-link">Analytics</Link>
             <Link to="/subscription" className="hover:text-purple-200 text-sm" data-testid="nav-subscription-link">Plans</Link>
 
             <Link 
@@ -379,6 +382,27 @@ const NavigationBar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <span>Watermarking</span>
+                </Link>
+                <Link 
+                  to="/content-management" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>My Content</span>
+                </Link>
+                <Link 
+                  to="/messages" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>Messages</span>
+                </Link>
+                <Link 
+                  to="/creator-analytics" 
+                  className="bg-purple-700 hover:bg-purple-600 py-3 px-4 rounded-lg flex items-center gap-2 mb-2 transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>Analytics</span>
                 </Link>
                 <Link 
                   to="/subscription" 

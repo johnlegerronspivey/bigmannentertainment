@@ -239,6 +239,9 @@ from routes.system_routes import router as system_router
 from routes.creator_profile_routes import router as creator_profile_router
 from routes.watermark_routes import router as watermark_router
 from routes.subscription_routes import router as subscription_router
+from routes.content_routes import router as content_router
+from routes.messaging_routes import router as messaging_router
+from routes.analytics_routes import router as analytics_router
 
 api_router.include_router(licensing_router)
 api_router.include_router(agency_router)
@@ -255,6 +258,9 @@ api_router.include_router(system_router)
 api_router.include_router(creator_profile_router)
 api_router.include_router(watermark_router)
 api_router.include_router(subscription_router)
+api_router.include_router(content_router)
+api_router.include_router(messaging_router)
+api_router.include_router(analytics_router)
 
 # Initialize content removal and AWS organizations services
 init_removal_service(db)

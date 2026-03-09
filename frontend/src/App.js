@@ -126,6 +126,9 @@ const RDSUpgradePage = lazy(() => import("./pages/RDSUpgradePage"));
 const CreatorProfilesPage = lazy(() => import("./pages/CreatorProfilesPage"));
 const WatermarkPage = lazy(() => import("./pages/WatermarkPage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
+const ContentManagementPage = lazy(() => import("./pages/ContentManagementPage"));
+const MessagingPage = lazy(() => import("./pages/MessagingPage"));
+const CreatorAnalyticsPage = lazy(() => import("./pages/CreatorAnalyticsPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -225,6 +228,9 @@ function App() {
             <Route path="/creator-profiles" element={<ProtectedRoute><CreatorProfilesPage /></ProtectedRoute>} />
             <Route path="/watermark" element={<ProtectedRoute><WatermarkPage /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+            <Route path="/content-management" element={<ProtectedRoute><ContentManagementPage /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><MessagingPage /></ProtectedRoute>} />
+            <Route path="/creator-analytics" element={<ProtectedRoute><CreatorAnalyticsPage /></ProtectedRoute>} />
 
             {/* Business routes */}
             <Route path="/business" element={<ProtectedRoute><BusinessIdentifiers /></ProtectedRoute>} />
