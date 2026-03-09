@@ -29,13 +29,33 @@ const authHeaders = () => ({ headers: { Authorization: `Bearer ${getToken()}` } 
 /* ─── Credential Modal ────────────────────────────────────────────── */
 const CredentialModal = ({ platform, onClose, onSaved }) => {
   const fields = platform?.credentials_required || [];
+  const [mode, setMode] = useState(platform?.has_url_connect ? 'url' : 'api');
+  const [profileUrl, setProfileUrl] = useState('');
   const [values, setValues] = useState(() => Object.fromEntries(fields.map(f => [f, ''])));
   const [displayName, setDisplayName] = useState('');
   const [showValues, setShowValues] = useState({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [urlResult, setUrlResult] = useState(null);
 
-  const handleSave = async () => {
+  const handleSaveUrl = async () => {
+    if (!profileUrl.trim()) { setError('Please enter your profile URL'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/social/connect-url`,
+        { profile_url: profileUrl, display_name: displayName || undefined, platform_id: platform.platform_id },
+        authHeaders(),
+      );
+      setUrlResult(res.data);
+      onSaved();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to connect with URL');
+    } finally { setSaving(false); }
+  };
+
+  const handleSaveApi = async () => {
     const empty = fields.filter(f => !values[f]);
     if (empty.length > 0) { setError(`Missing: ${empty.join(', ')}`); return; }
     setSaving(true);
@@ -59,40 +79,100 @@ const CredentialModal = ({ platform, onClose, onSaved }) => {
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
             <h3 className="text-lg font-semibold text-white" data-testid="credential-modal-title">{platform.name}</h3>
-            <p className="text-sm text-gray-400 mt-0.5">Enter your API credentials</p>
+            <p className="text-sm text-gray-400 mt-0.5">Connect your account</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition" data-testid="credential-modal-close"><X size={18} className="text-gray-400" /></button>
         </div>
-        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-          <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">Display Name (optional)</label>
-            <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="@yourhandle" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" data-testid="credential-display-name" />
+
+        {/* Mode Toggle */}
+        {platform.has_url_connect && fields.length > 0 && (
+          <div className="flex border-b border-white/10">
+            <button onClick={() => { setMode('url'); setError(''); }} className={`flex-1 py-2.5 text-xs font-medium transition ${mode === 'url' ? 'text-cyan-400 border-b-2 border-cyan-400 bg-cyan-500/5' : 'text-gray-500 hover:text-gray-300'}`} data-testid="connect-mode-url">
+              <Link size={12} className="inline mr-1.5" />Profile URL
+            </button>
+            <button onClick={() => { setMode('api'); setError(''); }} className={`flex-1 py-2.5 text-xs font-medium transition ${mode === 'api' ? 'text-cyan-400 border-b-2 border-cyan-400 bg-cyan-500/5' : 'text-gray-500 hover:text-gray-300'}`} data-testid="connect-mode-api">
+              <Settings size={12} className="inline mr-1.5" />API Keys
+            </button>
           </div>
-          {fields.map(field => (
-            <div key={field}>
-              <label className="block text-xs font-medium text-gray-400 mb-1.5">{field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</label>
-              <div className="relative">
-                <input
-                  type={showValues[field] ? 'text' : 'password'}
-                  value={values[field]}
-                  onChange={e => setValues(v => ({ ...v, [field]: e.target.value }))}
-                  placeholder={`Enter ${field.replace(/_/g, ' ')}`}
-                  className="w-full px-3 py-2.5 pr-10 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  data-testid={`credential-field-${field}`}
-                />
-                <button onClick={() => setShowValues(s => ({ ...s, [field]: !s[field] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                  {showValues[field] ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
+        )}
+
+        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+          {/* URL Success Result */}
+          {urlResult && (
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg" data-testid="url-connect-success">
+              <p className="text-sm text-emerald-400 font-medium flex items-center gap-1.5"><Check size={14} /> Connected via URL</p>
+              {urlResult.initial_metrics && (
+                <div className="mt-2 flex gap-4 text-xs text-gray-300">
+                  <span>{formatNum(urlResult.initial_metrics.followers)} followers</span>
+                  <span>{urlResult.initial_metrics.posts} posts</span>
+                  <span>{urlResult.initial_metrics.engagement_rate}% engagement</span>
+                </div>
+              )}
             </div>
-          ))}
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          )}
+
+          {/* URL Mode */}
+          {mode === 'url' && !urlResult && (
+            <>
+              <div className="p-3 bg-cyan-500/5 border border-cyan-500/10 rounded-lg">
+                <p className="text-xs text-cyan-300 mb-1 font-medium flex items-center gap-1"><Signal size={10} /> Quick Connect</p>
+                <p className="text-[11px] text-gray-400 leading-relaxed">Paste your profile URL and we'll fetch your public metrics automatically. No API keys needed.</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">Profile URL</label>
+                <input
+                  value={profileUrl}
+                  onChange={e => setProfileUrl(e.target.value)}
+                  placeholder={platform.url_example || `https://platform.com/yourprofile`}
+                  className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
+                  data-testid="credential-profile-url"
+                />
+                <p className="text-[10px] text-gray-500 mt-1">Example: {platform.url_example || 'https://platform.com/yourprofile'}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">Display Name (optional)</label>
+                <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="@yourhandle" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none" data-testid="credential-display-name-url" />
+              </div>
+            </>
+          )}
+
+          {/* API Mode */}
+          {mode === 'api' && (
+            <>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">Display Name (optional)</label>
+                <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="@yourhandle" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" data-testid="credential-display-name" />
+              </div>
+              {fields.map(field => (
+                <div key={field}>
+                  <label className="block text-xs font-medium text-gray-400 mb-1.5">{field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</label>
+                  <div className="relative">
+                    <input
+                      type={showValues[field] ? 'text' : 'password'}
+                      value={values[field]}
+                      onChange={e => setValues(v => ({ ...v, [field]: e.target.value }))}
+                      placeholder={`Enter ${field.replace(/_/g, ' ')}`}
+                      className="w-full px-3 py-2.5 pr-10 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      data-testid={`credential-field-${field}`}
+                    />
+                    <button onClick={() => setShowValues(s => ({ ...s, [field]: !s[field] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                      {showValues[field] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {error && <p className="text-red-400 text-sm" data-testid="credential-error">{error}</p>}
         </div>
         <div className="flex gap-3 p-6 border-t border-white/10">
-          <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 transition text-sm" data-testid="credential-cancel-btn">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2" data-testid="credential-save-btn">
-            {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : <><Check size={14} /> Connect</>}
-          </button>
+          <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 transition text-sm" data-testid="credential-cancel-btn">{urlResult ? 'Done' : 'Cancel'}</button>
+          {!urlResult && (
+            <button onClick={mode === 'url' ? handleSaveUrl : handleSaveApi} disabled={saving} className={`flex-1 px-4 py-2.5 ${mode === 'url' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg transition text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2`} data-testid="credential-save-btn">
+              {saving ? <><Loader2 size={14} className="animate-spin" /> Connecting...</> : mode === 'url' ? <><Link size={14} /> Connect with URL</> : <><Check size={14} /> Connect</>}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -129,6 +209,16 @@ const PlatformCard = ({ conn, onConnect, onDisconnect }) => {
             {conn.has_live_api && (
               <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-cyan-500/10 text-cyan-400 rounded text-[9px] font-medium" data-testid={`live-api-badge-${conn.platform_id}`}>
                 <Signal size={8} /> API
+              </span>
+            )}
+            {conn.has_url_connect && !conn.has_live_api && (
+              <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-violet-500/10 text-violet-400 rounded text-[9px] font-medium" data-testid={`url-connect-badge-${conn.platform_id}`}>
+                <Link size={8} /> URL
+              </span>
+            )}
+            {conn.connection_method === 'url' && conn.profile_url && (
+              <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-500/5 text-emerald-300/60 rounded text-[9px]" data-testid={`connected-via-url-${conn.platform_id}`}>
+                <Link size={7} /> via URL
               </span>
             )}
           </div>

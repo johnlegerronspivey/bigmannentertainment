@@ -2,6 +2,7 @@
 Social Connections Routes - Manage platform credentials, connections, dashboard metrics.
 Supports all 119 distribution platforms from config/platforms.py.
 Live API integration layer fetches real metrics when valid credentials exist.
+URL-based connections allow users to paste profile URLs instead of API keys.
 """
 import uuid
 import random
@@ -19,6 +20,15 @@ from services.live_metrics_service import (
     has_live_adapter,
     get_supported_live_platforms,
 )
+from services.url_metrics_service import (
+    detect_platform_from_url,
+    parse_username_from_url,
+    has_url_adapter,
+    get_url_example,
+    get_all_url_supported_platforms,
+    fetch_metrics_from_url,
+    PLATFORM_URL_EXAMPLES,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/social", tags=["Social Connections"])
@@ -29,6 +39,12 @@ router = APIRouter(prefix="/social", tags=["Social Connections"])
 class CredentialPayload(BaseModel):
     credentials: Dict[str, str]
     display_name: Optional[str] = None
+
+
+class URLConnectPayload(BaseModel):
+    profile_url: str
+    display_name: Optional[str] = None
+    platform_id: Optional[str] = None  # Optional, auto-detected from URL
 
 
 class PostPayload(BaseModel):
@@ -132,6 +148,10 @@ async def list_connections(current_user=Depends(get_current_user)):
             "username": cred.get("display_name", "") if cred else "",
             "has_live_api": has_live_adapter(p["id"]),
             "has_real_credentials": has_real_creds,
+            "has_url_connect": has_url_adapter(p["id"]),
+            "connection_method": cred.get("connection_method", "api") if cred else None,
+            "profile_url": cred.get("credentials", {}).get("profile_url", "") if cred else "",
+            "url_example": get_url_example(p["id"]),
         })
 
     return {
@@ -573,6 +593,161 @@ async def list_live_supported():
     return {
         "platforms": supported,
         "count": len(supported),
+    }
+
+
+@router.get("/url-supported")
+async def list_url_supported():
+    """Return list of platforms that support URL-based connection with examples."""
+    supported = get_all_url_supported_platforms()
+    return {
+        "platforms": supported,
+        "count": len(supported),
+        "url_examples": PLATFORM_URL_EXAMPLES,
+    }
+
+
+@router.post("/url-detect")
+async def detect_url_platform(payload: URLConnectPayload):
+    """Auto-detect platform from a profile URL."""
+    result = detect_platform_from_url(payload.profile_url)
+    if not result:
+        raise HTTPException(status_code=400, detail="Could not detect platform from URL. Please check the URL format.")
+    platform_id, username = result
+    cfg = DISTRIBUTION_PLATFORMS.get(platform_id, {})
+    return {
+        "platform_id": platform_id,
+        "platform_name": cfg.get("name", platform_id),
+        "username": username,
+        "has_live_metrics": has_url_adapter(platform_id),
+        "url_example": get_url_example(platform_id),
+    }
+
+
+@router.post("/connect-url")
+async def connect_with_url(
+    payload: URLConnectPayload,
+    current_user=Depends(get_current_user),
+):
+    """Connect a platform using a profile URL instead of API credentials."""
+    user_id = current_user.id if hasattr(current_user, "id") else str(current_user.get("id", current_user.get("_id", "")))
+    now = datetime.now(timezone.utc).isoformat()
+
+    url = payload.profile_url.strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="Profile URL is required")
+
+    # Detect platform if not provided
+    pid = payload.platform_id
+    username = None
+    if not pid:
+        result = detect_platform_from_url(url)
+        if not result:
+            raise HTTPException(status_code=400, detail="Could not detect platform from URL. Please provide platform_id.")
+        pid, username = result
+    else:
+        username = parse_username_from_url(pid, url)
+
+    if pid not in DISTRIBUTION_PLATFORMS:
+        raise HTTPException(status_code=404, detail=f"Platform '{pid}' not found")
+
+    cfg = DISTRIBUTION_PLATFORMS[pid]
+    display_name = payload.display_name or username or url.split("/")[-1].lstrip("@")
+
+    # Build credentials with profile_url
+    cred_fields = cfg.get("credentials_required", [])
+    credentials = {k: "" for k in cred_fields}
+    credentials["profile_url"] = url
+
+    # Attempt to fetch metrics from the URL right away
+    metrics_result = None
+    if has_url_adapter(pid):
+        metrics_result = await fetch_metrics_from_url(pid, url)
+
+    # Save connection
+    doc = {
+        "user_id": user_id,
+        "platform_id": pid,
+        "credentials": credentials,
+        "display_name": display_name,
+        "status": "connected",
+        "connection_method": "url",
+        "connected_at": now,
+        "updated_at": now,
+    }
+    await db.platform_credentials.update_one(
+        {"user_id": user_id, "platform_id": pid},
+        {"$set": doc},
+        upsert=True,
+    )
+
+    return {
+        "success": True,
+        "platform_id": pid,
+        "platform_name": cfg.get("name", pid),
+        "username": display_name,
+        "connection_method": "url",
+        "metrics_available": metrics_result is not None and metrics_result.get("followers", 0) > 0,
+        "initial_metrics": {
+            "followers": metrics_result.get("followers", 0),
+            "posts": metrics_result.get("posts", 0),
+            "engagement_rate": metrics_result.get("engagement_rate", 0),
+        } if metrics_result else None,
+    }
+
+
+@router.post("/connect-url/bulk")
+async def bulk_connect_urls(
+    payload: dict,
+    current_user=Depends(get_current_user),
+):
+    """Connect multiple platforms using profile URLs. Payload: { urls: ["url1", "url2", ...] }"""
+    user_id = current_user.id if hasattr(current_user, "id") else str(current_user.get("id", current_user.get("_id", "")))
+    now = datetime.now(timezone.utc).isoformat()
+    urls = payload.get("urls", [])
+    results = []
+
+    for url in urls:
+        url = url.strip()
+        if not url:
+            continue
+        detected = detect_platform_from_url(url)
+        if not detected:
+            results.append({"url": url, "success": False, "error": "Could not detect platform"})
+            continue
+        pid, username = detected
+        cfg = DISTRIBUTION_PLATFORMS.get(pid, {})
+        cred_fields = cfg.get("credentials_required", [])
+        credentials = {k: "" for k in cred_fields}
+        credentials["profile_url"] = url
+
+        doc = {
+            "user_id": user_id,
+            "platform_id": pid,
+            "credentials": credentials,
+            "display_name": username or url.split("/")[-1],
+            "status": "connected",
+            "connection_method": "url",
+            "connected_at": now,
+            "updated_at": now,
+        }
+        await db.platform_credentials.update_one(
+            {"user_id": user_id, "platform_id": pid},
+            {"$set": doc},
+            upsert=True,
+        )
+        results.append({
+            "url": url,
+            "success": True,
+            "platform_id": pid,
+            "platform_name": cfg.get("name", pid),
+            "username": username,
+        })
+
+    return {
+        "success": True,
+        "results": results,
+        "connected_count": sum(1 for r in results if r.get("success")),
     }
 
 

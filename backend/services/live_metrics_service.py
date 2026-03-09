@@ -494,10 +494,16 @@ async def fetch_metrics_with_fallback(
 ) -> Dict[str, Any]:
     """
     Try to fetch live metrics; use cache if available; fall back to simulated.
-    Returns metrics dict with `data_source` field ("live" or "simulated").
+    Order: cache -> API credentials -> URL-based -> simulated.
+    Returns metrics dict with `data_source` field ("live", "url", or "simulated").
     """
-    # Check if platform has a live adapter
-    if not has_live_adapter(platform_id):
+    from services.url_metrics_service import fetch_metrics_from_url, has_url_adapter
+
+    has_api = has_live_adapter(platform_id)
+    has_url = has_url_adapter(platform_id)
+    profile_url = credentials.get("profile_url", "")
+
+    if not has_api and not (has_url and profile_url):
         simulated_metrics["data_source"] = "simulated"
         return simulated_metrics
 
@@ -507,13 +513,28 @@ async def fetch_metrics_with_fallback(
         if cached:
             return cached
 
-    # Attempt live fetch
-    live = await fetch_live_metrics(platform_id, credentials)
+    live = None
+
+    # 1. Try API-key based fetch first
+    if has_api:
+        api_creds = {k: v for k, v in credentials.items() if k != "profile_url" and v and v.strip()}
+        if api_creds:
+            live = await fetch_live_metrics(platform_id, credentials)
+
+    # 2. Try URL-based fetch if API didn't work
+    if not live and has_url and profile_url and profile_url.strip():
+        url_result = await fetch_metrics_from_url(platform_id, profile_url)
+        if url_result and url_result.get("followers", 0) > 0:
+            live = url_result
+            # Mark as URL-sourced
+            if live:
+                live["_source_type"] = "url"
+
     if live:
         # Generate trend data from live base
         import random
         rng = random.Random(hash(f"{user_id}:{platform_id}:{datetime.now(timezone.utc).date()}"))
-        base_followers = live["followers"]
+        base_followers = live.get("followers", 0)
         daily_followers = []
         trend_base = max(1, int(base_followers * 0.97))
         for i in range(7):
@@ -528,11 +549,13 @@ async def fetch_metrics_with_fallback(
 
         growth = round(((daily_followers[-1] - daily_followers[0]) / max(daily_followers[0], 1)) * 100, 2) if daily_followers[0] else 0.0
 
+        source_type = live.pop("_source_type", "api")
         live.update({
             "daily_followers": daily_followers,
             "daily_engagement": daily_engagement,
             "growth_rate": growth,
             "data_source": "live",
+            "source_method": source_type,  # "api" or "url"
         })
 
         # Cache the result
