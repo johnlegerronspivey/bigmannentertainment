@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../utils/apiClient";
 import { toast } from "sonner";
-import { Upload, FileAudio, FileVideo, Image, Trash2, Edit3, Search, Eye, Download, Heart, X, Save, Filter } from "lucide-react";
+import { Upload, FileAudio, FileVideo, Image, Trash2, Edit3, Search, Eye, Download, Heart, X, Save, Filter, Play, Pause, Volume2 } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -122,6 +122,8 @@ function ContentManagementPage() {
     if (type === "video") return <FileVideo className="w-5 h-5 text-blue-400" />;
     return <Image className="w-5 h-5 text-pink-400" />;
   };
+
+  const fileUrl = (fileId) => `${BACKEND_URL}/api/user-content/file/${fileId}`;
 
   const formatSize = (bytes) => {
     if (bytes < 1024) return bytes + " B";
@@ -249,6 +251,49 @@ function ContentManagementPage() {
                 </div>
               ) : (
                 <>
+                  {/* File Preview */}
+                  <div className="mb-3 rounded-lg overflow-hidden bg-gray-800/50" data-testid="content-preview">
+                    {item.content_type === "image" && (
+                      <img
+                        src={fileUrl(item.file_id)}
+                        alt={item.title}
+                        className="w-full h-40 object-cover"
+                        loading="lazy"
+                        data-testid="image-preview"
+                      />
+                    )}
+                    {item.content_type === "audio" && (
+                      <div className="p-3 flex flex-col items-center gap-2" data-testid="audio-preview">
+                        <div className="w-full flex items-center justify-center h-20 bg-gradient-to-br from-green-900/30 to-gray-900 rounded-md">
+                          <Volume2 className="w-8 h-8 text-green-400 opacity-60" />
+                        </div>
+                        <audio
+                          controls
+                          preload="metadata"
+                          className="w-full h-8 [&::-webkit-media-controls-panel]:bg-gray-700 [&::-webkit-media-controls-panel]:rounded-md"
+                          data-testid="audio-player"
+                        >
+                          <source src={fileUrl(item.file_id)} />
+                        </audio>
+                      </div>
+                    )}
+                    {item.content_type === "video" && (
+                      <video
+                        controls
+                        preload="metadata"
+                        className="w-full h-40 object-cover bg-black"
+                        data-testid="video-preview"
+                      >
+                        <source src={fileUrl(item.file_id)} />
+                      </video>
+                    )}
+                    {!["image", "audio", "video"].includes(item.content_type) && (
+                      <div className="h-24 flex items-center justify-center">
+                        {typeIcon(item.content_type)}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {typeIcon(item.content_type)}

@@ -2,6 +2,7 @@
 User Content Uploads & Management - CRUD for creator content (audio, video, images)
 """
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -139,6 +140,29 @@ async def list_my_content(
         items.append(serialize_content(doc))
     total = await db.user_content.count_documents(query)
     return {"items": items, "total": total, "skip": skip, "limit": limit}
+
+
+MIME_MAP = {
+    ".mp3": "audio/mpeg", ".wav": "audio/wav", ".flac": "audio/flac",
+    ".aac": "audio/aac", ".ogg": "audio/ogg", ".m4a": "audio/mp4",
+    ".mp4": "video/mp4", ".mov": "video/quicktime", ".avi": "video/x-msvideo",
+    ".mkv": "video/x-matroska", ".webm": "video/webm",
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+    ".gif": "image/gif", ".webp": "image/webp", ".bmp": "image/bmp",
+}
+
+
+@router.get("/file/{file_id}")
+async def serve_file(file_id: str):
+    """Serve an uploaded content file by its file_id for preview/playback."""
+    doc = await db.user_content.find_one({"file_id": file_id}, {"_id": 0, "stored_filename": 1, "file_extension": 1})
+    if not doc:
+        raise HTTPException(status_code=404, detail="File not found")
+    file_path = UPLOAD_DIR / doc["stored_filename"]
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File missing from storage")
+    media_type = MIME_MAP.get(doc.get("file_extension", ""), "application/octet-stream")
+    return FileResponse(file_path, media_type=media_type)
 
 
 @router.get("/{content_id}")
