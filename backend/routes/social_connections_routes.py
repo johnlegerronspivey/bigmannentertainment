@@ -1,6 +1,7 @@
 """
 Social Connections Routes - Manage platform credentials, connections, dashboard metrics.
 Supports all 119 distribution platforms from config/platforms.py.
+Live API integration layer fetches real metrics when valid credentials exist.
 """
 import uuid
 import random
@@ -8,11 +9,16 @@ import hashlib
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
 from config.database import db
 from config.platforms import DISTRIBUTION_PLATFORMS
 from auth.service import get_current_user
+from services.live_metrics_service import (
+    fetch_metrics_with_fallback,
+    has_live_adapter,
+    get_supported_live_platforms,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/social", tags=["Social Connections"])
@@ -106,6 +112,10 @@ async def list_connections(current_user=Depends(get_current_user)):
     connections = []
     for p in platforms:
         cred = saved.get(p["id"])
+        has_real_creds = False
+        if cred:
+            raw_creds = cred.get("credentials", {})
+            has_real_creds = any(v and v.strip() for v in raw_creds.values())
         connections.append({
             "platform_id": p["id"],
             "provider": p["id"],
@@ -120,6 +130,8 @@ async def list_connections(current_user=Depends(get_current_user)):
             "display_name": cred.get("display_name", "") if cred else "",
             "connected_at": cred.get("connected_at", "") if cred else "",
             "username": cred.get("display_name", "") if cred else "",
+            "has_live_api": has_live_adapter(p["id"]),
+            "has_real_credentials": has_real_creds,
         })
 
     return {
@@ -296,8 +308,11 @@ def _generate_metrics_for_platform(user_id: str, platform_id: str, platform_type
 # ── Dashboard Metrics ─────────────────────────────────────────────────
 
 @router.get("/metrics/dashboard")
-async def dashboard_metrics(current_user=Depends(get_current_user)):
-    """Aggregate metrics across all connected platforms."""
+async def dashboard_metrics(
+    force_refresh: bool = Query(False, description="Force live API refresh"),
+    current_user=Depends(get_current_user),
+):
+    """Aggregate metrics across all connected platforms. Uses live APIs when possible."""
     user_id = current_user.id if hasattr(current_user, "id") else str(current_user.get("id", current_user.get("_id", "")))
 
     connected = []
@@ -309,6 +324,8 @@ async def dashboard_metrics(current_user=Depends(get_current_user)):
     total_impressions = 0
     total_reach = 0
     engagement_sum = 0.0
+    live_count = 0
+    simulated_count = 0
 
     async for doc in db.platform_credentials.find(
         {"user_id": user_id, "status": "connected"}, {"_id": 0}
@@ -316,16 +333,30 @@ async def dashboard_metrics(current_user=Depends(get_current_user)):
         pid = doc["platform_id"]
         cfg = DISTRIBUTION_PLATFORMS.get(pid, {})
         ptype = cfg.get("type", "other")
-        metrics = _generate_metrics_for_platform(user_id, pid, ptype)
 
-        total_followers += metrics["followers"]
-        total_posts += metrics["posts"]
-        total_likes += metrics["likes"]
-        total_comments += metrics["comments"]
-        total_shares += metrics["shares"]
-        total_impressions += metrics["impressions"]
-        total_reach += metrics["reach"]
-        engagement_sum += metrics["engagement_rate"]
+        # Generate simulated as fallback
+        sim_metrics = _generate_metrics_for_platform(user_id, pid, ptype)
+
+        # Try live fetch with fallback
+        credentials = doc.get("credentials", {})
+        metrics = await fetch_metrics_with_fallback(
+            user_id, pid, credentials, sim_metrics, force_refresh=force_refresh
+        )
+
+        data_source = metrics.get("data_source", "simulated")
+        if data_source == "live":
+            live_count += 1
+        else:
+            simulated_count += 1
+
+        total_followers += metrics.get("followers", 0)
+        total_posts += metrics.get("posts", 0)
+        total_likes += metrics.get("likes", 0)
+        total_comments += metrics.get("comments", 0)
+        total_shares += metrics.get("shares", 0)
+        total_impressions += metrics.get("impressions", 0)
+        total_reach += metrics.get("reach", 0)
+        engagement_sum += metrics.get("engagement_rate", 0)
 
         connected.append({
             "platform": pid,
@@ -333,13 +364,12 @@ async def dashboard_metrics(current_user=Depends(get_current_user)):
             "type": ptype,
             "connected": True,
             "username": doc.get("display_name", ""),
-            **metrics,
+            "data_source": data_source,
+            **{k: v for k, v in metrics.items() if k != "data_source"},
         })
 
     avg_engagement = round(engagement_sum / len(connected), 2) if connected else 0.0
-
-    # Sort by followers descending for top platforms
-    connected.sort(key=lambda x: x["followers"], reverse=True)
+    connected.sort(key=lambda x: x.get("followers", 0), reverse=True)
 
     return {
         "platforms": connected,
@@ -353,16 +383,23 @@ async def dashboard_metrics(current_user=Depends(get_current_user)):
         "avg_engagement": avg_engagement,
         "connected_count": len(connected),
         "total_platforms": len(DISTRIBUTION_PLATFORMS),
+        "live_count": live_count,
+        "simulated_count": simulated_count,
     }
 
 
 @router.get("/metrics/platforms")
-async def platform_metrics(current_user=Depends(get_current_user)):
-    """Return detailed metrics for each connected platform, grouped by category."""
+async def platform_metrics(
+    force_refresh: bool = Query(False, description="Force live API refresh"),
+    current_user=Depends(get_current_user),
+):
+    """Return detailed metrics for each connected platform, grouped by category. Uses live APIs when possible."""
     user_id = current_user.id if hasattr(current_user, "id") else str(current_user.get("id", current_user.get("_id", "")))
 
     platforms_by_type = {}
     all_platforms = []
+    live_count = 0
+    simulated_count = 0
 
     async for doc in db.platform_credentials.find(
         {"user_id": user_id, "status": "connected"}, {"_id": 0}
@@ -370,7 +407,18 @@ async def platform_metrics(current_user=Depends(get_current_user)):
         pid = doc["platform_id"]
         cfg = DISTRIBUTION_PLATFORMS.get(pid, {})
         ptype = cfg.get("type", "other")
-        metrics = _generate_metrics_for_platform(user_id, pid, ptype)
+
+        sim_metrics = _generate_metrics_for_platform(user_id, pid, ptype)
+        credentials = doc.get("credentials", {})
+        metrics = await fetch_metrics_with_fallback(
+            user_id, pid, credentials, sim_metrics, force_refresh=force_refresh
+        )
+
+        data_source = metrics.get("data_source", "simulated")
+        if data_source == "live":
+            live_count += 1
+        else:
+            simulated_count += 1
 
         entry = {
             "platform_id": pid,
@@ -379,7 +427,9 @@ async def platform_metrics(current_user=Depends(get_current_user)):
             "icon": PLATFORM_ICONS.get(ptype, "globe"),
             "username": doc.get("display_name", ""),
             "connected_at": doc.get("connected_at", ""),
-            **metrics,
+            "data_source": data_source,
+            "has_live_api": has_live_adapter(pid),
+            **{k: v for k, v in metrics.items() if k not in ("data_source", "cached")},
         }
         all_platforms.append(entry)
         platforms_by_type.setdefault(ptype, []).append(entry)
@@ -388,9 +438,10 @@ async def platform_metrics(current_user=Depends(get_current_user)):
     category_summaries = []
     for ptype, plist in platforms_by_type.items():
         meta = CATEGORY_META_BACKEND.get(ptype, {"label": ptype.replace("_", " ").title()})
-        cat_followers = sum(p["followers"] for p in plist)
-        cat_engagement = round(sum(p["engagement_rate"] for p in plist) / len(plist), 2) if plist else 0
-        cat_growth = round(sum(p["growth_rate"] for p in plist) / len(plist), 2) if plist else 0
+        cat_followers = sum(p.get("followers", 0) for p in plist)
+        cat_engagement = round(sum(p.get("engagement_rate", 0) for p in plist) / len(plist), 2) if plist else 0
+        cat_growth = round(sum(p.get("growth_rate", 0) for p in plist) / len(plist), 2) if plist else 0
+        cat_live = sum(1 for p in plist if p.get("data_source") == "live")
         category_summaries.append({
             "type": ptype,
             "label": meta["label"],
@@ -398,32 +449,49 @@ async def platform_metrics(current_user=Depends(get_current_user)):
             "total_followers": cat_followers,
             "avg_engagement": cat_engagement,
             "avg_growth": cat_growth,
+            "live_count": cat_live,
         })
 
     category_summaries.sort(key=lambda x: x["total_followers"], reverse=True)
-    all_platforms.sort(key=lambda x: x["followers"], reverse=True)
+    all_platforms.sort(key=lambda x: x.get("followers", 0), reverse=True)
 
     return {
         "platforms": all_platforms,
         "categories": category_summaries,
         "total_connected": len(all_platforms),
+        "live_count": live_count,
+        "simulated_count": simulated_count,
     }
 
 
 @router.post("/metrics/refresh")
 async def refresh_metrics(current_user=Depends(get_current_user)):
-    """Refresh metrics for all connected platforms. Stores last_refreshed timestamp."""
+    """Refresh metrics for all connected platforms. Attempts live API calls first."""
     user_id = current_user.id if hasattr(current_user, "id") else str(current_user.get("id", current_user.get("_id", "")))
     now = datetime.now(timezone.utc).isoformat()
 
     count = 0
+    live_success = 0
+    simulated_fallback = 0
+
     async for doc in db.platform_credentials.find(
         {"user_id": user_id, "status": "connected"}, {"_id": 0}
     ):
         pid = doc["platform_id"]
         cfg = DISTRIBUTION_PLATFORMS.get(pid, {})
         ptype = cfg.get("type", "other")
-        metrics = _generate_metrics_for_platform(user_id, pid, ptype)
+        credentials = doc.get("credentials", {})
+
+        sim_metrics = _generate_metrics_for_platform(user_id, pid, ptype)
+        metrics = await fetch_metrics_with_fallback(
+            user_id, pid, credentials, sim_metrics, force_refresh=True
+        )
+
+        data_source = metrics.get("data_source", "simulated")
+        if data_source == "live":
+            live_success += 1
+        else:
+            simulated_fallback += 1
 
         await db.platform_metrics.update_one(
             {"user_id": user_id, "platform_id": pid},
@@ -431,6 +499,7 @@ async def refresh_metrics(current_user=Depends(get_current_user)):
                 "user_id": user_id,
                 "platform_id": pid,
                 "metrics": metrics,
+                "data_source": data_source,
                 "refreshed_at": now,
             }},
             upsert=True,
@@ -440,6 +509,8 @@ async def refresh_metrics(current_user=Depends(get_current_user)):
     return {
         "success": True,
         "refreshed_count": count,
+        "live_count": live_success,
+        "simulated_count": simulated_fallback,
         "refreshed_at": now,
     }
 
@@ -494,6 +565,16 @@ async def create_post(payload: PostPayload, current_user=Depends(get_current_use
 
 
 # ── Platforms list (public) ───────────────────────────────────────────
+
+@router.get("/live-supported")
+async def list_live_supported():
+    """Return list of platforms that have live API adapters."""
+    supported = get_supported_live_platforms()
+    return {
+        "platforms": supported,
+        "count": len(supported),
+    }
+
 
 @router.get("/platforms")
 async def list_all_platforms():

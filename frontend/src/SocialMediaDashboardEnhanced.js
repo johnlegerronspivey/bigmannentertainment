@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Search, Globe, Music, Radio, Tv, Film, Shield, Link, Headphones, Image, Volume2, Camera, Users, FileText, Database, Video, Mic, ChevronDown, ChevronUp, Check, X, Plus, Settings, BarChart3, Send, RefreshCw, Trash2, Eye, EyeOff, Loader2, TrendingUp, TrendingDown, Activity, Heart, MessageCircle, Share2, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Search, Globe, Music, Radio, Tv, Film, Shield, Link, Headphones, Image, Volume2, Camera, Users, FileText, Database, Video, Mic, ChevronDown, ChevronUp, Check, X, Plus, Settings, BarChart3, Send, RefreshCw, Trash2, Eye, EyeOff, Loader2, TrendingUp, TrendingDown, Activity, Heart, MessageCircle, Share2, Zap, ArrowUpRight, ArrowDownRight, Wifi, WifiOff, Signal } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -116,15 +116,22 @@ const PlatformCard = ({ conn, onConnect, onDisconnect }) => {
               {conn.display_name && <p className="text-xs text-gray-400 truncate">{conn.display_name}</p>}
             </div>
           </div>
-          {conn.connected ? (
-            <span className="shrink-0 flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-medium" data-testid={`status-connected-${conn.platform_id}`}>
-              <Check size={10} /> Live
-            </span>
-          ) : (
-            <span className="shrink-0 px-2 py-1 bg-white/5 text-gray-500 rounded-full text-[10px] font-medium" data-testid={`status-disconnected-${conn.platform_id}`}>
-              Offline
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-1">
+            {conn.connected ? (
+              <span className="shrink-0 flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-medium" data-testid={`status-connected-${conn.platform_id}`}>
+                <Check size={10} /> Live
+              </span>
+            ) : (
+              <span className="shrink-0 px-2 py-1 bg-white/5 text-gray-500 rounded-full text-[10px] font-medium" data-testid={`status-disconnected-${conn.platform_id}`}>
+                Offline
+              </span>
+            )}
+            {conn.has_live_api && (
+              <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-cyan-500/10 text-cyan-400 rounded text-[9px] font-medium" data-testid={`live-api-badge-${conn.platform_id}`}>
+                <Signal size={8} /> API
+              </span>
+            )}
+          </div>
         </div>
         <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">{conn.description}</p>
         <div className="flex gap-1.5 flex-wrap mb-3">
@@ -197,6 +204,17 @@ const formatNum = (n) => {
   return n.toString();
 };
 
+/* ─── Data Source Badge ───────────────────────────────────────────── */
+const DataSourceBadge = ({ source }) => {
+  const isLive = source === 'live';
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide ${isLive ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400/70 border border-amber-500/10'}`} data-testid={`data-source-${isLive ? 'live' : 'simulated'}`}>
+      {isLive ? <Wifi size={8} /> : <WifiOff size={8} />}
+      {isLive ? 'LIVE' : 'SIM'}
+    </span>
+  );
+};
+
 /* ─── Analytics Platform Row ──────────────────────────────────────── */
 const AnalyticsPlatformRow = ({ platform }) => {
   const meta = CATEGORY_META[platform.type] || CATEGORY_META.social_media;
@@ -208,7 +226,10 @@ const AnalyticsPlatformRow = ({ platform }) => {
         <Icon size={14} className="text-white" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-white font-medium truncate">{platform.name}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm text-white font-medium truncate">{platform.name}</p>
+          <DataSourceBadge source={platform.data_source} />
+        </div>
         <p className="text-[10px] text-gray-500">{platform.type.replace(/_/g, ' ')}</p>
       </div>
       <div className="text-right w-20">
@@ -240,9 +261,14 @@ const CategoryMetricsCard = ({ cat }) => {
         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${meta.color} flex items-center justify-center`}>
           <Icon size={14} className="text-white" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-white">{cat.label}</p>
-          <p className="text-[10px] text-gray-500">{cat.platform_count} platform{cat.platform_count !== 1 ? 's' : ''}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[10px] text-gray-500">{cat.platform_count} platform{cat.platform_count !== 1 ? 's' : ''}</p>
+            {cat.live_count > 0 && (
+              <span className="flex items-center gap-0.5 text-[9px] text-emerald-400"><Wifi size={7} />{cat.live_count} live</span>
+            )}
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-2">
@@ -476,12 +502,39 @@ const SocialMediaDashboardEnhanced = () => {
               </div>
             ) : (
               <>
-                {/* Refresh bar */}
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-400">Showing metrics for <span className="text-white font-medium">{totalConnected}</span> connected platforms</p>
+                {/* Data source status bar */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <p className="text-sm text-gray-400">Metrics for <span className="text-white font-medium">{totalConnected}</span> platforms</p>
+                    {(dashboardData?.live_count > 0 || platformMetrics?.live_count > 0) && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-medium" data-testid="live-metrics-count">
+                        <Wifi size={10} /> {dashboardData?.live_count || platformMetrics?.live_count || 0} Live
+                      </span>
+                    )}
+                    {(dashboardData?.simulated_count > 0 || platformMetrics?.simulated_count > 0) && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-amber-500/10 text-amber-400/70 rounded-full text-[10px] font-medium" data-testid="simulated-metrics-count">
+                        <WifiOff size={10} /> {dashboardData?.simulated_count || platformMetrics?.simulated_count || 0} Simulated
+                      </span>
+                    )}
+                  </div>
                   <button onClick={handleRefreshMetrics} disabled={refreshing} className="px-3 py-1.5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 transition text-xs flex items-center gap-1.5 disabled:opacity-50" data-testid="refresh-metrics-btn">
                     <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'Refreshing...' : 'Refresh Metrics'}
                   </button>
+                </div>
+
+                {/* Live API Info Banner */}
+                <div className="bg-[#151827] rounded-xl p-4 border border-cyan-500/10" data-testid="live-api-info-banner">
+                  <div className="flex items-start gap-3">
+                    <Signal size={16} className="text-cyan-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium text-cyan-300 mb-1">Live API Integration Active</p>
+                      <p className="text-[11px] text-gray-400 leading-relaxed">
+                        Platforms with valid API credentials show <span className="text-emerald-400 font-medium">LIVE</span> real-time data.
+                        Others display <span className="text-amber-400/70 font-medium">SIM</span> estimated metrics.
+                        Add real credentials to a platform to unlock live metrics.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Aggregate Metrics */}
@@ -561,6 +614,11 @@ const SocialMediaDashboardEnhanced = () => {
                     {(platformMetrics?.platforms || []).map(p => (
                       <AnalyticsPlatformRow key={p.platform_id} platform={p} />
                     ))}
+                  </div>
+                  {/* Legend */}
+                  <div className="flex items-center gap-4 px-4 py-2.5 border-t border-white/5 bg-white/[.01]">
+                    <span className="flex items-center gap-1 text-[10px] text-gray-500"><Wifi size={8} className="text-emerald-400" /> LIVE = Real API data</span>
+                    <span className="flex items-center gap-1 text-[10px] text-gray-500"><WifiOff size={8} className="text-amber-400/70" /> SIM = Simulated estimates</span>
                   </div>
                 </div>
               </>
