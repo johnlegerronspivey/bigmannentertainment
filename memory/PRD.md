@@ -44,6 +44,15 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Social Posts** - Create and list posts to connected platforms
 - **Search & Filters** - Search by platform name, filter by category (16 categories) and connection status
 
+### Phase 6 - Real-Time Platform Analytics (2026-03-09)
+- **Analytics Tab** - New tab on Social Dashboard displaying real-time metrics for all 120 connected platforms
+- **Aggregate Metrics** - 6 key metrics: Total Followers (8.2M), Total Likes, Comments, Shares, Impressions, Avg Engagement Rate
+- **Category Breakdown** - 16 category cards showing per-category followers, avg engagement, growth rate
+- **Platform Performance Table** - Sortable table of all 120 platforms with sparkline trend charts (7-day), growth rate indicators, follower counts, engagement rates
+- **Refresh Metrics** - One-click refresh button to update all platform metrics
+- **API Endpoints**: `GET /api/social/metrics/dashboard`, `GET /api/social/metrics/platforms`, `POST /api/social/metrics/refresh`
+- **Note**: Metrics are deterministically generated server-side (not from live external APIs)
+
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
@@ -75,7 +84,9 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `GET /api/social/credentials/{platform_id}` - Get masked credentials (auth)
 - `DELETE /api/social/credentials/{platform_id}` - Disconnect platform (auth)
 - `POST /api/social/disconnect/{provider}` - Disconnect alias (auth)
-- `GET /api/social/metrics/dashboard` - Dashboard metrics (auth)
+- `GET /api/social/metrics/dashboard` - Aggregate metrics: followers, likes, comments, shares, impressions, reach, engagement (auth)
+- `GET /api/social/metrics/platforms` - Per-platform metrics with categories and 7-day trend data (auth)
+- `POST /api/social/metrics/refresh` - Refresh metrics for all connected platforms (auth)
 - `POST /api/social/bulk-connect` - Bulk connect platforms (auth)
 - `POST /api/social/post` - Create social post (auth)
 - `GET /api/social/posts` - List user posts (auth)
@@ -105,5 +116,8 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Admin: `cveadmin@test.com` / `Test1234!`
 
 ## Backlog
+- **P1**: Implement live social media API integrations (use stored credentials to actually connect to platform APIs)
+- **P1**: Post-scheduling functionality to connected social media accounts
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: More notification event types (content likes, new content uploads, system alerts)
+- **P2**: User Verification pending for "New Comment" notification feature
