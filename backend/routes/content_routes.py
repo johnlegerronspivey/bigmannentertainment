@@ -1,5 +1,6 @@
 """
 User Content Uploads & Management - CRUD for creator content (audio, video, images)
+Includes comments system with notification triggers.
 """
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.responses import FileResponse
@@ -13,6 +14,10 @@ import shutil
 from pathlib import Path
 from config.database import db
 from auth.service import get_current_user
+from routes.notification_routes import create_notification
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/user-content", tags=["Content Management"])
 
@@ -245,3 +250,118 @@ async def browse_public_content(
         items.append(serialize_content(doc))
     total = await db.user_content.count_documents(query)
     return {"items": items, "total": total}
+
+
+# ── Comments ──────────────────────────────────────────────────
+
+class AddComment(BaseModel):
+    text: str = Field(..., min_length=1, max_length=2000)
+
+
+def serialize_comment(doc):
+    if not doc:
+        return None
+    doc["id"] = str(doc.pop("_id"))
+    if "created_at" in doc and isinstance(doc["created_at"], datetime):
+        doc["created_at"] = doc["created_at"].isoformat()
+    return doc
+
+
+@router.post("/{content_id}/comments")
+async def add_comment(content_id: str, data: AddComment, current_user=Depends(get_current_user)):
+    """Add a comment to a content item. Notifies the content owner."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+
+    # Verify content exists
+    try:
+        content = await db.user_content.find_one({"_id": ObjectId(content_id)})
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid content ID")
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+
+    # Get commenter info
+    commenter = await db.users.find_one({"id": user_id}, {"_id": 0, "full_name": 1, "email": 1})
+    commenter_name = (commenter or {}).get("full_name") or (commenter or {}).get("email", "Someone")
+
+    now = datetime.now(timezone.utc)
+    comment_doc = {
+        "content_id": content_id,
+        "user_id": user_id,
+        "user_name": commenter_name,
+        "text": data.text,
+        "created_at": now,
+    }
+    result = await db.content_comments.insert_one(comment_doc)
+    comment_doc["_id"] = result.inserted_id
+
+    # Update comment count on content
+    await db.user_content.update_one(
+        {"_id": ObjectId(content_id)},
+        {"$inc": {"stats.comments": 1}},
+    )
+
+    # Notify content owner (skip if commenter IS the owner)
+    owner_id = content.get("user_id")
+    if owner_id and owner_id != user_id:
+        try:
+            content_title = content.get("title", "your content")
+            await create_notification(
+                recipient_id=owner_id,
+                notif_type="new_comment",
+                title="New Comment",
+                message=f'{commenter_name} commented on "{content_title}": {data.text[:80]}',
+                link="/content-management",
+                sender_id=user_id,
+                sender_name=commenter_name,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send comment notification: {e}")
+
+    return serialize_comment(comment_doc)
+
+
+@router.get("/{content_id}/comments")
+async def list_comments(content_id: str, skip: int = 0, limit: int = 50):
+    """List comments for a content item. Public endpoint."""
+    cursor = (
+        db.content_comments.find({"content_id": content_id})
+        .sort("created_at", -1)
+        .skip(skip)
+        .limit(limit)
+    )
+    items = []
+    async for doc in cursor:
+        items.append(serialize_comment(doc))
+    total = await db.content_comments.count_documents({"content_id": content_id})
+    return {"items": items, "total": total}
+
+
+@router.delete("/comments/{comment_id}")
+async def delete_comment(comment_id: str, current_user=Depends(get_current_user)):
+    """Delete own comment (or content owner can delete any comment on their content)."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    try:
+        comment = await db.content_comments.find_one({"_id": ObjectId(comment_id)})
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid comment ID")
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    # Allow deletion by comment author or content owner
+    content = await db.user_content.find_one({"_id": ObjectId(comment["content_id"])})
+    content_owner = content.get("user_id") if content else None
+
+    if comment["user_id"] != user_id and content_owner != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
+
+    await db.content_comments.delete_one({"_id": ObjectId(comment_id)})
+
+    # Decrement comment count
+    if comment.get("content_id"):
+        await db.user_content.update_one(
+            {"_id": ObjectId(comment["content_id"])},
+            {"$inc": {"stats.comments": -1}},
+        )
+
+    return {"message": "Comment deleted"}

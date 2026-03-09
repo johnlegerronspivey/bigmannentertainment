@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { api } from "../../utils/apiClient";
-import { Bell, Check, CheckCheck, Trash2, MessageSquare, CreditCard, X } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, MessageSquare, CreditCard, X, MessageCircle } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -105,6 +105,7 @@ function NotificationBell() {
   const typeIcon = (type) => {
     if (type === "new_message") return <MessageSquare className="w-4 h-4 text-blue-400" />;
     if (type === "new_subscriber") return <CreditCard className="w-4 h-4 text-green-400" />;
+    if (type === "new_comment") return <MessageCircle className="w-4 h-4 text-amber-400" />;
     return <Bell className="w-4 h-4 text-purple-400" />;
   };
 

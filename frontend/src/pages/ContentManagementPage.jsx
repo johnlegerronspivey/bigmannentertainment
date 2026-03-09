@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../utils/apiClient";
 import { toast } from "sonner";
-import { Upload, FileAudio, FileVideo, Image, Trash2, Edit3, Search, Eye, Download, Heart, X, Save, Filter, Play, Pause, Volume2 } from "lucide-react";
+import { Upload, FileAudio, FileVideo, Image, Trash2, Edit3, Search, Eye, Download, Heart, X, Save, Filter, Play, Pause, Volume2, MessageCircle, Send, ChevronDown, ChevronUp } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -129,6 +129,141 @@ function ContentManagementPage() {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
+  // ── Comment Section (inline per content item) ──
+  const CommentSection = ({ contentId, commentCount }) => {
+    const [open, setOpen] = useState(false);
+    const [comments, setComments] = useState([]);
+    const [total, setTotal] = useState(commentCount || 0);
+    const [newComment, setNewComment] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [loadingComments, setLoadingComments] = useState(false);
+
+    const loadComments = async () => {
+      setLoadingComments(true);
+      try {
+        const data = await api.get(`/user-content/${contentId}/comments?limit=20`);
+        setComments(data.items || []);
+        setTotal(data.total || 0);
+      } catch {
+        setComments([]);
+      } finally {
+        setLoadingComments(false);
+      }
+    };
+
+    const toggleOpen = () => {
+      if (!open) loadComments();
+      setOpen(!open);
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!newComment.trim()) return;
+      setSubmitting(true);
+      try {
+        const created = await api.post(`/user-content/${contentId}/comments`, { text: newComment.trim() });
+        setComments((prev) => [created, ...prev]);
+        setTotal((prev) => prev + 1);
+        setNewComment("");
+        toast.success("Comment added");
+      } catch (err) {
+        toast.error(err.message || "Failed to add comment");
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    const handleDelete = async (commentId) => {
+      try {
+        await api.delete(`/user-content/comments/${commentId}`);
+        setComments((prev) => prev.filter((c) => c.id !== commentId));
+        setTotal((prev) => Math.max(0, prev - 1));
+        toast.success("Comment deleted");
+      } catch (err) {
+        toast.error(err.message || "Delete failed");
+      }
+    };
+
+    const timeAgo = (iso) => {
+      if (!iso) return "";
+      const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+      if (diff < 60) return "just now";
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      return `${Math.floor(diff / 86400)}d ago`;
+    };
+
+    return (
+      <div className="mt-3 border-t border-gray-800 pt-3" data-testid="comment-section">
+        <button
+          onClick={toggleOpen}
+          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-purple-300 transition-colors"
+          data-testid="toggle-comments-btn"
+        >
+          <MessageCircle className="w-3.5 h-3.5" />
+          <span>{total} comment{total !== 1 ? "s" : ""}</span>
+          {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
+
+        {open && (
+          <div className="mt-3 space-y-3" data-testid="comments-panel">
+            {/* Add comment form */}
+            <form onSubmit={handleSubmit} className="flex gap-2" data-testid="add-comment-form">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write a comment..."
+                className="flex-1 px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                maxLength={2000}
+                data-testid="comment-input"
+              />
+              <button
+                type="submit"
+                disabled={submitting || !newComment.trim()}
+                className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 rounded-lg text-xs flex items-center gap-1"
+                data-testid="submit-comment-btn"
+              >
+                <Send className="w-3 h-3" />
+              </button>
+            </form>
+
+            {/* Comments list */}
+            {loadingComments ? (
+              <p className="text-xs text-gray-600">Loading comments...</p>
+            ) : comments.length === 0 ? (
+              <p className="text-xs text-gray-600" data-testid="no-comments">No comments yet. Be the first!</p>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto" data-testid="comments-list">
+                {comments.map((c) => (
+                  <div key={c.id} className="flex items-start gap-2 bg-gray-800/40 rounded-lg px-3 py-2" data-testid="comment-item">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-purple-300" data-testid="comment-author">{c.user_name}</span>
+                        <span className="text-[10px] text-gray-600">{timeAgo(c.created_at)}</span>
+                      </div>
+                      <p className="text-xs text-gray-300 mt-0.5 break-words" data-testid="comment-text">{c.text}</p>
+                    </div>
+                    {(c.user_id === (user?.id || user?.user_id)) && (
+                      <button
+                        onClick={() => handleDelete(c.id)}
+                        className="p-1 text-gray-600 hover:text-red-400 shrink-0"
+                        title="Delete comment"
+                        data-testid="delete-comment-btn"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (loading) {
@@ -323,6 +458,7 @@ function ContentManagementPage() {
                       <span className="text-xs text-gray-600">{formatSize(item.file_size)}</span>
                     </div>
                   </div>
+                  <CommentSection contentId={item.id} commentCount={item.stats?.comments || 0} />
                 </>
               )}
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../utils/apiClient";
 import { toast } from "sonner";
-import { Bell, Check, CheckCheck, Trash2, MessageSquare, CreditCard, Filter } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, MessageSquare, CreditCard, Filter, MessageCircle } from "lucide-react";
 
 function NotificationsPage() {
   const [items, setItems] = useState([]);
@@ -64,6 +64,7 @@ function NotificationsPage() {
   const typeIcon = (type) => {
     if (type === "new_message") return <MessageSquare className="w-5 h-5 text-blue-400" />;
     if (type === "new_subscriber") return <CreditCard className="w-5 h-5 text-green-400" />;
+    if (type === "new_comment") return <MessageCircle className="w-5 h-5 text-amber-400" />;
     return <Bell className="w-5 h-5 text-purple-400" />;
   };
 
