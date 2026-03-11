@@ -47,7 +47,7 @@ export const WorkflowIntegrationDashboard = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Workflow Integration Dashboard</h1>
           <p className="mt-2 text-gray-600">
-            Manage your content workflows across 117+ platforms and social media strategies
+            Manage your content workflows across 120+ platforms and social media strategies
           </p>
         </div>
 
@@ -395,7 +395,7 @@ const ContentWorkflowTab = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Content Workflows</h2>
-          <p className="text-gray-600">Manage content distribution across all 117+ platforms</p>
+          <p className="text-gray-600">Manage content distribution across all 120+ platforms</p>
         </div>
         <button
           onClick={() => setShowCreateForm(true)}

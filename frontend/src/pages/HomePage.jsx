@@ -25,7 +25,7 @@ const HomePage = () => {
               Complete Media Distribution Empire
             </p>
             <p className="text-lg mb-8 max-w-4xl mx-auto">
-              Distribute your content across 117+ platforms worldwide including music streaming, social media, video platforms, podcast networks, and premier model agencies
+              Distribute your content across 120+ platforms worldwide including music streaming, social media, video platforms, podcast networks, and premier model agencies
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!user ? (
@@ -93,7 +93,7 @@ const HomePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">117+ Platforms</h3>
+              <h3 className="text-xl font-semibold mb-2">120+ Platforms</h3>
               <p className="text-gray-600">Distribute to social media, streaming services, radio stations, TV networks, and emerging Web3 platforms.</p>
             </div>
 
@@ -145,7 +145,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-purple-700 mb-2">117+</div>
+              <div className="text-3xl md:text-4xl font-bold text-purple-700 mb-2">120+</div>
               <div className="text-gray-600">Distribution Platforms</div>
             </div>
             <div>
@@ -189,7 +189,7 @@ const HomePage = () => {
               to="/platforms" 
               className="text-purple-600 hover:text-purple-700 font-semibold"
             >
-              View all 117+ platforms →
+              View all 120+ platforms →
             </Link>
           </div>
         </div>
