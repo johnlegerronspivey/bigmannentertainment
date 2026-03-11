@@ -67,6 +67,12 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Batch Progress Tracking** - Real-time progress polling during delivery
 - **Delivery Status Pipeline** - queued -> preparing -> delivering -> delivered/failed/export_ready
 
+### Phase 10.1 - App URL-Based Content Delivery (2026-03-11)
+- **APP_BASE_URL Integration** - All platform adapters now use the app's own URL as the base for content delivery
+- **Public File URL Resolution** - Content files are served via `APP_BASE_URL + file_path` (e.g., `https://creator-hub-700.preview.emergentagent.com/api/distribution-hub/files/xxx`)
+- **Adapter-level URL Injection** - Each adapter includes the public content URL in posts/embeds/captions (Discord embeds, Telegram captions, Twitter tweets, Facebook links, Instagram media URLs, Bluesky posts)
+- **Export Package Source of Truth** - Export packages reference the app URL as the canonical source
+
 ### Phase 11 - Advanced Analytics (2026-03-11)
 - **Automated Anomaly Detection** - Z-score statistical analysis on platform metrics, detects spikes/drops with severity levels (warning/critical), 30-day lookback window, dismissable alerts
 - **Audience Demographics** - Age distribution, gender split, interest categories with affinity index, device breakdown (mobile/desktop/tablet/smart TV)
@@ -114,7 +120,9 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 
 ## Backlog
 - **P1**: Post-scheduling functionality to connected social media accounts
+- **P1**: Connect real platform credentials for live auto-push delivery
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: User Verification pending for "New Comment" notification feature
+- **P2**: Replace mock data in analytics with real API-sourced data
 - **P3**: Real-time WebSocket delivery status updates (currently uses polling)
 - **P3**: Revenue auto-import from platform APIs when credentials are connected
