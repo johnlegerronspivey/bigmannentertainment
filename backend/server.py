@@ -1,8 +1,17 @@
 """
 Big Mann Entertainment API — Main Application Entry Point
 Slim server.py: App creation, middleware, startup/shutdown, router wiring.
-All business logic lives in routes/, services/, middleware.py, and startup.py.
+All business logic lives in routes/, services/, models/, api/, utils/.
 """
+import sys
+from pathlib import Path
+
+_backend = Path(__file__).parent
+for _subdir in ['api', 'services', 'models', 'utils']:
+    _p = str(_backend / _subdir)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
