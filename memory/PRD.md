@@ -49,14 +49,15 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 
 ### Phase 8 - URL-Based Platform Connections (2026-03-09)
 - **URL Connect System** - Users paste profile URLs instead of API keys to connect platforms
-- **Auto-Detection** - Platform and username auto-detected from URL patterns (21 platform URL formats)
-- **13 URL Metric Adapters** - YouTube, Twitter, Reddit, TikTok, Instagram, Twitch, SoundCloud, Spotify, Facebook, LinkedIn, Pinterest, Threads, Vimeo
-- **Real Public Data** - TikTok URL (e.g. @khaby.lame) returns real 160.3M followers
+- **Auto-Detection** - Platform and username auto-detected from URL patterns (25 platform URL formats)
+- **25 URL Metric Adapters** - YouTube, Twitter, Reddit, TikTok, Instagram, Twitch, SoundCloud, Spotify, Facebook, LinkedIn, Pinterest, Threads, Vimeo, Tumblr, Snapchat, Discord, Telegram, Dailymotion, Bandcamp, Audiomack, Mixcloud, GitHub, Medium, Kick, Bluesky
+- **Real Public Data** - Bluesky (596K), Discord (418K members), Telegram (10.4M subscribers), GitHub (289K), Dailymotion confirmed live
 - **Dual-Mode Modal** - Frontend credential modal has "Profile URL" / "API Keys" toggle tabs
 - **Platform Badges** - API (cyan), URL (purple), via URL (green) badges on platform cards
 - **Bulk URL Connect** - Connect multiple platforms by pasting multiple profile URLs
-- **New Endpoints**:
-  - `GET /api/social/url-supported` - 13 platforms with URL adapters
+- **123 Total Platforms** - Added GitHub, Medium, Bluesky to platform config
+- **Endpoints**:
+  - `GET /api/social/url-supported` - 25 platforms with URL adapters
   - `POST /api/social/url-detect` - Auto-detect platform from URL
   - `POST /api/social/connect-url` - Connect platform via profile URL
   - `POST /api/social/connect-url/bulk` - Bulk URL connection
@@ -93,7 +94,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - AWS Services (S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, etc.)
 - Google Generative AI
 - Social Media Live APIs (Twitter v2, YouTube Data v3, Instagram Graph, Facebook Graph, Spotify Web, TikTok, LinkedIn, Twitch Helix, SoundCloud, Reddit)
-- URL-based public scraping (YouTube, Twitter, Reddit, TikTok, Instagram, Twitch, SoundCloud, Spotify, Facebook, Pinterest, Threads, Vimeo)
+- URL-based public scraping (25 platforms: YouTube, Twitter, Reddit, TikTok, Instagram, Twitch, SoundCloud, Spotify, Facebook, LinkedIn, Pinterest, Threads, Vimeo, Tumblr, Snapchat, Discord, Telegram, Dailymotion, Bandcamp, Audiomack, Mixcloud, GitHub, Medium, Kick, Bluesky)
 
 ## Test Credentials
 - Owner: `owner@bigmannentertainment.com` / `Test1234!`
