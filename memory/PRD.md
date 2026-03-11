@@ -3,6 +3,11 @@
 ## Original Problem Statement
 Build a comprehensive creator tools platform for Big Mann Entertainment that enables content management, distribution, analytics, messaging, and monetization for music/media creators.
 
+## URL Configuration
+- **Production Domain**: `bigmannentertainment.com`
+- **Preview/Testing**: Uses Emergent preview URL (kept separate from production)
+- All backend services reference `bigmannentertainment.com` for production contexts (emails, payments, OAuth, CORS, CDN, distribution hub source-of-truth)
+
 ## Core Features Implemented
 
 ### Phase 1 (Previous Sessions)
@@ -56,51 +61,17 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Platform Badges** - API (cyan), URL (purple), via URL (green) badges on platform cards
 - **Bulk URL Connect** - Connect multiple platforms by pasting multiple profile URLs
 - **123 Total Platforms** - Added GitHub, Medium, Bluesky to platform config
-- **Endpoints**:
-  - `GET /api/social/url-supported` - 25 platforms with URL adapters
-  - `POST /api/social/url-detect` - Auto-detect platform from URL
-  - `POST /api/social/connect-url` - Connect platform via profile URL
-  - `POST /api/social/connect-url/bulk` - Bulk URL connection
 
 ### Phase 10 - Content Distribution Hub (2026-03-11)
 - **Distribution Hub** - Central command center for content distribution to all commercial platforms
-- **120 Commercial Platforms** across 15 categories:
-  - Audio Streaming (14), Commercial Radio (6), Video Platforms (8), Film & Movie (9), Social Media (9), Podcast (5)
-  - Modeling Agencies (12): IMG, Elite, Ford, Wilhelmina, Next, Women, Society, Storm, Premier, Select, LA Models, DNA
-  - Programmatic DOOH (10): Clear Channel, JCDecaux, Lamar, Outfront, Vistar, Broadsign, Place Exchange, Hivestack, AdQuick, Blip
-  - Web3 & Blockchain (8): Ethereum, Polygon, Solana, Audius, Sound.xyz, Royal, OpenSea, Catalog
-  - Rights & Licensing (7): ASCAP, BMI, SESAC, SoundExchange, Harry Fox, MLC, MDE
-  - International Streaming (8): JOOX, Gaana, Yandex, QQ Music, NetEase, YouTube Music, Mixcloud, ReverbNation
-  - Live Streaming (4): Kick, Clubhouse, Twitter Spaces, Spotify Live
-  - Entertainment Media (8): WorldStarHipHop, Revolt TV, Shade Room, Hollywood Unlocked, DatPiff, Spinrilla, LiveMixtapes, MyMixtapez
-  - Creator Platforms (4): OnlyFans, Fansly, Models.com, Medium
-  - Alternative Social (8): Odysee, BitChute, Brighteon, GETTR, Gab, Parler, Truth Social, WhatsApp Business
+- **120 Commercial Platforms** across 15 categories
 - **12 System Templates**: All Radio, Major Streaming, Social Blast, Video Everywhere, Film Distribution, Podcast Push, All Modeling Agencies, DOOH Billboard Blast, Web3 Distribution, Entertainment Media, Global Streaming, Rights & Licensing
 - **Content Management** - Upload, manage, and organize audio, video, image, and film content
-- **Metadata Management** - Basic (title, artist, genre, tags) + Advanced (ISRC, UPC, copyright, publisher, record label, licensing type, territory rights)
+- **Metadata Management** - Basic + Advanced (ISRC, UPC, copyright, publisher, record label, licensing type, territory rights)
 - **Rights Management** - Copyright info, licensing terms, royalty splits, DRM settings, exclusive rights
 - **Dual Delivery** - Auto-push via API for supported platforms, export packages with full metadata for others
-- **Delivery Tracking** - Real-time status per delivery (queued, delivering, delivered, export_ready, failed)
-- **Export Packages** - Platform-ready bundles with metadata, rights, delivery instructions, source-of-truth URL
-- **Platform Connections** - Store API credentials per platform for auto-push delivery
-- **Source of Truth** - App URL is the authoritative source for all distribution operations
-- **Endpoints**:
-  - `GET /api/distribution-hub/platforms` - 120 platforms in 15 categories
-  - `POST /api/distribution-hub/content` - Create content with full metadata
-  - `GET /api/distribution-hub/content` - Content library
-  - `GET /api/distribution-hub/content/{id}` - Content detail
-  - `PUT /api/distribution-hub/content/{id}/metadata` - Update metadata/rights
-  - `DELETE /api/distribution-hub/content/{id}` - Delete content
-  - `POST /api/distribution-hub/upload` - Upload file + create content
-  - `POST /api/distribution-hub/distribute` - Distribute to platforms
-  - `GET /api/distribution-hub/deliveries` - Delivery history
-  - `GET /api/distribution-hub/deliveries/batch/{batch_id}` - Batch details
-  - `PUT /api/distribution-hub/deliveries/{id}/status` - Update delivery status
-  - `POST /api/distribution-hub/deliveries/{id}/export` - Generate export package
-  - `POST /api/distribution-hub/platforms/connect` - Connect platform
-  - `GET /api/distribution-hub/platforms/connected` - Connected platforms
-  - `DELETE /api/distribution-hub/platforms/{id}/disconnect` - Disconnect platform
-  - `GET /api/distribution-hub/stats` - Hub dashboard statistics
+- **Delivery Tracking** - Real-time status per delivery
+- **Export Packages** - Platform-ready bundles with metadata, rights, delivery instructions
 
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
@@ -123,7 +94,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 ## DB Collections
 - `notifications`, `content_comments`, `user_content`, `messages`, `conversations`, `subscriptions`
 - `platform_credentials`: `{ user_id, platform_id, credentials, display_name, status, connection_method }`
-- `distribution_hub_content`: `{ id, user_id, title, content_type, metadata (basic+advanced), rights, file_url, status }`
+- `distribution_hub_content`: `{ id, user_id, title, content_type, metadata, rights, file_url, status }`
 - `distribution_hub_deliveries`: `{ id, batch_id, user_id, content_id, platform_id, delivery_method, status, metadata, rights, source_url }`
 - `distribution_hub_credentials`: `{ id, user_id, platform_id, credentials, connected }`
 
