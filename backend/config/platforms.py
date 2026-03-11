@@ -1104,6 +1104,33 @@ DISTRIBUTION_PLATFORMS = {
         "max_file_size": 100 * 1024 * 1024,
         "credentials_required": ["mde_publisher_id", "api_key"],
         "description": "Comprehensive music metadata management and rights information exchange"
-    }
+    },
+    "github": {
+        "type": "social_media",
+        "name": "GitHub",
+        "api_endpoint": "https://api.github.com",
+        "supported_formats": [],
+        "max_file_size": 100 * 1024 * 1024,
+        "credentials_required": ["access_token"],
+        "description": "Developer platform for code hosting and collaboration"
+    },
+    "medium": {
+        "type": "social_media",
+        "name": "Medium",
+        "api_endpoint": "https://api.medium.com/v1",
+        "supported_formats": [],
+        "max_file_size": 25 * 1024 * 1024,
+        "credentials_required": ["access_token"],
+        "description": "Online publishing platform for writers and readers"
+    },
+    "bluesky": {
+        "type": "social_media",
+        "name": "Bluesky",
+        "api_endpoint": "https://bsky.social/xrpc",
+        "supported_formats": ["image", "video"],
+        "max_file_size": 50 * 1024 * 1024,
+        "credentials_required": ["handle", "app_password"],
+        "description": "Decentralized social networking platform"
+    },
 }
 

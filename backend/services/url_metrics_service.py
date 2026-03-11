@@ -153,6 +153,20 @@ URL_PATTERNS: Dict[str, list] = {
     "mixcloud": [
         r"mixcloud\.com/([A-Za-z0-9_\-]+)",
     ],
+    "github": [
+        r"github\.com/([A-Za-z0-9_\-]+)",
+    ],
+    "medium": [
+        r"medium\.com/@([A-Za-z0-9_\.\-]+)",
+        r"([A-Za-z0-9\-]+)\.medium\.com",
+    ],
+    "kick": [
+        r"kick\.com/([A-Za-z0-9_\-]+)",
+    ],
+    "bluesky": [
+        r"bsky\.app/profile/([A-Za-z0-9_\.\-]+)",
+        r"bsky\.social/([A-Za-z0-9_\.\-]+)",
+    ],
 }
 
 
@@ -493,6 +507,439 @@ async def _fetch_vimeo_url(video_or_user_id: str) -> Optional[Dict]:
     return None
 
 
+async def _fetch_tumblr_url(username: str) -> Optional[Dict]:
+    """Fetch Tumblr blog metrics from public API v2."""
+    data = await _fetch_json(
+        f"https://api.tumblr.com/v2/blog/{username}.tumblr.com/info",
+        headers={"Accept": "application/json", "User-Agent": "BigMannApp/1.0"}
+    )
+    if data and "response" in data:
+        blog = data["response"].get("blog", {})
+        followers = blog.get("followers", 0)
+        posts = blog.get("posts", blog.get("total_posts", 0))
+        if followers > 0 or posts > 0:
+            return {
+                "followers": followers,
+                "posts": posts,
+                "engagement_rate": 4.0,
+                "likes": blog.get("likes", 0),
+                "comments": 0,
+                "shares": 0,
+                "impressions": max(followers, posts) * 3,
+                "reach": max(followers, posts) * 2,
+                "username": username,
+            }
+    # Fallback: scrape the HTML page
+    html = await _fetch_text(f"https://{username}.tumblr.com")
+    if html:
+        posts = 0
+        m = re.search(r'"posts_count":\s*(\d+)', html)
+        if m:
+            posts = int(m.group(1))
+        m = re.search(r'"followers":\s*(\d+)', html)
+        followers = int(m.group(1)) if m else 0
+        if posts > 0 or followers > 0:
+            return {
+                "followers": followers,
+                "posts": posts,
+                "engagement_rate": 4.0,
+                "likes": 0,
+                "comments": 0,
+                "shares": 0,
+                "impressions": max(followers, posts) * 3,
+                "reach": max(followers, posts) * 2,
+                "username": username,
+            }
+    return None
+
+
+async def _fetch_snapchat_url(username: str) -> Optional[Dict]:
+    """Fetch Snapchat public profile data."""
+    html = await _fetch_text(f"https://www.snapchat.com/add/{username}")
+    if html:
+        # Snapchat public profiles have limited data
+        # Check if profile exists by looking for username in page
+        if username.lower() in html.lower():
+            # Try to find subscriber/score data in embedded JSON
+            subscribers = 0
+            m = re.search(r'"subscriberCount":\s*(\d+)', html)
+            if m:
+                subscribers = int(m.group(1))
+            m = re.search(r'"snapScore":\s*(\d+)', html)
+            snap_score = int(m.group(1)) if m else 0
+            return {
+                "followers": subscribers,
+                "posts": 0,
+                "engagement_rate": 6.0,
+                "likes": snap_score,
+                "comments": 0,
+                "shares": 0,
+                "impressions": max(subscribers, 1) * 5,
+                "reach": max(subscribers, 1) * 3,
+                "username": username,
+            }
+    return None
+
+
+async def _fetch_discord_url(invite_code: str) -> Optional[Dict]:
+    """Fetch Discord server info from invite link."""
+    data = await _fetch_json(
+        f"https://discord.com/api/v10/invites/{invite_code}?with_counts=true&with_expiration=true",
+        headers={"Accept": "application/json", "User-Agent": "BigMannApp/1.0"}
+    )
+    if data and "guild" in data:
+        guild = data["guild"]
+        members = data.get("approximate_member_count", 0)
+        online = data.get("approximate_presence_count", 0)
+        return {
+            "followers": members,
+            "posts": 0,
+            "engagement_rate": round((online / max(members, 1)) * 100, 2) if members else 0.0,
+            "likes": online,
+            "comments": 0,
+            "shares": 0,
+            "impressions": members * 3,
+            "reach": members * 2,
+            "username": guild.get("name", invite_code),
+        }
+    return None
+
+
+async def _fetch_telegram_url(username: str) -> Optional[Dict]:
+    """Fetch Telegram channel/group info from public page."""
+    html = await _fetch_text(f"https://t.me/{username}")
+    if not html:
+        return None
+    subscribers = 0
+    # Telegram shows "N members" or "N subscribers" on public pages
+    m = re.search(r'(\d[\d\s,]*)\s*(?:members|subscribers)', html, re.IGNORECASE)
+    if m:
+        subscribers = _extract_number(m.group(1).replace(" ", ""))
+    # Try tgstat-style embedded data
+    if subscribers == 0:
+        m = re.search(r'"tg://resolve\?domain=([^"]+)"', html)
+        # Also look for counter in meta description
+        desc = _search_meta(html, "description")
+        if desc:
+            m2 = re.search(r'(\d[\d\s,]*[KMB]?)\s*(?:members|subscribers)', desc, re.IGNORECASE)
+            if m2:
+                subscribers = _extract_number(m2.group(1).replace(" ", ""))
+    if subscribers > 0:
+        return {
+            "followers": subscribers,
+            "posts": 0,
+            "engagement_rate": 5.0,
+            "likes": 0,
+            "comments": 0,
+            "shares": 0,
+            "impressions": subscribers * 4,
+            "reach": subscribers * 2,
+            "username": username,
+        }
+    return None
+
+
+async def _fetch_dailymotion_url(username: str) -> Optional[Dict]:
+    """Fetch Dailymotion user metrics from public API."""
+    data = await _fetch_json(
+        f"https://api.dailymotion.com/user/{username}?fields=followers_total,videos_total,views_total,fans_total",
+        headers={"Accept": "application/json", "User-Agent": "BigMannApp/1.0"}
+    )
+    if data and "id" not in data.get("error", {}):
+        followers = data.get("followers_total", data.get("fans_total", 0))
+        videos = data.get("videos_total", 0)
+        views = data.get("views_total", 0)
+        if followers > 0 or videos > 0:
+            return {
+                "followers": followers,
+                "posts": videos,
+                "engagement_rate": round((views / max(followers * max(videos, 1), 1)) * 100, 2) if followers else 0.0,
+                "likes": 0,
+                "comments": 0,
+                "shares": 0,
+                "impressions": views or followers * 3,
+                "reach": int((views or followers * 2) * 0.6),
+                "username": username,
+            }
+    return None
+
+
+async def _fetch_bandcamp_url(username: str) -> Optional[Dict]:
+    """Fetch Bandcamp artist metrics from public page."""
+    html = await _fetch_text(f"https://{username}.bandcamp.com")
+    if not html:
+        html = await _fetch_text(f"https://{username}.bandcamp.com/music")
+    if not html:
+        return None
+    followers = 0
+    albums = 0
+    m = re.search(r'"followers_count":\s*(\d+)', html)
+    if m:
+        followers = int(m.group(1))
+    # Try to count albums/releases
+    album_matches = re.findall(r'class="[^"]*album[^"]*"', html, re.IGNORECASE)
+    albums = len(album_matches) if album_matches else 0
+    # Count track links as alternative
+    track_matches = re.findall(r'href="/track/', html)
+    tracks = len(track_matches) if track_matches else 0
+    # Extract from meta description
+    if followers == 0:
+        desc = _search_meta(html, "description")
+        if desc:
+            m = re.search(r'(\d[\d,]*)\s*(?:followers)', desc, re.IGNORECASE)
+            if m:
+                followers = _extract_number(m.group(1))
+    total_items = albums or tracks
+    # Return something if the page loaded (the artist exists)
+    if html and (username.lower() in html.lower() or '<title>' in html):
+        return {
+            "followers": followers,
+            "posts": total_items,
+            "engagement_rate": 6.0,
+            "likes": 0,
+            "comments": 0,
+            "shares": 0,
+            "impressions": max(followers, 1) * 4,
+            "reach": max(followers, 1) * 2,
+            "username": username,
+        }
+    return None
+
+
+async def _fetch_audiomack_url(username: str) -> Optional[Dict]:
+    """Fetch Audiomack artist metrics."""
+    data = await _fetch_json(
+        f"https://api.audiomack.com/v1/artist/{username}",
+        headers={"Accept": "application/json", "User-Agent": "BigMannApp/1.0"}
+    )
+    if data and "results" in data:
+        artist = data["results"]
+        followers = artist.get("followers", 0)
+        plays = artist.get("plays", 0)
+        uploads = artist.get("total_uploads", artist.get("total_songs", 0))
+        return {
+            "followers": followers,
+            "posts": uploads,
+            "engagement_rate": round((plays / max(followers * max(uploads, 1), 1)) * 100, 2) if followers else 0.0,
+            "likes": artist.get("favorited", 0),
+            "comments": 0,
+            "shares": artist.get("reups", 0),
+            "impressions": plays or followers * 4,
+            "reach": int((plays or followers * 3) * 0.6),
+            "username": username,
+        }
+    # Fallback: scrape HTML
+    html = await _fetch_text(f"https://audiomack.com/{username}")
+    if html:
+        followers = 0
+        m = re.search(r'"follower_count":\s*(\d+)', html)
+        if m:
+            followers = int(m.group(1))
+        m = re.search(r'"plays":\s*(\d+)', html)
+        plays = int(m.group(1)) if m else 0
+        if followers > 0:
+            return {
+                "followers": followers,
+                "posts": 0,
+                "engagement_rate": 5.0,
+                "likes": 0,
+                "comments": 0,
+                "shares": 0,
+                "impressions": plays or followers * 4,
+                "reach": int((plays or followers * 3) * 0.6),
+                "username": username,
+            }
+    return None
+
+
+async def _fetch_mixcloud_url(username: str) -> Optional[Dict]:
+    """Fetch Mixcloud user metrics from public page."""
+    html = await _fetch_text(f"https://www.mixcloud.com/{username}/")
+    if not html:
+        return None
+    followers = 0
+    uploads = 0
+    plays = 0
+    for pattern in [r'"followerCount":\s*(\d+)', r'"followers_count":\s*(\d+)', r'"followerCount":\s?"(\d+)"']:
+        m = re.search(pattern, html)
+        if m:
+            followers = int(m.group(1))
+            break
+    for pattern in [r'"uploadCount":\s*(\d+)', r'"cloudcastCount":\s*(\d+)']:
+        m = re.search(pattern, html)
+        if m:
+            uploads = int(m.group(1))
+            break
+    m = re.search(r'"playCount":\s*(\d+)', html)
+    if m:
+        plays = int(m.group(1))
+    # Try getting followers from visible text
+    if followers == 0:
+        m = re.search(r'(\d[\d,\.]*[KMB]?)\s*(?:followers|Followers)', html)
+        if m:
+            followers = _extract_number(m.group(1))
+    # Return data if the page is a valid profile
+    if html and (username.lower() in html.lower()):
+        return {
+            "followers": followers,
+            "posts": uploads,
+            "engagement_rate": 5.0,
+            "likes": 0,
+            "comments": 0,
+            "shares": 0,
+            "impressions": plays or max(followers, 1) * 3,
+            "reach": int((plays or max(followers, 1) * 2) * 0.6),
+            "username": username,
+        }
+    return None
+
+
+async def _fetch_github_url(username: str) -> Optional[Dict]:
+    """Fetch GitHub user metrics from public API or HTML page."""
+    data = await _fetch_json(
+        f"https://api.github.com/users/{username}",
+        headers={"Accept": "application/vnd.github.v3+json", "User-Agent": "BigMannApp/1.0"}
+    )
+    if data and "login" in data:
+        followers = data.get("followers", 0)
+        repos = data.get("public_repos", 0)
+        return {
+            "followers": followers,
+            "posts": repos,
+            "engagement_rate": round(min(followers / max(repos, 1), 15.0), 2) if repos else 0.0,
+            "likes": data.get("public_gists", 0),
+            "comments": 0,
+            "shares": 0,
+            "impressions": followers * 5,
+            "reach": followers * 3,
+            "username": data.get("login", username),
+        }
+    # Fallback: scrape HTML profile page
+    html = await _fetch_text(f"https://github.com/{username}")
+    if html:
+        followers = 0
+        repos = 0
+        m = re.search(r'(\d[\d,]*)\s*followers', html, re.IGNORECASE)
+        if m:
+            followers = _extract_number(m.group(1))
+        m = re.search(r'Repositories\s*(?:<[^>]+>)*\s*(\d+)', html)
+        if m:
+            repos = int(m.group(1))
+        if followers > 0 or repos > 0:
+            return {
+                "followers": followers,
+                "posts": repos,
+                "engagement_rate": round(min(followers / max(repos, 1), 15.0), 2) if repos else 0.0,
+                "likes": 0,
+                "comments": 0,
+                "shares": 0,
+                "impressions": followers * 5,
+                "reach": followers * 3,
+                "username": username,
+            }
+    return None
+
+
+async def _fetch_medium_url(username: str) -> Optional[Dict]:
+    """Fetch Medium user metrics from public page."""
+    html = await _fetch_text(f"https://medium.com/@{username}")
+    if not html:
+        return None
+    followers = 0
+    m = re.search(r'"followerCount":\s*(\d+)', html)
+    if m:
+        followers = int(m.group(1))
+    if followers == 0:
+        m = re.search(r'(\d[\d,\.]*[KMB]?)\s*(?:Followers|followers)', html)
+        if m:
+            followers = _extract_number(m.group(1))
+    if followers > 0:
+        return {
+            "followers": followers,
+            "posts": 0,
+            "engagement_rate": 4.0,
+            "likes": 0,
+            "comments": 0,
+            "shares": 0,
+            "impressions": followers * 4,
+            "reach": followers * 2,
+            "username": username,
+        }
+    return None
+
+
+async def _fetch_kick_url(username: str) -> Optional[Dict]:
+    """Fetch Kick.com streamer metrics from public API or HTML page."""
+    data = await _fetch_json(
+        f"https://kick.com/api/v2/channels/{username}",
+        headers={"Accept": "application/json", "User-Agent": "BigMannApp/1.0"}
+    )
+    if data and "id" in data:
+        followers = data.get("followers_count", data.get("followersCount", 0))
+        is_live = data.get("livestream") is not None
+        viewers = data.get("livestream", {}).get("viewer_count", 0) if is_live else 0
+        return {
+            "followers": followers,
+            "posts": data.get("videos_count", 0) if "videos_count" in data else 0,
+            "engagement_rate": round((viewers / max(followers, 1)) * 100, 2) if followers else 8.0,
+            "likes": viewers,
+            "comments": 0,
+            "shares": 0,
+            "impressions": followers * 4,
+            "reach": followers * 2,
+            "username": data.get("slug", username),
+        }
+    # Fallback: scrape the HTML page
+    html = await _fetch_text(f"https://kick.com/{username}")
+    if html:
+        followers = 0
+        m = re.search(r'"followers_count":\s*(\d+)', html)
+        if m:
+            followers = int(m.group(1))
+        if followers == 0:
+            m = re.search(r'(\d[\d,\.]*[KMB]?)\s*(?:Followers|followers)', html)
+            if m:
+                followers = _extract_number(m.group(1))
+        if followers > 0:
+            return {
+                "followers": followers,
+                "posts": 0,
+                "engagement_rate": 8.0,
+                "likes": 0,
+                "comments": 0,
+                "shares": 0,
+                "impressions": followers * 4,
+                "reach": followers * 2,
+                "username": username,
+            }
+    return None
+
+
+async def _fetch_bluesky_url(username: str) -> Optional[Dict]:
+    """Fetch Bluesky profile metrics from public API."""
+    # Handle could be username or full did
+    handle = f"{username}.bsky.social" if "." not in username else username
+    data = await _fetch_json(
+        f"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={handle}",
+        headers={"Accept": "application/json", "User-Agent": "BigMannApp/1.0"}
+    )
+    if data and "did" in data:
+        followers = data.get("followersCount", 0)
+        posts = data.get("postsCount", 0)
+        return {
+            "followers": followers,
+            "posts": posts,
+            "engagement_rate": round(min(followers * 0.02 / max(posts, 1), 15.0), 2) if posts else 0.0,
+            "likes": 0,
+            "comments": 0,
+            "shares": 0,
+            "impressions": followers * 3,
+            "reach": followers * 2,
+            "username": data.get("handle", username),
+        }
+    return None
+
+
 # ── Adapter registry ──────────────────────────────────────────────────
 URL_ADAPTERS: Dict[str, Any] = {
     "youtube": _fetch_youtube_url,
@@ -506,8 +953,20 @@ URL_ADAPTERS: Dict[str, Any] = {
     "facebook": _fetch_facebook_url,
     "linkedin": _fetch_linkedin_url,
     "pinterest": _fetch_pinterest_url,
-    "threads": _fetch_instagram_url,  # Same Instagram API
+    "threads": _fetch_instagram_url,
     "vimeo": _fetch_vimeo_url,
+    "tumblr": _fetch_tumblr_url,
+    "snapchat": _fetch_snapchat_url,
+    "discord": _fetch_discord_url,
+    "telegram": _fetch_telegram_url,
+    "dailymotion": _fetch_dailymotion_url,
+    "bandcamp": _fetch_bandcamp_url,
+    "audiomack": _fetch_audiomack_url,
+    "mixcloud": _fetch_mixcloud_url,
+    "github": _fetch_github_url,
+    "medium": _fetch_medium_url,
+    "kick": _fetch_kick_url,
+    "bluesky": _fetch_bluesky_url,
 }
 
 # Platform URL examples for the frontend
@@ -533,6 +992,10 @@ PLATFORM_URL_EXAMPLES: Dict[str, str] = {
     "audiomack": "https://audiomack.com/yourname",
     "mixcloud": "https://mixcloud.com/yourname",
     "dailymotion": "https://dailymotion.com/yourname",
+    "github": "https://github.com/yourname",
+    "medium": "https://medium.com/@yourname",
+    "kick": "https://kick.com/yourname",
+    "bluesky": "https://bsky.app/profile/yourname.bsky.social",
 }
 
 
