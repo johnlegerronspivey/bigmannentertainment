@@ -27,76 +27,79 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Direct Messaging** - User-to-user messaging system
 - **Analytics Dashboard** - Creator insights on content & subscribers
 
-### Phase 3 (2026-03-09)
-- **File Preview in Content Management** - Image thumbnails, audio player with controls, video player for uploaded content
-- **Real-time Notifications** - Bell icon with unread badge, dropdown panel, full notifications page, WebSocket push
-- **New Comment Notifications** - Comment system on content items with real-time notification to content owners
+### Phase 3 - File Preview & Notifications
+- **File Preview in Content Management** - Image thumbnails, audio player, video player
+- **Real-time Notifications** - Bell icon, dropdown panel, full page, WebSocket push
+- **New Comment Notifications** - Comment system with real-time notification to content owners
 
-### Phase 4 - Refactoring (2026-03-09)
-- **server.py Refactoring** - Extracted middleware, startup logic, WebSocket/webhook routes into dedicated modules
+### Phase 4 - Refactoring
+- **server.py Refactoring** - Extracted middleware, startup logic, WebSocket/webhook routes
 
-### Phase 5 - Social Media Platform Connections (2026-03-09)
+### Phase 5 - Social Media Platform Connections
 - **120 Platform Connections Dashboard** - Credential management for all 120 distribution platforms
-- **Credential Management UI** - Modal-based credential entry with dynamic fields per platform
-- **Bulk Connect** - One-click "Connect All" for all 120 platforms
-- **Dashboard Metrics** - Overview tab with connected platform counts
 - **Social Posts** - Create and list posts to connected platforms
 
-### Phase 6 - Real-Time Platform Analytics (2026-03-09)
-- **Analytics Tab** - Aggregate metrics, category breakdown, platform performance table with sparkline trends
+### Phase 6 - Real-Time Platform Analytics
+- **Analytics Tab** - Aggregate metrics, category breakdown, platform performance
 - **Refresh Metrics** - One-click refresh for all platform metrics
 
-### Phase 7 - Live Social Media API Integrations (2026-03-09)
-- **14 Live API Adapters** - Twitter/X, YouTube, Instagram, Facebook, Spotify, TikTok, LinkedIn, Twitch, SoundCloud, Reddit, YouTube Music, Threads, Spotify Podcasts, WhatsApp Business
+### Phase 7 - Live Social Media API Integrations
+- **14 Live API Adapters** - Twitter/X, YouTube, Instagram, Facebook, Spotify, TikTok, etc.
 - **Graceful Fallback** - Falls back to simulated metrics when API calls fail
 - **Metric Caching** - 5-minute TTL in MongoDB
-- **Data Source Indicators** - LIVE/SIM badges on every metric, live/simulated count summaries
 
-### Phase 8 - URL-Based Platform Connections (2026-03-09)
-- **URL Connect System** - Users paste profile URLs instead of API keys to connect platforms
-- **Auto-Detection** - Platform and username auto-detected from URL patterns (25 platform URL formats)
-- **25 URL Metric Adapters** - YouTube, Twitter, Reddit, TikTok, Instagram, Twitch, SoundCloud, Spotify, Facebook, LinkedIn, Pinterest, Threads, Vimeo, Tumblr, Snapchat, Discord, Telegram, Dailymotion, Bandcamp, Audiomack, Mixcloud, GitHub, Medium, Kick, Bluesky
-- **Real Public Data** - Bluesky (596K), Discord (418K members), Telegram (10.4M subscribers), GitHub (289K), Dailymotion confirmed live
-- **Dual-Mode Modal** - Frontend credential modal has "Profile URL" / "API Keys" toggle tabs
-- **Platform Badges** - API (cyan), URL (purple), via URL (green) badges on platform cards
-- **Bulk URL Connect** - Connect multiple platforms by pasting multiple profile URLs
-- **123 Total Platforms** - Added GitHub, Medium, Bluesky to platform config
+### Phase 8 - URL-Based Platform Connections
+- **URL Connect System** - Users paste profile URLs instead of API keys
+- **25 URL Metric Adapters** - YouTube, Twitter, Reddit, TikTok, Instagram, etc.
+- **123 Total Platforms**
 
-### Phase 10 - Content Distribution Hub (2026-03-11)
-- **Distribution Hub** - Central command center for content distribution to all commercial platforms
-- **120 Commercial Platforms** across 15 categories
-- **12 System Templates**: All Radio, Major Streaming, Social Blast, Video Everywhere, Film Distribution, Podcast Push, All Modeling Agencies, DOOH Billboard Blast, Web3 Distribution, Entertainment Media, Global Streaming, Rights & Licensing
-- **Content Management** - Upload, manage, and organize audio, video, image, and film content
-- **Metadata Management** - Basic + Advanced (ISRC, UPC, copyright, publisher, record label, licensing type, territory rights)
-- **Rights Management** - Copyright info, licensing terms, royalty splits, DRM settings, exclusive rights
-- **Dual Delivery** - Auto-push via API for supported platforms, export packages with full metadata for others
-- **Delivery Tracking** - Real-time status per delivery
-- **Export Packages** - Platform-ready bundles with metadata, rights, delivery instructions
+### Phase 9 - Content Distribution Hub
+- **Distribution Hub** - Central command center for content distribution to 120 commercial platforms
+- **12 System Templates** - Pre-built distribution templates
+- **Content Management** - Upload, manage, organize audio/video/image/film content
+- **Metadata & Rights Management** - ISRC, UPC, copyright, licensing, royalty splits
+
+### Phase 10 - Real Delivery Engine (2026-03-11)
+- **Delivery Engine** - Background processor that executes real API delivery to platforms
+- **10 Platform Adapters** - YouTube, Twitter/X, TikTok, SoundCloud, Vimeo, Bluesky, Discord, Telegram, Instagram, Facebook
+- **Graceful Credential Fallback** - Auto-push with credentials, export package without
+- **Retry Logic** - Up to 3 retries for failed deliveries with exponential backoff
+- **Batch Progress Tracking** - Real-time progress polling during delivery
+- **Delivery Status Pipeline** - queued -> preparing -> delivering -> delivered/failed/export_ready
+
+### Phase 11 - Advanced Analytics (2026-03-11)
+- **Automated Anomaly Detection** - Z-score statistical analysis on platform metrics, detects spikes/drops with severity levels (warning/critical), 30-day lookback window, dismissable alerts
+- **Audience Demographics** - Age distribution, gender split, interest categories with affinity index, device breakdown (mobile/desktop/tablet/smart TV)
+- **Geographic Distribution** - Country-level audience breakdown with listener counts, top US cities
+- **Best Time to Post** - 7x24 engagement heatmap, recommended posting windows with Peak/High/Good labels, UTC timezone
+- **Revenue Tracking** - Per-platform revenue across 10 platforms, revenue by source (streaming/ad_revenue/sync_licensing), 12-month trend, top earning content
 
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`, `/app/uploads/hub/`
-- **Key Routes**: `/app/backend/routes/` (23 modular routers)
+- **Key Routes**: `/app/backend/routes/` (23+ modular routers)
 - **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
 
 ## Key API Endpoints
 - Content: `GET/POST /api/user-content/`, `GET /api/user-content/file/{file_id}`
-- Comments: `POST/GET /api/user-content/{id}/comments`, `DELETE /api/user-content/comments/{id}`
-- Notifications: `GET /api/notifications`, `GET /api/notifications/unread-count`, `PUT /api/notifications/{id}/read`
+- Notifications: `GET /api/notifications`, `PUT /api/notifications/{id}/read`
 - Messages: `GET /api/messages/conversations`, `POST /api/messages/send`
-- Analytics: `GET /api/analytics/overview`
 - Social Platforms: `GET /api/social/platforms`, `GET /api/social/connections`
-- Distribution Hub: `GET/POST /api/distribution-hub/content`, `POST /api/distribution-hub/distribute`, `GET /api/distribution-hub/deliveries`, `POST /api/distribution-hub/deliveries/{id}/export`
-- URL Connect: `POST /api/social/connect-url`, `POST /api/social/connect-url/bulk`
-- Live Metrics: `GET /api/social/metrics/dashboard`, `POST /api/social/metrics/refresh`
+- Distribution Hub: `GET/POST /api/distribution-hub/content`, `POST /api/distribution-hub/distribute`
+- Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`, `POST /api/distribution-hub/deliveries/{id}/retry`
+- Analytics: `GET /api/analytics/overview`, `GET /api/analytics/content-performance`
+- Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`, `POST /api/analytics/anomalies/dismiss`
+- Demographics: `GET /api/analytics/demographics`, `GET /api/analytics/best-times`, `GET /api/analytics/geo`
+- Revenue: `GET /api/analytics/revenue/overview`, `GET /api/analytics/revenue/platform/{id}`, `POST /api/analytics/revenue/record`
 
 ## DB Collections
 - `notifications`, `content_comments`, `user_content`, `messages`, `conversations`, `subscriptions`
-- `platform_credentials`: `{ user_id, platform_id, credentials, display_name, status, connection_method }`
-- `distribution_hub_content`: `{ id, user_id, title, content_type, metadata, rights, file_url, status }`
-- `distribution_hub_deliveries`: `{ id, batch_id, user_id, content_id, platform_id, delivery_method, status, metadata, rights, source_url }`
-- `distribution_hub_credentials`: `{ id, user_id, platform_id, credentials, connected }`
+- `platform_credentials`, `distribution_hub_content`, `distribution_hub_deliveries`, `distribution_hub_credentials`
+- `anomaly_alerts`: Detected metric anomalies with z-scores and severity
+- `metrics_history`: Time-series platform metrics for trend analysis
+- `audience_analytics`: Cached demographics, best-time, geo data
+- `revenue_tracking`: Per-platform revenue transactions
 
 ## 3rd Party Integrations
 - Stripe, PayPal (payments)
@@ -110,10 +113,8 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Admin: `cveadmin@test.com` / `Test1234!`
 
 ## Backlog
-- **P0**: Implement actual API push logic for platforms with APIs (YouTube, SoundCloud, Vimeo, TikTok, etc.)
 - **P1**: Post-scheduling functionality to connected social media accounts
-- **P2**: Automated anomaly detection for social media metrics
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: User Verification pending for "New Comment" notification feature
-- **P3**: Audience demographics and best-time-to-post insights
-- **P3**: Revenue tracking per platform from distribution
+- **P3**: Real-time WebSocket delivery status updates (currently uses polling)
+- **P3**: Revenue auto-import from platform APIs when credentials are connected
