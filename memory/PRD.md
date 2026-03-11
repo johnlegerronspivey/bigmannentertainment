@@ -69,23 +69,51 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 
 ### Phase 10.1 - App URL-Based Content Delivery (2026-03-11)
 - **APP_BASE_URL Integration** - All platform adapters now use the app's own URL as the base for content delivery
-- **Public File URL Resolution** - Content files are served via `APP_BASE_URL + file_path` (e.g., `https://creator-hub-700.preview.emergentagent.com/api/distribution-hub/files/xxx`)
-- **Adapter-level URL Injection** - Each adapter includes the public content URL in posts/embeds/captions (Discord embeds, Telegram captions, Twitter tweets, Facebook links, Instagram media URLs, Bluesky posts)
+- **Public File URL Resolution** - Content files are served via `APP_BASE_URL + file_path`
+- **Adapter-level URL Injection** - Each adapter includes the public content URL in posts/embeds/captions
 - **Export Package Source of Truth** - Export packages reference the app URL as the canonical source
 
 ### Phase 11 - Advanced Analytics (2026-03-11)
-- **Automated Anomaly Detection** - Z-score statistical analysis on platform metrics, detects spikes/drops with severity levels (warning/critical), 30-day lookback window, dismissable alerts
-- **Audience Demographics** - Age distribution, gender split, interest categories with affinity index, device breakdown (mobile/desktop/tablet/smart TV)
-- **Geographic Distribution** - Country-level audience breakdown with listener counts, top US cities
-- **Best Time to Post** - 7x24 engagement heatmap, recommended posting windows with Peak/High/Good labels, UTC timezone
-- **Revenue Tracking** - Per-platform revenue across 10 platforms, revenue by source (streaming/ad_revenue/sync_licensing), 12-month trend, top earning content
+- **Automated Anomaly Detection** - Z-score statistical analysis on platform metrics
+- **Audience Demographics** - Age distribution, gender split, interest categories, device breakdown
+- **Geographic Distribution** - Country-level audience breakdown with listener counts
+- **Best Time to Post** - 7x24 engagement heatmap, recommended posting windows
+- **Revenue Tracking** - Per-platform revenue across 10 platforms, revenue by source, 12-month trend
+
+### Phase 12 - Codebase Consolidation (2026-03-11)
+- **Backend File Reorganization** - Moved 232 loose .py files from `/app/backend/` root into organized subdirectories:
+  - `api/` - 77 endpoint files
+  - `services/` - 107 service files (91 moved + 16 existing)
+  - `models/` - 30 model files (27 moved + 3 existing)
+  - `utils/` - 34 utility/miscellaneous files
+  - Root retains only: `server.py`, `startup.py`, `router_setup.py`, `middleware.py`
+- **Root-level Cleanup** - Moved 82 markdown docs to `/app/docs/`, 179 legacy test scripts to `/app/tests/legacy/`, 7 admin scripts to `/app/scripts/`
+- **sys.path Backward Compatibility** - Added `api/`, `services/`, `models/`, `utils/` to Python path in `server.py` so all existing bare imports continue to work
 
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`, `/app/uploads/hub/`
-- **Key Routes**: `/app/backend/routes/` (23+ modular routers)
+- **Key Routes**: `/app/backend/routes/` (24 core routers) + `/app/backend/api/` (77 endpoint routers)
 - **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
+
+### Backend Directory Structure
+```
+/app/backend/
+├── server.py              # Entry point
+├── startup.py             # Startup/shutdown hooks
+├── router_setup.py        # Additional router wiring
+├── middleware.py           # HTTP middleware
+├── api/                   # 77 endpoint modules
+├── services/              # 107 service modules
+├── models/                # 30 data model modules
+├── utils/                 # 34 utility modules
+├── routes/                # 24 core route modules
+├── config/                # Database, settings, platforms
+├── auth/                  # Authentication modules
+├── providers/             # Provider modules
+└── tests/                 # Backend tests
+```
 
 ## Key API Endpoints
 - Content: `GET/POST /api/user-content/`, `GET /api/user-content/file/{file_id}`
@@ -93,19 +121,16 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Messages: `GET /api/messages/conversations`, `POST /api/messages/send`
 - Social Platforms: `GET /api/social/platforms`, `GET /api/social/connections`
 - Distribution Hub: `GET/POST /api/distribution-hub/content`, `POST /api/distribution-hub/distribute`
-- Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`, `POST /api/distribution-hub/deliveries/{id}/retry`
+- Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`
 - Analytics: `GET /api/analytics/overview`, `GET /api/analytics/content-performance`
-- Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`, `POST /api/analytics/anomalies/dismiss`
+- Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`
 - Demographics: `GET /api/analytics/demographics`, `GET /api/analytics/best-times`, `GET /api/analytics/geo`
-- Revenue: `GET /api/analytics/revenue/overview`, `GET /api/analytics/revenue/platform/{id}`, `POST /api/analytics/revenue/record`
+- Revenue: `GET /api/analytics/revenue/overview`, `GET /api/analytics/revenue/platform/{id}`
 
 ## DB Collections
 - `notifications`, `content_comments`, `user_content`, `messages`, `conversations`, `subscriptions`
 - `platform_credentials`, `distribution_hub_content`, `distribution_hub_deliveries`, `distribution_hub_credentials`
-- `anomaly_alerts`: Detected metric anomalies with z-scores and severity
-- `metrics_history`: Time-series platform metrics for trend analysis
-- `audience_analytics`: Cached demographics, best-time, geo data
-- `revenue_tracking`: Per-platform revenue transactions
+- `anomaly_alerts`, `metrics_history`, `audience_analytics`, `revenue_tracking`
 
 ## 3rd Party Integrations
 - Stripe, PayPal (payments)
@@ -119,10 +144,9 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Admin: `cveadmin@test.com` / `Test1234!`
 
 ## Backlog
+- **P1**: Live Social Media API Integrations (replace placeholder logic with real API calls)
 - **P1**: Post-scheduling functionality to connected social media accounts
-- **P1**: Connect real platform credentials for live auto-push delivery
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
-- **P2**: User Verification pending for "New Comment" notification feature
 - **P2**: Replace mock data in analytics with real API-sourced data
 - **P3**: Real-time WebSocket delivery status updates (currently uses polling)
 - **P3**: Revenue auto-import from platform APIs when credentials are connected
