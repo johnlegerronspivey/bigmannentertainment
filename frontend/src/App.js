@@ -14,6 +14,7 @@ const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const DistributionHubPage = lazy(() => import("./pages/DistributionHubPage"));
 const AdminNotificationsPage = lazy(() => import("./pages/AdminNotificationsPage"));
 const LibraryPage = lazy(() => import("./pages/LibraryPage"));
 const DistributePage = lazy(() => import("./pages/DistributePage"));
@@ -193,6 +194,7 @@ function App() {
             <Route path="/smart-contracts" element={<ProtectedRoute><SmartContractComponent /></ProtectedRoute>} />
             <Route path="/audit-trail" element={<ProtectedRoute><AuditTrailComponent /></ProtectedRoute>} />
             <Route path="/distribute" element={<ProtectedRoute><DistributePage /></ProtectedRoute>} />
+            <Route path="/distribution-hub" element={<ProtectedRoute><DistributionHubPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/creator/:username" element={<CreatorProfilePage />} />

@@ -150,6 +150,7 @@ const NavigationBar = () => {
                   <Link to="/upload" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Upload</Link>
                   <Link to="/image-upload" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Image Upload & NFT</Link>
                   <Link to="/distribute" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Distribute</Link>
+                  <Link to="/distribution-hub" className="block px-4 py-2 text-sm text-purple-300 hover:bg-slate-700 font-medium" onClick={closeAllDropdowns} data-testid="nav-distribution-hub">Distribution Hub</Link>
                   <Link to="/creative-studio" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Creative Studio</Link>
                   <Link to="/watermark" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-watermark">Watermarking</Link>
                   <Link to="/content-management" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-content-management">My Content</Link>

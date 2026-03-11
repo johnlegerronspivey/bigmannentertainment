@@ -1,120 +1,141 @@
 <analysis>**original_problem_statement:**
-The user's initial high-level goals were to add User Content Uploads, Direct Messaging, and an Analytics Dashboard. The scope was later extended to include File Previews and Real-Time Notifications (for new subscribers and comments).
+The user's initial high-level goals were to add User Content Uploads, Direct Messaging, and an Analytics Dashboard. The scope was later extended to include File Previews, Real-Time Notifications, and a comprehensive Social Media Management feature.
 
-In the previous session, the New Comment notification feature was completed. In this session, the user's explicit request was to refactor the main  file to improve the backend architecture's modularity and scalability.
+The previous session's goal was to fetch and display real-time metrics from connected platforms, which was implemented via URL-based scraping for 13 platforms.
+
+In this session, the user's explicit request was: **Expand URL-based scraping to more platforms.**
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack platform with user authentication, content management (with media previews), direct messaging, an analytics dashboard, and a real-time notification system for new subscribers, messages, and comments.
+The application is a full-stack social media management platform (React/FastAPI/MongoDB). A key feature is fetching live social media metrics. The agent just completed a major expansion of the URL-based scraping capability.
 
-The backend has undergone a significant architectural refactoring. The monolithic  has been broken down, with its logic distributed into dedicated modules for middleware (), application startup/shutdown events (), WebSocket routes (), and webhook routes (). The  file now serves as a lean orchestrator for the FastAPI application.
+The system now supports real-time, public data scraping for **25 social media platforms**. This was expanded from the original 13. The new platforms added are: , , , , , , , , , , , and .
+
+The multi-layered data fetching strategy remains in place: the system attempts to get live data via URL scraping, falls back to placeholder API-key methods (not yet implemented), and finally uses simulated data if no live source is available.
 
 **Last working item**:
-- **Last item agent was working:** Refactoring the backend's main  file. This involved creating new modules to house specific logic (middleware, startup events, WebSockets, webhooks) and rewriting  to be a slim application factory.
-- **Status:** NONE
+- **Last item agent was working:** The agent finished expanding the URL-based social media scraping feature to support 12 additional platforms, bringing the total to 25. This involved adding new parsers, updating configuration files, and performing extensive testing.
+- **Status:** USER VERIFICATION PENDING
 - **Agent Testing Done:** Y
-- **Which testing method agent to use?** NA
+- **Which testing method agent to use?** frontend testing agent
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-None.
+- **Issue 1:** (P0) User Verification for New Comment Feature. This is a critical task from two sessions ago that has been repeatedly overlooked by previous agents.
+
+  **Issues Detail:**
+  - **Issue 1:** User Verification for New Comment Feature
+     - **Attempted fixes:** None. This task has been missed by the last three agents.
+     - **Next debug checklist:** The feature for real-time notifications on new comments is already implemented. The next agent's first action should be to prompt the user to test this functionality and confirm it works as expected.
+     - **Why fix this issue and what will be achieved with the fix?** To close out a previously completed core feature and ensure it meets user requirements before adding more functionality. Clearing this technical debt is the highest priority.
+     - **Status:** USER VERIFICATION PENDING
+     - **Is recurring issue?** Y
+     - **Should Test frontend/backend/both after fix?** User verification is sufficient.
+     - **Blocked on other issue:** None
 
 **In progress Task List**:
 None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **(P0) User Verification of New Comment Feature:** The New Comment and notification feature, implemented in the previous session, is still awaiting the user's final review and approval. This should be the immediate next step.
+    - **(P0) User Verification of Social Media Analytics (Expanded URL Connect):** The user needs to review and approve the addition of the 12 new platforms for URL-based scraping and the live data they provide.
+    - **(P1) Implement Live Social Media API Integrations (Credential-based):** The scaffolding for API-key-based connections is complete. The next step is to implement the actual API client logic for the supported platforms within . This involves making authenticated requests to each platform's API to fetch real data.
 
 - **Future Tasks:**
-    - There are no explicit future tasks requested by the user. The main refactoring task listed previously has been completed.
+    - Implement post-scheduling functionality to connected social media accounts.
+    - Implement automated anomaly detection for social media metrics (e.g., alert the user on significant follower drops).
+    - Fetch and display more detailed real-time metrics (e.g., audience demographics, best time to post) from connected platforms.
 
 **Completed work in this session**
-- **Backend Refactoring (DONE):**
-    - Logic from  was extracted into new, dedicated files:
-        -  (for middleware functions)
-        -  (for startup/shutdown events and service initializations)
-        -  (for WebSocket endpoints)
-        -  (for the Stripe webhook)
-    -  was rewritten to be a lean orchestrator, reducing its line count from 429 to 156.
+- **Expanded URL-Based Scraping (DONE):**
+  - Increased the number of supported platforms for URL scraping from 13 to 25.
+  - Added scraping logic for , , , , , , ,  within .
+  - Added support for 4 entirely new platforms (, , , ) by updating  and .
+  - Implemented HTML and JSON-LD fallback patterns for several scrapers to improve reliability against anti-bot measures.
 - **Testing (DONE):**
-    - The refactoring was thoroughly validated. Manual  tests confirmed all key API endpoints were functional. The  was executed and reported a 100% pass rate across 21 backend and 7 frontend tests.
+  - Performed extensive end-to-end testing using  to validate URL detection and data fetching for all new platforms.
+  - Ran , which completed with a **100% pass rate** across 25 backend and 11 frontend tests, confirming the new functionality is stable and the UI is correct.
 - **Documentation (DONE):**
-    -  was updated to reflect the completion of the refactoring work.
+  - Updated  to reflect the completion of the URL scraping expansion and to keep the backlog current.
 
 **Earlier issues found/mentioned but not fixed**
-None.
+- **Issue 1:** User Verification for New Comment Feature.
+  - **Debug checklist:** This task was a P0 priority in the last handoff summary and was ignored again. The next agent MUST prioritize prompting the user for this verification as their first action.
+  - **Why to solve this issue and what will be achieved with this?** To confirm the completion of a core feature from a previous work session and clear critical technical debt.
+  - **Should Test frontend/backend/both after fix:** User verification is sufficient.
+  - **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**
 - **Issue recurrence in previous fork:** PostgreSQL timeout errors.
 - **Recurrence count:** 1
-- **Status:** RESOLVED (This issue did not reoccur in the current session).
+- **Status:** RESOLVED (Did not reoccur in the last two sessions).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend Refactoring:** The core task involved breaking down a monolithic  into a modular structure following the single-responsibility principle. This was achieved by creating dedicated modules for middleware, startup/shutdown logic, and different route types (WebSocket, Webhook).
--   **Application Factory Pattern:** The refactored  now functions as an application factory, responsible only for initializing the FastAPI app, registering middleware, including routers from other modules, and configuring CORS.
+- **Web Scraping:** The core of the recent work. The agent expanded the use of  and  to parse HTML and extract public metrics from 12 new social media sites, including implementing fallbacks for different page structures (e.g., JSON-LD data).
+- **Multi-layered Data Fetching:** The system's data strategy remains: attempt live URL scraping, fall back to (placeholder) API credentials, and finally use simulated data.
 
 **key DB schema**
--   **user_content**: 
--   **notifications**: 
+- No changes were made to the database schema in this session.
+- **live_metrics_cache**: . Caches data from live URL calls.
+- **social_connections**: . Stores connection details.
 
 **changes in tech stack**
-None.
+- No new dependencies were added. The agent worked with the existing  and  packages.
 
 **All files of reference**
--   **Created:**
-    -   : Houses extracted middleware functions.
-    -   : Manages service initializations and application lifecycle events.
-    -   : Contains WebSocket connection logic.
-    -   : Contains the Stripe webhook endpoint.
--   **Updated:**
-    -   : Rewritten to orchestrate the application setup by importing from the newly created modules.
-    -   : Updated to mark the refactoring task as complete.
+- **Heavily Updated Files:**
+    - : All new scraping logic was added here.
+    - : Updated to include the four brand-new platforms.
+- **Updated Files:**
+    - : Minor updates to handle the new platforms.
+    - : Updated to document progress and backlog.
 
 **Areas that need refactoring**:
-The primary refactoring goal for  has been successfully achieved. No further refactoring is immediately required.
+None.
 
 **key api endpoints**
-The API endpoints remain the same, but their implementation has been moved:
--   : Logic is now in .
--   : Logic is now in .
--   All other REST APIs (auth, content, messages, etc.) remain in their respective files under .
+- : Connects a platform using a profile URL (now supports 25 platforms).
+- : Validates a profile URL and extracts the username (now supports 25 platforms).
+- : Fetches aggregate metrics, sourcing from the newly expanded URL scraping service.
+- : Triggers a live refresh of all connected platforms.
 
 **Critical Info for New Agent**
-1.  **Refactoring Complete:** A major backend refactoring of  is finished, tested, and verified. The backend codebase is now significantly more modular.
-2.  **Pending User Verification:** The New Comment feature, which was completed in the *previous* session, is still pending user review. This should be the first item to address with the user before starting any new development tasks.
+1.  **RECURRING MISSED TASK:** Your absolute first priority is to address the P0 task: User Verification of New Comment Feature. This has been ignored for three consecutive sessions. You must prompt the user to test and verify this feature before starting any new work.
+2.  **URL Scraping Limitations:** The newly expanded URL scraping works for most of the 25 platforms. However, some platforms have anti-bot protections that may return a  error from the test environment's IP address. This is a known limitation.
+3.  **Prioritization After Verification:** Once both the New Comment and Expanded URL Scraping features are verified by the user, the next major task is to begin implementing the real API logic for the credential-based connections in .
 
 **documents and test reports created in this job**
--    (updated)
--   
+-  (updated)
+- 
 
 **Last 10 User Messages and any pending HUMAN messages**
--   : The user requested the refactoring of . **(Status: Completed)**
+- : The user's directive for this session. (Status: Completed)
 
 **Project Health Check:**
--   **Running**: Yes
--   **Broken**: No
--   **Mocked**: No
+- **Running**: Yes
+- **Broken**: No
+- **Mocked**: Partially. The API-key based connection methods in  are still placeholders and will return simulated data.
 
 **3rd Party Integrations**
--   **Jira:** Live integration for ticket creation.
--   **Stripe:** Using the native  library.
--   **AWS Services (Live):** S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, CloudWatch, Inspector, Detective, RDS (PostgreSQL), and Route53.
--   **Google Generative AI:** Using a user-provided API key.
+- **BeautifulSoup/Requests:** Used for web scraping.
+- **Jira:** Live integration for ticket creation.
+- **Stripe:** Using the native  library.
+- **AWS Services (Live):** S3, SES, CloudFront, Lambda, Rekognition, GuardDuty, CloudWatch, Inspector, Detective, RDS (PostgreSQL), and Route53.
+- **Google Generative AI:** Using a user-provided API key.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (Used once for the refactoring task, with a 100% pass rate).
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: []
--   **Known regressions**: None.
+- **Testing agent used after significant changes**: YES (Used once with a 100% pass rate).
+- **Troubleshoot agent used after agent stuck in loop**: NO
+- **Test files created**: []
+- **Known regressions**: None.
 
 **Credentials to test flow:**
--   **Owner Account (Primary):**  (password: )
--   **Super Admin (Backup):**  (password: )
+- **Owner Account (Primary):**  (password: )
+- **Super Admin (Backup):**  (password: )
 
 **What agent forgot to execute**
-The agent correctly executed the user's request for refactoring. However, it overlooked the pending user verification for the New Comment feature, which was highlighted in the previous handoff summary as the immediate next step. This verification should be prioritized in the next session.</analysis>
+- **User Verification for New Comment Feature:** A P0 task from the previous two handoff summaries was completely ignored for the third time in a row. This remains the highest priority item and must be addressed immediately.</analysis>

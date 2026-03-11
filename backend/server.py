@@ -80,6 +80,7 @@ from routes.websocket_routes import router as websocket_router
 from routes.webhook_routes import router as webhook_router
 from routes.social_connections_routes import router as social_connections_router
 from moderation_endpoints import router as moderation_router
+from routes.distribution_hub_routes import router as distribution_hub_router
 
 core_routers = [
     licensing_router, agency_router, admin_router, auth_router,
@@ -88,7 +89,7 @@ core_routers = [
     creator_profile_router, watermark_router, subscription_router,
     content_router, messaging_router, analytics_router,
     notification_router, websocket_router, webhook_router,
-    social_connections_router, moderation_router,
+    social_connections_router, moderation_router, distribution_hub_router,
 ]
 
 for r in core_routers:
