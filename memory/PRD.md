@@ -90,6 +90,12 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Root-level Cleanup** - Moved 82 markdown docs to `/app/docs/`, 179 legacy test scripts to `/app/tests/legacy/`, 7 admin scripts to `/app/scripts/`
 - **sys.path Backward Compatibility** - Added `api/`, `services/`, `models/`, `utils/` to Python path in `server.py` so all existing bare imports continue to work
 
+### Phase 13 - API Documentation & Developer Onboarding (2026-03-11)
+- **Auto-Generated Swagger/OpenAPI** - Configured FastAPI with `docs_url=/api/docs`, `redoc_url=/api/redoc`, `openapi_url=/api/openapi.json`
+- **Rich API Metadata** - Added description with capabilities table, auth instructions, rate limiting info, contact, license, and terms of service
+- **98 OpenAPI Tags** - All endpoint groups categorized with descriptions covering 1,281 paths and 1,399 total endpoints
+- **Developer Onboarding Guide** - Comprehensive 600+ line guide at `/app/docs/DEVELOPER_ONBOARDING.md` covering project overview, tech stack, repo structure, backend/frontend architecture, DB schema, conventions, testing, and troubleshooting
+
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
