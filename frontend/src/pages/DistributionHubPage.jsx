@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight, Layers, Mic, Share2, Plus, Trash2, Edit3, Copy } from "lucide-react";
+import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight, Layers, Mic, Share2, Plus, Trash2, Edit3, Copy, Camera, Monitor, Hexagon, Star } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -724,7 +724,7 @@ function PlatformConnectionsTab({ connectedPlatforms, platforms, onConnect, onDi
 // ──────────────────────────────────────────────
 // TEMPLATE ICON HELPER
 // ──────────────────────────────────────────────
-const TEMPLATE_ICON_MAP = { radio: Radio, music: Music, share: Share2, video: Video, film: Film, mic: Mic, layers: Layers };
+const TEMPLATE_ICON_MAP = { radio: Radio, music: Music, share: Share2, video: Video, film: Film, mic: Mic, layers: Layers, camera: Camera, monitor: Monitor, hexagon: Hexagon, star: Star, globe: Globe, shield: Shield };
 function TemplateIcon({ name, className }) {
   const Icon = TEMPLATE_ICON_MAP[name] || Layers;
   return <Icon className={className} />;

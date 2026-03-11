@@ -117,7 +117,121 @@ PLATFORM_CATEGORIES = {
             "stitcher": {"name": "Stitcher", "method": "export_package", "formats": ["audio"], "description": "Podcast listening app"},
             "podbean": {"name": "Podbean", "method": "api_push", "formats": ["audio"], "description": "Podcast hosting platform"},
         }
-    }
+    },
+    "modeling_agencies": {
+        "label": "Modeling Agencies",
+        "platforms": {
+            "img_models": {"name": "IMG Models", "method": "export_package", "formats": ["image", "video"], "description": "Premier international modeling agency"},
+            "elite_model": {"name": "Elite Model Management", "method": "export_package", "formats": ["image", "video"], "description": "Global luxury modeling agency"},
+            "ford_models": {"name": "Ford Models", "method": "export_package", "formats": ["image", "video"], "description": "Historic American modeling agency"},
+            "wilhelmina": {"name": "Wilhelmina Models", "method": "export_package", "formats": ["image", "video"], "description": "International modeling and talent agency"},
+            "next_management": {"name": "Next Management", "method": "export_package", "formats": ["image", "video"], "description": "Global fashion model management"},
+            "women_management": {"name": "Women Management", "method": "export_package", "formats": ["image", "video"], "description": "Premier women's modeling agency"},
+            "society_management": {"name": "The Society Management", "method": "export_package", "formats": ["image", "video"], "description": "High-fashion modeling agency"},
+            "storm_models": {"name": "Storm Models", "method": "export_package", "formats": ["image", "video"], "description": "Leading British modeling agency"},
+            "premier_models": {"name": "Premier Model Management", "method": "export_package", "formats": ["image", "video"], "description": "Leading UK modeling agency"},
+            "select_models": {"name": "Select Model Management", "method": "export_package", "formats": ["image", "video"], "description": "International fashion model agency"},
+            "la_models": {"name": "LA Models", "method": "export_package", "formats": ["image", "video"], "description": "Los Angeles modeling agency"},
+            "dna_models": {"name": "DNA Models", "method": "export_package", "formats": ["image", "video"], "description": "Fashion and commercial modeling agency"},
+        }
+    },
+    "dooh_programmatic": {
+        "label": "Programmatic DOOH",
+        "platforms": {
+            "clear_channel": {"name": "Clear Channel Outdoor", "method": "api_push", "formats": ["image", "video"], "description": "Largest US out-of-home advertising company"},
+            "jcdecaux": {"name": "JCDecaux", "method": "api_push", "formats": ["image", "video"], "description": "World's largest outdoor advertising corporation"},
+            "lamar_advertising": {"name": "Lamar Advertising", "method": "api_push", "formats": ["image", "video"], "description": "Major US billboard and transit advertising"},
+            "outfront_media": {"name": "Outfront Media", "method": "api_push", "formats": ["image", "video"], "description": "US out-of-home media company"},
+            "vistar_media": {"name": "Vistar Media", "method": "api_push", "formats": ["image", "video"], "description": "Programmatic DOOH ad platform"},
+            "broadsign": {"name": "Broadsign", "method": "api_push", "formats": ["image", "video"], "description": "Digital signage and DOOH platform"},
+            "place_exchange": {"name": "Place Exchange", "method": "api_push", "formats": ["image", "video"], "description": "Programmatic out-of-home SSP"},
+            "hivestack": {"name": "Hivestack", "method": "api_push", "formats": ["image", "video"], "description": "Full-stack programmatic DOOH platform"},
+            "adquick": {"name": "AdQuick", "method": "api_push", "formats": ["image", "video"], "description": "Out-of-home advertising marketplace"},
+            "blip_billboards": {"name": "Blip Billboards", "method": "api_push", "formats": ["image", "video"], "description": "Self-serve digital billboard advertising"},
+        }
+    },
+    "web3_blockchain": {
+        "label": "Web3 & Blockchain",
+        "platforms": {
+            "ethereum_nft": {"name": "Ethereum NFT", "method": "export_package", "formats": ["audio", "video", "image"], "description": "Ethereum blockchain NFT minting"},
+            "polygon_nft": {"name": "Polygon NFT", "method": "export_package", "formats": ["audio", "video", "image"], "description": "Low-cost Polygon network NFTs"},
+            "solana_nft": {"name": "Solana NFT", "method": "export_package", "formats": ["audio", "video", "image"], "description": "High-speed Solana blockchain NFTs"},
+            "audius": {"name": "Audius", "method": "api_push", "formats": ["audio"], "description": "Decentralized music streaming"},
+            "sound_xyz": {"name": "Sound.xyz", "method": "export_package", "formats": ["audio"], "description": "Web3 music with fan funding"},
+            "royal": {"name": "Royal", "method": "export_package", "formats": ["audio"], "description": "Music NFT ownership and royalties"},
+            "opensea": {"name": "OpenSea", "method": "api_push", "formats": ["audio", "video", "image"], "description": "Leading NFT marketplace"},
+            "catalog": {"name": "Catalog", "method": "export_package", "formats": ["audio"], "description": "NFT music marketplace"},
+        }
+    },
+    "rights_licensing": {
+        "label": "Rights & Licensing Organizations",
+        "platforms": {
+            "ascap": {"name": "ASCAP", "method": "export_package", "formats": ["audio"], "description": "American Society of Composers, Authors and Publishers"},
+            "bmi": {"name": "BMI", "method": "export_package", "formats": ["audio"], "description": "Broadcast Music, Inc."},
+            "sesac": {"name": "SESAC", "method": "export_package", "formats": ["audio"], "description": "Performance rights organization"},
+            "soundexchange": {"name": "SoundExchange", "method": "export_package", "formats": ["audio"], "description": "Digital performance rights organization"},
+            "harry_fox": {"name": "Harry Fox Agency", "method": "export_package", "formats": ["audio"], "description": "Mechanical licensing agency"},
+            "mlc": {"name": "Mechanical Licensing Collective", "method": "export_package", "formats": ["audio"], "description": "Mechanical licensing and royalty collection"},
+            "mde": {"name": "Music Data Exchange", "method": "export_package", "formats": ["audio"], "description": "Music metadata and rights information exchange"},
+        }
+    },
+    "international_streaming": {
+        "label": "International Streaming",
+        "platforms": {
+            "joox": {"name": "JOOX", "method": "export_package", "formats": ["audio"], "description": "Asian music streaming platform"},
+            "gaana": {"name": "Gaana", "method": "export_package", "formats": ["audio"], "description": "Indian music streaming service"},
+            "yandex_music": {"name": "Yandex Music", "method": "export_package", "formats": ["audio"], "description": "Russian music streaming service"},
+            "qq_music": {"name": "QQ Music", "method": "export_package", "formats": ["audio"], "description": "Chinese music streaming platform"},
+            "netease_music": {"name": "NetEase Cloud Music", "method": "export_package", "formats": ["audio"], "description": "Chinese music streaming service"},
+            "youtube_music": {"name": "YouTube Music", "method": "api_push", "formats": ["audio", "video"], "description": "YouTube's music streaming service"},
+            "mixcloud": {"name": "Mixcloud", "method": "api_push", "formats": ["audio"], "description": "DJ mixes and radio shows"},
+            "reverbnation": {"name": "ReverbNation", "method": "api_push", "formats": ["audio"], "description": "Music promotion and distribution"},
+        }
+    },
+    "live_streaming": {
+        "label": "Live Streaming & Audio Social",
+        "platforms": {
+            "kick": {"name": "Kick", "method": "api_push", "formats": ["video", "audio"], "description": "Creator-focused live streaming"},
+            "clubhouse": {"name": "Clubhouse", "method": "api_push", "formats": ["audio"], "description": "Audio-based social networking"},
+            "twitter_spaces": {"name": "Twitter Spaces", "method": "api_push", "formats": ["audio"], "description": "Twitter's live audio feature"},
+            "spotify_live": {"name": "Spotify Live", "method": "api_push", "formats": ["audio"], "description": "Spotify's live audio platform"},
+        }
+    },
+    "entertainment_media": {
+        "label": "Entertainment & Hip-Hop Media",
+        "platforms": {
+            "worldstarhiphop": {"name": "WorldStarHipHop", "method": "api_push", "formats": ["audio", "video"], "description": "Leading hip-hop content platform"},
+            "revolt_tv": {"name": "Revolt TV", "method": "api_push", "formats": ["audio", "video"], "description": "Music and culture streaming"},
+            "theshaderoom": {"name": "The Shade Room", "method": "api_push", "formats": ["image", "video"], "description": "Entertainment and celebrity news"},
+            "hollywoodunlocked": {"name": "Hollywood Unlocked", "method": "api_push", "formats": ["image", "video"], "description": "Celebrity news and entertainment"},
+            "datpiff": {"name": "DatPiff", "method": "api_push", "formats": ["audio"], "description": "Mixtape hosting platform"},
+            "spinrilla": {"name": "Spinrilla", "method": "api_push", "formats": ["audio"], "description": "Hip-hop mixtape platform"},
+            "livemixtapes": {"name": "LiveMixtapes", "method": "api_push", "formats": ["audio"], "description": "Hip-hop mixtape streaming"},
+            "mymixtapez": {"name": "MyMixtapez", "method": "api_push", "formats": ["audio"], "description": "Independent artist mixtape platform"},
+        }
+    },
+    "creator_platforms": {
+        "label": "Creator & Content Platforms",
+        "platforms": {
+            "onlyfans": {"name": "OnlyFans", "method": "api_push", "formats": ["image", "video", "audio"], "description": "Content subscription platform"},
+            "fansly": {"name": "Fansly", "method": "api_push", "formats": ["image", "video", "audio"], "description": "Creator subscription platform"},
+            "models_com": {"name": "Models.com", "method": "export_package", "formats": ["image", "video"], "description": "Global fashion industry platform"},
+            "medium_pub": {"name": "Medium", "method": "api_push", "formats": ["image"], "description": "Online publishing platform"},
+        }
+    },
+    "alternative_social": {
+        "label": "Alternative Social & Video",
+        "platforms": {
+            "odysee": {"name": "Odysee", "method": "api_push", "formats": ["video"], "description": "Decentralized video platform"},
+            "bitchute": {"name": "BitChute", "method": "api_push", "formats": ["video"], "description": "Alternative video platform"},
+            "brighteon": {"name": "Brighteon", "method": "api_push", "formats": ["video"], "description": "Free speech video platform"},
+            "gettr": {"name": "GETTR", "method": "api_push", "formats": ["video", "image"], "description": "Social networking platform"},
+            "gab": {"name": "Gab", "method": "api_push", "formats": ["video", "image"], "description": "Free speech social network"},
+            "parler": {"name": "Parler", "method": "api_push", "formats": ["video", "image"], "description": "Alternative social media"},
+            "truth_social": {"name": "Truth Social", "method": "api_push", "formats": ["video", "image"], "description": "Social media platform"},
+            "whatsapp_business": {"name": "WhatsApp Business", "method": "api_push", "formats": ["audio", "video", "image"], "description": "Business messaging platform"},
+        }
+    },
 }
 
 
@@ -520,6 +634,54 @@ class DistributionHubService:
             "icon": "mic",
             "is_system": True,
             "platform_ids": ["apple_podcasts", "spotify_podcasts", "google_podcasts", "stitcher", "podbean"],
+        },
+        {
+            "id": "tpl_all_modeling",
+            "name": "All Modeling Agencies",
+            "description": "Push to all 12 modeling agencies (IMG, Elite, Ford, Wilhelmina, etc.)",
+            "icon": "camera",
+            "is_system": True,
+            "platform_ids": ["img_models", "elite_model", "ford_models", "wilhelmina", "next_management", "women_management", "society_management", "storm_models", "premier_models", "select_models", "la_models", "dna_models"],
+        },
+        {
+            "id": "tpl_dooh_blast",
+            "name": "DOOH Billboard Blast",
+            "description": "All 10 programmatic digital out-of-home platforms (Clear Channel, JCDecaux, Lamar, etc.)",
+            "icon": "monitor",
+            "is_system": True,
+            "platform_ids": ["clear_channel", "jcdecaux", "lamar_advertising", "outfront_media", "vistar_media", "broadsign", "place_exchange", "hivestack", "adquick", "blip_billboards"],
+        },
+        {
+            "id": "tpl_web3_distribution",
+            "name": "Web3 Distribution",
+            "description": "All Web3 and blockchain platforms (Ethereum, Polygon, Solana, Audius, OpenSea, etc.)",
+            "icon": "hexagon",
+            "is_system": True,
+            "platform_ids": ["ethereum_nft", "polygon_nft", "solana_nft", "audius", "sound_xyz", "royal", "opensea", "catalog"],
+        },
+        {
+            "id": "tpl_entertainment_media",
+            "name": "Entertainment Media Push",
+            "description": "All entertainment and hip-hop media platforms (WorldStar, Revolt, Shade Room, DatPiff, etc.)",
+            "icon": "star",
+            "is_system": True,
+            "platform_ids": ["worldstarhiphop", "revolt_tv", "theshaderoom", "hollywoodunlocked", "datpiff", "spinrilla", "livemixtapes", "mymixtapez"],
+        },
+        {
+            "id": "tpl_global_streaming",
+            "name": "Global Streaming",
+            "description": "International streaming platforms (JOOX, Gaana, Yandex, QQ Music, YouTube Music, etc.)",
+            "icon": "globe",
+            "is_system": True,
+            "platform_ids": ["joox", "gaana", "yandex_music", "qq_music", "netease_music", "youtube_music", "mixcloud", "reverbnation"],
+        },
+        {
+            "id": "tpl_rights_licensing",
+            "name": "Rights & Licensing",
+            "description": "Register with all rights organizations (ASCAP, BMI, SESAC, SoundExchange, etc.)",
+            "icon": "shield",
+            "is_system": True,
+            "platform_ids": ["ascap", "bmi", "sesac", "soundexchange", "harry_fox", "mlc", "mde"],
         },
     ]
 
