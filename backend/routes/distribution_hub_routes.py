@@ -7,7 +7,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, BackgroundTasks
 from pydantic import BaseModel
 
 from auth.service import get_current_user
@@ -17,6 +17,12 @@ from services.distribution_hub_service import (
     PLATFORM_CATEGORIES,
     ALL_HUB_PLATFORMS,
 )
+from services.delivery_engine import (
+    process_delivery_batch,
+    retry_failed_delivery,
+    get_batch_progress,
+)
+from services.platform_adapters import get_supported_platform_ids
 
 router = APIRouter(prefix="/distribution-hub", tags=["Distribution Hub"])
 
@@ -201,6 +207,7 @@ async def serve_hub_file(filename: str):
 @router.post("/distribute")
 async def distribute_content(
     req: DistributeRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ):
     """Distribute content to selected platforms. Auto-push or export package depending on platform."""
@@ -208,12 +215,17 @@ async def distribute_content(
         result = await distribution_hub_svc.create_delivery(
             current_user.id, req.content_id, req.platform_ids, req.metadata_overrides
         )
+        # Kick off real delivery processing as a background task
+        background_tasks.add_task(
+            process_delivery_batch, result["batch_id"], current_user.id
+        )
         return {
             "message": f"Distribution initiated to {result['total_deliveries']} platforms",
             "batch_id": result["batch_id"],
             "api_push_count": result["api_push"],
             "export_package_count": result["export_packages"],
             "deliveries": result["deliveries"],
+            "live_adapters": get_supported_platform_ids(),
         }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -237,16 +249,20 @@ async def get_delivery_batch(batch_id: str, current_user: User = Depends(get_cur
     return {"batch_id": batch_id, "deliveries": items, "total": len(items)}
 
 
+class DeliveryStatusUpdateRequest(BaseModel):
+    status: str
+    response_data: dict = {}
+
+
 @router.put("/deliveries/{delivery_id}/status")
 async def update_delivery_status(
     delivery_id: str,
-    status: str,
-    response_data: dict = {},
+    req: DeliveryStatusUpdateRequest,
     current_user: User = Depends(get_current_user)
 ):
     """Update a delivery's status (e.g., mark as delivered after manual upload)."""
     updated = await distribution_hub_svc.update_delivery_status(
-        delivery_id, current_user.id, status, response_data
+        delivery_id, current_user.id, req.status, req.response_data
     )
     if not updated:
         raise HTTPException(status_code=404, detail="Delivery not found")
@@ -293,6 +309,40 @@ async def disconnect_platform(platform_id: str, current_user: User = Depends(get
     if not disconnected:
         raise HTTPException(status_code=404, detail="Platform connection not found")
     return {"message": "Platform disconnected"}
+
+
+# ─── Delivery Engine Endpoints ───
+
+@router.get("/deliveries/batch/{batch_id}/progress")
+async def get_delivery_batch_progress(batch_id: str, current_user: User = Depends(get_current_user)):
+    """Get real-time progress for a delivery batch."""
+    progress = await get_batch_progress(batch_id, current_user.id)
+    return progress
+
+
+@router.post("/deliveries/{delivery_id}/retry")
+async def retry_delivery(
+    delivery_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user)
+):
+    """Retry a single failed delivery."""
+    async def _retry():
+        await retry_failed_delivery(delivery_id, current_user.id)
+
+    background_tasks.add_task(_retry)
+    return {"message": "Retry initiated", "delivery_id": delivery_id}
+
+
+@router.get("/adapters")
+async def get_live_adapters():
+    """Get list of platform IDs that have real delivery adapters."""
+    adapter_ids = get_supported_platform_ids()
+    return {
+        "adapters": adapter_ids,
+        "total": len(adapter_ids),
+        "message": "These platforms support real API push delivery when credentials are connected.",
+    }
 
 
 # ─── Distribution Templates ───

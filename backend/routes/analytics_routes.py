@@ -1,10 +1,27 @@
 """
-Creator Analytics Dashboard - Insights on content, audience, and revenue
+Creator Analytics Dashboard - Insights on content, audience, revenue,
+anomaly detection, demographics, and best-time-to-post.
 """
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
 from datetime import datetime, timezone, timedelta
 from config.database import db
 from auth.service import get_current_user
+from services.anomaly_detection_service import (
+    run_anomaly_detection,
+    get_anomaly_alerts,
+    dismiss_anomaly,
+)
+from services.audience_analytics_service import (
+    get_audience_demographics,
+    get_best_times_to_post,
+    get_geographic_distribution,
+)
+from services.revenue_tracking_service import (
+    get_revenue_overview,
+    get_platform_revenue_detail,
+    record_revenue,
+)
 
 router = APIRouter(prefix="/analytics", tags=["Creator Analytics"])
 
@@ -168,3 +185,92 @@ async def track_event(
         )
 
     return {"message": "Event tracked"}
+
+
+# ─── Anomaly Detection Endpoints ───
+
+@router.get("/anomalies")
+async def get_anomalies(include_dismissed: bool = False, current_user=Depends(get_current_user)):
+    """Get anomaly alerts for the current user."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    alerts = await get_anomaly_alerts(user_id, include_dismissed)
+    return {"alerts": alerts, "total": len(alerts)}
+
+
+@router.post("/anomalies/scan")
+async def scan_anomalies(current_user=Depends(get_current_user)):
+    """Run anomaly detection scan across all platforms."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    anomalies = await run_anomaly_detection(user_id)
+    return {"detected": len(anomalies), "anomalies": anomalies}
+
+
+class DismissAnomalyRequest(BaseModel):
+    platform_id: str
+    metric: str
+
+
+@router.post("/anomalies/dismiss")
+async def dismiss_anomaly_alert(req: DismissAnomalyRequest, current_user=Depends(get_current_user)):
+    """Dismiss an anomaly alert."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    dismissed = await dismiss_anomaly(user_id, req.platform_id, req.metric)
+    if not dismissed:
+        raise HTTPException(status_code=404, detail="Anomaly alert not found")
+    return {"message": "Alert dismissed"}
+
+
+# ─── Audience Demographics & Best Time Endpoints ───
+
+@router.get("/demographics")
+async def get_demographics(current_user=Depends(get_current_user)):
+    """Get audience demographics breakdown."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    return await get_audience_demographics(user_id)
+
+
+@router.get("/best-times")
+async def get_best_posting_times(current_user=Depends(get_current_user)):
+    """Get best times to post based on engagement analysis."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    return await get_best_times_to_post(user_id)
+
+
+@router.get("/geo")
+async def get_geo_distribution(current_user=Depends(get_current_user)):
+    """Get audience geographic distribution."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    return await get_geographic_distribution(user_id)
+
+
+# ─── Enhanced Revenue Endpoints ───
+
+@router.get("/revenue/overview")
+async def get_revenue_dashboard(current_user=Depends(get_current_user)):
+    """Get comprehensive revenue overview with platform and source breakdowns."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    return await get_revenue_overview(user_id)
+
+
+@router.get("/revenue/platform/{platform_id}")
+async def get_platform_revenue(platform_id: str, current_user=Depends(get_current_user)):
+    """Get detailed revenue for a specific platform."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    return await get_platform_revenue_detail(user_id, platform_id)
+
+
+class RecordRevenueRequest(BaseModel):
+    platform_id: str
+    platform_name: str = ""
+    content_id: str = ""
+    content_title: str = ""
+    source: str = "streaming"
+    amount: float
+    description: str = ""
+
+
+@router.post("/revenue/record")
+async def record_new_revenue(req: RecordRevenueRequest, current_user=Depends(get_current_user)):
+    """Record a new revenue entry."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    return await record_revenue(user_id, req.dict())

@@ -319,6 +319,11 @@ function DistributeTab({ content, platforms, onDistribute, distributing, templat
   const [expandedCategories, setExpandedCategories] = useState({});
   const [search, setSearch] = useState("");
   const [appliedTemplate, setAppliedTemplate] = useState(null);
+  const [liveAdapters, setLiveAdapters] = useState([]);
+
+  useEffect(() => {
+    apiFetch("/adapters").then((d) => setLiveAdapters(d.adapters || [])).catch(() => {});
+  }, []);
 
   const toggleCategory = (catId) => setExpandedCategories((prev) => ({ ...prev, [catId]: !prev[catId] }));
   const togglePlatform = (pid) => { setSelectedPlatforms((prev) => prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]); setAppliedTemplate(null); };
@@ -452,6 +457,9 @@ function DistributeTab({ content, platforms, onDistribute, distributing, templat
                               <span className={`text-[10px] px-1.5 py-0.5 rounded ${p.method === "api_push" ? "bg-green-500/10 text-green-400" : "bg-cyan-500/10 text-cyan-400"}`}>
                                 {p.method === "api_push" ? "Auto-Push" : "Export"}
                               </span>
+                              {liveAdapters.includes(p.id) && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-semibold">LIVE API</span>
+                              )}
                             </div>
                           </button>
                         );
@@ -484,15 +492,57 @@ function DistributeTab({ content, platforms, onDistribute, distributing, templat
 // ──────────────────────────────────────────────
 // DELIVERY TRACKING TAB
 // ──────────────────────────────────────────────
-function DeliveryTracking({ deliveries, loading, onRefresh, onMarkDelivered, onExport }) {
+function DeliveryTracking({ deliveries, loading, onRefresh, onMarkDelivered, onExport, onRetry, activeBatchId }) {
   const [statusFilter, setStatusFilter] = useState("all");
+  const [batchProgress, setBatchProgress] = useState(null);
   const filtered = statusFilter === "all" ? deliveries : deliveries.filter((d) => d.status === statusFilter);
+
+  // Auto-poll batch progress if there's an active batch
+  useEffect(() => {
+    if (!activeBatchId) { setBatchProgress(null); return; }
+    let active = true;
+    const poll = async () => {
+      try {
+        const data = await apiFetch(`/deliveries/batch/${activeBatchId}/progress`);
+        if (active) {
+          setBatchProgress(data);
+          if (!data.is_complete) setTimeout(poll, 3000);
+          else { onRefresh(); setBatchProgress(null); }
+        }
+      } catch { if (active) setTimeout(poll, 5000); }
+    };
+    poll();
+    return () => { active = false; };
+  }, [activeBatchId, onRefresh]);
 
   return (
     <div data-testid="delivery-tracking">
+      {/* Batch Progress Bar */}
+      {batchProgress && !batchProgress.is_complete && (
+        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-4 mb-6" data-testid="batch-progress">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
+              <span className="text-white font-medium text-sm">Delivering to {batchProgress.total} platforms...</span>
+            </div>
+            <span className="text-indigo-300 font-bold">{batchProgress.progress_pct}%</span>
+          </div>
+          <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden mb-2">
+            <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${batchProgress.progress_pct}%` }} />
+          </div>
+          <div className="flex gap-4 text-xs">
+            <span className="text-emerald-400">{batchProgress.delivered} delivered</span>
+            <span className="text-indigo-400">{batchProgress.delivering} in progress</span>
+            <span className="text-cyan-400">{batchProgress.export_ready} export ready</span>
+            <span className="text-yellow-400">{batchProgress.queued} queued</span>
+            {batchProgress.failed > 0 && <span className="text-red-400">{batchProgress.failed} failed</span>}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex gap-2 flex-wrap">
-          {["all", "queued", "delivering", "delivered", "export_ready", "failed"].map((s) => (
+          {["all", "queued", "preparing", "delivering", "delivered", "export_ready", "failed"].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)} data-testid={`delivery-filter-${s}`}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${statusFilter === s ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400 hover:text-white"}`}>
               {s.replace("_", " ")}
@@ -517,18 +567,35 @@ function DeliveryTracking({ deliveries, loading, onRefresh, onMarkDelivered, onE
                     <ArrowRight className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                     <span className="text-gray-300 text-sm">{d.platform_name}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{d.platform_category} | Batch: {d.batch_id?.slice(0, 8)}...</p>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-xs text-gray-500">{d.platform_category} | Batch: {d.batch_id?.slice(0, 8)}...</span>
+                    {d.platform_response?.message && (
+                      <span className="text-xs text-gray-500 italic">- {d.platform_response.message.slice(0, 60)}</span>
+                    )}
+                  </div>
+                  {d.error_message && (
+                    <p className="text-xs text-red-400 mt-1">{d.error_message}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[d.status] || STATUS_STYLES.draft}`}>
+                    {d.status === "delivering" && <Loader2 className="w-3 h-3 inline mr-1 animate-spin" />}
                     {d.status?.replace("_", " ")}
                   </span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded ${d.delivery_method === "api_push" ? "bg-green-500/10 text-green-400" : "bg-cyan-500/10 text-cyan-400"}`}>
                     {d.delivery_method === "api_push" ? "Auto" : "Export"}
                   </span>
+                  {d.platform_response?.platform_content_id && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">LIVE</span>
+                  )}
                   {d.status === "export_ready" && (
                     <button onClick={() => onExport(d.id)} className="px-2 py-1 bg-cyan-600/20 text-cyan-400 rounded text-xs hover:bg-cyan-600/30" data-testid={`export-${d.id}`}>
                       <Download className="w-3 h-3 inline mr-1" />Export
+                    </button>
+                  )}
+                  {d.status === "failed" && onRetry && (
+                    <button onClick={() => onRetry(d.id)} className="px-2 py-1 bg-amber-600/20 text-amber-400 rounded text-xs hover:bg-amber-600/30" data-testid={`retry-${d.id}`}>
+                      <RefreshCw className="w-3 h-3 inline mr-1" />Retry
                     </button>
                   )}
                   {(d.status === "queued" || d.status === "export_ready") && (
@@ -962,6 +1029,7 @@ export default function DistributionHubPage() {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState({ stats: true, content: true, deliveries: true, platforms: true, connections: true, templates: true });
   const [distributing, setDistributing] = useState(false);
+  const [activeBatchId, setActiveBatchId] = useState(null);
 
   const load = useCallback(async (key, path, setter) => {
     setLoading((prev) => ({ ...prev, [key]: true }));
@@ -1012,7 +1080,9 @@ export default function DistributionHubPage() {
         method: "POST",
         body: JSON.stringify({ content_id: contentId, platform_ids: platformIds }),
       });
-      alert(`Distribution initiated!\n\nBatch: ${result.batch_id?.slice(0, 8)}...\nAPI Push: ${result.api_push_count} platforms\nExport Packages: ${result.export_package_count} platforms\nTotal: ${result.deliveries?.length || 0} deliveries`);
+      const batchId = result.batch_id;
+      setActiveBatchId(batchId);
+      alert(`Distribution initiated!\n\nBatch: ${batchId?.slice(0, 8)}...\nAPI Push: ${result.api_push_count} platforms\nExport Packages: ${result.export_package_count} platforms\nTotal: ${result.deliveries?.length || 0} deliveries\n\nDelivery engine is processing in the background.`);
       refreshAll();
       setActiveTab("tracking");
     } catch (err) {
@@ -1043,6 +1113,15 @@ export default function DistributionHubPage() {
       load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []));
     } catch (err) {
       alert(`Export failed: ${err.message}`);
+    }
+  };
+
+  const handleRetryDelivery = async (deliveryId) => {
+    try {
+      await apiFetch(`/deliveries/${deliveryId}/retry`, { method: "POST" });
+      setTimeout(() => load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || [])), 2000);
+    } catch (err) {
+      alert(`Retry failed: ${err.message}`);
     }
   };
 
@@ -1150,7 +1229,7 @@ export default function DistributionHubPage() {
         {activeTab === "content" && <ContentLibrary content={content} loading={loading.content} onRefresh={() => load("content", "/content", (d) => setContent(d.content || []))} onAddContent={handleAddContent} />}
         {activeTab === "distribute" && <DistributeTab content={content} platforms={platforms} onDistribute={handleDistribute} distributing={distributing} templates={templates} />}
         {activeTab === "templates" && <TemplatesTab templates={templates} loading={loading.templates} platforms={platforms} onCreateTemplate={handleCreateTemplate} onUpdateTemplate={handleUpdateTemplate} onDeleteTemplate={handleDeleteTemplate} onRefresh={() => load("templates", "/templates", (d) => setTemplates(d.templates || []))} />}
-        {activeTab === "tracking" && <DeliveryTracking deliveries={deliveries} loading={loading.deliveries} onRefresh={() => load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []))} onMarkDelivered={handleMarkDelivered} onExport={handleExport} />}
+        {activeTab === "tracking" && <DeliveryTracking deliveries={deliveries} loading={loading.deliveries} onRefresh={() => load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []))} onMarkDelivered={handleMarkDelivered} onExport={handleExport} onRetry={handleRetryDelivery} activeBatchId={activeBatchId} />}
         {activeTab === "rights" && <RightsMetadataTab content={content} onUpdateMetadata={handleUpdateMetadata} />}
         {activeTab === "connections" && <PlatformConnectionsTab connectedPlatforms={connectedPlatforms} platforms={platforms} onConnect={handleConnectPlatform} onDisconnect={handleDisconnectPlatform} />}
       </div>
