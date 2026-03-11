@@ -130,7 +130,6 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 ## Backlog
 - **P0**: Implement actual API push logic for platforms with APIs (YouTube, SoundCloud, Vimeo, TikTok, etc.)
 - **P1**: Post-scheduling functionality to connected social media accounts
-- **P1**: Bulk distribution templates (pre-configured platform sets for different content types)
 - **P2**: Automated anomaly detection for social media metrics
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: User Verification pending for "New Comment" notification feature
