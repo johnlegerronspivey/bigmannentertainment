@@ -1,6 +1,7 @@
 """
 Platform Adapters — Real API delivery logic for each platform.
 Each adapter: authenticate, upload/post content, return result dict.
+Content is served via the app's own URL (APP_BASE_URL).
 """
 
 import os
@@ -14,6 +15,11 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 
 TIMEOUT = httpx.Timeout(60.0, connect=15.0)
+
+
+def get_app_base_url() -> str:
+    """Get the public base URL for the app used in content delivery."""
+    return os.environ.get("APP_BASE_URL", os.environ.get("FRONTEND_URL", "")).rstrip("/")
 
 
 class DeliveryResult:
@@ -46,6 +52,19 @@ class BasePlatformAdapter:
     def validate_credentials(self, credentials: dict) -> bool:
         return all(credentials.get(k) for k in self.required_credentials)
 
+    def get_public_file_url(self, content: dict) -> str:
+        """Resolve the public URL for content files using the app's base URL."""
+        url = content.get("public_file_url", "")
+        if url:
+            return url
+        file_url = content.get("file_url", "")
+        if not file_url:
+            return ""
+        if file_url.startswith("http"):
+            return file_url
+        base = get_app_base_url()
+        return f"{base}{file_url}" if base else file_url
+
     async def deliver(self, content: dict, credentials: dict, file_path: str = None) -> DeliveryResult:
         raise NotImplementedError
 
@@ -66,6 +85,7 @@ class YouTubeAdapter(BasePlatformAdapter):
         title = content.get("title", "Untitled")
         description = content.get("description", "")
         tags = content.get("metadata", {}).get("basic", {}).get("tags", [])
+        public_url = self.get_public_file_url(content)
 
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as client:
@@ -73,7 +93,7 @@ class YouTubeAdapter(BasePlatformAdapter):
                 metadata = {
                     "snippet": {
                         "title": title[:100],
-                        "description": description[:5000],
+                        "description": f"{description[:4900]}\n\nSource: {public_url}" if public_url else description[:5000],
                         "tags": tags[:500] if tags else [],
                         "categoryId": "22",
                     },
@@ -113,15 +133,15 @@ class YouTubeAdapter(BasePlatformAdapter):
                             True,
                             platform_content_id=data.get("id", ""),
                             message=f"Uploaded to YouTube as {data.get('id')}",
-                            response_data={"video_id": data.get("id"), "status": data.get("status", {})},
+                            response_data={"video_id": data.get("id"), "status": data.get("status", {}), "source_url": public_url},
                         )
                     return DeliveryResult(False, message=f"YouTube upload failed: {upload_resp.status_code}")
 
-                # No file - create metadata-only placeholder
+                # No file - create metadata-only placeholder with source link
                 return DeliveryResult(
                     True,
-                    message="YouTube upload session initiated (no file attached)",
-                    response_data={"upload_url": upload_url, "status": "session_created"},
+                    message=f"YouTube upload session initiated (content at: {public_url})" if public_url else "YouTube upload session initiated (no file attached)",
+                    response_data={"upload_url": upload_url, "status": "session_created", "source_url": public_url},
                 )
 
         except Exception as e:
@@ -144,7 +164,14 @@ class TwitterAdapter(BasePlatformAdapter):
 
         title = content.get("title", "")
         description = content.get("description", "")
-        text = f"{title}\n\n{description}"[:280]
+        public_url = self.get_public_file_url(content)
+        # Include the app URL in the tweet so content is linked back
+        text_parts = [title]
+        if description:
+            text_parts.append(description)
+        if public_url:
+            text_parts.append(public_url)
+        text = "\n\n".join(text_parts)[:280]
 
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as client:
@@ -183,7 +210,7 @@ class TwitterAdapter(BasePlatformAdapter):
                         True,
                         platform_content_id=tweet_id,
                         message=f"Posted to Twitter/X: {tweet_id}",
-                        response_data=data,
+                        response_data={**data, "source_url": public_url},
                     )
                 return DeliveryResult(False, message=f"Twitter post failed: {resp.status_code} {resp.text[:200]}")
 
@@ -403,7 +430,13 @@ class BlueskyAdapter(BasePlatformAdapter):
         app_password = credentials["app_password"]
         title = content.get("title", "")
         description = content.get("description", "")
-        text = f"{title}\n\n{description}"[:300]
+        public_url = self.get_public_file_url(content)
+        text_parts = [title]
+        if description:
+            text_parts.append(description)
+        if public_url:
+            text_parts.append(public_url)
+        text = "\n\n".join(text_parts)[:300]
 
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as client:
@@ -496,6 +529,7 @@ class DiscordAdapter(BasePlatformAdapter):
         description = content.get("description", "")
         artist = content.get("metadata", {}).get("basic", {}).get("artist", "")
         content_type = content.get("content_type", "")
+        public_url = self.get_public_file_url(content)
 
         embed = {
             "title": title,
@@ -509,6 +543,9 @@ class DiscordAdapter(BasePlatformAdapter):
             embed["fields"].append({"name": "Artist", "value": artist, "inline": True})
         if content_type:
             embed["fields"].append({"name": "Type", "value": content_type.capitalize(), "inline": True})
+        if public_url:
+            embed["url"] = public_url
+            embed["fields"].append({"name": "Content Link", "value": f"[View/Download]({public_url})", "inline": False})
 
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as client:
@@ -554,7 +591,11 @@ class TelegramAdapter(BasePlatformAdapter):
         title = content.get("title", "New Content")
         description = content.get("description", "")
         content_type = content.get("content_type", "")
-        caption = f"*{title}*\n\n{description}"[:1024]
+        public_url = self.get_public_file_url(content)
+        caption = f"*{title}*\n\n{description}"
+        if public_url:
+            caption += f"\n\n[Content Link]({public_url})"
+        caption = caption[:1024]
 
         base_url = f"https://api.telegram.org/bot{bot_token}"
 
@@ -627,11 +668,8 @@ class InstagramAdapter(BasePlatformAdapter):
 
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-                # Instagram requires a publicly accessible URL for media
-                file_url = content.get("file_url", "")
-                source_url = os.environ.get("FRONTEND_URL", "https://bigmannentertainment.com")
-                if file_url and not file_url.startswith("http"):
-                    file_url = f"{source_url}{file_url}"
+                # Use the app's own public URL for media
+                file_url = self.get_public_file_url(content)
 
                 if not file_url:
                     return DeliveryResult(False, message="Instagram requires a public media URL")
@@ -666,7 +704,7 @@ class InstagramAdapter(BasePlatformAdapter):
                         True,
                         platform_content_id=media_id,
                         message=f"Published to Instagram: {media_id}",
-                        response_data={"media_id": media_id},
+                        response_data={"media_id": media_id, "source_url": file_url},
                     )
                 return DeliveryResult(False, message=f"Instagram publish failed: {pub_resp.status_code}")
 
@@ -689,7 +727,10 @@ class FacebookAdapter(BasePlatformAdapter):
 
         access_token = credentials["access_token"]
         page_id = credentials["page_id"]
+        public_url = self.get_public_file_url(content)
         message_text = f"{content.get('title', '')}\n\n{content.get('description', '')}"
+        if public_url:
+            message_text += f"\n\n{public_url}"
 
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as client:
@@ -708,6 +749,12 @@ class FacebookAdapter(BasePlatformAdapter):
                                 data={"message": message_text, "access_token": access_token},
                                 files={"source": (os.path.basename(file_path), f)},
                             )
+                elif public_url:
+                    # Use the app's public URL to let Facebook fetch the content
+                    resp = await client.post(
+                        f"https://graph.facebook.com/v19.0/{page_id}/feed",
+                        data={"message": message_text, "link": public_url, "access_token": access_token},
+                    )
                 else:
                     resp = await client.post(
                         f"https://graph.facebook.com/v19.0/{page_id}/feed",
@@ -721,7 +768,7 @@ class FacebookAdapter(BasePlatformAdapter):
                         True,
                         platform_content_id=post_id,
                         message=f"Published to Facebook: {post_id}",
-                        response_data=data,
+                        response_data={**data, "source_url": public_url},
                     )
                 return DeliveryResult(False, message=f"Facebook post failed: {resp.status_code} {resp.text[:200]}")
 

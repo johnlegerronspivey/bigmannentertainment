@@ -384,7 +384,7 @@ class DistributionHubService:
                 "status": status,
                 "metadata": {**content.get("metadata", {}), **(metadata_overrides or {})},
                 "rights": content.get("rights", {}),
-                "source_url": os.environ.get("FRONTEND_URL", "https://bigmannentertainment.com"),
+                "source_url": os.environ.get("APP_BASE_URL", os.environ.get("FRONTEND_URL", "https://bigmannentertainment.com")),
                 "tracking_url": f"/api/distribution-hub/deliveries/{delivery_batch_id}",
                 "platform_response": {},
                 "error_message": None,
@@ -481,7 +481,7 @@ class DistributionHubService:
             "platform_id": delivery["platform_id"],
             "content_title": content["title"],
             "content_type": content["content_type"],
-            "source_of_truth": os.environ.get("FRONTEND_URL", "https://bigmannentertainment.com"),
+            "source_of_truth": os.environ.get("APP_BASE_URL", os.environ.get("FRONTEND_URL", "https://bigmannentertainment.com")),
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "files": {
                 "media_file": content.get("file_url", ""),

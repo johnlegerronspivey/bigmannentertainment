@@ -29,6 +29,21 @@ async def _get_user_credentials(user_id: str, platform_id: str) -> Optional[dict
     return None
 
 
+def _get_app_base_url() -> str:
+    """Get the public base URL for the app."""
+    return os.environ.get("APP_BASE_URL", os.environ.get("FRONTEND_URL", "")).rstrip("/")
+
+
+def _resolve_public_url(file_url: str) -> str:
+    """Construct the full public URL for a content file."""
+    if not file_url:
+        return ""
+    if file_url.startswith("http"):
+        return file_url
+    base_url = _get_app_base_url()
+    return f"{base_url}{file_url}" if base_url else file_url
+
+
 async def _resolve_file_path(content: dict) -> Optional[str]:
     """Resolve the local file path from a content record."""
     file_url = content.get("file_url", "")
@@ -123,8 +138,9 @@ async def execute_delivery(delivery: dict):
         })
         return
 
-    # Resolve file
+    # Resolve file path and public URL
     file_path = await _resolve_file_path(content)
+    content["public_file_url"] = _resolve_public_url(content.get("file_url", ""))
 
     # Mark as delivering
     await _update_delivery(delivery_id, {"status": "delivering"})

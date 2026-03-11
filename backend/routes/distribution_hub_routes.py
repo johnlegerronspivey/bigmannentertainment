@@ -22,7 +22,7 @@ from services.delivery_engine import (
     retry_failed_delivery,
     get_batch_progress,
 )
-from services.platform_adapters import get_supported_platform_ids
+from services.platform_adapters import get_supported_platform_ids, get_app_base_url
 
 router = APIRouter(prefix="/distribution-hub", tags=["Distribution Hub"])
 
@@ -338,10 +338,12 @@ async def retry_delivery(
 async def get_live_adapters():
     """Get list of platform IDs that have real delivery adapters."""
     adapter_ids = get_supported_platform_ids()
+    base_url = get_app_base_url()
     return {
         "adapters": adapter_ids,
         "total": len(adapter_ids),
-        "message": "These platforms support real API push delivery when credentials are connected.",
+        "app_base_url": base_url,
+        "message": "These platforms support real API push delivery when credentials are connected. Content is served from the app URL.",
     }
 
 
