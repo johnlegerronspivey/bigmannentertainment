@@ -293,3 +293,68 @@ async def disconnect_platform(platform_id: str, current_user: User = Depends(get
     if not disconnected:
         raise HTTPException(status_code=404, detail="Platform connection not found")
     return {"message": "Platform disconnected"}
+
+
+# ─── Distribution Templates ───
+
+class TemplateCreateRequest(BaseModel):
+    name: str
+    description: str = ""
+    icon: str = "layers"
+    platform_ids: List[str] = []
+
+
+class TemplateUpdateRequest(BaseModel):
+    name: str = ""
+    description: str = ""
+    icon: str = ""
+    platform_ids: List[str] = []
+
+
+@router.get("/templates")
+async def get_templates(current_user: User = Depends(get_current_user)):
+    """Get all distribution templates (system + custom)."""
+    templates = await distribution_hub_svc.get_templates(current_user.id)
+    system = [t for t in templates if t.get("is_system")]
+    custom = [t for t in templates if not t.get("is_system")]
+    return {"templates": templates, "system_count": len(system), "custom_count": len(custom)}
+
+
+@router.get("/templates/{template_id}")
+async def get_template(template_id: str, current_user: User = Depends(get_current_user)):
+    """Get a single template by ID."""
+    template = await distribution_hub_svc.get_template_by_id(template_id, current_user.id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return template
+
+
+@router.post("/templates")
+async def create_template(req: TemplateCreateRequest, current_user: User = Depends(get_current_user)):
+    """Create a custom distribution template."""
+    template = await distribution_hub_svc.create_template(current_user.id, req.dict())
+    return {"message": "Template created", "template": template}
+
+
+@router.put("/templates/{template_id}")
+async def update_template(
+    template_id: str,
+    req: TemplateUpdateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Update a custom distribution template."""
+    updated = await distribution_hub_svc.update_template(
+        template_id, current_user.id, {k: v for k, v in req.dict().items() if v}
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Template not found or cannot be edited")
+    return {"message": "Template updated", "template": updated}
+
+
+@router.delete("/templates/{template_id}")
+async def delete_template(template_id: str, current_user: User = Depends(get_current_user)):
+    """Delete a custom distribution template."""
+    deleted = await distribution_hub_svc.delete_template(template_id, current_user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Template not found or cannot be deleted")
+    return {"message": "Template deleted"}

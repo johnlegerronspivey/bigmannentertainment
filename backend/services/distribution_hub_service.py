@@ -470,4 +470,128 @@ class DistributionHubService:
         return result.modified_count > 0
 
 
+    # ─── DISTRIBUTION TEMPLATES ───
+
+    SYSTEM_TEMPLATES = [
+        {
+            "id": "tpl_all_radio",
+            "name": "All Radio Stations",
+            "description": "Push to all 6 commercial radio platforms",
+            "icon": "radio",
+            "is_system": True,
+            "platform_ids": ["terrestrial_radio", "bbc_radio", "siriusxm", "radio_one", "cumulus_media", "entercom_audacy"],
+        },
+        {
+            "id": "tpl_major_streaming",
+            "name": "Major Streaming",
+            "description": "Top audio streaming services (Spotify, Apple Music, Amazon, TIDAL, Deezer, Pandora, SoundCloud)",
+            "icon": "music",
+            "is_system": True,
+            "platform_ids": ["spotify", "apple_music", "amazon_music", "tidal", "deezer", "pandora", "soundcloud"],
+        },
+        {
+            "id": "tpl_social_blast",
+            "name": "Social Media Blast",
+            "description": "All 9 social media platforms at once",
+            "icon": "share",
+            "is_system": True,
+            "platform_ids": ["twitter_x", "linkedin", "pinterest", "snapchat", "reddit", "threads", "bluesky", "discord", "telegram"],
+        },
+        {
+            "id": "tpl_video_everywhere",
+            "name": "Video Everywhere",
+            "description": "All major video platforms (YouTube, Vimeo, TikTok, Dailymotion, Twitch, Rumble)",
+            "icon": "video",
+            "is_system": True,
+            "platform_ids": ["youtube", "vimeo", "tiktok", "instagram", "facebook", "dailymotion", "twitch", "rumble"],
+        },
+        {
+            "id": "tpl_film_distribution",
+            "name": "Film Distribution",
+            "description": "All film & movie platforms (Amazon Prime, iTunes, Tubi, Pluto TV, etc.)",
+            "icon": "film",
+            "is_system": True,
+            "platform_ids": ["amazon_prime_video", "vudu_fandango", "itunes_apple_tv", "google_play_movies", "vimeo_ott", "tubi", "pluto_tv", "roku_channel", "filmhub"],
+        },
+        {
+            "id": "tpl_podcast_push",
+            "name": "Full Podcast Push",
+            "description": "All podcast directories and hosting platforms",
+            "icon": "mic",
+            "is_system": True,
+            "platform_ids": ["apple_podcasts", "spotify_podcasts", "google_podcasts", "stitcher", "podbean"],
+        },
+    ]
+
+    async def get_templates(self, user_id: str) -> list:
+        """Get system templates + user custom templates."""
+        system = [
+            {**t, "platform_count": len(t["platform_ids"]), "user_id": None}
+            for t in self.SYSTEM_TEMPLATES
+        ]
+        custom = []
+        async for doc in db.distribution_hub_templates.find(
+            {"user_id": user_id}, {"_id": 0}
+        ).sort("created_at", -1):
+            doc["platform_count"] = len(doc.get("platform_ids", []))
+            custom.append(doc)
+        return system + custom
+
+    async def create_template(self, user_id: str, data: dict) -> dict:
+        template_id = f"tpl_custom_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        template = {
+            "id": template_id,
+            "user_id": user_id,
+            "name": data["name"],
+            "description": data.get("description", ""),
+            "icon": data.get("icon", "layers"),
+            "is_system": False,
+            "platform_ids": data.get("platform_ids", []),
+            "platform_count": len(data.get("platform_ids", [])),
+            "created_at": now,
+            "updated_at": now,
+        }
+        await db.distribution_hub_templates.insert_one(template)
+        template.pop("_id", None)
+        return template
+
+    async def update_template(self, template_id: str, user_id: str, data: dict) -> Optional[dict]:
+        # Cannot edit system templates
+        if template_id.startswith("tpl_") and not template_id.startswith("tpl_custom_"):
+            return None
+        update_fields = {"updated_at": datetime.now(timezone.utc).isoformat()}
+        for field in ["name", "description", "icon", "platform_ids"]:
+            if field in data:
+                update_fields[field] = data[field]
+        if "platform_ids" in data:
+            update_fields["platform_count"] = len(data["platform_ids"])
+
+        result = await db.distribution_hub_templates.update_one(
+            {"id": template_id, "user_id": user_id},
+            {"$set": update_fields}
+        )
+        if result.modified_count == 0:
+            return None
+        doc = await db.distribution_hub_templates.find_one({"id": template_id}, {"_id": 0})
+        return doc
+
+    async def delete_template(self, template_id: str, user_id: str) -> bool:
+        if template_id.startswith("tpl_") and not template_id.startswith("tpl_custom_"):
+            return False  # Can't delete system templates
+        result = await db.distribution_hub_templates.delete_one({"id": template_id, "user_id": user_id})
+        return result.deleted_count > 0
+
+    async def get_template_by_id(self, template_id: str, user_id: str) -> Optional[dict]:
+        # Check system templates first
+        for t in self.SYSTEM_TEMPLATES:
+            if t["id"] == template_id:
+                return {**t, "platform_count": len(t["platform_ids"]), "user_id": None}
+        # Then check custom
+        doc = await db.distribution_hub_templates.find_one(
+            {"id": template_id, "user_id": user_id}, {"_id": 0}
+        )
+        return doc
+
+
 distribution_hub_svc = DistributionHubService()

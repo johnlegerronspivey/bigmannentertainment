@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight } from "lucide-react";
+import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight, Layers, Mic, Share2, Plus, Trash2, Edit3, Copy } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -8,6 +8,7 @@ const TABS = [
   { id: "dashboard", label: "Hub Dashboard", icon: BarChart3 },
   { id: "content", label: "Content Library", icon: FileText },
   { id: "distribute", label: "Distribute", icon: Send },
+  { id: "templates", label: "Templates", icon: Layers },
   { id: "tracking", label: "Delivery Tracking", icon: Package },
   { id: "rights", label: "Rights & Metadata", icon: Shield },
   { id: "connections", label: "Platform Connections", icon: Link2 },
@@ -30,6 +31,9 @@ const STATUS_STYLES = {
   failed: "bg-red-500/10 text-red-400",
   draft: "bg-gray-500/10 text-gray-400",
 };
+
+// Resolve platform IDs to display names (populated from API)
+const ALL_HUB_PLATFORMS_MAP = {};
 
 function getToken() {
   return localStorage.getItem("token");
@@ -309,14 +313,27 @@ function AddContentForm({ onSubmit, onCancel }) {
 // ──────────────────────────────────────────────
 // DISTRIBUTE TAB
 // ──────────────────────────────────────────────
-function DistributeTab({ content, platforms, onDistribute, distributing }) {
+function DistributeTab({ content, platforms, onDistribute, distributing, templates }) {
   const [selectedContent, setSelectedContent] = useState(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [search, setSearch] = useState("");
+  const [appliedTemplate, setAppliedTemplate] = useState(null);
 
   const toggleCategory = (catId) => setExpandedCategories((prev) => ({ ...prev, [catId]: !prev[catId] }));
-  const togglePlatform = (pid) => setSelectedPlatforms((prev) => prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]);
+  const togglePlatform = (pid) => { setSelectedPlatforms((prev) => prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]); setAppliedTemplate(null); };
+
+  const applyTemplate = (tpl) => {
+    setSelectedPlatforms(tpl.platform_ids || []);
+    setAppliedTemplate(tpl);
+    // Auto-expand relevant categories
+    const catSet = {};
+    (tpl.platform_ids || []).forEach((pid) => {
+      const p = allPlatformsList.find((x) => x.id === pid);
+      if (p) catSet[p.category] = true;
+    });
+    setExpandedCategories(catSet);
+  };
 
   const handleDistribute = () => {
     if (!selectedContent || selectedPlatforms.length === 0) return;
@@ -389,6 +406,26 @@ function DistributeTab({ content, platforms, onDistribute, distributing }) {
                 data-testid="platform-search-input"
                 className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-white text-sm focus:border-purple-500 focus:outline-none" />
             </div>
+
+            {/* Template Quick-Select */}
+            {templates && templates.length > 0 && (
+              <div className="mb-4" data-testid="template-quick-select">
+                <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Quick Templates</p>
+                <div className="flex gap-2 flex-wrap">
+                  {templates.map((tpl) => {
+                    const isApplied = appliedTemplate?.id === tpl.id;
+                    return (
+                      <button key={tpl.id} onClick={() => applyTemplate(tpl)} data-testid={`apply-template-${tpl.id}`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isApplied ? "bg-purple-600 text-white border-purple-500" : "bg-gray-800/80 text-gray-300 border-gray-700 hover:border-purple-500/50 hover:text-white"}`}>
+                        <TemplateIcon name={tpl.icon} className="w-3.5 h-3.5" />
+                        {tpl.name}
+                        <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] ${isApplied ? "bg-white/20" : "bg-gray-700 text-gray-400"}`}>{tpl.platform_count || tpl.platform_ids?.length || 0}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
               {Object.entries(grouped).map(([catId, catData]) => (
@@ -685,6 +722,212 @@ function PlatformConnectionsTab({ connectedPlatforms, platforms, onConnect, onDi
 }
 
 // ──────────────────────────────────────────────
+// TEMPLATE ICON HELPER
+// ──────────────────────────────────────────────
+const TEMPLATE_ICON_MAP = { radio: Radio, music: Music, share: Share2, video: Video, film: Film, mic: Mic, layers: Layers };
+function TemplateIcon({ name, className }) {
+  const Icon = TEMPLATE_ICON_MAP[name] || Layers;
+  return <Icon className={className} />;
+}
+
+// ──────────────────────────────────────────────
+// TEMPLATES MANAGEMENT TAB
+// ──────────────────────────────────────────────
+function TemplatesTab({ templates, loading, platforms, onCreateTemplate, onUpdateTemplate, onDeleteTemplate, onRefresh }) {
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ name: "", description: "", icon: "layers", platform_ids: [] });
+  const [expandedCategories, setExpandedCategories] = useState({});
+
+  const system = templates.filter((t) => t.is_system);
+  const custom = templates.filter((t) => !t.is_system);
+
+  const allPlatformsList = platforms ? Object.entries(platforms.categories || {}).flatMap(([catId, catData]) =>
+    Object.entries(catData.platforms || {}).map(([pid, p]) => ({ ...p, id: pid, category: catId, categoryLabel: catData.label }))
+  ) : [];
+
+  const grouped = {};
+  allPlatformsList.forEach((p) => {
+    if (!grouped[p.category]) grouped[p.category] = { label: p.categoryLabel, platforms: [] };
+    grouped[p.category].platforms.push(p);
+  });
+
+  const togglePlatformInForm = (pid) => {
+    setForm((prev) => ({
+      ...prev,
+      platform_ids: prev.platform_ids.includes(pid) ? prev.platform_ids.filter((x) => x !== pid) : [...prev.platform_ids, pid],
+    }));
+  };
+
+  const startEdit = (tpl) => {
+    setForm({ name: tpl.name, description: tpl.description || "", icon: tpl.icon || "layers", platform_ids: [...(tpl.platform_ids || [])] });
+    setEditingId(tpl.id);
+    setShowCreate(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return;
+    if (editingId) {
+      await onUpdateTemplate(editingId, form);
+    } else {
+      await onCreateTemplate(form);
+    }
+    setShowCreate(false);
+    setEditingId(null);
+    setForm({ name: "", description: "", icon: "layers", platform_ids: [] });
+  };
+
+  const cancelForm = () => {
+    setShowCreate(false);
+    setEditingId(null);
+    setForm({ name: "", description: "", icon: "layers", platform_ids: [] });
+  };
+
+  const iconOptions = ["radio", "music", "share", "video", "film", "mic", "layers"];
+
+  if (loading) return <LoadingState text="Loading templates..." />;
+
+  return (
+    <div data-testid="templates-tab">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <p className="text-gray-400 text-sm">Pre-configured platform sets for one-click distribution. {system.length} system + {custom.length} custom templates.</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onRefresh} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-gray-400" data-testid="refresh-templates-btn"><RefreshCw className="w-4 h-4" /></button>
+          <button onClick={() => { cancelForm(); setShowCreate(true); }} data-testid="create-template-btn"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium">
+            <Plus className="w-4 h-4" /> New Template
+          </button>
+        </div>
+      </div>
+
+      {/* Create / Edit Form */}
+      {showCreate && (
+        <div className="bg-gray-800/80 border border-gray-700/50 rounded-xl p-6 mb-6" data-testid="template-form">
+          <h3 className="text-lg font-semibold text-white mb-4">{editingId ? "Edit Template" : "Create New Template"}</h3>
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Template Name *</label>
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} data-testid="template-name-input"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-purple-500 focus:outline-none" placeholder="e.g. My Go-To Platforms" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Icon</label>
+              <div className="flex gap-2">
+                {iconOptions.map((ico) => (
+                  <button key={ico} type="button" onClick={() => setForm({ ...form, icon: ico })} data-testid={`icon-${ico}`}
+                    className={`p-2 rounded-lg border transition-colors ${form.icon === ico ? "border-purple-500 bg-purple-500/10" : "border-gray-700 hover:border-gray-600"}`}>
+                    <TemplateIcon name={ico} className={`w-4 h-4 ${form.icon === ico ? "text-purple-400" : "text-gray-500"}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm text-gray-400 mb-1">Description</label>
+              <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="template-desc-input"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-purple-500 focus:outline-none" placeholder="What is this template for?" />
+            </div>
+          </div>
+
+          <label className="block text-sm text-gray-400 mb-2">Select Platforms ({form.platform_ids.length} selected)</label>
+          <div className="space-y-2 max-h-64 overflow-y-auto mb-4 border border-gray-700/50 rounded-lg p-3">
+            {Object.entries(grouped).map(([catId, catData]) => (
+              <div key={catId}>
+                <button onClick={() => setExpandedCategories((p) => ({ ...p, [catId]: !p[catId] }))} className="w-full flex items-center justify-between p-2 bg-gray-900/50 rounded hover:bg-gray-900/80 text-sm" data-testid={`tpl-cat-${catId}`}>
+                  <span className="text-gray-300 font-medium">{catData.label}</span>
+                  {expandedCategories[catId] ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
+                </button>
+                {expandedCategories[catId] && (
+                  <div className="grid sm:grid-cols-3 gap-1.5 pl-2 pt-1.5 pb-2">
+                    {catData.platforms.map((p) => {
+                      const sel = form.platform_ids.includes(p.id);
+                      return (
+                        <button key={p.id} onClick={() => togglePlatformInForm(p.id)} data-testid={`tpl-plat-${p.id}`}
+                          className={`text-left px-2 py-1.5 rounded text-xs border transition-colors ${sel ? "border-purple-500 bg-purple-500/10 text-white" : "border-gray-700/50 text-gray-400 hover:text-white"}`}>
+                          {sel && <Check className="w-3 h-3 inline mr-1 text-purple-400" />}{p.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            <button onClick={handleSave} disabled={!form.name.trim() || form.platform_ids.length === 0} data-testid="save-template-btn"
+              className="flex items-center gap-2 px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium disabled:opacity-50">
+              <Check className="w-4 h-4" /> {editingId ? "Update Template" : "Create Template"}
+            </button>
+            <button onClick={cancelForm} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-sm" data-testid="cancel-template-btn">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* System Templates */}
+      <h3 className="text-white font-semibold mb-3 flex items-center gap-2"><Zap className="w-4 h-4 text-yellow-400" /> System Templates</h3>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+        {system.map((tpl) => (
+          <div key={tpl.id} className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 hover:border-purple-500/30 transition-colors" data-testid={`system-tpl-${tpl.id}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                <TemplateIcon name={tpl.icon} className="w-4.5 h-4.5 text-yellow-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-white font-medium text-sm">{tpl.name}</h4>
+                <p className="text-gray-500 text-xs">{tpl.platform_count} platforms</p>
+              </div>
+              <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/10 text-yellow-400 rounded">System</span>
+            </div>
+            <p className="text-gray-400 text-xs mb-3">{tpl.description}</p>
+            <div className="flex flex-wrap gap-1">
+              {(tpl.platform_ids || []).slice(0, 5).map((pid) => (
+                <span key={pid} className="text-[10px] px-1.5 py-0.5 bg-gray-700/50 text-gray-400 rounded">{ALL_HUB_PLATFORMS_MAP[pid] || pid}</span>
+              ))}
+              {(tpl.platform_ids || []).length > 5 && <span className="text-[10px] px-1.5 py-0.5 bg-gray-700/50 text-gray-500 rounded">+{tpl.platform_ids.length - 5} more</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Custom Templates */}
+      <h3 className="text-white font-semibold mb-3 flex items-center gap-2"><Layers className="w-4 h-4 text-purple-400" /> Your Custom Templates</h3>
+      {custom.length === 0 ? (
+        <EmptyState icon={Layers} text="No custom templates yet" subtext="Create your own platform combos for one-click distribution" />
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {custom.map((tpl) => (
+            <div key={tpl.id} className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 group" data-testid={`custom-tpl-${tpl.id}`}>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                  <TemplateIcon name={tpl.icon} className="w-4.5 h-4.5 text-purple-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-white font-medium text-sm">{tpl.name}</h4>
+                  <p className="text-gray-500 text-xs">{tpl.platform_count} platforms</p>
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => startEdit(tpl)} className="p-1 text-gray-400 hover:text-white" data-testid={`edit-tpl-${tpl.id}`}><Edit3 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onDeleteTemplate(tpl.id)} className="p-1 text-gray-400 hover:text-red-400" data-testid={`delete-tpl-${tpl.id}`}><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              </div>
+              {tpl.description && <p className="text-gray-400 text-xs mb-3">{tpl.description}</p>}
+              <div className="flex flex-wrap gap-1">
+                {(tpl.platform_ids || []).slice(0, 5).map((pid) => (
+                  <span key={pid} className="text-[10px] px-1.5 py-0.5 bg-gray-700/50 text-gray-400 rounded">{ALL_HUB_PLATFORMS_MAP[pid] || pid}</span>
+                ))}
+                {(tpl.platform_ids || []).length > 5 && <span className="text-[10px] px-1.5 py-0.5 bg-gray-700/50 text-gray-500 rounded">+{tpl.platform_ids.length - 5} more</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
 // UTILITY COMPONENTS
 // ──────────────────────────────────────────────
 function LoadingState({ text }) {
@@ -716,7 +959,8 @@ export default function DistributionHubPage() {
   const [deliveries, setDeliveries] = useState([]);
   const [platforms, setPlatforms] = useState(null);
   const [connectedPlatforms, setConnectedPlatforms] = useState([]);
-  const [loading, setLoading] = useState({ stats: true, content: true, deliveries: true, platforms: true, connections: true });
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState({ stats: true, content: true, deliveries: true, platforms: true, connections: true, templates: true });
   const [distributing, setDistributing] = useState(false);
 
   const load = useCallback(async (key, path, setter) => {
@@ -735,8 +979,17 @@ export default function DistributionHubPage() {
     load("stats", "/stats", setStats);
     load("content", "/content", (d) => setContent(d.content || []));
     load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []));
-    load("platforms", "/platforms", setPlatforms);
+    load("platforms", "/platforms", (d) => {
+      setPlatforms(d);
+      // Populate platform name map for template display
+      Object.entries(d?.categories || {}).forEach(([, catData]) => {
+        Object.entries(catData.platforms || {}).forEach(([pid, p]) => {
+          ALL_HUB_PLATFORMS_MAP[pid] = p.name;
+        });
+      });
+    });
     load("connections", "/platforms/connected", (d) => setConnectedPlatforms(d.connected_platforms || []));
+    load("templates", "/templates", (d) => setTemplates(d.templates || []));
   }, [load]);
 
   const refreshAll = () => {
@@ -744,6 +997,7 @@ export default function DistributionHubPage() {
     load("content", "/content", (d) => setContent(d.content || []));
     load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []));
     load("connections", "/platforms/connected", (d) => setConnectedPlatforms(d.connected_platforms || []));
+    load("templates", "/templates", (d) => setTemplates(d.templates || []));
   };
 
   const handleAddContent = async () => {
@@ -825,6 +1079,34 @@ export default function DistributionHubPage() {
     }
   };
 
+  const handleCreateTemplate = async (data) => {
+    try {
+      await apiFetch("/templates", { method: "POST", body: JSON.stringify(data) });
+      load("templates", "/templates", (d) => setTemplates(d.templates || []));
+    } catch (err) {
+      alert(`Create failed: ${err.message}`);
+    }
+  };
+
+  const handleUpdateTemplate = async (templateId, data) => {
+    try {
+      await apiFetch(`/templates/${templateId}`, { method: "PUT", body: JSON.stringify(data) });
+      load("templates", "/templates", (d) => setTemplates(d.templates || []));
+    } catch (err) {
+      alert(`Update failed: ${err.message}`);
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId) => {
+    if (!window.confirm("Delete this template?")) return;
+    try {
+      await apiFetch(`/templates/${templateId}`, { method: "DELETE" });
+      load("templates", "/templates", (d) => setTemplates(d.templates || []));
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-950" data-testid="distribution-hub-page">
       {/* Header */}
@@ -866,7 +1148,8 @@ export default function DistributionHubPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === "dashboard" && <HubDashboard stats={stats} loading={loading.stats} />}
         {activeTab === "content" && <ContentLibrary content={content} loading={loading.content} onRefresh={() => load("content", "/content", (d) => setContent(d.content || []))} onAddContent={handleAddContent} />}
-        {activeTab === "distribute" && <DistributeTab content={content} platforms={platforms} onDistribute={handleDistribute} distributing={distributing} />}
+        {activeTab === "distribute" && <DistributeTab content={content} platforms={platforms} onDistribute={handleDistribute} distributing={distributing} templates={templates} />}
+        {activeTab === "templates" && <TemplatesTab templates={templates} loading={loading.templates} platforms={platforms} onCreateTemplate={handleCreateTemplate} onUpdateTemplate={handleUpdateTemplate} onDeleteTemplate={handleDeleteTemplate} onRefresh={() => load("templates", "/templates", (d) => setTemplates(d.templates || []))} />}
         {activeTab === "tracking" && <DeliveryTracking deliveries={deliveries} loading={loading.deliveries} onRefresh={() => load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []))} onMarkDelivered={handleMarkDelivered} onExport={handleExport} />}
         {activeTab === "rights" && <RightsMetadataTab content={content} onUpdateMetadata={handleUpdateMetadata} />}
         {activeTab === "connections" && <PlatformConnectionsTab connectedPlatforms={connectedPlatforms} platforms={platforms} onConnect={handleConnectPlatform} onDisconnect={handleDisconnectPlatform} />}
