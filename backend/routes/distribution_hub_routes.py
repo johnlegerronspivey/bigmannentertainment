@@ -347,6 +347,185 @@ async def get_live_adapters():
     }
 
 
+@router.get("/adapters/credentials-guide")
+async def get_adapter_credentials_guide():
+    """Return credential requirements and developer portal info for all live adapters."""
+    from services.platform_adapters import PLATFORM_ADAPTERS
+
+    guide = {}
+    for pid, adapter in PLATFORM_ADAPTERS.items():
+        fields = []
+        for cred_key in adapter.required_credentials:
+            fields.append({
+                "key": cred_key,
+                "label": CREDENTIAL_FIELD_META.get(f"{pid}.{cred_key}", {}).get("label", cred_key.replace("_", " ").title()),
+                "placeholder": CREDENTIAL_FIELD_META.get(f"{pid}.{cred_key}", {}).get("placeholder", ""),
+                "type": CREDENTIAL_FIELD_META.get(f"{pid}.{cred_key}", {}).get("type", "password"),
+                "help": CREDENTIAL_FIELD_META.get(f"{pid}.{cred_key}", {}).get("help", ""),
+            })
+        guide[pid] = {
+            "platform_id": pid,
+            "platform_name": adapter.platform_name,
+            "fields": fields,
+            "developer_portal": PLATFORM_PORTAL_META.get(pid, {}).get("url", ""),
+            "developer_portal_label": PLATFORM_PORTAL_META.get(pid, {}).get("label", "Developer Portal"),
+            "setup_summary": PLATFORM_PORTAL_META.get(pid, {}).get("summary", ""),
+            "cost": PLATFORM_PORTAL_META.get(pid, {}).get("cost", "Free"),
+        }
+    return {"adapters": guide, "total": len(guide)}
+
+
+PLATFORM_PORTAL_META = {
+    "youtube": {
+        "url": "https://console.cloud.google.com/",
+        "label": "Google Cloud Console",
+        "summary": "Create project > Enable YouTube Data API v3 > OAuth 2.0 credentials > Generate access token",
+        "cost": "Free (quota limits apply)",
+    },
+    "twitter_x": {
+        "url": "https://developer.twitter.com/",
+        "label": "Twitter Developer Portal",
+        "summary": "Create developer account > Create app > Generate Bearer Token",
+        "cost": "Free tier: 1,500 tweets/mo; Basic ($100/mo) for media uploads",
+    },
+    "tiktok": {
+        "url": "https://developers.tiktok.com/",
+        "label": "TikTok for Developers",
+        "summary": "Register app > Request Content Posting API access > OAuth flow for token",
+        "cost": "Free (app review required)",
+    },
+    "soundcloud": {
+        "url": "https://soundcloud.com/you/apps",
+        "label": "SoundCloud Developer",
+        "summary": "Register app > Get Client ID/Secret > OAuth 2.0 flow for access token",
+        "cost": "Free",
+    },
+    "vimeo": {
+        "url": "https://developer.vimeo.com/",
+        "label": "Vimeo Developer",
+        "summary": "Create app > Generate Personal Access Token with upload scope",
+        "cost": "Free (500 MB/week on Basic plan)",
+    },
+    "bluesky": {
+        "url": "https://bsky.app/settings/app-passwords",
+        "label": "Bluesky App Passwords",
+        "summary": "Settings > App Passwords > Create new password",
+        "cost": "Free",
+    },
+    "discord": {
+        "url": "https://support.discord.com/hc/en-us/articles/228383668",
+        "label": "Discord Webhooks Guide",
+        "summary": "Server Settings > Integrations > Webhooks > New Webhook > Copy URL",
+        "cost": "Free",
+    },
+    "telegram": {
+        "url": "https://t.me/BotFather",
+        "label": "@BotFather on Telegram",
+        "summary": "Message @BotFather > /newbot > Get token > Add bot to group > Get chat_id",
+        "cost": "Free",
+    },
+    "instagram": {
+        "url": "https://developers.facebook.com/",
+        "label": "Meta for Developers",
+        "summary": "Create Meta app > Add Instagram Graph API > Connect Business account > Get token & page ID",
+        "cost": "Free (requires Business/Creator Instagram account)",
+    },
+    "facebook": {
+        "url": "https://developers.facebook.com/",
+        "label": "Meta for Developers",
+        "summary": "Create Meta app > Pages API > Get Page Access Token & Page ID",
+        "cost": "Free",
+    },
+}
+
+CREDENTIAL_FIELD_META = {
+    "youtube.access_token": {
+        "label": "Access Token",
+        "placeholder": "ya29.a0AfH6SM...",
+        "type": "password",
+        "help": "OAuth 2.0 token with youtube.upload scope",
+    },
+    "twitter_x.bearer_token": {
+        "label": "Bearer Token",
+        "placeholder": "AAAAAAAAAAAAA...",
+        "type": "password",
+        "help": "App-level Bearer Token from your Twitter app settings",
+    },
+    "tiktok.access_token": {
+        "label": "Access Token",
+        "placeholder": "act.xxxxxxxxxxxx...",
+        "type": "password",
+        "help": "OAuth token from TikTok Login Kit",
+    },
+    "soundcloud.access_token": {
+        "label": "Access Token",
+        "placeholder": "1-123456-12345678-abcdefghijklmn",
+        "type": "password",
+        "help": "OAuth 2.0 token from SoundCloud",
+    },
+    "vimeo.access_token": {
+        "label": "Access Token",
+        "placeholder": "abc123def456...",
+        "type": "password",
+        "help": "Personal access token with upload, create, edit scopes",
+    },
+    "bluesky.handle": {
+        "label": "Handle",
+        "placeholder": "yourname.bsky.social",
+        "type": "text",
+        "help": "Your Bluesky handle (e.g., yourname.bsky.social)",
+    },
+    "bluesky.app_password": {
+        "label": "App Password",
+        "placeholder": "xxxx-xxxx-xxxx-xxxx",
+        "type": "password",
+        "help": "App-specific password from Bluesky settings (not your main password)",
+    },
+    "discord.webhook_url": {
+        "label": "Webhook URL",
+        "placeholder": "https://discord.com/api/webhooks/...",
+        "type": "text",
+        "help": "Webhook URL from your Discord channel settings",
+    },
+    "telegram.bot_token": {
+        "label": "Bot Token",
+        "placeholder": "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
+        "type": "password",
+        "help": "Token from @BotFather",
+    },
+    "telegram.chat_id": {
+        "label": "Chat ID",
+        "placeholder": "-1001234567890",
+        "type": "text",
+        "help": "Target group/channel ID (negative number for groups)",
+    },
+    "instagram.access_token": {
+        "label": "Access Token",
+        "placeholder": "EAAGm0PX4ZCps...",
+        "type": "password",
+        "help": "Page-level access token from Meta Graph API Explorer",
+    },
+    "instagram.page_id": {
+        "label": "Instagram Business Account ID",
+        "placeholder": "17841400000000000",
+        "type": "text",
+        "help": "Instagram Business Account ID (from Graph API: /{page-id}?fields=instagram_business_account)",
+    },
+    "facebook.access_token": {
+        "label": "Page Access Token",
+        "placeholder": "EAAGm0PX4ZCps...",
+        "type": "password",
+        "help": "Page Access Token from Meta Graph API Explorer",
+    },
+    "facebook.page_id": {
+        "label": "Page ID",
+        "placeholder": "123456789012345",
+        "type": "text",
+        "help": "Facebook Page ID (from /me/accounts endpoint)",
+    },
+}
+
+
 # ─── Distribution Templates ───
 
 class TemplateCreateRequest(BaseModel):

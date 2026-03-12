@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight, Layers, Mic, Share2, Plus, Trash2, Edit3, Copy, Camera, Monitor, Hexagon, Star } from "lucide-react";
+import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight, Layers, Mic, Share2, Plus, Trash2, Edit3, Copy, Camera, Monitor, Hexagon, Star, Eye, EyeOff } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -721,68 +721,279 @@ function RightsMetadataTab({ content, onUpdateMetadata }) {
 // ──────────────────────────────────────────────
 // PLATFORM CONNECTIONS TAB
 // ──────────────────────────────────────────────
-function PlatformConnectionsTab({ connectedPlatforms, platforms, onConnect, onDisconnect }) {
-  const [showConnect, setShowConnect] = useState(null);
+const PLATFORM_COLORS = {
+  youtube: { accent: "text-red-400", border: "border-red-500/30", bg: "bg-red-500/10", dot: "bg-red-400" },
+  twitter_x: { accent: "text-sky-400", border: "border-sky-500/30", bg: "bg-sky-500/10", dot: "bg-sky-400" },
+  tiktok: { accent: "text-pink-400", border: "border-pink-500/30", bg: "bg-pink-500/10", dot: "bg-pink-400" },
+  soundcloud: { accent: "text-orange-400", border: "border-orange-500/30", bg: "bg-orange-500/10", dot: "bg-orange-400" },
+  vimeo: { accent: "text-cyan-400", border: "border-cyan-500/30", bg: "bg-cyan-500/10", dot: "bg-cyan-400" },
+  bluesky: { accent: "text-blue-400", border: "border-blue-500/30", bg: "bg-blue-500/10", dot: "bg-blue-400" },
+  discord: { accent: "text-indigo-400", border: "border-indigo-500/30", bg: "bg-indigo-500/10", dot: "bg-indigo-400" },
+  telegram: { accent: "text-sky-300", border: "border-sky-400/30", bg: "bg-sky-400/10", dot: "bg-sky-300" },
+  instagram: { accent: "text-fuchsia-400", border: "border-fuchsia-500/30", bg: "bg-fuchsia-500/10", dot: "bg-fuchsia-400" },
+  facebook: { accent: "text-blue-500", border: "border-blue-600/30", bg: "bg-blue-600/10", dot: "bg-blue-500" },
+};
+
+const DEFAULT_COLOR = { accent: "text-purple-400", border: "border-purple-500/30", bg: "bg-purple-500/10", dot: "bg-purple-400" };
+
+function CredentialField({ field, value, onChange }) {
+  const [visible, setVisible] = useState(false);
+  const isPassword = field.type === "password";
+
+  return (
+    <div className="space-y-1">
+      <label className="text-xs text-gray-400 font-medium">{field.label}</label>
+      <div className="relative">
+        <input
+          type={isPassword && !visible ? "password" : "text"}
+          value={value || ""}
+          onChange={(e) => onChange(field.key, e.target.value)}
+          placeholder={field.placeholder}
+          data-testid={`cred-field-${field.key}`}
+          className="w-full bg-gray-900/80 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 pr-10"
+        />
+        {isPassword && (
+          <button type="button" onClick={() => setVisible(!visible)} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300" data-testid={`toggle-vis-${field.key}`}>
+            {visible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          </button>
+        )}
+      </div>
+      {field.help && <p className="text-[11px] text-gray-500">{field.help}</p>}
+    </div>
+  );
+}
+
+function PlatformConnectionsTab({ connectedPlatforms, onConnect, onDisconnect }) {
+  const [guide, setGuide] = useState(null);
+  const [loadingGuide, setLoadingGuide] = useState(true);
+  const [expandedPlatform, setExpandedPlatform] = useState(null);
   const [creds, setCreds] = useState({});
+  const [connecting, setConnecting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await apiFetch("/adapters/credentials-guide");
+        setGuide(data.adapters || {});
+      } catch (err) {
+        console.error("Failed to load credentials guide:", err);
+      } finally {
+        setLoadingGuide(false);
+      }
+    })();
+  }, []);
 
   const connectedIds = new Set(connectedPlatforms.map((c) => c.platform_id));
 
   const handleConnect = async (platformId) => {
-    await onConnect(platformId, creds);
-    setCreds({});
-    setShowConnect(null);
+    setConnecting(true);
+    try {
+      await onConnect(platformId, creds);
+      setCreds({});
+      setExpandedPlatform(null);
+    } finally {
+      setConnecting(false);
+    }
   };
 
-  const allPlatformsList = platforms ? Object.entries(platforms.categories || {}).flatMap(([catId, catData]) =>
-    Object.entries(catData.platforms || {}).filter(([pid, p]) => p.method === "api_push").map(([pid, p]) => ({ ...p, id: pid, categoryLabel: catData.label }))
-  ) : [];
+  const handleFieldChange = (key, value) => {
+    setCreds((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleExpand = (pid) => {
+    if (expandedPlatform === pid) {
+      setExpandedPlatform(null);
+      setCreds({});
+    } else {
+      setExpandedPlatform(pid);
+      setCreds({});
+    }
+  };
+
+  if (loadingGuide) return <LoadingState text="Loading credentials guide..." />;
+
+  const adapterEntries = guide ? Object.entries(guide) : [];
+  const connectedAdapters = adapterEntries.filter(([pid]) => connectedIds.has(pid));
+  const availableAdapters = adapterEntries.filter(([pid]) => !connectedIds.has(pid));
+  const filteredAvailable = searchTerm
+    ? availableAdapters.filter(([, a]) => a.platform_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : availableAdapters;
 
   return (
     <div data-testid="platform-connections-tab">
-      <p className="text-gray-400 text-sm mb-6">Connect your accounts for auto-push delivery. Platforms without connections will use export packages.</p>
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+          <div>
+            <h2 className="text-lg font-semibold text-white">API Credentials Manager</h2>
+            <p className="text-gray-400 text-sm mt-1">Connect your accounts to enable auto-push delivery. Each platform requires specific API credentials.</p>
+          </div>
+          <a href="/docs/API_CREDENTIALS_GUIDE.md" target="_blank" rel="noreferrer"
+            className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 hover:text-white hover:border-gray-600 transition-colors whitespace-nowrap"
+            data-testid="full-guide-link">
+            <FileText className="w-3.5 h-3.5" /> Full Setup Guide
+          </a>
+        </div>
 
-      {connectedPlatforms.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-white font-semibold mb-3">Connected Platforms ({connectedPlatforms.length})</h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {connectedPlatforms.map((c) => (
-              <div key={c.platform_id} className="bg-gray-800/60 border border-emerald-500/20 rounded-xl p-4" data-testid={`connected-${c.platform_id}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-white font-medium text-sm">{c.platform_name}</span>
+        {/* Status bar */}
+        <div className="flex items-center gap-4 mt-4 p-3 bg-gray-800/40 rounded-lg border border-gray-700/40">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="text-xs text-gray-400">Connected: <span className="text-white font-medium">{connectedAdapters.length}</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-gray-500" />
+            <span className="text-xs text-gray-400">Available: <span className="text-white font-medium">{availableAdapters.length}</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-xs text-gray-400">Live Adapters: <span className="text-white font-medium">{adapterEntries.length}</span></span>
+          </div>
+        </div>
+      </div>
+
+      {/* Connected Platforms */}
+      {connectedAdapters.length > 0 && (
+        <div className="mb-10">
+          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            Connected Platforms ({connectedAdapters.length})
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {connectedAdapters.map(([pid, adapter]) => {
+              const colors = PLATFORM_COLORS[pid] || DEFAULT_COLOR;
+              return (
+                <div key={pid} className={`bg-gray-800/60 border ${colors.border} rounded-xl p-5 transition-all`} data-testid={`connected-${pid}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-lg ${colors.bg} flex items-center justify-center`}>
+                        <Zap className={`w-4 h-4 ${colors.accent}`} />
+                      </div>
+                      <div>
+                        <span className="text-white font-medium text-sm">{adapter.platform_name}</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="text-[11px] text-emerald-400">Connected</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => onDisconnect(pid)}
+                      className="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs hover:bg-red-500/20 transition-colors border border-red-500/20"
+                      data-testid={`disconnect-${pid}`}>
+                      Disconnect
+                    </button>
                   </div>
-                  <button onClick={() => onDisconnect(c.platform_id)} className="text-red-400 hover:text-red-300 text-xs" data-testid={`disconnect-${c.platform_id}`}>Disconnect</button>
+                  <div className="text-[11px] text-gray-500">
+                    Fields: {adapter.fields.map((f) => f.label).join(", ")}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      <h3 className="text-white font-semibold mb-3">Available for Connection</h3>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {allPlatformsList.filter((p) => !connectedIds.has(p.id)).map((p) => (
-          <div key={p.id} className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4" data-testid={`available-${p.id}`}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-300 font-medium text-sm">{p.name}</span>
-              <span className="text-[10px] text-gray-500">{p.categoryLabel}</span>
+      {/* Available Platforms */}
+      <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+          <h3 className="text-white font-semibold flex items-center gap-2">
+            <Plus className="w-4 h-4 text-purple-400" />
+            Available Platforms ({availableAdapters.length})
+          </h3>
+          {availableAdapters.length > 3 && (
+            <div className="relative w-full sm:w-56">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+              <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Filter platforms..."
+                data-testid="platform-search-input"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-white text-xs focus:border-purple-500 focus:outline-none" />
             </div>
-            {showConnect === p.id ? (
-              <div className="mt-2 space-y-2">
-                <input value={creds.api_key || ""} onChange={(e) => setCreds({ ...creds, api_key: e.target.value })} placeholder="API Key / Token"
-                  data-testid={`cred-input-${p.id}`}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white text-xs focus:border-purple-500 focus:outline-none" />
-                <div className="flex gap-2">
-                  <button onClick={() => handleConnect(p.id)} className="px-3 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700" data-testid={`confirm-connect-${p.id}`}>Connect</button>
-                  <button onClick={() => setShowConnect(null)} className="px-3 py-1 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600">Cancel</button>
-                </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          {filteredAvailable.map(([pid, adapter]) => {
+            const colors = PLATFORM_COLORS[pid] || DEFAULT_COLOR;
+            const isExpanded = expandedPlatform === pid;
+            const allFilled = adapter.fields.every((f) => creds[f.key]?.trim());
+
+            return (
+              <div key={pid} className={`bg-gray-800/60 border ${isExpanded ? colors.border : "border-gray-700/50"} rounded-xl transition-all`} data-testid={`available-${pid}`}>
+                {/* Platform header */}
+                <button onClick={() => toggleExpand(pid)} className="w-full flex items-center justify-between p-5 text-left" data-testid={`expand-${pid}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg ${colors.bg} flex items-center justify-center`}>
+                      <Zap className={`w-4 h-4 ${colors.accent}`} />
+                    </div>
+                    <div>
+                      <span className="text-white font-medium text-sm">{adapter.platform_name}</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-gray-500">{adapter.fields.length} credential{adapter.fields.length > 1 ? "s" : ""} required</span>
+                        <span className="text-[11px] text-gray-600">|</span>
+                        <span className="text-[11px] text-gray-500">{adapter.cost}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+                </button>
+
+                {/* Expanded credential form */}
+                {isExpanded && (
+                  <div className="px-5 pb-5 border-t border-gray-700/50 pt-4 space-y-5" data-testid={`form-${pid}`}>
+                    {/* Setup instructions */}
+                    <div className="bg-gray-900/60 rounded-lg p-3 border border-gray-700/30">
+                      <p className="text-xs text-gray-400 mb-2 font-medium">Quick Setup</p>
+                      <p className="text-xs text-gray-300 mb-3">{adapter.setup_summary}</p>
+                      <a href={adapter.developer_portal} target="_blank" rel="noreferrer"
+                        className={`inline-flex items-center gap-1.5 text-xs ${colors.accent} hover:underline`}
+                        data-testid={`portal-link-${pid}`}>
+                        <Globe className="w-3 h-3" /> {adapter.developer_portal_label}
+                        <ArrowRight className="w-3 h-3" />
+                      </a>
+                    </div>
+
+                    {/* Credential fields */}
+                    <div className="space-y-3">
+                      {adapter.fields.map((field) => (
+                        <CredentialField
+                          key={field.key}
+                          field={field}
+                          value={creds[field.key]}
+                          onChange={handleFieldChange}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-between pt-2">
+                      <button onClick={() => { setExpandedPlatform(null); setCreds({}); }}
+                        className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                        data-testid={`cancel-${pid}`}>
+                        Cancel
+                      </button>
+                      <button onClick={() => handleConnect(pid)} disabled={!allFilled || connecting}
+                        className={`px-5 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 ${allFilled && !connecting ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}
+                        data-testid={`confirm-connect-${pid}`}>
+                        {connecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                        {connecting ? "Connecting..." : "Connect"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : (
-              <button onClick={() => setShowConnect(p.id)} className="mt-1 text-xs text-purple-400 hover:text-purple-300" data-testid={`start-connect-${p.id}`}>Connect Account</button>
-            )}
-          </div>
-        ))}
+            );
+          })}
+
+          {filteredAvailable.length === 0 && searchTerm && (
+            <div className="text-center py-8 text-gray-500 text-sm">No platforms match "{searchTerm}"</div>
+          )}
+          {filteredAvailable.length === 0 && !searchTerm && (
+            <div className="text-center py-8 text-gray-500 text-sm flex flex-col items-center gap-2">
+              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+              <p className="text-white font-medium">All platforms connected!</p>
+              <p>All {adapterEntries.length} live adapter platforms are connected.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1231,7 +1442,7 @@ export default function DistributionHubPage() {
         {activeTab === "templates" && <TemplatesTab templates={templates} loading={loading.templates} platforms={platforms} onCreateTemplate={handleCreateTemplate} onUpdateTemplate={handleUpdateTemplate} onDeleteTemplate={handleDeleteTemplate} onRefresh={() => load("templates", "/templates", (d) => setTemplates(d.templates || []))} />}
         {activeTab === "tracking" && <DeliveryTracking deliveries={deliveries} loading={loading.deliveries} onRefresh={() => load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []))} onMarkDelivered={handleMarkDelivered} onExport={handleExport} onRetry={handleRetryDelivery} activeBatchId={activeBatchId} />}
         {activeTab === "rights" && <RightsMetadataTab content={content} onUpdateMetadata={handleUpdateMetadata} />}
-        {activeTab === "connections" && <PlatformConnectionsTab connectedPlatforms={connectedPlatforms} platforms={platforms} onConnect={handleConnectPlatform} onDisconnect={handleDisconnectPlatform} />}
+        {activeTab === "connections" && <PlatformConnectionsTab connectedPlatforms={connectedPlatforms} onConnect={handleConnectPlatform} onDisconnect={handleDisconnectPlatform} />}
       </div>
     </div>
   );
