@@ -96,6 +96,17 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **98 OpenAPI Tags** - All endpoint groups categorized with descriptions covering 1,281 paths and 1,399 total endpoints
 - **Developer Onboarding Guide** - Comprehensive 600+ line guide at `/app/docs/DEVELOPER_ONBOARDING.md` covering project overview, tech stack, repo structure, backend/frontend architecture, DB schema, conventions, testing, and troubleshooting
 
+### Phase 14 - API Credentials Manager (2026-03-12)
+- **API Credentials Reference Guide** - Comprehensive markdown guide at `/app/docs/API_CREDENTIALS_GUIDE.md` covering all 10 live adapter platforms with step-by-step credential setup instructions, developer portal links, and security best practices
+- **Credentials Guide API Endpoint** - `GET /api/distribution-hub/adapters/credentials-guide` returns structured credential requirements for each live adapter (field labels, placeholders, help text, developer portal URLs, costs)
+- **Enhanced Platform Connections UI** - Replaced basic single-input credential form with platform-specific credential management dashboard featuring:
+  - Per-platform credential forms with labeled fields (e.g., Telegram: bot_token + chat_id, Bluesky: handle + app_password)
+  - Quick Setup instructions with developer portal links for each platform
+  - Password visibility toggles for sensitive fields
+  - Status bar showing connected/available/total live adapter counts
+  - Search/filter for available platforms
+  - Platform-branded color accents for visual distinction
+
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
@@ -127,7 +138,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Messages: `GET /api/messages/conversations`, `POST /api/messages/send`
 - Social Platforms: `GET /api/social/platforms`, `GET /api/social/connections`
 - Distribution Hub: `GET/POST /api/distribution-hub/content`, `POST /api/distribution-hub/distribute`
-- Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`
+- Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/adapters/credentials-guide`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`
 - Analytics: `GET /api/analytics/overview`, `GET /api/analytics/content-performance`
 - Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`
 - Demographics: `GET /api/analytics/demographics`, `GET /api/analytics/best-times`, `GET /api/analytics/geo`
