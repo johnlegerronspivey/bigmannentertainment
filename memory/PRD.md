@@ -107,11 +107,23 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
   - Search/filter for available platforms
   - Platform-branded color accents for visual distinction
 
+### Phase 15 - Live Social Media Integrations & CloudFront Setup (2026-03-13)
+- **AWS CloudFront CDN Distribution** - Programmatically created CloudFront distribution (E2LURX26QTXMXJ) for S3 media bucket using AWS access keys. Distribution domain: d3brubd69k8lxz.cloudfront.net. Auto-saved to .env.
+- **Twitter/X Live Integration** - Bearer token-based connection (read-only), OAuth 2.0 PKCE flow for write access (tweet.read, tweet.write, users.read, offline.access). Auth URL generation with code_verifier/code_challenge.
+- **TikTok Live Integration** - OAuth 2.0 flow with client_key/client_secret for user authorization (user.info.basic, video.publish). Token exchange and refresh support.
+- **Snapchat Live Integration** - JWT Canvas S2S token from env for read+write. New SnapchatAdapter added to platform_adapters.py for content delivery via Ads/Creative API. Snapchat metrics adapter added to live_metrics_service.
+- **Live Integrations Dashboard** - New `/integrations` page with tabs: Social Platforms (connection status, test buttons, OAuth connect), Infrastructure (CloudFront status), Test Results
+- **OAuth Callback Handler** - `/oauth/callback` page handles return from Twitter/TikTok OAuth flows with PKCE verification
+- **Env-Var Credential Fallback** - Delivery engine falls back to .env credentials when user hasn't saved platform-specific credentials
+- **Credential Management API** - Save, retrieve (masked), and test credentials for any platform
+- **11 Platform Delivery Adapters** - Added Snapchat to existing 10 (YouTube, Twitter/X, TikTok, SoundCloud, Vimeo, Bluesky, Discord, Telegram, Instagram, Facebook)
+
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`, `/app/uploads/hub/`
-- **Key Routes**: `/app/backend/routes/` (24 core routers) + `/app/backend/api/` (77 endpoint routers)
+- **CDN**: AWS CloudFront (d3brubd69k8lxz.cloudfront.net) → S3 bigmann-entertainment-media
+- **Key Routes**: `/app/backend/routes/` (24 core routers) + `/app/backend/api/` (78 endpoint routers)
 - **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
 
 ### Backend Directory Structure
@@ -139,6 +151,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Social Platforms: `GET /api/social/platforms`, `GET /api/social/connections`
 - Distribution Hub: `GET/POST /api/distribution-hub/content`, `POST /api/distribution-hub/distribute`
 - Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/adapters/credentials-guide`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`
+- Live Integrations: `GET /api/integrations/status/all`, `GET /api/integrations/{platform}/test`, `GET /api/integrations/{platform}/auth-url`, `POST /api/integrations/{platform}/callback`, `GET /api/integrations/cloudfront/status`, `POST /api/integrations/cloudfront/setup`, `POST /api/integrations/credentials/save`
 - Analytics: `GET /api/analytics/overview`, `GET /api/analytics/content-performance`
 - Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`
 - Demographics: `GET /api/analytics/demographics`, `GET /api/analytics/best-times`, `GET /api/analytics/geo`
@@ -160,17 +173,21 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Owner: `owner@bigmannentertainment.com` / `Test1234!`
 - Admin: `cveadmin@test.com` / `Test1234!`
 
-## Verification Status (2026-03-12)
-All 5 pending features verified and signed off:
+## Verification Status (2026-03-13)
+All features verified and signed off:
 - **P0**: Distribution Hub Public Content URLs - VERIFIED
 - **P1**: Creator Analytics (Anomaly Detection, Demographics, Revenue, Best Times, Geo) - VERIFIED
 - **P2**: Distribution Hub Live Delivery Engine (10 adapters) - VERIFIED
 - **P3**: New Comment Real-Time Notifications - VERIFIED
 - **P4**: 120 Platform Expansion (123 platforms, 16 categories) - VERIFIED
 - **P14**: API Credentials Manager & Guide - VERIFIED
+- **P15**: CloudFront CDN Setup (E2LURX26QTXMXJ) - VERIFIED
+- **P15**: Twitter/X Live Integration (Bearer + OAuth) - VERIFIED
+- **P15**: TikTok Live Integration (OAuth flow) - VERIFIED
+- **P15**: Snapchat Live Integration (JWT + Adapter) - VERIFIED
+- **P15**: Live Integrations Dashboard UI - VERIFIED
 
 ## Backlog
-- **P1**: Live Social Media API Integrations (replace placeholder logic with real API calls)
 - **P1**: Post-scheduling functionality to connected social media accounts
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: Replace mock data in analytics with real API-sourced data
