@@ -118,11 +118,26 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Credential Management API** - Save, retrieve (masked), and test credentials for any platform
 - **11 Platform Delivery Adapters** - Added Snapchat to existing 10 (YouTube, Twitter/X, TikTok, SoundCloud, Vimeo, Bluesky, Discord, Telegram, Instagram, Facebook)
 
+### Phase 16 - Live Write Actions & Multi-Platform Publishing (2026-03-13)
+- **Unified Multi-Platform Publish** - `POST /api/integrations/publish` accepts text, target platforms array, and optional media_url. Posts to all selected platforms simultaneously using stored OAuth tokens, returns per-platform results with success/error details.
+- **Publish History** - `GET /api/integrations/publish/history` returns recent publish records with text, platforms, results, succeeded/total counts, and timestamps. Stored in MongoDB `publish_history` collection.
+- **Twitter/X Write API** - `POST /api/integrations/twitter/tweet` posts tweets using OAuth 2.0 user access token (requires write scope via OAuth flow).
+- **TikTok Write API** - `POST /api/integrations/tiktok/publish` supports video publishing via PULL_FROM_URL and photo publishing. Requires OAuth user token with video.publish scope.
+- **Snapchat Write API** - `POST /api/integrations/snapchat/publish` creates Snap Ad creatives via the Ads API using JWT token. Verifies org, fetches ad accounts, creates creative.
+- **Publish Composer UI** - New "Publish" tab (default) on Live Integrations page with:
+  - Text area with 280-character counter
+  - Optional media URL input (required for TikTok video)
+  - Platform selector buttons showing connected/not-connected state
+  - Disabled state for unconnected platforms with clear "(not connected)" label
+  - "Publish Now" button with loading state
+- **Publish Results Display** - Per-platform success/failure cards with platform icons, badges, and error messages
+- **Publish History Feed** - Recent posts section showing text preview, platform indicators (green/red dots), succeeded/total badge, and timestamp
+
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`, `/app/uploads/hub/`
-- **CDN**: AWS CloudFront (d3brubd69k8lxz.cloudfront.net) → S3 bigmann-entertainment-media
+- **CDN**: AWS CloudFront (d3brubd69k8lxz.cloudfront.net) -> S3 bigmann-entertainment-media
 - **Key Routes**: `/app/backend/routes/` (24 core routers) + `/app/backend/api/` (78 endpoint routers)
 - **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
 
@@ -133,7 +148,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 ├── startup.py             # Startup/shutdown hooks
 ├── router_setup.py        # Additional router wiring
 ├── middleware.py           # HTTP middleware
-├── api/                   # 77 endpoint modules
+├── api/                   # 78 endpoint modules
 ├── services/              # 107 service modules
 ├── models/                # 30 data model modules
 ├── utils/                 # 34 utility modules
@@ -152,6 +167,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Distribution Hub: `GET/POST /api/distribution-hub/content`, `POST /api/distribution-hub/distribute`
 - Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/adapters/credentials-guide`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`
 - Live Integrations: `GET /api/integrations/status/all`, `GET /api/integrations/{platform}/test`, `GET /api/integrations/{platform}/auth-url`, `POST /api/integrations/{platform}/callback`, `GET /api/integrations/cloudfront/status`, `POST /api/integrations/cloudfront/setup`, `POST /api/integrations/credentials/save`
+- **Publishing**: `POST /api/integrations/publish`, `GET /api/integrations/publish/history`, `POST /api/integrations/twitter/tweet`, `POST /api/integrations/tiktok/publish`, `POST /api/integrations/snapchat/publish`
 - Analytics: `GET /api/analytics/overview`, `GET /api/analytics/content-performance`
 - Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`
 - Demographics: `GET /api/analytics/demographics`, `GET /api/analytics/best-times`, `GET /api/analytics/geo`
@@ -161,6 +177,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `notifications`, `content_comments`, `user_content`, `messages`, `conversations`, `subscriptions`
 - `platform_credentials`, `distribution_hub_content`, `distribution_hub_deliveries`, `distribution_hub_credentials`
 - `anomaly_alerts`, `metrics_history`, `audience_analytics`, `revenue_tracking`
+- `publish_history`
 
 ## 3rd Party Integrations
 - Stripe, PayPal (payments)
@@ -186,6 +203,7 @@ All features verified and signed off:
 - **P15**: TikTok Live Integration (OAuth flow) - VERIFIED
 - **P15**: Snapchat Live Integration (JWT + Adapter) - VERIFIED
 - **P15**: Live Integrations Dashboard UI - VERIFIED
+- **P16**: Multi-Platform Write Actions & Publish UI - VERIFIED (2026-03-13)
 
 ## Backlog
 - **P1**: Post-scheduling functionality to connected social media accounts
