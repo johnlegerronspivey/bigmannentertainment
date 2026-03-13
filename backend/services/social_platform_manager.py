@@ -289,6 +289,71 @@ class TikTokConnectionManager:
                 "detail": resp.text[:200],
             }
 
+    async def publish_video(self, video_url: str, title: str, access_token: str) -> Dict[str, Any]:
+        """Publish a video to TikTok via URL-based upload (Content Posting API v2)."""
+        if not access_token:
+            return {"success": False, "error": "No TikTok access token"}
+
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            # Use pull-from-URL method (no local file needed)
+            resp = await client.post(
+                "https://open.tiktokapis.com/v2/post/publish/video/init/",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "post_info": {
+                        "title": title[:150],
+                        "privacy_level": "SELF_ONLY",
+                    },
+                    "source_info": {
+                        "source": "PULL_FROM_URL",
+                        "video_url": video_url,
+                    },
+                },
+            )
+            if resp.status_code == 200:
+                data = resp.json().get("data", {})
+                publish_id = data.get("publish_id", "")
+                return {
+                    "success": True,
+                    "publish_id": publish_id,
+                    "message": f"TikTok video publish initiated: {publish_id}",
+                }
+            return {"success": False, "error": f"TikTok publish failed: {resp.status_code}", "detail": resp.text[:300]}
+
+    async def publish_photo(self, photo_urls: list, title: str, access_token: str) -> Dict[str, Any]:
+        """Publish photo content to TikTok via Photo Posting API."""
+        if not access_token:
+            return {"success": False, "error": "No TikTok access token"}
+
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            resp = await client.post(
+                "https://open.tiktokapis.com/v2/post/publish/content/init/",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "post_info": {
+                        "title": title[:150],
+                        "privacy_level": "SELF_ONLY",
+                    },
+                    "source_info": {
+                        "source": "PULL_FROM_URL",
+                        "photo_cover_index": 0,
+                        "photo_images": photo_urls[:35],
+                    },
+                    "post_mode": "DIRECT_POST",
+                    "media_type": "PHOTO",
+                },
+            )
+            if resp.status_code == 200:
+                data = resp.json().get("data", {})
+                return {"success": True, "publish_id": data.get("publish_id", ""), "message": "TikTok photo publish initiated"}
+            return {"success": False, "error": f"TikTok photo publish failed: {resp.status_code}", "detail": resp.text[:300]}
+
 
 # ─────────────────────────────────────────────
 # SNAPCHAT  (Business JWT Token)
@@ -367,6 +432,72 @@ class SnapchatConnectionManager:
             if resp.status_code == 200:
                 return {"success": True, "data": resp.json()}
             return {"success": False, "error": resp.text[:300]}
+
+    async def publish_content(self, text: str, api_token: Optional[str] = None) -> Dict[str, Any]:
+        """Publish content to Snapchat via the Ads Creative API."""
+        token = api_token or self.API_TOKEN
+        if not token:
+            return {"success": False, "error": "No Snapchat API token available"}
+
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            # Get organizations
+            org_resp = await client.get(
+                f"{self.ADS_BASE}/me/organizations",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            if org_resp.status_code != 200:
+                return {"success": False, "error": f"Snapchat org lookup failed: {org_resp.status_code}", "detail": org_resp.text[:200]}
+
+            orgs = org_resp.json().get("organizations", [])
+            if not orgs:
+                return {"success": False, "error": "No Snapchat organizations found"}
+
+            org_id = orgs[0].get("organization", {}).get("id", "")
+
+            # Get ad accounts
+            acct_resp = await client.get(
+                f"{self.ADS_BASE}/organizations/{org_id}/adaccounts",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            ad_accounts = acct_resp.json().get("adaccounts", []) if acct_resp.status_code == 200 else []
+
+            if not ad_accounts:
+                return {
+                    "success": True,
+                    "partial": True,
+                    "message": f"Organization verified ({org_id}) but no ad accounts available for creative creation",
+                    "organization_id": org_id,
+                }
+
+            ad_acct_id = ad_accounts[0].get("adaccount", {}).get("id", "")
+            creative_payload = {
+                "creatives": [{
+                    "creative": {
+                        "name": text[:255],
+                        "type": "SNAP_AD",
+                        "headline": text[:34],
+                        "brand_name": "Big Mann Entertainment",
+                        "call_to_action": "VIEW",
+                        "shareable": True,
+                    }
+                }]
+            }
+            cr_resp = await client.post(
+                f"{self.ADS_BASE}/adaccounts/{ad_acct_id}/creatives",
+                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                json=creative_payload,
+            )
+            if cr_resp.status_code in (200, 201):
+                creatives = cr_resp.json().get("creatives", [])
+                creative_id = creatives[0].get("creative", {}).get("id", "") if creatives else ""
+                return {
+                    "success": True,
+                    "creative_id": creative_id,
+                    "organization_id": org_id,
+                    "ad_account_id": ad_acct_id,
+                    "message": f"Creative published: {creative_id}",
+                }
+            return {"success": False, "error": f"Creative creation failed: {cr_resp.status_code}", "detail": cr_resp.text[:200]}
 
 
 # ─────────────────────────────────────────────

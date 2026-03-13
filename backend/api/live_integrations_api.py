@@ -2,18 +2,20 @@
 Live Integration API Routes
 - CloudFront distribution setup
 - Twitter/X, TikTok, Snapchat OAuth flows & connection testing
+- Unified multi-platform content publishing
 - Platform credential management
 """
 import os
 import uuid
 import logging
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
 
 from auth.service import get_current_user
 from models.core import User
+from config.database import db
 from services.cloudfront_setup_service import CloudFrontSetupService
 from services.social_platform_manager import (
     TwitterConnectionManager,
@@ -45,6 +47,22 @@ class CredentialSavePayload(BaseModel):
 class TweetPayload(BaseModel):
     text: str
     access_token: Optional[str] = None
+
+
+class TikTokPublishPayload(BaseModel):
+    title: str
+    video_url: Optional[str] = None
+    photo_urls: Optional[List[str]] = None
+
+
+class SnapchatPublishPayload(BaseModel):
+    text: str
+
+
+class MultiPlatformPublishPayload(BaseModel):
+    text: str
+    platforms: List[str]
+    media_url: Optional[str] = None
 
 
 # ── CloudFront Setup ────────────────────────────────────────
@@ -229,6 +247,133 @@ async def snapchat_ad_accounts(current_user: User = Depends(get_current_user)):
     token = creds.get("api_token") if creds else None
     result = await _snapchat.get_ad_accounts(token)
     return result
+
+
+@router.post("/snapchat/publish")
+async def snapchat_publish(
+    payload: SnapchatPublishPayload,
+    current_user: User = Depends(get_current_user),
+):
+    """Publish content to Snapchat."""
+    creds = await get_platform_credentials(current_user.id, "snapchat")
+    token = creds.get("api_token") if creds else None
+    if not token:
+        raise HTTPException(400, "No Snapchat API token. Configure credentials first.")
+    result = await _snapchat.publish_content(payload.text, token)
+    return result
+
+
+# ── TikTok Publish ────────────────────────────────────────────
+
+@router.post("/tiktok/publish")
+async def tiktok_publish(
+    payload: TikTokPublishPayload,
+    current_user: User = Depends(get_current_user),
+):
+    """Publish video or photo content to TikTok."""
+    creds = await get_platform_credentials(current_user.id, "tiktok")
+    token = creds.get("access_token") if creds else ""
+    if not token:
+        raise HTTPException(400, "No TikTok access token. Connect via OAuth first.")
+
+    if payload.video_url:
+        result = await _tiktok.publish_video(payload.video_url, payload.title, token)
+    elif payload.photo_urls:
+        result = await _tiktok.publish_photo(payload.photo_urls, payload.title, token)
+    else:
+        raise HTTPException(400, "Provide video_url or photo_urls for TikTok publishing.")
+    return result
+
+
+# ── Unified Multi-Platform Publish ────────────────────────────
+
+@router.post("/publish")
+async def publish_to_platforms(
+    payload: MultiPlatformPublishPayload,
+    current_user: User = Depends(get_current_user),
+):
+    """Publish content to multiple platforms simultaneously."""
+    results = {}
+    publish_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+
+    for platform in payload.platforms:
+        try:
+            if platform == "twitter_x":
+                creds = await get_platform_credentials(current_user.id, "twitter_x")
+                token = creds.get("access_token") if creds else None
+                if not token:
+                    results[platform] = {"success": False, "error": "No Twitter access token. Connect via OAuth for write access."}
+                    continue
+                result = await _twitter.post_tweet(payload.text, token)
+                results[platform] = result
+
+            elif platform == "tiktok":
+                creds = await get_platform_credentials(current_user.id, "tiktok")
+                token = creds.get("access_token") if creds else ""
+                if not token:
+                    results[platform] = {"success": False, "error": "No TikTok access token. Connect via OAuth first."}
+                    continue
+                if payload.media_url:
+                    result = await _tiktok.publish_video(payload.media_url, payload.text, token)
+                else:
+                    results[platform] = {"success": False, "error": "TikTok requires a video or photo URL to publish."}
+                    continue
+                results[platform] = result
+
+            elif platform == "snapchat":
+                creds = await get_platform_credentials(current_user.id, "snapchat")
+                token = creds.get("api_token") if creds else None
+                if not token:
+                    results[platform] = {"success": False, "error": "No Snapchat API token configured."}
+                    continue
+                result = await _snapchat.publish_content(payload.text, token)
+                results[platform] = result
+
+            else:
+                results[platform] = {"success": False, "error": f"Unsupported platform: {platform}"}
+
+        except Exception as e:
+            logger.error(f"Publish to {platform} failed: {e}")
+            results[platform] = {"success": False, "error": str(e)[:300]}
+
+    # Save publish record to DB
+    succeeded = sum(1 for r in results.values() if r.get("success"))
+    total = len(payload.platforms)
+    record = {
+        "id": publish_id,
+        "user_id": current_user.id,
+        "text": payload.text,
+        "media_url": payload.media_url,
+        "platforms": payload.platforms,
+        "results": results,
+        "succeeded": succeeded,
+        "total": total,
+        "created_at": now,
+    }
+    await db.publish_history.insert_one(record)
+
+    return {
+        "publish_id": publish_id,
+        "results": results,
+        "summary": f"{succeeded}/{total} platforms succeeded",
+        "timestamp": now,
+    }
+
+
+@router.get("/publish/history")
+async def publish_history(
+    limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+):
+    """Get recent publish history for the current user."""
+    records = []
+    cursor = db.publish_history.find(
+        {"user_id": current_user.id}, {"_id": 0}
+    ).sort("created_at", -1).limit(limit)
+    async for doc in cursor:
+        records.append(doc)
+    return {"history": records, "count": len(records)}
 
 
 # ── Generic Credential Management ────────────────────────────

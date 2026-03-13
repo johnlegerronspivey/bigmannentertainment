@@ -9,13 +9,11 @@ import { toast } from "sonner";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-/* ─── status colours ─── */
 const statusStyle = (ok) =>
   ok
     ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
     : "bg-rose-500/15 text-rose-400 border-rose-500/30";
 
-/* ─── platform icons (lucide-style SVG paths) ─── */
 const PlatformIcon = ({ platform, size = 20 }) => {
   const icons = {
     twitter_x: (
@@ -41,6 +39,9 @@ const PlatformIcon = ({ platform, size = 20 }) => {
   };
   return icons[platform] || icons.cloudfront;
 };
+
+const PLATFORM_LABELS = { twitter_x: "Twitter/X", tiktok: "TikTok", snapchat: "Snapchat" };
+const PLATFORM_COLORS = { twitter_x: "bg-sky-500", tiktok: "bg-pink-500", snapchat: "bg-yellow-400" };
 
 /* ─── Connection Card ─── */
 const ConnectionCard = ({ platform, data, onTest, onConnect, testing }) => {
@@ -101,7 +102,6 @@ const ConnectionCard = ({ platform, data, onTest, onConnect, testing }) => {
         {data?.credential_source && (
           <p className="text-[11px] text-zinc-500 mt-3">
             Source: <span className="text-zinc-400">{data.credential_source === "env" ? "Environment Config" : data.credential_source === "env_fallback" ? "Environment (Fallback)" : "User OAuth"}</span>
-            {data?.note && <span className="block mt-0.5">{data.note}</span>}
           </p>
         )}
       </CardContent>
@@ -171,6 +171,201 @@ const TestResultPanel = ({ result, platform }) => {
   );
 };
 
+/* ─── Publish Composer ─── */
+const PublishComposer = ({ platforms, onPublish, publishing }) => {
+  const [text, setText] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [selected, setSelected] = useState([]);
+
+  const writablePlatforms = Object.entries(platforms).filter(
+    ([key]) => ["twitter_x", "tiktok", "snapchat"].includes(key)
+  );
+
+  const toggle = (p) =>
+    setSelected((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
+
+  const handlePublish = () => {
+    if (!text.trim()) return toast.error("Enter some content to publish.");
+    if (selected.length === 0) return toast.error("Select at least one platform.");
+    onPublish({ text: text.trim(), platforms: selected, media_url: mediaUrl.trim() || null });
+  };
+
+  const charCount = text.length;
+  const maxChars = 280;
+
+  return (
+    <div className="space-y-4" data-testid="publish-composer">
+      <div className="relative">
+        <textarea
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 resize-none min-h-[120px] transition-colors"
+          placeholder="What do you want to share across your connected platforms?"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          maxLength={2200}
+          data-testid="publish-text-input"
+        />
+        <span className={`absolute bottom-3 right-3 text-[11px] font-mono ${charCount > maxChars ? "text-amber-400" : "text-zinc-600"}`}>
+          {charCount}/{maxChars}
+        </span>
+      </div>
+
+      <div>
+        <input
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+          placeholder="Media URL (optional — required for TikTok video)"
+          value={mediaUrl}
+          onChange={(e) => setMediaUrl(e.target.value)}
+          data-testid="publish-media-url-input"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">Target Platforms</p>
+        <div className="flex flex-wrap gap-2">
+          {writablePlatforms.map(([key, data]) => {
+            const isConnected = data?.has_credentials || false;
+            const canWrite = data?.can_write || (key === "snapchat" && isConnected);
+            const isSelected = selected.includes(key);
+
+            return (
+              <button
+                key={key}
+                onClick={() => canWrite ? toggle(key) : toast.error(`Connect ${PLATFORM_LABELS[key]} first via OAuth`)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
+                  isSelected
+                    ? "border-indigo-500 bg-indigo-500/15 text-indigo-300"
+                    : canWrite
+                    ? "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-600"
+                    : "border-zinc-800 bg-zinc-900/40 text-zinc-600 cursor-not-allowed opacity-50"
+                }`}
+                data-testid={`platform-select-${key}`}
+              >
+                <PlatformIcon platform={key} size={14} />
+                <span>{PLATFORM_LABELS[key]}</span>
+                {!canWrite && <span className="text-[10px] text-zinc-600">(not connected)</span>}
+                {isSelected && (
+                  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <p className="text-[11px] text-zinc-600">
+          {selected.length > 0 ? `Publishing to ${selected.length} platform${selected.length > 1 ? "s" : ""}` : "No platforms selected"}
+        </p>
+        <Button
+          className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-5"
+          onClick={handlePublish}
+          disabled={publishing || !text.trim() || selected.length === 0}
+          data-testid="publish-submit-btn"
+        >
+          {publishing ? "Publishing..." : "Publish Now"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Publish Results ─── */
+const PublishResults = ({ result }) => {
+  if (!result) return null;
+
+  return (
+    <Card className="border-zinc-800 bg-zinc-900/60 mt-4" data-testid="publish-result">
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-zinc-200">Publish Results</h4>
+          <Badge variant="outline" className="text-[10px] px-2 py-0 bg-indigo-500/15 text-indigo-300 border-indigo-500/30">
+            {result.summary}
+          </Badge>
+        </div>
+        {Object.entries(result.results || {}).map(([platform, res]) => (
+          <div
+            key={platform}
+            className={`flex items-start gap-3 p-3 rounded-md border ${
+              res.success ? "border-emerald-500/20 bg-emerald-500/5" : "border-rose-500/20 bg-rose-500/5"
+            }`}
+            data-testid={`publish-result-${platform}`}
+          >
+            <div className={`mt-0.5 ${res.success ? "text-emerald-400" : "text-rose-400"}`}>
+              <PlatformIcon platform={platform} size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-zinc-200">{PLATFORM_LABELS[platform] || platform}</span>
+                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${statusStyle(res.success)}`}>
+                  {res.success ? "Sent" : "Failed"}
+                </Badge>
+              </div>
+              {res.success ? (
+                <p className="text-[11px] text-zinc-400 mt-1 break-all">
+                  {res.tweet_id && `Tweet ID: ${res.tweet_id}`}
+                  {res.publish_id && `Publish ID: ${res.publish_id}`}
+                  {res.creative_id && `Creative ID: ${res.creative_id}`}
+                  {res.message && !res.tweet_id && !res.publish_id && !res.creative_id && res.message}
+                </p>
+              ) : (
+                <p className="text-[11px] text-rose-400/80 mt-1">{res.error}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+/* ─── Publish History ─── */
+const PublishHistory = ({ history }) => {
+  if (!history || history.length === 0) {
+    return (
+      <Card className="border-zinc-800 bg-zinc-900/40 mt-4">
+        <CardContent className="p-6 text-center">
+          <p className="text-sm text-zinc-500">No publish history yet. Create your first post above.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-3 mt-4" data-testid="publish-history">
+      <h4 className="text-xs text-zinc-500 font-medium uppercase tracking-wide">Recent Posts</h4>
+      {history.map((item) => (
+        <Card key={item.id} className="border-zinc-800 bg-zinc-900/40">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-zinc-200 line-clamp-2">{item.text}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  {item.platforms?.map((p) => (
+                    <div key={p} className="flex items-center gap-1">
+                      <div className={`w-1.5 h-1.5 rounded-full ${item.results?.[p]?.success ? "bg-emerald-400" : "bg-rose-400"}`} />
+                      <span className="text-[10px] text-zinc-500">{PLATFORM_LABELS[p] || p}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-zinc-800 text-zinc-400 border-zinc-700">
+                  {item.succeeded}/{item.total}
+                </Badge>
+                <p className="text-[10px] text-zinc-600 mt-1">
+                  {new Date(item.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
 /* ─── Main Page ─── */
 export default function LiveIntegrationsPage() {
   const { user } = useAuth();
@@ -179,6 +374,9 @@ export default function LiveIntegrationsPage() {
   const [testing, setTesting] = useState(null);
   const [testResults, setTestResults] = useState({});
   const [settingCF, setSettingCF] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishResult, setPublishResult] = useState(null);
+  const [publishHistory, setPublishHistory] = useState([]);
 
   const getHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -194,9 +392,24 @@ export default function LiveIntegrationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
-  useEffect(() => { fetchStatus(); }, [fetchStatus]);
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/integrations/publish/history?limit=10`, { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setPublishHistory(data.history || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStatus();
+    fetchHistory();
+  }, [fetchStatus, fetchHistory]);
 
   const testPlatform = async (platform) => {
     setTesting(platform);
@@ -251,6 +464,35 @@ export default function LiveIntegrationsPage() {
     }
   };
 
+  const handlePublish = async (payload) => {
+    setPublishing(true);
+    setPublishResult(null);
+    try {
+      const res = await fetch(`${API}/api/integrations/publish`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPublishResult(data);
+        const succeeded = data.summary?.split("/")[0] || "0";
+        if (parseInt(succeeded) > 0) {
+          toast.success(`Published to ${data.summary}`);
+        } else {
+          toast.error("All platforms failed. Check results below.");
+        }
+        fetchHistory();
+      } else {
+        toast.error(data.detail || "Publish failed");
+      }
+    } catch (e) {
+      toast.error(`Publish error: ${e.message}`);
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -264,25 +506,42 @@ export default function LiveIntegrationsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100" data-testid="live-integrations-page">
-      {/* Header */}
       <div className="border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-5">
           <h1 className="text-xl font-bold tracking-tight">Live Integrations</h1>
-          <p className="text-sm text-zinc-500 mt-1">Manage connections to social platforms and AWS infrastructure</p>
+          <p className="text-sm text-zinc-500 mt-1">Manage connections, publish content, and monitor platform status</p>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-6">
-        <Tabs defaultValue="social" className="space-y-5">
+        <Tabs defaultValue="publish" className="space-y-5">
           <TabsList className="bg-zinc-900 border border-zinc-800">
-            <TabsTrigger value="social" className="data-[state=active]:bg-zinc-800" data-testid="tab-social">Social Platforms</TabsTrigger>
+            <TabsTrigger value="publish" className="data-[state=active]:bg-zinc-800" data-testid="tab-publish">Publish</TabsTrigger>
+            <TabsTrigger value="social" className="data-[state=active]:bg-zinc-800" data-testid="tab-social">Connections</TabsTrigger>
             <TabsTrigger value="infra" className="data-[state=active]:bg-zinc-800" data-testid="tab-infra">Infrastructure</TabsTrigger>
             <TabsTrigger value="results" className="data-[state=active]:bg-zinc-800" data-testid="tab-results">
               Test Results {Object.keys(testResults).length > 0 && `(${Object.keys(testResults).length})`}
             </TabsTrigger>
           </TabsList>
 
-          {/* Social tab */}
+          {/* Publish tab */}
+          <TabsContent value="publish" className="space-y-4">
+            <CardDescription className="text-zinc-500 text-sm">
+              Compose and publish content to your connected social platforms in one click.
+            </CardDescription>
+            <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base text-zinc-200">Compose Post</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PublishComposer platforms={platforms} onPublish={handlePublish} publishing={publishing} />
+              </CardContent>
+            </Card>
+            <PublishResults result={publishResult} />
+            <PublishHistory history={publishHistory} />
+          </TabsContent>
+
+          {/* Social Connections tab */}
           <TabsContent value="social" className="space-y-4">
             <CardDescription className="text-zinc-500 text-sm">
               Connect Twitter/X, TikTok, and Snapchat for live content distribution and metrics.
@@ -321,7 +580,7 @@ export default function LiveIntegrationsPage() {
             {Object.keys(testResults).length === 0 ? (
               <Card className="border-zinc-800 bg-zinc-900/40">
                 <CardContent className="p-8 text-center">
-                  <p className="text-sm text-zinc-500">No tests run yet. Go to Social Platforms and click "Test".</p>
+                  <p className="text-sm text-zinc-500">No tests run yet. Go to Connections and click "Test".</p>
                 </CardContent>
               </Card>
             ) : (
