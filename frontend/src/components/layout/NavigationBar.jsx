@@ -250,6 +250,7 @@ const NavigationBar = () => {
                   <Link to="/usage-analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Usage Analytics</Link>
                   <Link to="/qldb" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Dispute Ledger</Link>
                   <Link to="/enterprise" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Enterprise Command</Link>
+                  <Link to="/integrations" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-integrations-link">Live Integrations</Link>
                 </div>
               )}
             </div>

@@ -778,6 +778,100 @@ class FacebookAdapter(BasePlatformAdapter):
 
 
 # ─────────────────────────────────────────────
+# SNAPCHAT ADAPTER (Ads / Creative API)
+# ─────────────────────────────────────────────
+class SnapchatAdapter(BasePlatformAdapter):
+    platform_id = "snapchat"
+    platform_name = "Snapchat"
+    required_credentials = ["api_token"]
+
+    async def deliver(self, content: dict, credentials: dict, file_path: str = None) -> DeliveryResult:
+        api_token = credentials.get("api_token") or os.environ.get("SNAPCHAT_API_TOKEN", "")
+        if not api_token:
+            return DeliveryResult(False, message="Missing Snapchat api_token")
+
+        title = content.get("title", "New Content")
+        description = content.get("description", "")
+        public_url = self.get_public_file_url(content)
+        content_type = content.get("content_type", "")
+
+        try:
+            async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+                # Step 1: List organizations to verify token
+                org_resp = await client.get(
+                    "https://adsapi.snapchat.com/v1/me/organizations",
+                    headers={"Authorization": f"Bearer {api_token}"},
+                )
+                if org_resp.status_code != 200:
+                    return DeliveryResult(False, message=f"Snapchat auth failed: {org_resp.status_code} {org_resp.text[:200]}")
+
+                orgs = org_resp.json().get("organizations", [])
+                if not orgs:
+                    return DeliveryResult(False, message="No Snapchat organizations found")
+
+                org_id = orgs[0].get("organization", {}).get("id", "")
+
+                # Step 2: List ad accounts
+                acct_resp = await client.get(
+                    f"https://adsapi.snapchat.com/v1/organizations/{org_id}/adaccounts",
+                    headers={"Authorization": f"Bearer {api_token}"},
+                )
+                ad_accounts = []
+                if acct_resp.status_code == 200:
+                    ad_accounts = acct_resp.json().get("adaccounts", [])
+
+                # Step 3: Create a creative (media creative) if we have a media URL
+                creative_id = None
+                if public_url or (file_path and os.path.exists(file_path)):
+                    media_url = public_url or ""
+                    creative_payload = {
+                        "creatives": [{
+                            "creative": {
+                                "name": title[:255],
+                                "type": "SNAP_AD",
+                                "headline": title[:34],
+                                "brand_name": content.get("metadata", {}).get("basic", {}).get("artist", "Big Mann Entertainment")[:25],
+                                "top_snap_media_id": "",
+                                "call_to_action": "VIEW",
+                                "shareable": True,
+                            }
+                        }]
+                    }
+
+                    if ad_accounts:
+                        ad_acct_id = ad_accounts[0].get("adaccount", {}).get("id", "")
+                        if ad_acct_id:
+                            cr_resp = await client.post(
+                                f"https://adsapi.snapchat.com/v1/adaccounts/{ad_acct_id}/creatives",
+                                headers={
+                                    "Authorization": f"Bearer {api_token}",
+                                    "Content-Type": "application/json",
+                                },
+                                content=json.dumps(creative_payload),
+                            )
+                            if cr_resp.status_code in (200, 201):
+                                creatives = cr_resp.json().get("creatives", [])
+                                if creatives:
+                                    creative_id = creatives[0].get("creative", {}).get("id", "")
+
+                return DeliveryResult(
+                    True,
+                    platform_content_id=creative_id or "",
+                    message=f"Snapchat delivery processed. Org: {org_id}, Creative: {creative_id or 'metadata-only'}",
+                    response_data={
+                        "organization_id": org_id,
+                        "ad_accounts": len(ad_accounts),
+                        "creative_id": creative_id,
+                        "source_url": public_url,
+                    },
+                )
+
+        except Exception as e:
+            logger.error(f"Snapchat delivery error: {e}")
+            return DeliveryResult(False, message=f"Snapchat error: {str(e)[:200]}")
+
+
+# ─────────────────────────────────────────────
 # ADAPTER REGISTRY
 # ─────────────────────────────────────────────
 PLATFORM_ADAPTERS: Dict[str, BasePlatformAdapter] = {
@@ -791,6 +885,7 @@ PLATFORM_ADAPTERS: Dict[str, BasePlatformAdapter] = {
     "telegram": TelegramAdapter(),
     "instagram": InstagramAdapter(),
     "facebook": FacebookAdapter(),
+    "snapchat": SnapchatAdapter(),
 }
 
 

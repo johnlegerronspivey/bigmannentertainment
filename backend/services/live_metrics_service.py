@@ -387,6 +387,28 @@ async def _fetch_reddit(creds: Dict[str, str]) -> Optional[Dict]:
     }
 
 
+async def _fetch_snapchat(creds: Dict[str, str]) -> Optional[Dict]:
+    """Snapchat Ads API - get organization info."""
+    token = creds.get("api_token") or creds.get("access_token")
+    if not token:
+        return None
+    headers = {"Authorization": f"Bearer {token}"}
+    data = await _http_get("https://adsapi.snapchat.com/v1/me", headers)
+    if not data:
+        return None
+    return {
+        "followers": 0,
+        "posts": 0,
+        "engagement_rate": 0.0,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0,
+        "impressions": 0,
+        "reach": 0,
+        "account_status": "connected",
+    }
+
+
 # ── Adapter registry ──────────────────────────────────────────────────
 LIVE_ADAPTERS: Dict[str, Any] = {
     "twitter": _fetch_twitter,
@@ -399,6 +421,7 @@ LIVE_ADAPTERS: Dict[str, Any] = {
     "twitch": _fetch_twitch,
     "soundcloud": _fetch_soundcloud,
     "reddit": _fetch_reddit,
+    "snapchat": _fetch_snapchat,
     # YouTube Music shares YouTube credentials
     "youtube_music": _fetch_youtube,
     # Threads shares Instagram/Facebook token

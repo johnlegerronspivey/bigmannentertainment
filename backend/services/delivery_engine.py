@@ -19,13 +19,26 @@ RETRY_DELAY_SECONDS = 5
 
 
 async def _get_user_credentials(user_id: str, platform_id: str) -> Optional[dict]:
-    """Fetch saved credentials for a user+platform from the hub credentials collection."""
+    """Fetch saved credentials for a user+platform, with env-var fallback."""
     doc = await db.distribution_hub_credentials.find_one(
         {"user_id": user_id, "platform_id": platform_id, "connected": True},
         {"_id": 0},
     )
     if doc and doc.get("credentials"):
         return doc["credentials"]
+
+    # Env-var fallback for platforms with global/app-level keys
+    env_fallbacks = {
+        "twitter_x": {
+            "bearer_token": os.environ.get("TWITTER_BEARER_TOKEN", ""),
+        },
+        "snapchat": {
+            "api_token": os.environ.get("SNAPCHAT_API_TOKEN", ""),
+        },
+    }
+    fallback = env_fallbacks.get(platform_id, {})
+    if any(v for v in fallback.values()):
+        return {k: v for k, v in fallback.items() if v}
     return None
 
 

@@ -74,6 +74,7 @@ from cve_reporting_endpoints import router as cve_reporting_router
 from iac_endpoints import router as iac_router
 from ticketing_endpoints import router as ticketing_router
 from tenant_endpoints import router as tenant_router
+from live_integrations_api import router as live_integrations_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -110,7 +111,8 @@ routers = [
     cve_reporting_router,
     iac_router,
     ticketing_router,
-    tenant_router
+    tenant_router,
+    live_integrations_router
 ]
 
 for router in routers:
