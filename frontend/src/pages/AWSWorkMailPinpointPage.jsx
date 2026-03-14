@@ -203,6 +203,9 @@ export default function AWSWorkMailPinpointPage() {
     setWmLoading(false);
   }, []);
 
+  const [segmentsDeprecated, setSegmentsDeprecated] = useState(false);
+  const [campaignsDeprecated, setCampaignsDeprecated] = useState(false);
+
   const fetchPpApps = useCallback(async () => {
     setPpLoading(true);
     try {
@@ -219,8 +222,16 @@ export default function AWSWorkMailPinpointPage() {
         fetch(`${API}/api/aws-comms/pinpoint/segments/${appId}`, { headers: getHeaders() }),
         fetch(`${API}/api/aws-comms/pinpoint/campaigns/${appId}`, { headers: getHeaders() }),
       ]);
-      if (segR.ok) { const d = await segR.json(); setSegments(d.segments || []); }
-      if (campR.ok) { const d = await campR.json(); setCampaigns(d.campaigns || []); }
+      if (segR.ok) {
+        const d = await segR.json();
+        setSegments(d.segments || []);
+        setSegmentsDeprecated(!!d.deprecated);
+      }
+      if (campR.ok) {
+        const d = await campR.json();
+        setCampaigns(d.campaigns || []);
+        setCampaignsDeprecated(!!d.deprecated);
+      }
     } catch (e) { console.error(e); }
     setPpLoading(false);
   }, []);
@@ -544,29 +555,40 @@ export default function AWSWorkMailPinpointPage() {
                         <CardTitle className="text-base text-zinc-100">Audience Segments</CardTitle>
                         <CardDescription className="text-zinc-500 text-xs">Target audience groups for campaigns</CardDescription>
                       </div>
-                      <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/30">{segments.length} segments</Badge>
+                      {segmentsDeprecated ? (
+                        <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">Deprecated</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/30">{segments.length} segments</Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex gap-2" data-testid="create-segment-form">
-                      <input
-                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-blue-500 focus:outline-none"
-                        placeholder="Segment name"
-                        value={createSegName}
-                        onChange={(e) => setCreateSegName(e.target.value)}
-                        data-testid="create-segment-name"
-                      />
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs h-8" onClick={handleCreateSegment} disabled={creatingSeg || !createSegName.trim()} data-testid="create-segment-submit">
-                        {creatingSeg ? "Creating..." : "Create Segment"}
-                      </Button>
-                    </div>
-                    {segments.length === 0 ? (
+                    {segmentsDeprecated && (
+                      <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg" data-testid="segments-deprecated-notice">
+                        <p className="text-xs text-amber-400">AWS is deprecating Pinpoint engagement features (segments, campaigns). Consider migrating to Amazon Connect.</p>
+                      </div>
+                    )}
+                    {!segmentsDeprecated && (
+                      <div className="flex gap-2" data-testid="create-segment-form">
+                        <input
+                          className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-blue-500 focus:outline-none"
+                          placeholder="Segment name"
+                          value={createSegName}
+                          onChange={(e) => setCreateSegName(e.target.value)}
+                          data-testid="create-segment-name"
+                        />
+                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs h-8" onClick={handleCreateSegment} disabled={creatingSeg || !createSegName.trim()} data-testid="create-segment-submit">
+                          {creatingSeg ? "Creating..." : "Create Segment"}
+                        </Button>
+                      </div>
+                    )}
+                    {segments.length === 0 && !segmentsDeprecated ? (
                       <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-segments">No segments yet</p>
-                    ) : (
+                    ) : segments.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="pinpoint-segments-list">
                         {segments.map((s) => <SegmentCard key={s.segment_id} segment={s} onDelete={handleDeleteSegment} deleting={deleting} />)}
                       </div>
-                    )}
+                    ) : null}
                   </CardContent>
                 </Card>
 
@@ -578,17 +600,26 @@ export default function AWSWorkMailPinpointPage() {
                         <CardTitle className="text-base text-zinc-100">Campaigns</CardTitle>
                         <CardDescription className="text-zinc-500 text-xs">Marketing campaigns targeting your segments</CardDescription>
                       </div>
-                      <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-400 border-orange-500/30">{campaigns.length} campaigns</Badge>
+                      {campaignsDeprecated ? (
+                        <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">Deprecated</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-400 border-orange-500/30">{campaigns.length} campaigns</Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {campaigns.length === 0 ? (
+                    {campaignsDeprecated && (
+                      <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg" data-testid="campaigns-deprecated-notice">
+                        <p className="text-xs text-amber-400">AWS is deprecating Pinpoint engagement features (segments, campaigns). Consider migrating to Amazon Connect.</p>
+                      </div>
+                    )}
+                    {campaigns.length === 0 && !campaignsDeprecated ? (
                       <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-campaigns">No campaigns yet. Create a segment first, then build a campaign.</p>
-                    ) : (
+                    ) : campaigns.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="pinpoint-campaigns-list">
                         {campaigns.map((c) => <CampaignCard key={c.campaign_id} campaign={c} onDelete={handleDeleteCampaign} deleting={deleting} />)}
                       </div>
-                    )}
+                    ) : null}
                   </CardContent>
                 </Card>
               </>

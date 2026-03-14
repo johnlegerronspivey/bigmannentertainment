@@ -170,6 +170,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Publishing**: `POST /api/integrations/publish`, `GET /api/integrations/publish/history`, `POST /api/integrations/twitter/tweet`, `POST /api/integrations/tiktok/publish`, `POST /api/integrations/snapchat/publish`
 - **Media Processing**: `GET /api/aws-media/status`, `GET/POST /api/aws-media/mediaconvert/jobs`, `GET /api/aws-media/mediaconvert/presets`, `GET/POST /api/aws-media/transcribe/jobs`, `GET /api/aws-media/transcribe/languages`
 - **Live Streaming**: `GET /api/aws-livestream/status`, `GET/POST/DELETE /api/aws-livestream/ivs/channels`, `GET /api/aws-livestream/ivs/streams`, `GET/POST/DELETE /api/aws-livestream/mediapackage/channels`, `GET/POST/DELETE /api/aws-livestream/mediapackage/endpoints`, `GET /api/aws-livestream/mediapackage/formats`
+- **Communications**: `GET /api/aws-comms/status`, `GET /api/aws-comms/workmail/organizations`, `GET/POST/DELETE /api/aws-comms/workmail/users`, `GET /api/aws-comms/workmail/groups`, `GET/POST/DELETE /api/aws-comms/pinpoint/applications`, `GET/POST/DELETE /api/aws-comms/pinpoint/segments`, `GET/POST/DELETE /api/aws-comms/pinpoint/campaigns`, `POST /api/aws-comms/pinpoint/send-email`, `POST /api/aws-comms/pinpoint/send-sms`
 - Analytics: `GET /api/analytics/overview`, `GET /api/analytics/content-performance`
 - Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`
 - Demographics: `GET /api/analytics/demographics`, `GET /api/analytics/best-times`, `GET /api/analytics/geo`
@@ -182,6 +183,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `publish_history`
 - `mediaconvert_jobs`, `transcribe_jobs`
 - `ivs_channels`, `mediapackage_channels`, `mediapackage_endpoints`
+- `workmail_users`, `pinpoint_apps`, `pinpoint_segments`, `pinpoint_campaigns`
 
 ## 3rd Party Integrations
 - Stripe, PayPal (payments)
@@ -260,8 +262,24 @@ All features verified and signed off:
   - `awscli` 1.42.25 → 1.44.58 (GHSA-747p-wmpv-9c78)
 - **Final audit: 0 vulnerabilities** on both frontend and backend
 
+### Phase 20 - AWS Communications Integration (2026-03-14)
+- **AWS WorkMail** - Business email management:
+  - List/describe WorkMail organizations
+  - List/create/delete users within organizations
+  - Register/deregister users to WorkMail email
+  - List groups and distribution lists
+- **AWS Pinpoint** - Marketing campaigns & direct messaging:
+  - List/create/delete Pinpoint applications (projects)
+  - Audience segment management (deprecated by AWS - graceful fallback)
+  - Campaign management (deprecated by AWS - graceful fallback)
+  - Direct email and SMS messaging via Pinpoint
+  - Note: AWS is deprecating Pinpoint engagement features (segments, campaigns, journeys) by Oct 30, 2026. Recommend migrating to Amazon Connect.
+- **API Endpoints**: `/api/aws-comms/status`, `/api/aws-comms/workmail/organizations`, `/api/aws-comms/workmail/users`, `/api/aws-comms/workmail/groups`, `/api/aws-comms/pinpoint/applications`, `/api/aws-comms/pinpoint/segments`, `/api/aws-comms/pinpoint/campaigns`, `/api/aws-comms/pinpoint/send-email`, `/api/aws-comms/pinpoint/send-sms`
+- **Frontend**: `/aws-comms` page with WorkMail + Pinpoint tabs, org/user management, app/segment/campaign management with deprecation notices
+- **Navigation**: Added to Tools dropdown as "Communications"
+- **Testing**: Backend 100% core features passed (segments/campaigns return graceful deprecation responses), Frontend 100% passed
+
 ## Backlog
-- **P0 (Phase C)**: AWS WorkMail & AWS Pinpoint (business email + marketing campaigns)
 - **P0 (Phase D)**: AWS WAF & AWS Secrets Manager (security hardening)
 - **P1**: AWS Comprehend (sentiment analysis) + AWS Personalize (content recommendations)
 - **P1**: Amazon QuickSight (visual dashboards) + AWS Athena (S3 log analytics)

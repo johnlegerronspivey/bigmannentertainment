@@ -301,6 +301,8 @@ async def list_segments(application_id: str, current_user: User = Depends(get_cu
         segments = pp.list_segments(application_id)
         return {"segments": segments, "total": len(segments)}
     except Exception as e:
+        if "ForbiddenException" in str(e) or "deprecated" in str(e).lower():
+            return {"segments": [], "total": 0, "deprecated": True, "message": "Pinpoint engagement features (segments) are being deprecated by AWS. Consider using Amazon Connect."}
         logger.error(f"List segments error: {e}")
         raise HTTPException(500, f"Failed to list segments: {str(e)}")
 
@@ -321,6 +323,8 @@ async def create_segment(
         doc.pop("_id", None)
         return result
     except Exception as e:
+        if "ForbiddenException" in str(e) or "deprecated" in str(e).lower():
+            raise HTTPException(410, "Pinpoint segment creation is deprecated by AWS. Consider using Amazon Connect for engagement capabilities.")
         logger.error(f"Create segment error: {e}")
         raise HTTPException(500, f"Failed to create segment: {str(e)}")
 
@@ -354,6 +358,8 @@ async def list_campaigns(application_id: str, current_user: User = Depends(get_c
         campaigns = pp.list_campaigns(application_id)
         return {"campaigns": campaigns, "total": len(campaigns)}
     except Exception as e:
+        if "ForbiddenException" in str(e) or "deprecated" in str(e).lower():
+            return {"campaigns": [], "total": 0, "deprecated": True, "message": "Pinpoint engagement features (campaigns) are being deprecated by AWS. Consider using Amazon Connect."}
         logger.error(f"List campaigns error: {e}")
         raise HTTPException(500, f"Failed to list campaigns: {str(e)}")
 
