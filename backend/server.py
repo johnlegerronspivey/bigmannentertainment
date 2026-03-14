@@ -74,6 +74,7 @@ openapi_tags = [
     {"name": "Unified Label Network", "description": "ULN label registry and management."},
     {"name": "Digital Twin", "description": "Digital twin creation and management for media assets."},
     {"name": "AWS Media Processing", "description": "AWS MediaConvert transcoding and Transcribe captions/subtitles."},
+    {"name": "AWS Live Streaming", "description": "AWS IVS live streaming channels and MediaPackage video packaging."},
     {"name": "AWS", "description": "AWS service integration: S3, SES, CloudFront, Lambda, Rekognition."},
     {"name": "AWS Agency Platform", "description": "AWS-powered agency platform services."},
     {"name": "AWS CloudWatch Monitoring", "description": "CloudWatch metrics, alarms, and log monitoring."},
@@ -254,6 +255,7 @@ from routes.social_connections_routes import router as social_connections_router
 from moderation_endpoints import router as moderation_router
 from routes.distribution_hub_routes import router as distribution_hub_router
 from routes.aws_media_processing_routes import router as aws_media_processing_router
+from routes.aws_live_streaming_routes import router as aws_live_streaming_router
 
 core_routers = [
     licensing_router, agency_router, admin_router, auth_router,
@@ -264,6 +266,7 @@ core_routers = [
     notification_router, websocket_router, webhook_router,
     social_connections_router, moderation_router, distribution_hub_router,
     aws_media_processing_router,
+    aws_live_streaming_router,
 ]
 
 for r in core_routers:
