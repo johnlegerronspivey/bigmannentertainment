@@ -205,6 +205,21 @@ All features verified and signed off:
 - **P15**: Live Integrations Dashboard UI - VERIFIED
 - **P16**: Multi-Platform Write Actions & Publish UI - VERIFIED (2026-03-13)
 
+### Phase 17 - CVE Vulnerability Remediation (2026-02-27)
+- **Frontend: 11 CVE vulnerabilities resolved** via yarn resolutions:
+  - `minimatch` 10.2.2 → >=10.2.3 (CVE-2026-27903, CVE-2026-27904 — ReDoS HIGH)
+  - `hono` 4.12.2 → >=4.12.7 (CVE-2026-29045 arbitrary file access HIGH, CVE-2026-29086 cookie injection MODERATE, CVE-2026-29085 SSE injection MODERATE, prototype pollution MODERATE)
+  - `serialize-javascript` 6.0.2 → >=7.0.3 (RCE HIGH)
+  - `flatted` 3.3.2 → >=3.4.0 (CVE-2026-32141 DoS HIGH)
+  - `rollup` 2.79.2 → >=2.80.0 (CVE-2026-27606 path traversal HIGH)
+  - `svgo` 1.3.2 → >=2.8.1 (CVE-2026-29074 Billion Laughs DoS HIGH)
+  - `fast-xml-parser` 5.3.7 → >=5.3.8 (CVE-2026-27942 stack overflow LOW)
+  - `@tootallnate/once` 1.1.2 → >=3.0.1 (CVE-2026-3449 LOW)
+- **Backend: 2 CVE vulnerabilities resolved** via pip upgrade:
+  - `authlib` 1.6.6 → 1.6.7 (GHSA-7wc2-qxgw-g8gg)
+  - `awscli` 1.42.25 → 1.44.58 (GHSA-747p-wmpv-9c78)
+- **Final audit: 0 vulnerabilities** on both frontend and backend
+
 ## Backlog
 - **P1**: Post-scheduling functionality to connected social media accounts
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
