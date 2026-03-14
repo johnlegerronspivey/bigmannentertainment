@@ -73,6 +73,7 @@ openapi_tags = [
     {"name": "ULN Blockchain Integration", "description": "Unified Label Network blockchain integration."},
     {"name": "Unified Label Network", "description": "ULN label registry and management."},
     {"name": "Digital Twin", "description": "Digital twin creation and management for media assets."},
+    {"name": "AWS Media Processing", "description": "AWS MediaConvert transcoding and Transcribe captions/subtitles."},
     {"name": "AWS", "description": "AWS service integration: S3, SES, CloudFront, Lambda, Rekognition."},
     {"name": "AWS Agency Platform", "description": "AWS-powered agency platform services."},
     {"name": "AWS CloudWatch Monitoring", "description": "CloudWatch metrics, alarms, and log monitoring."},
@@ -252,6 +253,7 @@ from routes.webhook_routes import router as webhook_router
 from routes.social_connections_routes import router as social_connections_router
 from moderation_endpoints import router as moderation_router
 from routes.distribution_hub_routes import router as distribution_hub_router
+from routes.aws_media_processing_routes import router as aws_media_processing_router
 
 core_routers = [
     licensing_router, agency_router, admin_router, auth_router,
@@ -261,6 +263,7 @@ core_routers = [
     content_router, messaging_router, analytics_router,
     notification_router, websocket_router, webhook_router,
     social_connections_router, moderation_router, distribution_hub_router,
+    aws_media_processing_router,
 ]
 
 for r in core_routers:

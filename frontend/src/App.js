@@ -133,6 +133,7 @@ const CreatorAnalyticsPage = lazy(() => import("./pages/CreatorAnalyticsPage"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const LiveIntegrationsPage = lazy(() => import("./pages/LiveIntegrationsPage"));
 const OAuthCallbackPage = lazy(() => import("./pages/OAuthCallbackPage"));
+const AWSMediaProcessingPage = lazy(() => import("./pages/AWSMediaProcessingPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -238,6 +239,7 @@ function App() {
             <Route path="/creator-analytics" element={<ProtectedRoute><CreatorAnalyticsPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
             <Route path="/integrations" element={<ProtectedRoute><LiveIntegrationsPage /></ProtectedRoute>} />
+            <Route path="/aws-media" element={<ProtectedRoute><AWSMediaProcessingPage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}
