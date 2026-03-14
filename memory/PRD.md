@@ -171,6 +171,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Media Processing**: `GET /api/aws-media/status`, `GET/POST /api/aws-media/mediaconvert/jobs`, `GET /api/aws-media/mediaconvert/presets`, `GET/POST /api/aws-media/transcribe/jobs`, `GET /api/aws-media/transcribe/languages`
 - **Live Streaming**: `GET /api/aws-livestream/status`, `GET/POST/DELETE /api/aws-livestream/ivs/channels`, `GET /api/aws-livestream/ivs/streams`, `GET/POST/DELETE /api/aws-livestream/mediapackage/channels`, `GET/POST/DELETE /api/aws-livestream/mediapackage/endpoints`, `GET /api/aws-livestream/mediapackage/formats`
 - **Communications**: `GET /api/aws-comms/status`, `GET /api/aws-comms/workmail/organizations`, `GET/POST/DELETE /api/aws-comms/workmail/users`, `GET /api/aws-comms/workmail/groups`, `GET/POST/DELETE /api/aws-comms/pinpoint/applications`, `GET/POST/DELETE /api/aws-comms/pinpoint/segments`, `GET/POST/DELETE /api/aws-comms/pinpoint/campaigns`, `POST /api/aws-comms/pinpoint/send-email`, `POST /api/aws-comms/pinpoint/send-sms`
+- **Security**: `GET /api/aws-security/status`, `GET/POST/DELETE /api/aws-security/waf/web-acls`, `GET/POST/DELETE /api/aws-security/waf/ip-sets`, `GET /api/aws-security/waf/rule-groups`, `GET /api/aws-security/waf/managed-rules`, `GET/POST/PUT/DELETE /api/aws-security/secrets`, `POST /api/aws-security/secrets/{name}/rotate`
 - Analytics: `GET /api/analytics/overview`, `GET /api/analytics/content-performance`
 - Anomaly Detection: `POST /api/analytics/anomalies/scan`, `GET /api/analytics/anomalies`
 - Demographics: `GET /api/analytics/demographics`, `GET /api/analytics/best-times`, `GET /api/analytics/geo`
@@ -184,6 +185,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `mediaconvert_jobs`, `transcribe_jobs`
 - `ivs_channels`, `mediapackage_channels`, `mediapackage_endpoints`
 - `workmail_users`, `pinpoint_apps`, `pinpoint_segments`, `pinpoint_campaigns`
+- `waf_web_acls`, `waf_ip_sets`, `managed_secrets`
 
 ## 3rd Party Integrations
 - Stripe, PayPal (payments)
@@ -279,8 +281,30 @@ All features verified and signed off:
 - **Navigation**: Added to Tools dropdown as "Communications"
 - **Testing**: Backend 100% core features passed (segments/campaigns return graceful deprecation responses), Frontend 100% passed
 
+### Phase 21 - AWS Security Integration (2026-03-14)
+- **AWS WAF v2** - Web Application Firewall management:
+  - List/create/delete Web ACLs (REGIONAL and CLOUDFRONT scope)
+  - Web ACL detail view with rules, capacity, and visibility config
+  - List/create/delete IP Sets for blocklists/allowlists (IPv4/IPv6)
+  - IP Set detail view with address listing
+  - List custom rule groups
+  - List 15+ AWS Managed Rule Groups (CommonRuleSet, SQLi, XSS, etc.)
+  - List resources associated with Web ACLs
+- **AWS Secrets Manager** - Secure credential storage:
+  - List all secrets with metadata (created, changed, accessed dates, rotation status, tags)
+  - Describe secret metadata and version history
+  - Get secret value info (key count, type) without exposing plaintext
+  - Create/update/delete secrets with 7-day recovery window
+  - Force delete option (bypasses recovery)
+  - Secret rotation trigger with Lambda ARN and rotation schedule
+  - Secret tagging support
+  - Note: Secret names with slashes (e.g., bigmann/development/web3) handled via :path route params
+- **API Endpoints**: `/api/aws-security/status`, `/api/aws-security/waf/web-acls`, `/api/aws-security/waf/ip-sets`, `/api/aws-security/waf/rule-groups`, `/api/aws-security/waf/managed-rules`, `/api/aws-security/secrets`, `/api/aws-security/secrets/{name:path}`, `/api/aws-security/secrets/{name:path}/info`, `/api/aws-security/secrets/{name:path}/rotate`
+- **Frontend**: `/aws-security` page with WAF Firewall + Secrets Manager tabs, create/delete/detail views for all resources
+- **Navigation**: Added to Tools dropdown as "Security (WAF)"
+- **Testing**: Backend 100% (16/16 tests passed), Frontend 100% passed
+
 ## Backlog
-- **P0 (Phase D)**: AWS WAF & AWS Secrets Manager (security hardening)
 - **P1**: AWS Comprehend (sentiment analysis) + AWS Personalize (content recommendations)
 - **P1**: Amazon QuickSight (visual dashboards) + AWS Athena (S3 log analytics)
 - **P1**: Amazon Managed Blockchain
@@ -289,3 +313,4 @@ All features verified and signed off:
 - **P2**: Replace mock data in analytics with real API-sourced data
 - **P3**: Real-time WebSocket delivery status updates (currently uses polling)
 - **P3**: Revenue auto-import from platform APIs when credentials are connected
+
