@@ -135,6 +135,7 @@ const LiveIntegrationsPage = lazy(() => import("./pages/LiveIntegrationsPage"));
 const OAuthCallbackPage = lazy(() => import("./pages/OAuthCallbackPage"));
 const AWSMediaProcessingPage = lazy(() => import("./pages/AWSMediaProcessingPage"));
 const AWSLiveStreamingPage = lazy(() => import("./pages/AWSLiveStreamingPage"));
+const AWSWorkMailPinpointPage = lazy(() => import("./pages/AWSWorkMailPinpointPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -242,6 +243,7 @@ function App() {
             <Route path="/integrations" element={<ProtectedRoute><LiveIntegrationsPage /></ProtectedRoute>} />
             <Route path="/aws-media" element={<ProtectedRoute><AWSMediaProcessingPage /></ProtectedRoute>} />
             <Route path="/aws-livestream" element={<ProtectedRoute><AWSLiveStreamingPage /></ProtectedRoute>} />
+            <Route path="/aws-comms" element={<ProtectedRoute><AWSWorkMailPinpointPage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}
