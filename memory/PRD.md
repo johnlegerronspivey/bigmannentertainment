@@ -137,7 +137,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **Frontend**: React (CRA) + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI + MongoDB (Motor)
 - **File Storage**: Local disk `/app/uploads/content/`, `/app/uploads/hub/`
-- **CDN**: AWS CloudFront (d3brubd69k8lxz.cloudfront.net) -> S3 bigmann-entertainment-media
+- **CDN**: AWS CloudFront via `cdn.bigmannentertainment.com` (distribution E2LURX26QTXMXJ, backed by d3brubd69k8lxz.cloudfront.net) -> S3 bigmann-entertainment-media
 - **Key Routes**: `/app/backend/routes/` (24 core routers) + `/app/backend/api/` (78 endpoint routers)
 - **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
 
@@ -204,6 +204,12 @@ All features verified and signed off:
 - **P15**: Snapchat Live Integration (JWT + Adapter) - VERIFIED
 - **P15**: Live Integrations Dashboard UI - VERIFIED
 - **P16**: Multi-Platform Write Actions & Publish UI - VERIFIED (2026-03-13)
+
+### Phase 17.1 - CloudFront Custom Domain Setup (2026-03-14)
+- **ACM Certificate** - Created SSL certificate for `cdn.bigmannentertainment.com` in us-east-1 (ARN: `arn:aws:acm:us-east-1:314108682794:certificate/10607dd1-03b6-408d-acb9-33566fff9a60`) with DNS validation via Route 53
+- **CloudFront Alternate Domain** - Updated distribution E2LURX26QTXMXJ with custom domain `cdn.bigmannentertainment.com`, SNI-only SSL, TLSv1.2_2021 minimum
+- **Route 53 DNS Alias** - Created A-record alias `cdn.bigmannentertainment.com` -> CloudFront distribution in hosted zone Z21AGOWAOOGWWZ
+- **Backend .env Updated** - `CLOUDFRONT_DOMAIN` now set to `cdn.bigmannentertainment.com`
 
 ### Phase 17 - CVE Vulnerability Remediation (2026-02-27)
 - **Frontend: 11 CVE vulnerabilities resolved** via yarn resolutions:
