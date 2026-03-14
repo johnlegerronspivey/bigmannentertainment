@@ -76,6 +76,7 @@ openapi_tags = [
     {"name": "AWS Media Processing", "description": "AWS MediaConvert transcoding and Transcribe captions/subtitles."},
     {"name": "AWS Live Streaming", "description": "AWS IVS live streaming channels and MediaPackage video packaging."},
     {"name": "AWS Communications", "description": "AWS WorkMail business email and Pinpoint marketing campaigns."},
+    {"name": "AWS Security", "description": "AWS WAF firewall rules and Secrets Manager secret storage."},
     {"name": "AWS", "description": "AWS service integration: S3, SES, CloudFront, Lambda, Rekognition."},
     {"name": "AWS Agency Platform", "description": "AWS-powered agency platform services."},
     {"name": "AWS CloudWatch Monitoring", "description": "CloudWatch metrics, alarms, and log monitoring."},
@@ -258,6 +259,7 @@ from routes.distribution_hub_routes import router as distribution_hub_router
 from routes.aws_media_processing_routes import router as aws_media_processing_router
 from routes.aws_live_streaming_routes import router as aws_live_streaming_router
 from routes.aws_workmail_pinpoint_routes import router as aws_workmail_pinpoint_router
+from routes.aws_waf_secrets_routes import router as aws_waf_secrets_router
 
 core_routers = [
     licensing_router, agency_router, admin_router, auth_router,
@@ -270,6 +272,7 @@ core_routers = [
     aws_media_processing_router,
     aws_live_streaming_router,
     aws_workmail_pinpoint_router,
+    aws_waf_secrets_router,
 ]
 
 for r in core_routers:
