@@ -139,7 +139,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - **File Storage**: Local disk `/app/uploads/content/`, `/app/uploads/hub/`
 - **CDN**: AWS CloudFront via `cdn.bigmannentertainment.com` (distribution E2LURX26QTXMXJ, backed by d3brubd69k8lxz.cloudfront.net) -> S3 bigmann-entertainment-media
 - **Key Routes**: `/app/backend/routes/` (24 core routers) + `/app/backend/api/` (78 endpoint routers)
-- **Real-time**: WebSocket at `/api/ws/notifications` and `/api/ws/sla`
+- **WebSockets**: `/api/ws/sla`, `/api/ws/notifications`, `/api/ws/delivery`
 
 ### Backend Directory Structure
 ```
@@ -429,7 +429,6 @@ All features verified and signed off:
 ## Backlog
 - **P1**: Post-scheduling functionality to connected social media accounts
 - **P2**: Replace mock data in analytics with real API-sourced data
-- **P3**: Real-time WebSocket delivery status updates (currently uses polling)
 - **P3**: Revenue auto-import from platform APIs when credentials are connected
 
 ### Phase 24 - Content Lightbox / Full-Size Preview (2026-03-15)
@@ -450,3 +449,18 @@ All features verified and signed off:
 - **Frontend**: Updated `/content-management` page (`ContentManagementPage.jsx`)
 - **Testing**: 100% pass rate (17/17 frontend features verified)
 
+
+
+### Phase 25 - Real-Time WebSocket Delivery Status (2026-03-15)
+- **WebSocket Delivery Manager** (`/app/backend/utils/delivery_ws_manager.py`) - Per-user connection tracking with broadcast capabilities
+- **WebSocket Endpoint** - `/api/ws/delivery?user_id=<id>` for real-time delivery status updates
+  - Accepts user_id query param, rejects without (code 4001)
+  - Ping/pong keepalive support
+- **Delivery Engine Integration** - broadcasts `delivery_update` events on every status change (preparing, delivering, delivered, failed, export_ready) and `batch_progress` summaries after each delivery completes
+- **Frontend WebSocket Client** - DeliveryTracking component connects via WebSocket when an active batch exists
+  - Auto-reconnect with 3s backoff on disconnect
+  - Ping keepalive every 25s
+  - "Live" / "Reconnecting..." connection indicator with Wifi icon
+  - Falls back to initial HTTP fetch for current progress
+  - Replaces previous `setTimeout(poll, 3000)` polling approach
+- **Testing**: 100% pass rate (9/9 backend, all frontend tests passed)
