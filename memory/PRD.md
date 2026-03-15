@@ -186,6 +186,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `ivs_channels`, `mediapackage_channels`, `mediapackage_endpoints`
 - `workmail_users`, `pinpoint_apps`, `pinpoint_segments`, `pinpoint_campaigns`
 - `waf_web_acls`, `waf_ip_sets`, `managed_secrets`
+- `comprehend_analyses`
 
 ## 3rd Party Integrations
 - Stripe, PayPal (payments)
@@ -304,10 +305,57 @@ All features verified and signed off:
 - **Navigation**: Added to Tools dropdown as "Security (WAF)"
 - **Testing**: Backend 100% (16/16 tests passed), Frontend 100% passed
 
+### Phase 22 - AWS AI Analytics Integration (2026-03-15)
+- **AWS Comprehend** - Natural Language Processing for content analysis:
+  - Sentiment analysis (POSITIVE/NEGATIVE/NEUTRAL/MIXED with confidence scores)
+  - Named entity recognition (PERSON, ORGANIZATION, LOCATION, DATE, etc.)
+  - Key phrase extraction from content descriptions and comments
+  - PII detection (email, phone, address, SSN patterns)
+  - Dominant language detection
+  - Syntax/part-of-speech analysis
+  - Batch sentiment for up to 25 texts
+  - Analysis history stored in MongoDB
+- **AWS Personalize** - ML-powered content recommendations:
+  - Dataset group management for training recommendation models
+  - Campaign deployment for real-time recommendations
+  - Solution training with 22 built-in AWS recipes
+  - Event tracker management for user interaction data
+- **API Endpoints**: `/api/aws-ai/status`, `/api/aws-ai/comprehend/sentiment`, `/api/aws-ai/comprehend/entities`, `/api/aws-ai/comprehend/key-phrases`, `/api/aws-ai/comprehend/pii`, `/api/aws-ai/comprehend/language`, `/api/aws-ai/comprehend/syntax`, `/api/aws-ai/comprehend/batch-sentiment`, `/api/aws-ai/comprehend/endpoints`, `/api/aws-ai/comprehend/history`, `/api/aws-ai/personalize/dataset-groups`, `/api/aws-ai/personalize/campaigns`, `/api/aws-ai/personalize/solutions`, `/api/aws-ai/personalize/recipes`, `/api/aws-ai/personalize/datasets`, `/api/aws-ai/personalize/event-trackers`, `/api/aws-ai/personalize/recommendations`
+- **Frontend**: `/aws-ai-analytics` page with Comprehend + Personalize tabs
+- **Navigation**: Added to Tools dropdown as "AI Analytics"
+- **Testing**: 100% pass rate (31/31 backend, all frontend tests passed)
+
+### Phase 22.1 - AWS Data Analytics Integration (2026-03-15)
+- **Amazon QuickSight** - Business Intelligence dashboards:
+  - List/describe dashboards with sheet details
+  - Dataset and data source management
+  - Analysis listing and status tracking
+  - Note: Requires QuickSight subscription activation in AWS Console
+- **AWS Athena** - Interactive S3 log analytics:
+  - SQL Query Editor with database selection and query execution
+  - Query status polling with auto-refresh on completion
+  - Query result display with column headers and rows
+  - Work group management
+  - Database and table metadata exploration
+  - Saved named queries
+  - Recent execution history with scan size tracking
+- **API Endpoints**: `/api/aws-data/status`, `/api/aws-data/quicksight/dashboards`, `/api/aws-data/quicksight/datasets`, `/api/aws-data/quicksight/data-sources`, `/api/aws-data/quicksight/analyses`, `/api/aws-data/athena/work-groups`, `/api/aws-data/athena/databases`, `/api/aws-data/athena/tables`, `/api/aws-data/athena/saved-queries`, `/api/aws-data/athena/query`, `/api/aws-data/athena/query/{id}/status`, `/api/aws-data/athena/query/{id}/results`, `/api/aws-data/athena/executions`
+- **Frontend**: `/aws-data-analytics` page with QuickSight + Athena tabs
+- **Navigation**: Added to Tools dropdown as "Data Analytics"
+
+### Phase 22.2 - Amazon Managed Blockchain Integration (2026-03-15)
+- **Amazon Managed Blockchain** - Hyperledger Fabric & Ethereum network management:
+  - List/describe blockchain networks with framework details
+  - Network member management
+  - Node listing and detail view per member
+  - Governance proposal tracking
+  - Token-based accessor management
+  - Master-detail UI with network selection
+- **API Endpoints**: `/api/aws-blockchain/status`, `/api/aws-blockchain/networks`, `/api/aws-blockchain/networks/{id}`, `/api/aws-blockchain/networks/{id}/members`, `/api/aws-blockchain/networks/{id}/members/{mid}/nodes`, `/api/aws-blockchain/networks/{id}/proposals`, `/api/aws-blockchain/accessors`
+- **Frontend**: `/aws-blockchain` page with networks list and detail panel
+- **Navigation**: Added to Tools dropdown as "Managed Blockchain"
+
 ## Backlog
-- **P1**: AWS Comprehend (sentiment analysis) + AWS Personalize (content recommendations)
-- **P1**: Amazon QuickSight (visual dashboards) + AWS Athena (S3 log analytics)
-- **P1**: Amazon Managed Blockchain
 - **P1**: Post-scheduling functionality to connected social media accounts
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: Replace mock data in analytics with real API-sourced data
