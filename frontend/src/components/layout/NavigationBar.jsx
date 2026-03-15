@@ -258,6 +258,9 @@ const NavigationBar = () => {
                   <Link to="/aws-ai-analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-ai-link">AI Analytics</Link>
                   <Link to="/aws-data-analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-data-link">Data Analytics</Link>
                   <Link to="/aws-blockchain" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-blockchain-link">Managed Blockchain</Link>
+                  <Link to="/aws-ai-content" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-ai-content-link">AI Content (Translate/Polly)</Link>
+                  <Link to="/aws-messaging" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-messaging-link">Messaging & Events</Link>
+                  <Link to="/aws-infrastructure" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-infra-link">Infrastructure</Link>
                 </div>
               )}
             </div>

@@ -80,6 +80,9 @@ openapi_tags = [
     {"name": "AWS AI Analytics", "description": "AWS Comprehend NLP sentiment analysis and Personalize content recommendations."},
     {"name": "AWS Data Analytics", "description": "Amazon QuickSight BI dashboards and AWS Athena S3 log analytics."},
     {"name": "AWS Managed Blockchain", "description": "Amazon Managed Blockchain network and node management."},
+    {"name": "AWS AI Content", "description": "Amazon Translate, Polly TTS, Textract OCR, and SageMaker ML model management."},
+    {"name": "AWS Messaging & Events", "description": "Amazon Kinesis streaming, SNS notifications, SQS queues, and EventBridge event automation."},
+    {"name": "AWS Infrastructure", "description": "AWS Step Functions workflows, ElastiCache Redis/Memcached, and Neptune graph database."},
     {"name": "AWS", "description": "AWS service integration: S3, SES, CloudFront, Lambda, Rekognition."},
     {"name": "AWS Agency Platform", "description": "AWS-powered agency platform services."},
     {"name": "AWS CloudWatch Monitoring", "description": "CloudWatch metrics, alarms, and log monitoring."},
@@ -266,6 +269,9 @@ from routes.aws_waf_secrets_routes import router as aws_waf_secrets_router
 from routes.aws_ai_analytics_routes import router as aws_ai_analytics_router
 from routes.aws_data_analytics_routes import router as aws_data_analytics_router
 from routes.aws_blockchain_routes import router as aws_blockchain_router
+from routes.aws_ai_content_routes import router as aws_ai_content_router
+from routes.aws_messaging_routes import router as aws_messaging_router
+from routes.aws_infrastructure_routes import router as aws_infrastructure_router
 
 core_routers = [
     licensing_router, agency_router, admin_router, auth_router,
@@ -282,6 +288,9 @@ core_routers = [
     aws_ai_analytics_router,
     aws_data_analytics_router,
     aws_blockchain_router,
+    aws_ai_content_router,
+    aws_messaging_router,
+    aws_infrastructure_router,
 ]
 
 for r in core_routers:

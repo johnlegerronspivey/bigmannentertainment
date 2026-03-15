@@ -140,6 +140,9 @@ const AWSWafSecretsPage = lazy(() => import("./pages/AWSWafSecretsPage"));
 const AWSAIAnalyticsPage = lazy(() => import("./pages/AWSAIAnalyticsPage"));
 const AWSDataAnalyticsPage = lazy(() => import("./pages/AWSDataAnalyticsPage"));
 const AWSBlockchainPage = lazy(() => import("./pages/AWSBlockchainPage"));
+const AWSAIContentPage = lazy(() => import("./pages/AWSAIContentPage"));
+const AWSMessagingPage = lazy(() => import("./pages/AWSMessagingPage"));
+const AWSInfrastructurePage = lazy(() => import("./pages/AWSInfrastructurePage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -252,6 +255,9 @@ function App() {
             <Route path="/aws-ai-analytics" element={<ProtectedRoute><AWSAIAnalyticsPage /></ProtectedRoute>} />
             <Route path="/aws-data-analytics" element={<ProtectedRoute><AWSDataAnalyticsPage /></ProtectedRoute>} />
             <Route path="/aws-blockchain" element={<ProtectedRoute><AWSBlockchainPage /></ProtectedRoute>} />
+            <Route path="/aws-ai-content" element={<ProtectedRoute><AWSAIContentPage /></ProtectedRoute>} />
+            <Route path="/aws-messaging" element={<ProtectedRoute><AWSMessagingPage /></ProtectedRoute>} />
+            <Route path="/aws-infrastructure" element={<ProtectedRoute><AWSInfrastructurePage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}
