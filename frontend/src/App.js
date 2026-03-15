@@ -137,6 +137,9 @@ const AWSMediaProcessingPage = lazy(() => import("./pages/AWSMediaProcessingPage
 const AWSLiveStreamingPage = lazy(() => import("./pages/AWSLiveStreamingPage"));
 const AWSWorkMailPinpointPage = lazy(() => import("./pages/AWSWorkMailPinpointPage"));
 const AWSWafSecretsPage = lazy(() => import("./pages/AWSWafSecretsPage"));
+const AWSAIAnalyticsPage = lazy(() => import("./pages/AWSAIAnalyticsPage"));
+const AWSDataAnalyticsPage = lazy(() => import("./pages/AWSDataAnalyticsPage"));
+const AWSBlockchainPage = lazy(() => import("./pages/AWSBlockchainPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -246,6 +249,9 @@ function App() {
             <Route path="/aws-livestream" element={<ProtectedRoute><AWSLiveStreamingPage /></ProtectedRoute>} />
             <Route path="/aws-comms" element={<ProtectedRoute><AWSWorkMailPinpointPage /></ProtectedRoute>} />
             <Route path="/aws-security" element={<ProtectedRoute><AWSWafSecretsPage /></ProtectedRoute>} />
+            <Route path="/aws-ai-analytics" element={<ProtectedRoute><AWSAIAnalyticsPage /></ProtectedRoute>} />
+            <Route path="/aws-data-analytics" element={<ProtectedRoute><AWSDataAnalyticsPage /></ProtectedRoute>} />
+            <Route path="/aws-blockchain" element={<ProtectedRoute><AWSBlockchainPage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}

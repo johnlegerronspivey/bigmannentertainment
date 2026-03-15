@@ -255,6 +255,9 @@ const NavigationBar = () => {
                   <Link to="/aws-livestream" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-livestream-link">Live Streaming</Link>
                   <Link to="/aws-comms" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-comms-link">Communications</Link>
                   <Link to="/aws-security" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-security-link">Security (WAF)</Link>
+                  <Link to="/aws-ai-analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-ai-link">AI Analytics</Link>
+                  <Link to="/aws-data-analytics" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-data-link">Data Analytics</Link>
+                  <Link to="/aws-blockchain" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-blockchain-link">Managed Blockchain</Link>
                 </div>
               )}
             </div>
