@@ -355,6 +355,76 @@ All features verified and signed off:
 - **Frontend**: `/aws-blockchain` page with networks list and detail panel
 - **Navigation**: Added to Tools dropdown as "Managed Blockchain"
 
+### Phase 23 - AWS Phase F: AI Content, Messaging & Infrastructure (2026-03-15)
+- **Amazon Translate** - Multi-language content translation:
+  - Real-time text translation between 75+ languages
+  - Auto-detect source language
+  - Custom terminology and parallel data management
+- **Amazon Polly** - Text-to-speech for audio content:
+  - 100+ voices across 30+ languages
+  - Neural and standard engine support
+  - Lexicon management, speech synthesis tasks
+- **Amazon Textract** - Extract text from images/documents:
+  - OCR text detection from S3-hosted documents
+  - Table and form extraction
+  - Async document analysis with job tracking
+  - Custom adapter support
+- **Amazon SageMaker** - ML model management:
+  - Notebook instance listing and monitoring
+  - Training job tracking and management
+  - Model deployment and endpoint monitoring
+  - Processing jobs and feature group management
+- **Amazon Kinesis** - Real-time data streaming:
+  - Data stream listing with shard and encryption details
+  - Firehose delivery stream management
+  - Stream metrics and consumer monitoring
+- **Amazon SNS** - Simple Notification Service:
+  - Topic listing with subscription counts
+  - Subscription management by topic
+  - Platform application listing
+  - Message publishing to topics
+- **Amazon SQS** - Simple Queue Service:
+  - Queue listing with message depth metrics
+  - FIFO and standard queue support
+  - Queue attribute inspection
+  - Send message and purge operations
+- **Amazon EventBridge** - Event-driven automation:
+  - Event bus management (default + custom)
+  - Rule listing with state and schedule
+  - Target inspection per rule
+  - Archive and API destination management
+  - Connection management
+- **AWS Step Functions** - Workflow orchestration:
+  - State machine listing (STANDARD/EXPRESS)
+  - Execution tracking with status filtering
+  - Execution detail view with I/O
+  - Activity management
+- **Amazon ElastiCache** - Redis/Memcached caching:
+  - Cache cluster listing with node info
+  - Replication group management (Multi-AZ, auto failover)
+  - Snapshot management
+  - Reserved node and subnet group listing
+- **Amazon Neptune** - Graph database:
+  - Graph DB cluster listing with endpoint info
+  - Instance management per cluster
+  - Cluster snapshot management
+  - Parameter group and subnet group listing
+- **API Endpoints**: 
+  - `/api/aws-ai-content/status`, `/api/aws-ai-content/translate/text`, `/api/aws-ai-content/translate/languages`, `/api/aws-ai-content/translate/terminologies`, `/api/aws-ai-content/translate/parallel-data`
+  - `/api/aws-ai-content/polly/voices`, `/api/aws-ai-content/polly/synthesize`, `/api/aws-ai-content/polly/lexicons`, `/api/aws-ai-content/polly/tasks`
+  - `/api/aws-ai-content/textract/analyze`, `/api/aws-ai-content/textract/detect-text`, `/api/aws-ai-content/textract/start-analysis`, `/api/aws-ai-content/textract/analysis/{job_id}`, `/api/aws-ai-content/textract/adapters`
+  - `/api/aws-ai-content/sagemaker/notebooks`, `/api/aws-ai-content/sagemaker/training-jobs`, `/api/aws-ai-content/sagemaker/models`, `/api/aws-ai-content/sagemaker/endpoints`, `/api/aws-ai-content/sagemaker/processing-jobs`, `/api/aws-ai-content/sagemaker/feature-groups`
+  - `/api/aws-messaging/status`, `/api/aws-messaging/kinesis/streams`, `/api/aws-messaging/kinesis/firehose`, `/api/aws-messaging/kinesis/streams/{name}`, `/api/aws-messaging/kinesis/streams/{name}/metrics`
+  - `/api/aws-messaging/sns/topics`, `/api/aws-messaging/sns/subscriptions`, `/api/aws-messaging/sns/platform-applications`, `/api/aws-messaging/sns/publish`
+  - `/api/aws-messaging/sqs/queues`, `/api/aws-messaging/sqs/queue-details`, `/api/aws-messaging/sqs/send`, `/api/aws-messaging/sqs/purge`
+  - `/api/aws-messaging/eventbridge/buses`, `/api/aws-messaging/eventbridge/rules`, `/api/aws-messaging/eventbridge/rules/{name}/targets`, `/api/aws-messaging/eventbridge/archives`, `/api/aws-messaging/eventbridge/connections`, `/api/aws-messaging/eventbridge/api-destinations`
+  - `/api/aws-infra/status`, `/api/aws-infra/stepfunctions/state-machines`, `/api/aws-infra/stepfunctions/state-machines/{arn}`, `/api/aws-infra/stepfunctions/executions`, `/api/aws-infra/stepfunctions/execution/{arn}`, `/api/aws-infra/stepfunctions/activities`
+  - `/api/aws-infra/elasticache/clusters`, `/api/aws-infra/elasticache/replication-groups`, `/api/aws-infra/elasticache/snapshots`, `/api/aws-infra/elasticache/reserved-nodes`, `/api/aws-infra/elasticache/subnet-groups`
+  - `/api/aws-infra/neptune/clusters`, `/api/aws-infra/neptune/instances`, `/api/aws-infra/neptune/snapshots`, `/api/aws-infra/neptune/parameter-groups`, `/api/aws-infra/neptune/subnet-groups`
+- **Frontend**: 3 new pages - `/aws-ai-content`, `/aws-messaging`, `/aws-infrastructure`
+- **Navigation**: Added to Tools dropdown as "AI Content (Translate/Polly)", "Messaging & Events", "Infrastructure"
+- **Testing**: 100% pass rate (19/19 backend, all frontend tests passed)
+
 ## Backlog
 - **P1**: Post-scheduling functionality to connected social media accounts
 - **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
