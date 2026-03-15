@@ -11,6 +11,7 @@ from typing import Optional
 
 from config.database import db
 from services.platform_adapters import get_adapter, get_supported_platform_ids, DeliveryResult
+from utils.delivery_ws_manager import delivery_ws_manager
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +90,34 @@ async def _update_delivery(delivery_id: str, updates: dict):
     )
 
 
+async def _notify_delivery_status(delivery: dict, status: str, error_message: str = None):
+    """Broadcast delivery status change via WebSocket."""
+    user_id = delivery.get("user_id")
+    batch_id = delivery.get("batch_id")
+    if not user_id or not batch_id:
+        return
+    try:
+        await delivery_ws_manager.broadcast_delivery_update(
+            user_id=user_id,
+            batch_id=batch_id,
+            delivery_id=delivery["id"],
+            platform_id=delivery.get("platform_id", ""),
+            status=status,
+            error_message=error_message,
+        )
+    except Exception as e:
+        logger.debug(f"WS notify failed for delivery {delivery['id']}: {e}")
+
+
+async def _notify_batch_progress(batch_id: str, user_id: str):
+    """Compute and broadcast batch progress via WebSocket."""
+    try:
+        progress = await get_batch_progress(batch_id, user_id)
+        await delivery_ws_manager.broadcast_batch_progress(user_id, batch_id, progress)
+    except Exception as e:
+        logger.debug(f"WS batch progress failed for {batch_id}: {e}")
+
+
 async def execute_delivery(delivery: dict):
     """
     Execute a single delivery: attempt real API push, fall back to export.
@@ -104,6 +133,7 @@ async def execute_delivery(delivery: dict):
 
     # Mark as preparing
     await _update_delivery(delivery_id, {"status": "preparing"})
+    await _notify_delivery_status(delivery, "preparing")
 
     # If it's an export_package method, skip API push and generate package
     if delivery_method == "export_package":
@@ -111,6 +141,7 @@ async def execute_delivery(delivery: dict):
             "status": "export_ready",
             "platform_response": {"method": "export_package", "message": "Ready for manual export/upload"},
         })
+        await _notify_delivery_status(delivery, "export_ready")
         return
 
     # --- API Push delivery ---
@@ -124,6 +155,7 @@ async def execute_delivery(delivery: dict):
             "error_message": "Content not found",
             "platform_response": {"error": "Content not found"},
         })
+        await _notify_delivery_status(delivery, "failed", "Content not found")
         return
 
     # Get adapter
@@ -137,6 +169,7 @@ async def execute_delivery(delivery: dict):
                 "message": f"No live adapter for {platform_id}; ready for manual export",
             },
         })
+        await _notify_delivery_status(delivery, "export_ready")
         return
 
     # Get credentials
@@ -149,6 +182,7 @@ async def execute_delivery(delivery: dict):
                 "message": f"No credentials saved for {platform_id}; connect your account to enable auto-push",
             },
         })
+        await _notify_delivery_status(delivery, "export_ready")
         return
 
     # Resolve file path and public URL
@@ -157,6 +191,7 @@ async def execute_delivery(delivery: dict):
 
     # Mark as delivering
     await _update_delivery(delivery_id, {"status": "delivering"})
+    await _notify_delivery_status(delivery, "delivering")
 
     # Attempt delivery with retries
     result = None
@@ -183,6 +218,7 @@ async def execute_delivery(delivery: dict):
             "error_message": None,
             "retry_count": retry,
         })
+        await _notify_delivery_status(delivery, "delivered")
         logger.info(f"Delivery {delivery_id} -> {platform_id} SUCCEEDED")
     else:
         error_msg = result.message if result else "Unknown error"
@@ -192,6 +228,7 @@ async def execute_delivery(delivery: dict):
             "error_message": error_msg,
             "retry_count": retry,
         })
+        await _notify_delivery_status(delivery, "failed", error_msg)
         logger.warning(f"Delivery {delivery_id} -> {platform_id} FAILED: {error_msg}")
 
 
@@ -218,9 +255,14 @@ async def process_delivery_batch(batch_id: str, user_id: str):
     async def run_with_semaphore(delivery):
         async with semaphore:
             await execute_delivery(delivery)
+            # Broadcast updated batch progress after each delivery completes
+            await _notify_batch_progress(batch_id, user_id)
 
     tasks = [run_with_semaphore(d) for d in deliveries]
     await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Final batch progress broadcast
+    await _notify_batch_progress(batch_id, user_id)
 
     logger.info(f"Batch {batch_id} processing complete")
 

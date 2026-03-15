@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight, Layers, Mic, Share2, Plus, Trash2, Edit3, Copy, Camera, Monitor, Hexagon, Star, Eye, EyeOff } from "lucide-react";
+import { Send, Upload, Package, Shield, Radio, Film, Music, Image, Video, ChevronDown, ChevronRight, Check, X, RefreshCw, Search, Download, Globe, Zap, BarChart3, FileText, Link2, Clock, CheckCircle2, AlertCircle, Loader2, ArrowRight, Layers, Mic, Share2, Plus, Trash2, Edit3, Copy, Camera, Monitor, Hexagon, Star, Eye, EyeOff, Wifi, WifiOff } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -492,28 +492,90 @@ function DistributeTab({ content, platforms, onDistribute, distributing, templat
 // ──────────────────────────────────────────────
 // DELIVERY TRACKING TAB
 // ──────────────────────────────────────────────
-function DeliveryTracking({ deliveries, loading, onRefresh, onMarkDelivered, onExport, onRetry, activeBatchId }) {
+function DeliveryTracking({ deliveries, loading, onRefresh, onMarkDelivered, onExport, onRetry, activeBatchId, userId }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [batchProgress, setBatchProgress] = useState(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const wsRef = useRef(null);
+  const pingRef = useRef(null);
   const filtered = statusFilter === "all" ? deliveries : deliveries.filter((d) => d.status === statusFilter);
 
-  // Auto-poll batch progress if there's an active batch
+  // WebSocket connection for real-time delivery updates
   useEffect(() => {
-    if (!activeBatchId) { setBatchProgress(null); return; }
+    if (!activeBatchId || !userId) { setBatchProgress(null); setWsConnected(false); return; }
+
+    const wsUrl = API.replace(/^http/, "ws") + `/api/ws/delivery?user_id=${userId}`;
+    let ws;
+    let reconnectTimeout;
     let active = true;
-    const poll = async () => {
+
+    const connect = () => {
+      if (!active) return;
+      ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        setWsConnected(true);
+        // Start ping keepalive every 25s
+        pingRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) ws.send("ping");
+        }, 25000);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "pong" || data.type === "heartbeat") return;
+
+          if (data.type === "batch_progress" && data.batch_id === activeBatchId) {
+            setBatchProgress(data);
+            if (data.is_complete) {
+              setBatchProgress(null);
+              onRefresh();
+            }
+          }
+
+          if (data.type === "delivery_update" && data.batch_id === activeBatchId) {
+            // Refresh deliveries list when individual delivery updates arrive
+            onRefresh();
+          }
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        setWsConnected(false);
+        if (pingRef.current) clearInterval(pingRef.current);
+        // Reconnect after 3s if still active
+        if (active) reconnectTimeout = setTimeout(connect, 3000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    };
+
+    connect();
+
+    // Also do an initial HTTP fetch for current progress
+    (async () => {
       try {
         const data = await apiFetch(`/deliveries/batch/${activeBatchId}/progress`);
         if (active) {
           setBatchProgress(data);
-          if (!data.is_complete) setTimeout(poll, 3000);
-          else { onRefresh(); setBatchProgress(null); }
+          if (data.is_complete) { setBatchProgress(null); onRefresh(); }
         }
-      } catch { if (active) setTimeout(poll, 5000); }
+      } catch {}
+    })();
+
+    return () => {
+      active = false;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (pingRef.current) clearInterval(pingRef.current);
+      if (ws && ws.readyState <= WebSocket.OPEN) ws.close();
+      wsRef.current = null;
+      setWsConnected(false);
     };
-    poll();
-    return () => { active = false; };
-  }, [activeBatchId, onRefresh]);
+  }, [activeBatchId, userId, onRefresh]);
 
   return (
     <div data-testid="delivery-tracking">
@@ -525,7 +587,13 @@ function DeliveryTracking({ deliveries, loading, onRefresh, onMarkDelivered, onE
               <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
               <span className="text-white font-medium text-sm">Delivering to {batchProgress.total} platforms...</span>
             </div>
-            <span className="text-indigo-300 font-bold">{batchProgress.progress_pct}%</span>
+            <div className="flex items-center gap-3">
+              <span data-testid="ws-status" className={`flex items-center gap-1 text-xs ${wsConnected ? "text-emerald-400" : "text-yellow-400"}`}>
+                {wsConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                {wsConnected ? "Live" : "Reconnecting..."}
+              </span>
+              <span className="text-indigo-300 font-bold">{batchProgress.progress_pct}%</span>
+            </div>
           </div>
           <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden mb-2">
             <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${batchProgress.progress_pct}%` }} />
@@ -1242,6 +1310,16 @@ export default function DistributionHubPage() {
   const [distributing, setDistributing] = useState(false);
   const [activeBatchId, setActiveBatchId] = useState(null);
 
+  // Extract user ID from JWT for WebSocket connection
+  const userId = React.useMemo(() => {
+    try {
+      const token = getToken();
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.user_id || payload.sub || payload.id || null;
+    } catch { return null; }
+  }, []);
+
   const load = useCallback(async (key, path, setter) => {
     setLoading((prev) => ({ ...prev, [key]: true }));
     try {
@@ -1440,7 +1518,7 @@ export default function DistributionHubPage() {
         {activeTab === "content" && <ContentLibrary content={content} loading={loading.content} onRefresh={() => load("content", "/content", (d) => setContent(d.content || []))} onAddContent={handleAddContent} />}
         {activeTab === "distribute" && <DistributeTab content={content} platforms={platforms} onDistribute={handleDistribute} distributing={distributing} templates={templates} />}
         {activeTab === "templates" && <TemplatesTab templates={templates} loading={loading.templates} platforms={platforms} onCreateTemplate={handleCreateTemplate} onUpdateTemplate={handleUpdateTemplate} onDeleteTemplate={handleDeleteTemplate} onRefresh={() => load("templates", "/templates", (d) => setTemplates(d.templates || []))} />}
-        {activeTab === "tracking" && <DeliveryTracking deliveries={deliveries} loading={loading.deliveries} onRefresh={() => load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []))} onMarkDelivered={handleMarkDelivered} onExport={handleExport} onRetry={handleRetryDelivery} activeBatchId={activeBatchId} />}
+        {activeTab === "tracking" && <DeliveryTracking deliveries={deliveries} loading={loading.deliveries} onRefresh={() => load("deliveries", "/deliveries", (d) => setDeliveries(d.deliveries || []))} onMarkDelivered={handleMarkDelivered} onExport={handleExport} onRetry={handleRetryDelivery} activeBatchId={activeBatchId} userId={userId} />}
         {activeTab === "rights" && <RightsMetadataTab content={content} onUpdateMetadata={handleUpdateMetadata} />}
         {activeTab === "connections" && <PlatformConnectionsTab connectedPlatforms={connectedPlatforms} onConnect={handleConnectPlatform} onDisconnect={handleDisconnectPlatform} />}
       </div>
