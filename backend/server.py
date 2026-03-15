@@ -75,7 +75,7 @@ openapi_tags = [
     {"name": "Digital Twin", "description": "Digital twin creation and management for media assets."},
     {"name": "AWS Media Processing", "description": "AWS MediaConvert transcoding and Transcribe captions/subtitles."},
     {"name": "AWS Live Streaming", "description": "AWS IVS live streaming channels and MediaPackage video packaging."},
-    {"name": "AWS Communications", "description": "AWS WorkMail business email and Pinpoint marketing campaigns."},
+    {"name": "AWS Communications", "description": "AWS WorkMail business email and Amazon Connect contact center."},
     {"name": "AWS Security", "description": "AWS WAF firewall rules and Secrets Manager secret storage."},
     {"name": "AWS AI Analytics", "description": "AWS Comprehend NLP sentiment analysis and Personalize content recommendations."},
     {"name": "AWS Data Analytics", "description": "Amazon QuickSight BI dashboards and AWS Athena S3 log analytics."},

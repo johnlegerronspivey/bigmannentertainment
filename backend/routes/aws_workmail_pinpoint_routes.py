@@ -1,4 +1,4 @@
-"""AWS WorkMail & Pinpoint routes - Business email + marketing campaigns."""
+"""AWS WorkMail & Amazon Connect routes - Business email + Contact center."""
 import logging
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Lazy-init services
 _wm_svc = None
-_pp_svc = None
+_cn_svc = None
 
 
 def _workmail():
@@ -24,12 +24,12 @@ def _workmail():
     return _wm_svc
 
 
-def _pinpoint():
-    global _pp_svc
-    if _pp_svc is None:
-        from services.pinpoint_service import PinpointService
-        _pp_svc = PinpointService()
-    return _pp_svc
+def _connect():
+    global _cn_svc
+    if _cn_svc is None:
+        from services.connect_service import ConnectService
+        _cn_svc = ConnectService()
+    return _cn_svc
 
 
 # ── Pydantic models ──────────────────────────────────────────────
@@ -46,58 +46,23 @@ class RegisterWorkmailUserRequest(BaseModel):
     email: str
 
 
-class CreatePinpointAppRequest(BaseModel):
-    name: str
-
-
-class CreateSegmentRequest(BaseModel):
-    application_id: str
-    name: str
-
-
-class CreateCampaignRequest(BaseModel):
-    application_id: str
-    name: str
-    segment_id: str
-    description: str = ""
-    email_subject: str = ""
-    email_html_body: str = ""
-    email_from: str = ""
-
-
-class SendEmailRequest(BaseModel):
-    application_id: str
-    to_address: str
-    subject: str
-    html_body: str
-    from_address: str
-
-
-class SendSmsRequest(BaseModel):
-    application_id: str
-    phone_number: str
-    body: str
-    message_type: str = "TRANSACTIONAL"
-
-
 # ══════════════════════════════════════════════════════════════════
 #  STATUS
 # ══════════════════════════════════════════════════════════════════
 @router.get("/status")
 async def comms_status(current_user: User = Depends(get_current_user)):
-    """Overall status of WorkMail + Pinpoint."""
+    """Overall status of WorkMail + Connect."""
     wm = _workmail()
-    pp = _pinpoint()
+    cn = _connect()
 
     wm_status = wm.get_status()
-    pp_status = pp.get_status()
+    cn_status = cn.get_status()
 
     wm_users = await db.workmail_users.count_documents({"user_id": current_user.id})
-    pp_apps = await db.pinpoint_apps.count_documents({"user_id": current_user.id})
 
     return {
         "workmail": {**wm_status, "total_users": wm_users},
-        "pinpoint": {**pp_status, "total_apps": pp_apps},
+        "connect": cn_status,
     }
 
 
@@ -224,249 +189,174 @@ async def list_workmail_groups(
 
 
 # ══════════════════════════════════════════════════════════════════
-#  PINPOINT - Applications
+#  AMAZON CONNECT - Instances
 # ══════════════════════════════════════════════════════════════════
-@router.get("/pinpoint/applications")
-async def list_pinpoint_apps(current_user: User = Depends(get_current_user)):
-    """List Pinpoint applications (projects)."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
+@router.get("/connect/instances")
+async def list_connect_instances(current_user: User = Depends(get_current_user)):
+    """List Amazon Connect instances."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
     try:
-        apps = pp.list_applications()
-        return {"applications": apps, "total": len(apps)}
+        instances = cn.list_instances()
+        return {"instances": instances, "total": len(instances)}
     except Exception as e:
-        logger.error(f"List apps error: {e}")
-        raise HTTPException(500, f"Failed to list applications: {str(e)}")
+        logger.error(f"List instances error: {e}")
+        raise HTTPException(500, f"Failed to list instances: {str(e)}")
 
 
-@router.post("/pinpoint/applications")
-async def create_pinpoint_app(
-    body: CreatePinpointAppRequest,
-    current_user: User = Depends(get_current_user),
-):
-    """Create a Pinpoint application."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
+@router.get("/connect/instances/{instance_id}")
+async def describe_connect_instance(instance_id: str, current_user: User = Depends(get_current_user)):
+    """Describe a Connect instance."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
     try:
-        result = pp.create_application(
-            body.name,
-            tags={"user_id": current_user.id, "Project": "BigMannEntertainment"},
-        )
-        doc = {**result, "user_id": current_user.id}
-        await db.pinpoint_apps.insert_one(doc)
-        doc.pop("_id", None)
-        return result
+        return cn.describe_instance(instance_id)
     except Exception as e:
-        logger.error(f"Create app error: {e}")
-        raise HTTPException(500, f"Failed to create application: {str(e)}")
-
-
-@router.get("/pinpoint/applications/{application_id}")
-async def get_pinpoint_app(application_id: str, current_user: User = Depends(get_current_user)):
-    """Get Pinpoint application details."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
-    try:
-        return pp.get_application(application_id)
-    except Exception as e:
-        raise HTTPException(404, f"Application not found: {str(e)}")
-
-
-@router.delete("/pinpoint/applications/{application_id}")
-async def delete_pinpoint_app(application_id: str, current_user: User = Depends(get_current_user)):
-    """Delete a Pinpoint application."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
-    success = pp.delete_application(application_id)
-    if success:
-        await db.pinpoint_apps.delete_one({"application_id": application_id})
-        return {"deleted": True}
-    raise HTTPException(500, "Failed to delete application")
+        raise HTTPException(404, f"Instance not found: {str(e)}")
 
 
 # ══════════════════════════════════════════════════════════════════
-#  PINPOINT - Segments
+#  AMAZON CONNECT - Queues
 # ══════════════════════════════════════════════════════════════════
-@router.get("/pinpoint/segments/{application_id}")
-async def list_segments(application_id: str, current_user: User = Depends(get_current_user)):
-    """List segments for a Pinpoint application."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
-    try:
-        segments = pp.list_segments(application_id)
-        return {"segments": segments, "total": len(segments)}
-    except Exception as e:
-        if "ForbiddenException" in str(e) or "deprecated" in str(e).lower():
-            return {"segments": [], "total": 0, "deprecated": True, "message": "Pinpoint engagement features (segments) are being deprecated by AWS. Consider using Amazon Connect."}
-        logger.error(f"List segments error: {e}")
-        raise HTTPException(500, f"Failed to list segments: {str(e)}")
-
-
-@router.post("/pinpoint/segments")
-async def create_segment(
-    body: CreateSegmentRequest,
+@router.get("/connect/queues")
+async def list_connect_queues(
+    instance_id: str = Query(..., description="Connect Instance ID"),
     current_user: User = Depends(get_current_user),
 ):
-    """Create an audience segment."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
+    """List queues for a Connect instance."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
     try:
-        result = pp.create_segment(body.application_id, body.name)
-        doc = {**result, "user_id": current_user.id}
-        await db.pinpoint_segments.insert_one(doc)
-        doc.pop("_id", None)
-        return result
+        queues = cn.list_queues(instance_id)
+        return {"queues": queues, "total": len(queues)}
     except Exception as e:
-        if "ForbiddenException" in str(e) or "deprecated" in str(e).lower():
-            raise HTTPException(410, "Pinpoint segment creation is deprecated by AWS. Consider using Amazon Connect for engagement capabilities.")
-        logger.error(f"Create segment error: {e}")
-        raise HTTPException(500, f"Failed to create segment: {str(e)}")
+        logger.error(f"List queues error: {e}")
+        raise HTTPException(500, f"Failed to list queues: {str(e)}")
 
 
-@router.delete("/pinpoint/segments/{application_id}/{segment_id}")
-async def delete_segment(
-    application_id: str, segment_id: str,
+@router.get("/connect/queues/{instance_id}/{queue_id}")
+async def describe_connect_queue(
+    instance_id: str, queue_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """Delete a Pinpoint segment."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
-    success = pp.delete_segment(application_id, segment_id)
-    if success:
-        await db.pinpoint_segments.delete_one({"segment_id": segment_id})
-        return {"deleted": True}
-    raise HTTPException(500, "Failed to delete segment")
+    """Describe a specific queue."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
+    try:
+        return cn.describe_queue(instance_id, queue_id)
+    except Exception as e:
+        raise HTTPException(404, f"Queue not found: {str(e)}")
 
 
 # ══════════════════════════════════════════════════════════════════
-#  PINPOINT - Campaigns
+#  AMAZON CONNECT - Contact Flows
 # ══════════════════════════════════════════════════════════════════
-@router.get("/pinpoint/campaigns/{application_id}")
-async def list_campaigns(application_id: str, current_user: User = Depends(get_current_user)):
-    """List campaigns for a Pinpoint application."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
-    try:
-        campaigns = pp.list_campaigns(application_id)
-        return {"campaigns": campaigns, "total": len(campaigns)}
-    except Exception as e:
-        if "ForbiddenException" in str(e) or "deprecated" in str(e).lower():
-            return {"campaigns": [], "total": 0, "deprecated": True, "message": "Pinpoint engagement features (campaigns) are being deprecated by AWS. Consider using Amazon Connect."}
-        logger.error(f"List campaigns error: {e}")
-        raise HTTPException(500, f"Failed to list campaigns: {str(e)}")
-
-
-@router.post("/pinpoint/campaigns")
-async def create_campaign(
-    body: CreateCampaignRequest,
+@router.get("/connect/contact-flows")
+async def list_contact_flows(
+    instance_id: str = Query(..., description="Connect Instance ID"),
     current_user: User = Depends(get_current_user),
 ):
-    """Create a marketing campaign."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
+    """List contact flows for a Connect instance."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
     try:
-        message_config = {}
-        if body.email_subject and body.email_html_body:
-            message_config["EmailMessage"] = {
-                "Title": body.email_subject,
-                "HtmlBody": body.email_html_body,
-                "FromAddress": body.email_from or "noreply@bigmannentertainment.com",
-            }
-
-        result = pp.create_campaign(
-            application_id=body.application_id,
-            name=body.name,
-            segment_id=body.segment_id,
-            message_config=message_config,
-            description=body.description,
-        )
-        doc = {**result, "user_id": current_user.id}
-        await db.pinpoint_campaigns.insert_one(doc)
-        doc.pop("_id", None)
-        return result
+        flows = cn.list_contact_flows(instance_id)
+        return {"contact_flows": flows, "total": len(flows)}
     except Exception as e:
-        logger.error(f"Create campaign error: {e}")
-        raise HTTPException(500, f"Failed to create campaign: {str(e)}")
-
-
-@router.get("/pinpoint/campaigns/{application_id}/{campaign_id}")
-async def get_campaign(
-    application_id: str, campaign_id: str,
-    current_user: User = Depends(get_current_user),
-):
-    """Get campaign details."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
-    try:
-        return pp.get_campaign(application_id, campaign_id)
-    except Exception as e:
-        raise HTTPException(404, f"Campaign not found: {str(e)}")
-
-
-@router.delete("/pinpoint/campaigns/{application_id}/{campaign_id}")
-async def delete_campaign(
-    application_id: str, campaign_id: str,
-    current_user: User = Depends(get_current_user),
-):
-    """Delete a campaign."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
-    success = pp.delete_campaign(application_id, campaign_id)
-    if success:
-        await db.pinpoint_campaigns.delete_one({"campaign_id": campaign_id})
-        return {"deleted": True}
-    raise HTTPException(500, "Failed to delete campaign")
+        logger.error(f"List contact flows error: {e}")
+        raise HTTPException(500, f"Failed to list contact flows: {str(e)}")
 
 
 # ══════════════════════════════════════════════════════════════════
-#  PINPOINT - Direct Messaging
+#  AMAZON CONNECT - Hours of Operation
 # ══════════════════════════════════════════════════════════════════
-@router.post("/pinpoint/send-email")
-async def send_email(
-    body: SendEmailRequest,
+@router.get("/connect/hours-of-operation")
+async def list_hours_of_operation(
+    instance_id: str = Query(..., description="Connect Instance ID"),
     current_user: User = Depends(get_current_user),
 ):
-    """Send a direct email via Pinpoint."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
+    """List hours of operation for a Connect instance."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
     try:
-        result = pp.send_email_message(
-            body.application_id, body.to_address,
-            body.subject, body.html_body, body.from_address,
-        )
-        return result
+        hours = cn.list_hours_of_operation(instance_id)
+        return {"hours_of_operation": hours, "total": len(hours)}
     except Exception as e:
-        logger.error(f"Send email error: {e}")
-        raise HTTPException(500, f"Failed to send email: {str(e)}")
+        logger.error(f"List hours error: {e}")
+        raise HTTPException(500, f"Failed to list hours of operation: {str(e)}")
 
 
-@router.post("/pinpoint/send-sms")
-async def send_sms(
-    body: SendSmsRequest,
+@router.get("/connect/hours-of-operation/{instance_id}/{hours_id}")
+async def describe_hours_of_op(
+    instance_id: str, hours_id: str,
     current_user: User = Depends(get_current_user),
 ):
-    """Send an SMS message via Pinpoint."""
-    pp = _pinpoint()
-    if not pp.available:
-        raise HTTPException(503, "Pinpoint not available")
+    """Describe hours of operation."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
     try:
-        result = pp.send_sms_message(
-            body.application_id, body.phone_number,
-            body.body, body.message_type,
-        )
-        return result
+        return cn.describe_hours_of_operation(instance_id, hours_id)
     except Exception as e:
-        logger.error(f"Send SMS error: {e}")
-        raise HTTPException(500, f"Failed to send SMS: {str(e)}")
+        raise HTTPException(404, f"Hours of operation not found: {str(e)}")
+
+
+# ══════════════════════════════════════════════════════════════════
+#  AMAZON CONNECT - Users
+# ══════════════════════════════════════════════════════════════════
+@router.get("/connect/users")
+async def list_connect_users(
+    instance_id: str = Query(..., description="Connect Instance ID"),
+    current_user: User = Depends(get_current_user),
+):
+    """List users in a Connect instance."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
+    try:
+        users = cn.list_users(instance_id)
+        return {"users": users, "total": len(users)}
+    except Exception as e:
+        logger.error(f"List users error: {e}")
+        raise HTTPException(500, f"Failed to list users: {str(e)}")
+
+
+@router.get("/connect/users/{instance_id}/{user_id}")
+async def describe_connect_user(
+    instance_id: str, user_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Describe a Connect user."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
+    try:
+        return cn.describe_user(instance_id, user_id)
+    except Exception as e:
+        raise HTTPException(404, f"User not found: {str(e)}")
+
+
+# ══════════════════════════════════════════════════════════════════
+#  AMAZON CONNECT - Routing Profiles
+# ══════════════════════════════════════════════════════════════════
+@router.get("/connect/routing-profiles")
+async def list_routing_profiles(
+    instance_id: str = Query(..., description="Connect Instance ID"),
+    current_user: User = Depends(get_current_user),
+):
+    """List routing profiles for a Connect instance."""
+    cn = _connect()
+    if not cn.available:
+        raise HTTPException(503, "Amazon Connect not available")
+    try:
+        profiles = cn.list_routing_profiles(instance_id)
+        return {"routing_profiles": profiles, "total": len(profiles)}
+    except Exception as e:
+        logger.error(f"List routing profiles error: {e}")
+        raise HTTPException(500, f"Failed to list routing profiles: {str(e)}")

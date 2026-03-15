@@ -15,9 +15,11 @@ const statusColor = (s) => {
     ACTIVE: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
     Connected: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
     COMPLETED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    CREATION_IN_PROGRESS: "bg-amber-500/15 text-amber-400 border-amber-500/30",
     DISABLED: "bg-zinc-500/15 text-zinc-400 border-zinc-500/30",
     PENDING: "bg-amber-500/15 text-amber-400 border-amber-500/30",
     Unavailable: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+    PUBLISHED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   };
   return map[s] || "bg-zinc-500/15 text-zinc-400 border-zinc-500/30";
 };
@@ -43,9 +45,8 @@ const ServiceStatus = ({ title, data, icon }) => {
           {data?.region && <p>Region: <span className="text-zinc-300">{data.region}</span></p>}
           {data?.service && <p>Service: <span className="text-zinc-300">{data.service}</span></p>}
           {data?.total_users !== undefined && <p>Your users: <span className="text-zinc-300">{data.total_users}</span></p>}
-          {data?.total_apps !== undefined && <p>Your apps: <span className="text-zinc-300">{data.total_apps}</span></p>}
+          {data?.instances_found !== undefined && <p>Instances: <span className="text-zinc-300">{data.instances_found}</span></p>}
           {data?.organizations_found !== undefined && <p>Organizations: <span className="text-zinc-300">{data.organizations_found}</span></p>}
-          {data?.applications_found !== undefined && <p>Applications: <span className="text-zinc-300">{data.applications_found}</span></p>}
         </div>
       </CardContent>
     </Card>
@@ -85,64 +86,83 @@ const UserCard = ({ user, onDelete, deleting }) => (
   </div>
 );
 
-/* ---- Pinpoint App Card ---- */
-const AppCard = ({ app, onSelect, selected, onDelete, deleting }) => (
+/* ---- Connect Instance Card ---- */
+const InstanceCard = ({ instance, onSelect, selected }) => (
   <div
-    className={`p-4 rounded-lg border transition-colors cursor-pointer ${selected ? "bg-orange-500/10 border-orange-500/40" : "bg-zinc-800/40 border-zinc-800 hover:border-zinc-700"}`}
-    onClick={() => onSelect(app.application_id)}
-    data-testid={`pinpoint-app-${app.application_id}`}
+    className={`p-4 rounded-lg border transition-colors cursor-pointer ${selected ? "bg-teal-500/10 border-teal-500/40" : "bg-zinc-800/40 border-zinc-800 hover:border-zinc-700"}`}
+    onClick={() => onSelect(instance.instance_id)}
+    data-testid={`connect-instance-${instance.instance_id}`}
   >
     <div className="flex items-center justify-between mb-2">
-      <h4 className="text-sm font-semibold text-zinc-100">{app.name}</h4>
-      <Button size="sm" variant="ghost" className="text-rose-400 hover:text-rose-300 h-6 px-2 text-xs" onClick={(e) => { e.stopPropagation(); onDelete(app.application_id); }} disabled={deleting} data-testid={`pinpoint-delete-app-${app.application_id}`}>
-        Delete
-      </Button>
+      <h4 className="text-sm font-semibold text-zinc-100">{instance.instance_alias || instance.instance_id}</h4>
+      <Badge variant="outline" className={`text-[10px] ${statusColor(instance.instance_status)}`}>{instance.instance_status}</Badge>
     </div>
-    <p className="text-[10px] text-zinc-500 font-mono truncate">ID: {app.application_id}</p>
-  </div>
-);
-
-/* ---- Campaign Card ---- */
-const CampaignCard = ({ campaign, onDelete, deleting }) => (
-  <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors" data-testid={`pinpoint-campaign-${campaign.campaign_id}`}>
-    <div className="flex items-center justify-between mb-1">
-      <h4 className="text-sm font-semibold text-zinc-100">{campaign.name}</h4>
-      <Badge variant="outline" className={`text-[10px] ${statusColor(campaign.state)}`}>{campaign.state || "DRAFT"}</Badge>
-    </div>
-    {campaign.description && <p className="text-[10px] text-zinc-500 mb-1">{campaign.description}</p>}
-    <p className="text-[10px] text-zinc-500">Segment: <span className="text-zinc-400 font-mono">{campaign.segment_id}</span></p>
-    <div className="flex justify-end mt-2">
-      <Button size="sm" variant="ghost" className="text-rose-400 hover:text-rose-300 h-6 px-2 text-xs" onClick={() => onDelete(campaign.campaign_id)} disabled={deleting} data-testid={`pinpoint-delete-campaign-${campaign.campaign_id}`}>
-        Delete
-      </Button>
+    <div className="space-y-0.5">
+      <p className="text-[10px] text-zinc-500">Identity: <span className="text-zinc-400">{instance.identity_management_type}</span></p>
+      <p className="text-[10px] text-zinc-500">
+        Inbound: <span className={instance.inbound_calls_enabled ? "text-emerald-400" : "text-rose-400"}>{instance.inbound_calls_enabled ? "Yes" : "No"}</span>
+        {" / "}
+        Outbound: <span className={instance.outbound_calls_enabled ? "text-emerald-400" : "text-rose-400"}>{instance.outbound_calls_enabled ? "Yes" : "No"}</span>
+      </p>
+      <p className="text-[10px] text-zinc-500 font-mono truncate">ID: {instance.instance_id}</p>
     </div>
   </div>
 );
 
-/* ---- Segment Card ---- */
-const SegmentCard = ({ segment, onDelete, deleting }) => (
-  <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors" data-testid={`pinpoint-segment-${segment.segment_id}`}>
+/* ---- Queue Card ---- */
+const QueueCard = ({ queue }) => (
+  <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors" data-testid={`connect-queue-${queue.queue_id}`}>
     <div className="flex items-center justify-between mb-1">
-      <h4 className="text-sm font-semibold text-zinc-100">{segment.name}</h4>
-      <Badge variant="outline" className="text-[10px] bg-blue-500/15 text-blue-400 border-blue-500/30">{segment.segment_type || "DIMENSIONAL"}</Badge>
+      <h4 className="text-sm font-semibold text-zinc-100">{queue.name}</h4>
+      <Badge variant="outline" className="text-[10px] bg-teal-500/15 text-teal-400 border-teal-500/30">{queue.queue_type || "STANDARD"}</Badge>
     </div>
-    <p className="text-[10px] text-zinc-500">ID: <span className="text-zinc-400 font-mono">{segment.segment_id}</span></p>
-    <div className="flex justify-end mt-2">
-      <Button size="sm" variant="ghost" className="text-rose-400 hover:text-rose-300 h-6 px-2 text-xs" onClick={() => onDelete(segment.segment_id)} disabled={deleting} data-testid={`pinpoint-delete-segment-${segment.segment_id}`}>
-        Delete
-      </Button>
+    <p className="text-[10px] text-zinc-500 font-mono truncate">ID: {queue.queue_id}</p>
+  </div>
+);
+
+/* ---- Contact Flow Card ---- */
+const FlowCard = ({ flow }) => (
+  <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors" data-testid={`connect-flow-${flow.flow_id}`}>
+    <div className="flex items-center justify-between mb-1">
+      <h4 className="text-sm font-semibold text-zinc-100">{flow.name}</h4>
+      <Badge variant="outline" className={`text-[10px] ${statusColor(flow.contact_flow_state || flow.contact_flow_status)}`}>
+        {flow.contact_flow_state || flow.contact_flow_status || "ACTIVE"}
+      </Badge>
     </div>
+    <p className="text-[10px] text-zinc-500">Type: <span className="text-zinc-400">{flow.contact_flow_type}</span></p>
+  </div>
+);
+
+/* ---- Hours Card ---- */
+const HoursCard = ({ hours }) => (
+  <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors" data-testid={`connect-hours-${hours.hours_id}`}>
+    <h4 className="text-sm font-semibold text-zinc-100 mb-1">{hours.name}</h4>
+    <p className="text-[10px] text-zinc-500 font-mono truncate">ID: {hours.hours_id}</p>
+  </div>
+);
+
+/* ---- Connect User Card ---- */
+const ConnectUserCard = ({ user }) => (
+  <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors" data-testid={`connect-user-${user.user_id}`}>
+    <h4 className="text-sm font-semibold text-zinc-100 mb-1">{user.username}</h4>
+    <p className="text-[10px] text-zinc-500 font-mono truncate">ID: {user.user_id}</p>
+  </div>
+);
+
+/* ---- Routing Profile Card ---- */
+const RoutingProfileCard = ({ profile }) => (
+  <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors" data-testid={`connect-profile-${profile.routing_profile_id}`}>
+    <h4 className="text-sm font-semibold text-zinc-100 mb-1">{profile.name}</h4>
+    <p className="text-[10px] text-zinc-500 font-mono truncate">ID: {profile.routing_profile_id}</p>
   </div>
 );
 
 /* ================================================================
    MAIN PAGE
    ================================================================ */
-export default function AWSWorkMailPinpointPage() {
-  useAuth(); // Ensure user is authenticated
-  const token = localStorage.getItem('token');
-  
-  // Create headers with current token
+export default function AWSWorkMailConnectPage() {
+  useAuth();
+  const token = localStorage.getItem("token");
   const getHeaders = () => ({ Authorization: `Bearer ${token}`, "Content-Type": "application/json" });
 
   // Status
@@ -158,24 +178,23 @@ export default function AWSWorkMailPinpointPage() {
   const [createUserForm, setCreateUserForm] = useState({ name: "", display_name: "", password: "" });
   const [creatingUser, setCreatingUser] = useState(false);
 
-  // Pinpoint
-  const [ppApps, setPpApps] = useState([]);
-  const [selectedApp, setSelectedApp] = useState(null);
-  const [segments, setSegments] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
-  const [ppLoading, setPpLoading] = useState(false);
-  const [createAppName, setCreateAppName] = useState("");
-  const [creatingApp, setCreatingApp] = useState(false);
-  const [createSegName, setCreateSegName] = useState("");
-  const [creatingSeg, setCreatingSeg] = useState(false);
+  // Connect
+  const [instances, setInstances] = useState([]);
+  const [selectedInstance, setSelectedInstance] = useState(null);
+  const [queues, setQueues] = useState([]);
+  const [flows, setFlows] = useState([]);
+  const [hours, setHours] = useState([]);
+  const [connectUsers, setConnectUsers] = useState([]);
+  const [routingProfiles, setRoutingProfiles] = useState([]);
+  const [cnLoading, setCnLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   // ── Fetchers ────────────────────────────────────────────
   const fetchStatus = useCallback(async () => {
-    const currentToken = localStorage.getItem('token');
+    const currentToken = localStorage.getItem("token");
     if (!currentToken) return;
     try {
-      const r = await fetch(`${API}/api/aws-comms/status`, { headers: getHeaders() });
+      const r = await fetch(`${API}/api/aws-comms/status`, { headers: { Authorization: `Bearer ${currentToken}`, "Content-Type": "application/json" } });
       if (r.ok) setStatus(await r.json());
     } catch (e) { console.error(e); }
     setLoading(false);
@@ -203,52 +222,45 @@ export default function AWSWorkMailPinpointPage() {
     setWmLoading(false);
   }, []);
 
-  const [segmentsDeprecated, setSegmentsDeprecated] = useState(false);
-  const [campaignsDeprecated, setCampaignsDeprecated] = useState(false);
-
-  const fetchPpApps = useCallback(async () => {
-    setPpLoading(true);
+  const fetchInstances = useCallback(async () => {
+    setCnLoading(true);
     try {
-      const r = await fetch(`${API}/api/aws-comms/pinpoint/applications`, { headers: getHeaders() });
-      if (r.ok) { const d = await r.json(); setPpApps(d.applications || []); }
+      const r = await fetch(`${API}/api/aws-comms/connect/instances`, { headers: getHeaders() });
+      if (r.ok) { const d = await r.json(); setInstances(d.instances || []); }
     } catch (e) { console.error(e); }
-    setPpLoading(false);
+    setCnLoading(false);
   }, []);
 
-  const fetchAppDetails = useCallback(async (appId) => {
-    setPpLoading(true);
+  const fetchInstanceDetails = useCallback(async (instId) => {
+    setCnLoading(true);
     try {
-      const [segR, campR] = await Promise.all([
-        fetch(`${API}/api/aws-comms/pinpoint/segments/${appId}`, { headers: getHeaders() }),
-        fetch(`${API}/api/aws-comms/pinpoint/campaigns/${appId}`, { headers: getHeaders() }),
+      const [qR, fR, hR, uR, rpR] = await Promise.all([
+        fetch(`${API}/api/aws-comms/connect/queues?instance_id=${instId}`, { headers: getHeaders() }),
+        fetch(`${API}/api/aws-comms/connect/contact-flows?instance_id=${instId}`, { headers: getHeaders() }),
+        fetch(`${API}/api/aws-comms/connect/hours-of-operation?instance_id=${instId}`, { headers: getHeaders() }),
+        fetch(`${API}/api/aws-comms/connect/users?instance_id=${instId}`, { headers: getHeaders() }),
+        fetch(`${API}/api/aws-comms/connect/routing-profiles?instance_id=${instId}`, { headers: getHeaders() }),
       ]);
-      if (segR.ok) {
-        const d = await segR.json();
-        setSegments(d.segments || []);
-        setSegmentsDeprecated(!!d.deprecated);
-      }
-      if (campR.ok) {
-        const d = await campR.json();
-        setCampaigns(d.campaigns || []);
-        setCampaignsDeprecated(!!d.deprecated);
-      }
+      if (qR.ok) { const d = await qR.json(); setQueues(d.queues || []); }
+      if (fR.ok) { const d = await fR.json(); setFlows(d.contact_flows || []); }
+      if (hR.ok) { const d = await hR.json(); setHours(d.hours_of_operation || []); }
+      if (uR.ok) { const d = await uR.json(); setConnectUsers(d.users || []); }
+      if (rpR.ok) { const d = await rpR.json(); setRoutingProfiles(d.routing_profiles || []); }
     } catch (e) { console.error(e); }
-    setPpLoading(false);
+    setCnLoading(false);
   }, []);
 
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
 
-  // When selecting an org
   useEffect(() => {
     if (selectedOrg) fetchOrgDetails(selectedOrg);
   }, [selectedOrg, fetchOrgDetails]);
 
-  // When selecting an app
   useEffect(() => {
-    if (selectedApp) fetchAppDetails(selectedApp);
-  }, [selectedApp, fetchAppDetails]);
+    if (selectedInstance) fetchInstanceDetails(selectedInstance);
+  }, [selectedInstance, fetchInstanceDetails]);
 
-  // ── Actions ────────────────────────────────────────────
+  // ── WorkMail Actions ──────────────────────────────────
   const handleCreateUser = async () => {
     if (!selectedOrg || !createUserForm.name) return;
     setCreatingUser(true);
@@ -279,81 +291,6 @@ export default function AWSWorkMailPinpointPage() {
     setDeleting(false);
   };
 
-  const handleCreateApp = async () => {
-    if (!createAppName.trim()) return;
-    setCreatingApp(true);
-    try {
-      const r = await fetch(`${API}/api/aws-comms/pinpoint/applications`, {
-        method: "POST", headers: getHeaders(),
-        body: JSON.stringify({ name: createAppName }),
-      });
-      if (r.ok) {
-        toast.success("Application created");
-        setCreateAppName("");
-        fetchPpApps();
-      } else {
-        const e = await r.json();
-        toast.error(e.detail || "Failed to create app");
-      }
-    } catch { toast.error("Network error"); }
-    setCreatingApp(false);
-  };
-
-  const handleDeleteApp = async (appId) => {
-    setDeleting(true);
-    try {
-      const r = await fetch(`${API}/api/aws-comms/pinpoint/applications/${appId}`, { method: "DELETE", headers: getHeaders() });
-      if (r.ok) {
-        toast.success("Application deleted");
-        if (selectedApp === appId) { setSelectedApp(null); setSegments([]); setCampaigns([]); }
-        fetchPpApps();
-      } else toast.error("Failed to delete application");
-    } catch { toast.error("Network error"); }
-    setDeleting(false);
-  };
-
-  const handleCreateSegment = async () => {
-    if (!selectedApp || !createSegName.trim()) return;
-    setCreatingSeg(true);
-    try {
-      const r = await fetch(`${API}/api/aws-comms/pinpoint/segments`, {
-        method: "POST", headers: getHeaders(),
-        body: JSON.stringify({ application_id: selectedApp, name: createSegName }),
-      });
-      if (r.ok) {
-        toast.success("Segment created");
-        setCreateSegName("");
-        fetchAppDetails(selectedApp);
-      } else {
-        const e = await r.json();
-        toast.error(e.detail || "Failed to create segment");
-      }
-    } catch { toast.error("Network error"); }
-    setCreatingSeg(false);
-  };
-
-  const handleDeleteSegment = async (segId) => {
-    if (!selectedApp) return;
-    setDeleting(true);
-    try {
-      const r = await fetch(`${API}/api/aws-comms/pinpoint/segments/${selectedApp}/${segId}`, { method: "DELETE", headers: getHeaders() });
-      if (r.ok) { toast.success("Segment deleted"); fetchAppDetails(selectedApp); }
-      else toast.error("Failed to delete segment");
-    } catch { toast.error("Network error"); }
-    setDeleting(false);
-  };
-
-  const handleDeleteCampaign = async (campId) => {
-    if (!selectedApp) return;
-    setDeleting(true);
-    try {
-      const r = await fetch(`${API}/api/aws-comms/pinpoint/campaigns/${selectedApp}/${campId}`, { method: "DELETE", headers: getHeaders() });
-      if (r.ok) { toast.success("Campaign deleted"); fetchAppDetails(selectedApp); }
-      else toast.error("Failed to delete campaign");
-    } catch { toast.error("Network error"); }
-    setDeleting(false);
-  };
-
   // ── Render ────────────────────────────────────────────
   if (loading) {
     return (
@@ -371,7 +308,7 @@ export default function AWSWorkMailPinpointPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-zinc-50 tracking-tight" data-testid="comms-page-title">
             AWS Communications
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">WorkMail business email & Pinpoint marketing campaigns</p>
+          <p className="text-sm text-zinc-500 mt-1">WorkMail business email & Amazon Connect contact center</p>
         </div>
 
         {/* Status Cards */}
@@ -382,9 +319,9 @@ export default function AWSWorkMailPinpointPage() {
             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>}
           />
           <ServiceStatus
-            title="Pinpoint"
-            data={status?.pinpoint}
-            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>}
+            title="Amazon Connect"
+            data={status?.connect}
+            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>}
           />
         </div>
 
@@ -394,14 +331,13 @@ export default function AWSWorkMailPinpointPage() {
             <TabsTrigger value="workmail" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-4" data-testid="tab-workmail" onClick={fetchOrgs}>
               WorkMail
             </TabsTrigger>
-            <TabsTrigger value="pinpoint" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs px-4" data-testid="tab-pinpoint" onClick={fetchPpApps}>
-              Pinpoint
+            <TabsTrigger value="connect" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-xs px-4" data-testid="tab-connect" onClick={fetchInstances}>
+              Amazon Connect
             </TabsTrigger>
           </TabsList>
 
           {/* ══════════════ WORKMAIL TAB ══════════════ */}
           <TabsContent value="workmail" className="space-y-6" data-testid="workmail-tab-content">
-            {/* Organizations */}
             <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base text-zinc-100">Organizations</CardTitle>
@@ -420,7 +356,6 @@ export default function AWSWorkMailPinpointPage() {
               </CardContent>
             </Card>
 
-            {/* Users & Groups (shown when org selected) */}
             {selectedOrg && (
               <>
                 <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
@@ -434,39 +369,17 @@ export default function AWSWorkMailPinpointPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Create User Form */}
                     <div className="p-4 bg-zinc-800/30 rounded-lg border border-zinc-800 space-y-3" data-testid="create-user-form">
                       <p className="text-xs font-medium text-zinc-300">Create New User</p>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <input
-                          className="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
-                          placeholder="Username"
-                          value={createUserForm.name}
-                          onChange={(e) => setCreateUserForm((p) => ({ ...p, name: e.target.value }))}
-                          data-testid="create-user-name"
-                        />
-                        <input
-                          className="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
-                          placeholder="Display Name"
-                          value={createUserForm.display_name}
-                          onChange={(e) => setCreateUserForm((p) => ({ ...p, display_name: e.target.value }))}
-                          data-testid="create-user-display-name"
-                        />
-                        <input
-                          className="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
-                          placeholder="Password"
-                          type="password"
-                          value={createUserForm.password}
-                          onChange={(e) => setCreateUserForm((p) => ({ ...p, password: e.target.value }))}
-                          data-testid="create-user-password"
-                        />
+                        <input className="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none" placeholder="Username" value={createUserForm.name} onChange={(e) => setCreateUserForm((p) => ({ ...p, name: e.target.value }))} data-testid="create-user-name" />
+                        <input className="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none" placeholder="Display Name" value={createUserForm.display_name} onChange={(e) => setCreateUserForm((p) => ({ ...p, display_name: e.target.value }))} data-testid="create-user-display-name" />
+                        <input className="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none" placeholder="Password" type="password" value={createUserForm.password} onChange={(e) => setCreateUserForm((p) => ({ ...p, password: e.target.value }))} data-testid="create-user-password" />
                       </div>
                       <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-xs h-8" onClick={handleCreateUser} disabled={creatingUser || !createUserForm.name} data-testid="create-user-submit">
                         {creatingUser ? "Creating..." : "Create User"}
                       </Button>
                     </div>
-
-                    {/* User List */}
                     {wmUsers.length === 0 ? (
                       <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-users">No users in this organization</p>
                     ) : (
@@ -477,7 +390,6 @@ export default function AWSWorkMailPinpointPage() {
                   </CardContent>
                 </Card>
 
-                {/* Groups */}
                 <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base text-zinc-100">Groups</CardTitle>
@@ -505,121 +417,137 @@ export default function AWSWorkMailPinpointPage() {
             )}
           </TabsContent>
 
-          {/* ══════════════ PINPOINT TAB ══════════════ */}
-          <TabsContent value="pinpoint" className="space-y-6" data-testid="pinpoint-tab-content">
-            {/* Applications */}
+          {/* ══════════════ AMAZON CONNECT TAB ══════════════ */}
+          <TabsContent value="connect" className="space-y-6" data-testid="connect-tab-content">
+            {/* Instances */}
             <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base text-zinc-100">Applications</CardTitle>
-                    <CardDescription className="text-zinc-500 text-xs">Pinpoint projects for campaign management</CardDescription>
-                  </div>
-                </div>
+                <CardTitle className="text-base text-zinc-100">Connect Instances</CardTitle>
+                <CardDescription className="text-zinc-500 text-xs">Select an instance to view queues, flows, hours, users & routing profiles</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Create App */}
-                <div className="flex gap-2" data-testid="create-app-form">
-                  <input
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    placeholder="Application name"
-                    value={createAppName}
-                    onChange={(e) => setCreateAppName(e.target.value)}
-                    data-testid="create-app-name"
-                  />
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-xs h-8" onClick={handleCreateApp} disabled={creatingApp || !createAppName.trim()} data-testid="create-app-submit">
-                    {creatingApp ? "Creating..." : "Create App"}
-                  </Button>
-                </div>
-
-                {ppLoading && !ppApps.length ? (
-                  <div className="flex justify-center py-6"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500" /></div>
-                ) : ppApps.length === 0 ? (
-                  <p className="text-sm text-zinc-500 text-center py-6" data-testid="no-apps">No Pinpoint applications found</p>
+              <CardContent>
+                {cnLoading && !instances.length ? (
+                  <div className="flex justify-center py-6"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-500" /></div>
+                ) : instances.length === 0 ? (
+                  <p className="text-sm text-zinc-500 text-center py-6" data-testid="no-instances">No Amazon Connect instances found. Create one in the AWS Console.</p>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="pinpoint-apps-list">
-                    {ppApps.map((a) => <AppCard key={a.application_id} app={a} onSelect={setSelectedApp} selected={selectedApp === a.application_id} onDelete={handleDeleteApp} deleting={deleting} />)}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="connect-instances-list">
+                    {instances.map((inst) => <InstanceCard key={inst.instance_id} instance={inst} onSelect={setSelectedInstance} selected={selectedInstance === inst.instance_id} />)}
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Segments & Campaigns (shown when app selected) */}
-            {selectedApp && (
+            {/* Instance Detail Sections */}
+            {selectedInstance && (
               <>
-                {/* Segments */}
+                {/* Queues */}
                 <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle className="text-base text-zinc-100">Audience Segments</CardTitle>
-                        <CardDescription className="text-zinc-500 text-xs">Target audience groups for campaigns</CardDescription>
+                        <CardTitle className="text-base text-zinc-100">Queues</CardTitle>
+                        <CardDescription className="text-zinc-500 text-xs">Contact queues for routing incoming contacts</CardDescription>
                       </div>
-                      {segmentsDeprecated ? (
-                        <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">Deprecated</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/30">{segments.length} segments</Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {segmentsDeprecated && (
-                      <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg" data-testid="segments-deprecated-notice">
-                        <p className="text-xs text-amber-400">AWS is deprecating Pinpoint engagement features (segments, campaigns). Consider migrating to Amazon Connect.</p>
-                      </div>
-                    )}
-                    {!segmentsDeprecated && (
-                      <div className="flex gap-2" data-testid="create-segment-form">
-                        <input
-                          className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-blue-500 focus:outline-none"
-                          placeholder="Segment name"
-                          value={createSegName}
-                          onChange={(e) => setCreateSegName(e.target.value)}
-                          data-testid="create-segment-name"
-                        />
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs h-8" onClick={handleCreateSegment} disabled={creatingSeg || !createSegName.trim()} data-testid="create-segment-submit">
-                          {creatingSeg ? "Creating..." : "Create Segment"}
-                        </Button>
-                      </div>
-                    )}
-                    {segments.length === 0 && !segmentsDeprecated ? (
-                      <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-segments">No segments yet</p>
-                    ) : segments.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="pinpoint-segments-list">
-                        {segments.map((s) => <SegmentCard key={s.segment_id} segment={s} onDelete={handleDeleteSegment} deleting={deleting} />)}
-                      </div>
-                    ) : null}
-                  </CardContent>
-                </Card>
-
-                {/* Campaigns */}
-                <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-base text-zinc-100">Campaigns</CardTitle>
-                        <CardDescription className="text-zinc-500 text-xs">Marketing campaigns targeting your segments</CardDescription>
-                      </div>
-                      {campaignsDeprecated ? (
-                        <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">Deprecated</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-400 border-orange-500/30">{campaigns.length} campaigns</Badge>
-                      )}
+                      <Badge variant="outline" className="text-xs bg-teal-500/10 text-teal-400 border-teal-500/30">{queues.length} queues</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {campaignsDeprecated && (
-                      <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg" data-testid="campaigns-deprecated-notice">
-                        <p className="text-xs text-amber-400">AWS is deprecating Pinpoint engagement features (segments, campaigns). Consider migrating to Amazon Connect.</p>
+                    {queues.length === 0 ? (
+                      <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-queues">No queues found</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="connect-queues-list">
+                        {queues.map((q) => <QueueCard key={q.queue_id} queue={q} />)}
                       </div>
                     )}
-                    {campaigns.length === 0 && !campaignsDeprecated ? (
-                      <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-campaigns">No campaigns yet. Create a segment first, then build a campaign.</p>
-                    ) : campaigns.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="pinpoint-campaigns-list">
-                        {campaigns.map((c) => <CampaignCard key={c.campaign_id} campaign={c} onDelete={handleDeleteCampaign} deleting={deleting} />)}
+                  </CardContent>
+                </Card>
+
+                {/* Contact Flows */}
+                <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-base text-zinc-100">Contact Flows</CardTitle>
+                        <CardDescription className="text-zinc-500 text-xs">IVR and routing flows for contact handling</CardDescription>
                       </div>
-                    ) : null}
+                      <Badge variant="outline" className="text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/30">{flows.length} flows</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {flows.length === 0 ? (
+                      <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-flows">No contact flows found</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="connect-flows-list">
+                        {flows.map((f) => <FlowCard key={f.flow_id} flow={f} />)}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Hours of Operation */}
+                <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-base text-zinc-100">Hours of Operation</CardTitle>
+                        <CardDescription className="text-zinc-500 text-xs">Business hours schedules for queues</CardDescription>
+                      </div>
+                      <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">{hours.length} schedules</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {hours.length === 0 ? (
+                      <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-hours">No hours of operation found</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="connect-hours-list">
+                        {hours.map((h) => <HoursCard key={h.hours_id} hours={h} />)}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Connect Users */}
+                <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-base text-zinc-100">Connect Users</CardTitle>
+                        <CardDescription className="text-zinc-500 text-xs">Agents and supervisors in this instance</CardDescription>
+                      </div>
+                      <Badge variant="outline" className="text-xs bg-violet-500/10 text-violet-400 border-violet-500/30">{connectUsers.length} users</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {connectUsers.length === 0 ? (
+                      <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-connect-users">No users found</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="connect-users-list">
+                        {connectUsers.map((u) => <ConnectUserCard key={u.user_id} user={u} />)}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Routing Profiles */}
+                <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-base text-zinc-100">Routing Profiles</CardTitle>
+                        <CardDescription className="text-zinc-500 text-xs">Agent routing configurations</CardDescription>
+                      </div>
+                      <Badge variant="outline" className="text-xs bg-rose-500/10 text-rose-400 border-rose-500/30">{routingProfiles.length} profiles</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {routingProfiles.length === 0 ? (
+                      <p className="text-sm text-zinc-500 text-center py-4" data-testid="no-routing-profiles">No routing profiles found</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="connect-routing-profiles-list">
+                        {routingProfiles.map((p) => <RoutingProfileCard key={p.routing_profile_id} profile={p} />)}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </>
