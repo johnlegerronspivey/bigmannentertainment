@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../utils/apiClient";
 import { toast } from "sonner";
-import { Upload, FileAudio, FileVideo, Image, Trash2, Edit3, Search, Eye, Download, Heart, X, Save, Filter, Play, Pause, Volume2, MessageCircle, Send, ChevronDown, ChevronUp } from "lucide-react";
+import { Upload, FileAudio, FileVideo, Image, Trash2, Edit3, Search, Eye, Download, Heart, X, Save, Filter, Play, Pause, Volume2, MessageCircle, Send, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -130,6 +130,29 @@ function ContentManagementPage() {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
+
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
+  const lightboxItem = lightboxIndex >= 0 ? items[lightboxIndex] : null;
+
+  const openLightbox = (index) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(-1);
+  const goLightboxPrev = () => setLightboxIndex((i) => (i > 0 ? i - 1 : items.length - 1));
+  const goLightboxNext = () => setLightboxIndex((i) => (i < items.length - 1 ? i + 1 : 0));
+
+  useEffect(() => {
+    if (lightboxIndex < 0) return;
+    const handler = (e) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") goLightboxPrev();
+      if (e.key === "ArrowRight") goLightboxNext();
+    };
+    document.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.body.style.overflow = "";
+    };
+  }, [lightboxIndex, items.length]);
 
   // ── Comment Section (inline per content item) ──
   const CommentSection = ({ contentId, commentCount }) => {
@@ -266,6 +289,162 @@ function ContentManagementPage() {
     );
   };
 
+  // ── Content Lightbox Modal ──
+  const ContentLightbox = () => {
+    const [zoom, setZoom] = useState(1);
+    if (!lightboxItem) return null;
+
+    const handleDownload = () => {
+      const link = document.createElement("a");
+      link.href = fileUrl(lightboxItem.file_id);
+      link.download = lightboxItem.title || "download";
+      link.click();
+    };
+
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center"
+        data-testid="content-lightbox"
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+          onClick={closeLightbox}
+          data-testid="lightbox-backdrop"
+        />
+
+        {/* Top bar */}
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/70 to-transparent">
+          <div className="flex items-center gap-3 min-w-0">
+            {typeIcon(lightboxItem.content_type)}
+            <div className="min-w-0">
+              <h3 className="text-white font-semibold text-sm truncate" data-testid="lightbox-title">{lightboxItem.title}</h3>
+              <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                <span className="capitalize">{lightboxItem.content_type}</span>
+                <span>{formatSize(lightboxItem.file_size)}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${lightboxItem.visibility === "public" ? "bg-green-500/20 text-green-400" : lightboxItem.visibility === "private" ? "bg-red-500/20 text-red-400" : "bg-amber-500/20 text-amber-400"}`}>
+                  {lightboxItem.visibility}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {lightboxItem.content_type === "image" && (
+              <>
+                <button onClick={() => setZoom((z) => Math.min(z + 0.5, 4))} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors" data-testid="lightbox-zoom-in" title="Zoom in">
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <button onClick={() => setZoom((z) => Math.max(z - 0.5, 0.5))} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors" data-testid="lightbox-zoom-out" title="Zoom out">
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                {zoom !== 1 && (
+                  <button onClick={() => setZoom(1)} className="px-2 py-1 text-xs text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors" data-testid="lightbox-zoom-reset">
+                    {Math.round(zoom * 100)}%
+                  </button>
+                )}
+              </>
+            )}
+            <button onClick={handleDownload} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors" data-testid="lightbox-download-btn" title="Download">
+              <Download className="w-4 h-4" />
+            </button>
+            <button onClick={closeLightbox} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors" data-testid="lightbox-close-btn" title="Close (Esc)">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Nav: Previous */}
+        {items.length > 1 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); goLightboxPrev(); setZoom(1); }}
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+            data-testid="lightbox-prev-btn"
+            title="Previous"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* Nav: Next */}
+        {items.length > 1 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); goLightboxNext(); setZoom(1); }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+            data-testid="lightbox-next-btn"
+            title="Next"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* Content Area */}
+        <div className="relative z-[1] flex items-center justify-center w-full h-full pt-16 pb-20 px-16" onClick={closeLightbox}>
+          <div onClick={(e) => e.stopPropagation()} className="max-w-full max-h-full flex flex-col items-center">
+            {lightboxItem.content_type === "image" && (
+              <div className="overflow-auto max-w-[90vw] max-h-[75vh] rounded-lg" data-testid="lightbox-image-container">
+                <img
+                  src={fileUrl(lightboxItem.file_id)}
+                  alt={lightboxItem.title}
+                  className="block transition-transform duration-200"
+                  style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
+                  data-testid="lightbox-image"
+                />
+              </div>
+            )}
+            {lightboxItem.content_type === "video" && (
+              <video
+                controls
+                autoPlay
+                className="max-w-[90vw] max-h-[75vh] rounded-lg bg-black"
+                data-testid="lightbox-video"
+              >
+                <source src={fileUrl(lightboxItem.file_id)} />
+              </video>
+            )}
+            {lightboxItem.content_type === "audio" && (
+              <div className="bg-gray-900/90 border border-gray-700/50 rounded-2xl p-8 w-[420px] max-w-[90vw]" data-testid="lightbox-audio">
+                <div className="flex items-center justify-center h-40 bg-gradient-to-br from-green-900/30 to-gray-900 rounded-xl mb-6">
+                  <Volume2 className="w-16 h-16 text-green-400 opacity-50" />
+                </div>
+                <audio controls autoPlay className="w-full" data-testid="lightbox-audio-player">
+                  <source src={fileUrl(lightboxItem.file_id)} />
+                </audio>
+              </div>
+            )}
+            {!["image", "audio", "video"].includes(lightboxItem.content_type) && (
+              <div className="bg-gray-900/90 border border-gray-700/50 rounded-2xl p-12 flex flex-col items-center gap-4">
+                {typeIcon(lightboxItem.content_type)}
+                <p className="text-gray-400 text-sm">Preview not available for this file type</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-4 py-3 bg-gradient-to-t from-black/70 to-transparent">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-wrap gap-1.5">
+              {(lightboxItem.tags || []).map((t) => (
+                <span key={t} className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{t}</span>
+              ))}
+            </div>
+            <div className="flex items-center gap-4 text-xs text-gray-400">
+              <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {lightboxItem.stats?.views || 0}</span>
+              <span className="flex items-center gap-1"><Download className="w-3 h-3" /> {lightboxItem.stats?.downloads || 0}</span>
+              <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {lightboxItem.stats?.likes || 0}</span>
+              {items.length > 1 && (
+                <span className="text-gray-500">{lightboxIndex + 1} / {items.length}</span>
+              )}
+            </div>
+          </div>
+          {lightboxItem.description && (
+            <p className="text-gray-400 text-xs mt-2 max-w-xl truncate">{lightboxItem.description}</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -276,6 +455,7 @@ function ContentManagementPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white" data-testid="content-management-page">
+      <ContentLightbox />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -367,7 +547,7 @@ function ContentManagementPage() {
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="content-grid">
-          {items.map((item) => (
+          {items.map((item, idx) => (
             <div key={item.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-purple-500/30 transition-all" data-testid="content-item">
               {editingId === item.id ? (
                 <div className="space-y-3">
@@ -386,20 +566,24 @@ function ContentManagementPage() {
                 </div>
               ) : (
                 <>
-                  {/* File Preview */}
-                  <div className="mb-3 rounded-lg overflow-hidden bg-gray-800/50" data-testid="content-preview">
+                  {/* File Preview — clickable to open lightbox */}
+                  <div
+                    className="mb-3 rounded-lg overflow-hidden bg-gray-800/50 cursor-pointer group relative"
+                    onClick={() => openLightbox(idx)}
+                    data-testid="content-preview"
+                  >
                     {item.content_type === "image" && (
                       <img
                         src={fileUrl(item.file_id)}
                         alt={item.title}
-                        className="w-full h-40 object-cover"
+                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                         data-testid="image-preview"
                       />
                     )}
                     {item.content_type === "audio" && (
-                      <div className="p-3 flex flex-col items-center gap-2" data-testid="audio-preview">
-                        <div className="w-full flex items-center justify-center h-20 bg-gradient-to-br from-green-900/30 to-gray-900 rounded-md">
+                      <div className="p-3 flex flex-col items-center gap-2" data-testid="audio-preview" onClick={(e) => e.stopPropagation()}>
+                        <div className="w-full flex items-center justify-center h-20 bg-gradient-to-br from-green-900/30 to-gray-900 rounded-md cursor-pointer" onClick={() => openLightbox(idx)}>
                           <Volume2 className="w-8 h-8 text-green-400 opacity-60" />
                         </div>
                         <audio
@@ -413,18 +597,31 @@ function ContentManagementPage() {
                       </div>
                     )}
                     {item.content_type === "video" && (
-                      <video
-                        controls
-                        preload="metadata"
-                        className="w-full h-40 object-cover bg-black"
-                        data-testid="video-preview"
-                      >
-                        <source src={fileUrl(item.file_id)} />
-                      </video>
+                      <div className="relative" data-testid="video-preview">
+                        <video
+                          preload="metadata"
+                          className="w-full h-40 object-cover bg-black"
+                        >
+                          <source src={fileUrl(item.file_id)} />
+                        </video>
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                            <Play className="w-5 h-5 text-white ml-0.5" />
+                          </div>
+                        </div>
+                      </div>
                     )}
                     {!["image", "audio", "video"].includes(item.content_type) && (
-                      <div className="h-24 flex items-center justify-center">
+                      <div className="h-24 flex items-center justify-center cursor-pointer">
                         {typeIcon(item.content_type)}
+                      </div>
+                    )}
+                    {/* Expand icon overlay for image/video */}
+                    {(item.content_type === "image" || !["audio"].includes(item.content_type)) && item.content_type !== "audio" && ["image", "video"].includes(item.content_type) && (
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="p-1.5 bg-black/50 backdrop-blur-sm rounded-md">
+                          <Maximize2 className="w-3.5 h-3.5 text-white" />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -435,6 +632,7 @@ function ContentManagementPage() {
                       <h3 className="font-medium text-sm truncate max-w-[180px]" data-testid="content-item-title">{item.title}</h3>
                     </div>
                     <div className="flex gap-1">
+                      <button onClick={() => openLightbox(idx)} className="p-1.5 text-gray-500 hover:text-blue-400" data-testid="view-content-btn" title="View full size"><Maximize2 className="w-3.5 h-3.5" /></button>
                       <button onClick={() => startEdit(item)} className="p-1.5 text-gray-500 hover:text-purple-400" data-testid="edit-content-btn"><Edit3 className="w-3.5 h-3.5" /></button>
                       <button onClick={() => handleDelete(item.id)} className="p-1.5 text-gray-500 hover:text-red-400" data-testid="delete-content-btn"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
