@@ -428,8 +428,25 @@ All features verified and signed off:
 
 ## Backlog
 - **P1**: Post-scheduling functionality to connected social media accounts
-- **P2**: Enhanced content preview (lightbox/modal for full-size viewing)
 - **P2**: Replace mock data in analytics with real API-sourced data
 - **P3**: Real-time WebSocket delivery status updates (currently uses polling)
 - **P3**: Revenue auto-import from platform APIs when credentials are connected
+
+### Phase 24 - Content Lightbox / Full-Size Preview (2026-03-15)
+- **Lightbox Modal** - Full-screen overlay for viewing uploaded content at full size:
+  - Click any content thumbnail or "View" button to open immersive lightbox
+  - Full-size image viewing with zoom in/out controls (0.5x to 4x) and zoom reset
+  - Full audio player with large visual indicator in styled container
+  - Full video player with autoplay
+  - Title, content type, file size, and visibility badge in top bar
+  - Tags and stats (views, downloads, likes) in bottom bar
+  - Item counter showing current position (e.g., "3 / 8")
+  - Previous/Next navigation buttons with wrap-around
+  - Keyboard support: Escape to close, ArrowLeft/ArrowRight for navigation
+  - Backdrop click to close
+  - Download button for direct file download
+  - Body scroll lock when lightbox is open
+  - Hover expand icon overlay on image/video thumbnails
+- **Frontend**: Updated `/content-management` page (`ContentManagementPage.jsx`)
+- **Testing**: 100% pass rate (17/17 frontend features verified)
 
