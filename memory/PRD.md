@@ -464,3 +464,9 @@ All features verified and signed off:
   - Falls back to initial HTTP fetch for current progress
   - Replaces previous `setTimeout(poll, 3000)` polling approach
 - **Testing**: 100% pass rate (9/9 backend, all frontend tests passed)
+
+### Phase 26 - DNS Configuration Guide Update (2026-03-15)
+- **Expanded DNS records** from 7 to 16 record types in the DNS Configuration Guide
+- New records added: AAAA (IPv6), DKIM (3 CNAME keys), SES verification TXT, CAA (SSL authority), Mail CNAME, Google Search Console TXT, SRV (VoIP)
+- Backend `_get_required_dns_records()` in `/app/backend/routes/domain_routes.py` updated
+- Frontend auto-renders new records via existing dynamic table in `DomainConfigPage.jsx`
