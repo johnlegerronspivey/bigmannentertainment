@@ -4,8 +4,11 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Progress } from "../components/ui/progress";
+import { Calendar } from "../components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
+import { CalendarIcon, Clock, Trash2, Pencil, X, Check } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -172,10 +175,15 @@ const TestResultPanel = ({ result, platform }) => {
 };
 
 /* ─── Publish Composer ─── */
-const PublishComposer = ({ platforms, onPublish, publishing }) => {
+const PublishComposer = ({ platforms, onPublish, publishing, onSchedule, scheduling }) => {
   const [text, setText] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [selected, setSelected] = useState([]);
+  const [scheduleMode, setScheduleMode] = useState(false);
+  const [schedDate, setSchedDate] = useState(null);
+  const [schedHour, setSchedHour] = useState("12");
+  const [schedMinute, setSchedMinute] = useState("00");
+  const [calOpen, setCalOpen] = useState(false);
 
   const writablePlatforms = Object.entries(platforms).filter(
     ([key]) => ["twitter_x", "tiktok", "snapchat"].includes(key)
@@ -184,10 +192,24 @@ const PublishComposer = ({ platforms, onPublish, publishing }) => {
   const toggle = (p) =>
     setSelected((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
 
+  const getScheduledTime = () => {
+    if (!schedDate) return null;
+    const d = new Date(schedDate);
+    d.setHours(parseInt(schedHour), parseInt(schedMinute), 0, 0);
+    return d.toISOString();
+  };
+
   const handlePublish = () => {
     if (!text.trim()) return toast.error("Enter some content to publish.");
     if (selected.length === 0) return toast.error("Select at least one platform.");
-    onPublish({ text: text.trim(), platforms: selected, media_url: mediaUrl.trim() || null });
+    if (scheduleMode) {
+      const st = getScheduledTime();
+      if (!st) return toast.error("Pick a date for scheduling.");
+      if (new Date(st) <= new Date()) return toast.error("Schedule time must be in the future.");
+      onSchedule({ text: text.trim(), platforms: selected, media_url: mediaUrl.trim() || null, scheduled_time: st });
+    } else {
+      onPublish({ text: text.trim(), platforms: selected, media_url: mediaUrl.trim() || null });
+    }
   };
 
   const charCount = text.length;
@@ -254,17 +276,84 @@ const PublishComposer = ({ platforms, onPublish, publishing }) => {
         </div>
       </div>
 
+      {/* Schedule toggle & date picker */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setScheduleMode(!scheduleMode)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+            scheduleMode
+              ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
+              : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600"
+          }`}
+          data-testid="schedule-toggle-btn"
+        >
+          <Clock size={13} />
+          {scheduleMode ? "Scheduling" : "Schedule for later"}
+        </button>
+
+        {scheduleMode && (
+          <div className="flex items-center gap-2">
+            <Popover open={calOpen} onOpenChange={setCalOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-900 text-xs text-zinc-300 hover:border-zinc-600 transition-colors"
+                  data-testid="schedule-date-picker-btn"
+                >
+                  <CalendarIcon size={13} />
+                  {schedDate ? new Date(schedDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Pick date"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-700" align="start">
+                <Calendar
+                  mode="single"
+                  selected={schedDate}
+                  onSelect={(d) => { setSchedDate(d); setCalOpen(false); }}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  className="text-zinc-100"
+                  data-testid="schedule-calendar"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <div className="flex items-center gap-1">
+              <select
+                value={schedHour}
+                onChange={(e) => setSchedHour(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500/50"
+                data-testid="schedule-hour-select"
+              >
+                {Array.from({ length: 24 }, (_, i) => (
+                  <option key={i} value={String(i).padStart(2, "0")}>{String(i).padStart(2, "0")}</option>
+                ))}
+              </select>
+              <span className="text-zinc-500 text-xs">:</span>
+              <select
+                value={schedMinute}
+                onChange={(e) => setSchedMinute(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500/50"
+                data-testid="schedule-minute-select"
+              >
+                {["00", "15", "30", "45"].map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              <span className="text-[10px] text-zinc-500 ml-1">UTC</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center justify-between pt-2">
         <p className="text-[11px] text-zinc-600">
-          {selected.length > 0 ? `Publishing to ${selected.length} platform${selected.length > 1 ? "s" : ""}` : "No platforms selected"}
+          {selected.length > 0 ? `${scheduleMode ? "Scheduling" : "Publishing"} to ${selected.length} platform${selected.length > 1 ? "s" : ""}` : "No platforms selected"}
         </p>
         <Button
-          className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-5"
+          className={`text-white text-sm px-5 ${scheduleMode ? "bg-amber-600 hover:bg-amber-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
           onClick={handlePublish}
-          disabled={publishing || !text.trim() || selected.length === 0}
+          disabled={(publishing || scheduling) || !text.trim() || selected.length === 0}
           data-testid="publish-submit-btn"
         >
-          {publishing ? "Publishing..." : "Publish Now"}
+          {scheduling ? "Scheduling..." : publishing ? "Publishing..." : scheduleMode ? "Schedule Post" : "Publish Now"}
         </Button>
       </div>
     </div>
@@ -366,6 +455,138 @@ const PublishHistory = ({ history }) => {
   );
 };
 
+/* ─── Scheduled Posts List ─── */
+const STATUS_STYLES = {
+  pending: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  publishing: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  published: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  failed: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+};
+
+const ScheduledPostsList = ({ posts, onDelete, onEdit, deleting }) => {
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [editTime, setEditTime] = useState("");
+
+  const startEdit = (post) => {
+    setEditingId(post.id);
+    setEditText(post.text);
+    const dt = new Date(post.scheduled_time);
+    // Format as datetime-local value
+    const pad = (n) => String(n).padStart(2, "0");
+    setEditTime(`${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}T${pad(dt.getUTCHours())}:${pad(dt.getUTCMinutes())}`);
+  };
+
+  const saveEdit = (post) => {
+    const newTime = new Date(editTime + ":00.000Z").toISOString();
+    onEdit(post.id, { text: editText, scheduled_time: newTime });
+    setEditingId(null);
+  };
+
+  if (!posts || posts.length === 0) {
+    return (
+      <Card className="border-zinc-800 bg-zinc-900/40">
+        <CardContent className="p-6 text-center">
+          <Clock className="mx-auto text-zinc-600 mb-2" size={28} />
+          <p className="text-sm text-zinc-500">No scheduled posts yet.</p>
+          <p className="text-xs text-zinc-600 mt-1">Use the Publish tab and toggle "Schedule for later" to queue posts.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-3" data-testid="scheduled-posts-list">
+      {posts.map((post) => (
+        <Card key={post.id} className="border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 transition-colors" data-testid={`scheduled-post-${post.id}`}>
+          <CardContent className="p-4">
+            {editingId === post.id ? (
+              <div className="space-y-3">
+                <textarea
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-sm text-zinc-100 focus:outline-none focus:border-indigo-500/50 resize-none min-h-[80px]"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  data-testid={`edit-text-${post.id}`}
+                />
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-zinc-500">Time (UTC):</label>
+                  <input
+                    type="datetime-local"
+                    value={editTime}
+                    onChange={(e) => setEditTime(e.target.value)}
+                    className="bg-zinc-900 border border-zinc-700 rounded-md px-2 py-1 text-xs text-zinc-300 focus:outline-none"
+                    data-testid={`edit-time-${post.id}`}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-7 px-3" onClick={() => saveEdit(post)} data-testid={`edit-save-${post.id}`}>
+                    <Check size={12} className="mr-1" /> Save
+                  </Button>
+                  <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-400 text-xs h-7 px-3" onClick={() => setEditingId(null)} data-testid={`edit-cancel-${post.id}`}>
+                    <X size={12} className="mr-1" /> Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-zinc-200 line-clamp-2">{post.text}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
+                      <CalendarIcon size={11} />
+                      {new Date(post.scheduled_time).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                      {" "}
+                      {new Date(post.scheduled_time).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}
+                      {" UTC"}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {post.platforms?.map((p) => (
+                        <span key={p} className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">{PLATFORM_LABELS[p] || p}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {post.status === "published" && post.results && (
+                    <div className="flex items-center gap-1 mt-1.5">
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">{post.succeeded}/{post.total} succeeded</Badge>
+                    </div>
+                  )}
+                  {post.status === "failed" && post.results && (
+                    <div className="mt-1.5">
+                      {Object.entries(post.results).map(([p, r]) => (
+                        !r.success && <p key={p} className="text-[10px] text-rose-400">{PLATFORM_LABELS[p]}: {r.error}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline" className={`text-[10px] px-2 py-0.5 ${STATUS_STYLES[post.status] || STATUS_STYLES.pending}`} data-testid={`post-status-${post.id}`}>
+                    {post.status}
+                  </Badge>
+                  {post.status === "pending" && (
+                    <button onClick={() => startEdit(post)} className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors" data-testid={`edit-btn-${post.id}`}>
+                      <Pencil size={13} />
+                    </button>
+                  )}
+                  {(post.status === "pending" || post.status === "failed") && (
+                    <button
+                      onClick={() => onDelete(post.id)}
+                      disabled={deleting === post.id}
+                      className="p-1.5 rounded-md hover:bg-rose-500/10 text-zinc-500 hover:text-rose-400 transition-colors disabled:opacity-50"
+                      data-testid={`delete-btn-${post.id}`}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
 /* ─── Main Page ─── */
 export default function LiveIntegrationsPage() {
   const { user } = useAuth();
@@ -377,6 +598,9 @@ export default function LiveIntegrationsPage() {
   const [publishing, setPublishing] = useState(false);
   const [publishResult, setPublishResult] = useState(null);
   const [publishHistory, setPublishHistory] = useState([]);
+  const [scheduling, setScheduling] = useState(false);
+  const [scheduledPosts, setScheduledPosts] = useState([]);
+  const [deletingPost, setDeletingPost] = useState(null);
 
   const getHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -406,10 +630,23 @@ export default function LiveIntegrationsPage() {
     }
   }, []);
 
+  const fetchScheduledPosts = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/integrations/scheduled-posts?limit=50`, { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setScheduledPosts(data.scheduled_posts || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   useEffect(() => {
     fetchStatus();
     fetchHistory();
-  }, [fetchStatus, fetchHistory]);
+    fetchScheduledPosts();
+  }, [fetchStatus, fetchHistory, fetchScheduledPosts]);
 
   const testPlatform = async (platform) => {
     setTesting(platform);
@@ -493,6 +730,68 @@ export default function LiveIntegrationsPage() {
     }
   };
 
+  const handleSchedule = async (payload) => {
+    setScheduling(true);
+    try {
+      const res = await fetch(`${API}/api/integrations/scheduled-posts`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Post scheduled successfully!");
+        fetchScheduledPosts();
+      } else {
+        toast.error(data.detail || "Scheduling failed");
+      }
+    } catch (e) {
+      toast.error(`Schedule error: ${e.message}`);
+    } finally {
+      setScheduling(false);
+    }
+  };
+
+  const handleDeleteScheduled = async (postId) => {
+    setDeletingPost(postId);
+    try {
+      const res = await fetch(`${API}/api/integrations/scheduled-posts/${postId}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+      if (res.ok) {
+        toast.success("Scheduled post deleted.");
+        fetchScheduledPosts();
+      } else {
+        const data = await res.json();
+        toast.error(data.detail || "Delete failed");
+      }
+    } catch (e) {
+      toast.error(`Delete error: ${e.message}`);
+    } finally {
+      setDeletingPost(null);
+    }
+  };
+
+  const handleEditScheduled = async (postId, updates) => {
+    try {
+      const res = await fetch(`${API}/api/integrations/scheduled-posts/${postId}`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        toast.success("Scheduled post updated.");
+        fetchScheduledPosts();
+      } else {
+        const data = await res.json();
+        toast.error(data.detail || "Update failed");
+      }
+    } catch (e) {
+      toast.error(`Update error: ${e.message}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -517,6 +816,9 @@ export default function LiveIntegrationsPage() {
         <Tabs defaultValue="publish" className="space-y-5">
           <TabsList className="bg-zinc-900 border border-zinc-800">
             <TabsTrigger value="publish" className="data-[state=active]:bg-zinc-800" data-testid="tab-publish">Publish</TabsTrigger>
+            <TabsTrigger value="scheduled" className="data-[state=active]:bg-zinc-800" data-testid="tab-scheduled">
+              Scheduled {scheduledPosts.filter(p => p.status === "pending").length > 0 && `(${scheduledPosts.filter(p => p.status === "pending").length})`}
+            </TabsTrigger>
             <TabsTrigger value="social" className="data-[state=active]:bg-zinc-800" data-testid="tab-social">Connections</TabsTrigger>
             <TabsTrigger value="infra" className="data-[state=active]:bg-zinc-800" data-testid="tab-infra">Infrastructure</TabsTrigger>
             <TabsTrigger value="results" className="data-[state=active]:bg-zinc-800" data-testid="tab-results">
@@ -527,18 +829,42 @@ export default function LiveIntegrationsPage() {
           {/* Publish tab */}
           <TabsContent value="publish" className="space-y-4">
             <CardDescription className="text-zinc-500 text-sm">
-              Compose and publish content to your connected social platforms in one click.
+              Compose and publish content to your connected social platforms in one click, or schedule it for later.
             </CardDescription>
             <Card className="border-zinc-800 bg-zinc-900/60 backdrop-blur-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base text-zinc-200">Compose Post</CardTitle>
               </CardHeader>
               <CardContent>
-                <PublishComposer platforms={platforms} onPublish={handlePublish} publishing={publishing} />
+                <PublishComposer platforms={platforms} onPublish={handlePublish} publishing={publishing} onSchedule={handleSchedule} scheduling={scheduling} />
               </CardContent>
             </Card>
             <PublishResults result={publishResult} />
             <PublishHistory history={publishHistory} />
+          </TabsContent>
+
+          {/* Scheduled tab */}
+          <TabsContent value="scheduled" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <CardDescription className="text-zinc-500 text-sm">
+                View and manage your scheduled posts. Pending posts will be published automatically at the scheduled time.
+              </CardDescription>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-zinc-700 text-zinc-400 text-xs h-7 shrink-0"
+                onClick={fetchScheduledPosts}
+                data-testid="refresh-scheduled-btn"
+              >
+                Refresh
+              </Button>
+            </div>
+            <ScheduledPostsList
+              posts={scheduledPosts}
+              onDelete={handleDeleteScheduled}
+              onEdit={handleEditScheduled}
+              deleting={deletingPost}
+            />
           </TabsContent>
 
           {/* Social Connections tab */}

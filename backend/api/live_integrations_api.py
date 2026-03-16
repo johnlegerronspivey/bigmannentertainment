@@ -65,6 +65,20 @@ class MultiPlatformPublishPayload(BaseModel):
     media_url: Optional[str] = None
 
 
+class ScheduledPostPayload(BaseModel):
+    text: str
+    platforms: List[str]
+    media_url: Optional[str] = None
+    scheduled_time: str  # ISO 8601 UTC string
+
+
+class ScheduledPostUpdatePayload(BaseModel):
+    text: Optional[str] = None
+    platforms: Optional[List[str]] = None
+    media_url: Optional[str] = None
+    scheduled_time: Optional[str] = None
+
+
 # ── CloudFront Setup ────────────────────────────────────────
 
 @router.post("/cloudfront/setup")
@@ -410,6 +424,117 @@ async def get_credentials(
         else:
             masked[k] = v
     return {"platform_id": platform_id, "has_credentials": True, "credentials": masked}
+
+
+# ── Scheduled Posts CRUD ──────────────────────────────────────
+
+@router.post("/scheduled-posts")
+async def create_scheduled_post(
+    payload: ScheduledPostPayload,
+    current_user: User = Depends(get_current_user),
+):
+    """Create a new scheduled post."""
+    try:
+        sched_dt = datetime.fromisoformat(payload.scheduled_time.replace("Z", "+00:00"))
+    except ValueError:
+        raise HTTPException(400, "Invalid scheduled_time. Use ISO 8601 format.")
+
+    if sched_dt <= datetime.now(timezone.utc):
+        raise HTTPException(400, "scheduled_time must be in the future.")
+
+    post_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+
+    doc = {
+        "id": post_id,
+        "user_id": current_user.id,
+        "text": payload.text,
+        "platforms": payload.platforms,
+        "media_url": payload.media_url,
+        "scheduled_time": sched_dt.isoformat(),
+        "status": "pending",
+        "results": None,
+        "succeeded": None,
+        "total": len(payload.platforms),
+        "created_at": now,
+        "updated_at": now,
+    }
+    await db.scheduled_posts.insert_one(doc)
+
+    doc.pop("_id", None)
+    return {"scheduled_post": doc, "message": "Post scheduled successfully."}
+
+
+@router.get("/scheduled-posts")
+async def list_scheduled_posts(
+    status: Optional[str] = Query(None, description="Filter by status: pending, publishing, published, failed"),
+    limit: int = Query(50, ge=1, le=200),
+    current_user: User = Depends(get_current_user),
+):
+    """List scheduled posts for the current user."""
+    query = {"user_id": current_user.id}
+    if status:
+        query["status"] = status
+    posts = []
+    cursor = db.scheduled_posts.find(query, {"_id": 0}).sort("scheduled_time", 1).limit(limit)
+    async for doc in cursor:
+        posts.append(doc)
+    return {"scheduled_posts": posts, "count": len(posts)}
+
+
+@router.put("/scheduled-posts/{post_id}")
+async def update_scheduled_post(
+    post_id: str,
+    payload: ScheduledPostUpdatePayload,
+    current_user: User = Depends(get_current_user),
+):
+    """Update a pending scheduled post."""
+    existing = await db.scheduled_posts.find_one(
+        {"id": post_id, "user_id": current_user.id}, {"_id": 0}
+    )
+    if not existing:
+        raise HTTPException(404, "Scheduled post not found.")
+    if existing["status"] != "pending":
+        raise HTTPException(400, f"Cannot edit a post with status '{existing['status']}'. Only pending posts can be updated.")
+
+    updates = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    if payload.text is not None:
+        updates["text"] = payload.text
+    if payload.platforms is not None:
+        updates["platforms"] = payload.platforms
+        updates["total"] = len(payload.platforms)
+    if payload.media_url is not None:
+        updates["media_url"] = payload.media_url
+    if payload.scheduled_time is not None:
+        try:
+            sched_dt = datetime.fromisoformat(payload.scheduled_time.replace("Z", "+00:00"))
+        except ValueError:
+            raise HTTPException(400, "Invalid scheduled_time format.")
+        if sched_dt <= datetime.now(timezone.utc):
+            raise HTTPException(400, "scheduled_time must be in the future.")
+        updates["scheduled_time"] = sched_dt.isoformat()
+
+    await db.scheduled_posts.update_one({"id": post_id}, {"$set": updates})
+    updated = await db.scheduled_posts.find_one({"id": post_id}, {"_id": 0})
+    return {"scheduled_post": updated, "message": "Scheduled post updated."}
+
+
+@router.delete("/scheduled-posts/{post_id}")
+async def delete_scheduled_post(
+    post_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Delete/cancel a scheduled post."""
+    existing = await db.scheduled_posts.find_one(
+        {"id": post_id, "user_id": current_user.id}, {"_id": 0}
+    )
+    if not existing:
+        raise HTTPException(404, "Scheduled post not found.")
+    if existing["status"] not in ("pending", "failed"):
+        raise HTTPException(400, f"Cannot delete a post with status '{existing['status']}'.")
+
+    await db.scheduled_posts.delete_one({"id": post_id})
+    return {"message": "Scheduled post deleted.", "id": post_id}
 
 
 @router.get("/status/all")

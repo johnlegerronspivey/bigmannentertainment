@@ -1,0 +1,64 @@
+{
+  "summary": "Completed comprehensive testing of Post-Scheduling feature for social media management platform. All 4 CRUD backend endpoints working correctly (12/12 tests passed, 1 skipped). Frontend UI tested successfully - schedule toggle, date picker, time selectors, Scheduled tab, edit/delete buttons all functional.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_scheduled_posts.py",
+    "/app/test_reports/pytest/scheduled_posts_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend CRUD endpoints properly validate ISO 8601 scheduled_time format",
+    "Future time validation correctly rejects past dates",
+    "Status-based filtering works correctly (pending, published, failed)",
+    "Only pending/failed posts can be deleted - proper status validation",
+    "Only pending posts can be edited - proper status validation",
+    "Frontend has proper data-testid attributes for all interactive elements",
+    "Schedule toggle correctly switches between 'Publish Now' and 'Schedule Post' modes",
+    "Background scheduler service confirmed running (logs show 'Post scheduler started')"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_scheduled_posts.py"
+  ],
+  "success_rate": {
+    "backend": "100% (12 passed, 1 skipped)",
+    "frontend": "100%"
+  },
+  "seed_data_creation": "Test data created and cleaned up during tests (TEST_ prefixed posts)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Post-Scheduling feature fully tested. Route is /integrations (not /live-integrations). Login returns access_token field. Background scheduler checks every 30 seconds for due posts. All UI elements have data-testid attributes. Snapchat platform is connected via environment config without OAuth required.",
+  "tested_features": [
+    "POST /api/integrations/scheduled-posts - Create scheduled post with future time - PASS",
+    "POST /api/integrations/scheduled-posts - Reject past scheduled_time (400) - PASS",
+    "POST /api/integrations/scheduled-posts - Reject invalid ISO time format (400) - PASS",
+    "POST /api/integrations/scheduled-posts - Multiple platforms support - PASS",
+    "GET /api/integrations/scheduled-posts - List all scheduled posts - PASS",
+    "GET /api/integrations/scheduled-posts?status=pending - Filter by status - PASS",
+    "GET /api/integrations/scheduled-posts?limit=5 - Limit results - PASS",
+    "PUT /api/integrations/scheduled-posts/{id} - Update pending post text and time - PASS",
+    "PUT /api/integrations/scheduled-posts/{id} - 404 for non-existent post - PASS",
+    "PUT /api/integrations/scheduled-posts/{id} - Reject update of non-pending post - SKIPPED (no non-pending posts in test data)",
+    "DELETE /api/integrations/scheduled-posts/{id} - Delete pending post - PASS",
+    "DELETE /api/integrations/scheduled-posts/{id} - 404 for non-existent post - PASS",
+    "POST /api/integrations/scheduled-posts - Requires authentication (401/403) - PASS",
+    "Frontend: Publish tab shows 'Schedule for later' toggle button - PASS",
+    "Frontend: Clicking 'Schedule for later' shows date picker and time selectors - PASS",
+    "Frontend: Schedule mode changes button text to 'Schedule Post' - PASS",
+    "Frontend: 'Scheduled' tab exists between Publish and Connections - PASS",
+    "Frontend: 'Scheduled' tab shows empty state when no posts - PASS",
+    "Frontend: 'Scheduled' tab shows scheduled posts with status badges - PASS",
+    "Frontend: Edit and Delete buttons appear on pending scheduled posts - PASS",
+    "Frontend: Edit form opens when clicking edit, can be cancelled - PASS",
+    "Frontend: Delete removes post and shows success toast - PASS",
+    "Frontend: Refresh button on Scheduled tab works - PASS"
+  ],
+  "test_credentials_used": "owner@bigmannentertainment.com / Test1234!"
+}

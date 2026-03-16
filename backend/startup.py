@@ -122,6 +122,14 @@ async def startup_event():
     LambdaProcessingService()
     RekognitionService()
 
+    # Start post scheduler background task
+    try:
+        from services.scheduler_service import start_scheduler
+        start_scheduler()
+        print("  Post Scheduler started")
+    except Exception as e:
+        print(f"  Post Scheduler failed: {str(e)}")
+
 
 async def shutdown_event():
     """Cleanup on application shutdown."""
