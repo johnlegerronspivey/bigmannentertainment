@@ -168,6 +168,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - Delivery Engine: `GET /api/distribution-hub/adapters`, `GET /api/distribution-hub/adapters/credentials-guide`, `GET /api/distribution-hub/deliveries/batch/{id}/progress`
 - Live Integrations: `GET /api/integrations/status/all`, `GET /api/integrations/{platform}/test`, `GET /api/integrations/{platform}/auth-url`, `POST /api/integrations/{platform}/callback`, `GET /api/integrations/cloudfront/status`, `POST /api/integrations/cloudfront/setup`, `POST /api/integrations/credentials/save`
 - **Publishing**: `POST /api/integrations/publish`, `GET /api/integrations/publish/history`, `POST /api/integrations/twitter/tweet`, `POST /api/integrations/tiktok/publish`, `POST /api/integrations/snapchat/publish`
+- **Scheduled Posts**: `POST /api/integrations/scheduled-posts`, `GET /api/integrations/scheduled-posts`, `PUT /api/integrations/scheduled-posts/{id}`, `DELETE /api/integrations/scheduled-posts/{id}`
 - **Media Processing**: `GET /api/aws-media/status`, `GET/POST /api/aws-media/mediaconvert/jobs`, `GET /api/aws-media/mediaconvert/presets`, `GET/POST /api/aws-media/transcribe/jobs`, `GET /api/aws-media/transcribe/languages`
 - **Live Streaming**: `GET /api/aws-livestream/status`, `GET/POST/DELETE /api/aws-livestream/ivs/channels`, `GET /api/aws-livestream/ivs/streams`, `GET/POST/DELETE /api/aws-livestream/mediapackage/channels`, `GET/POST/DELETE /api/aws-livestream/mediapackage/endpoints`, `GET /api/aws-livestream/mediapackage/formats`
 - **Communications**: `GET /api/aws-comms/status`, `GET /api/aws-comms/workmail/organizations`, `GET/POST/DELETE /api/aws-comms/workmail/users`, `GET /api/aws-comms/workmail/groups`, `GET /api/aws-comms/connect/instances`, `GET /api/aws-comms/connect/queues`, `GET /api/aws-comms/connect/contact-flows`, `GET /api/aws-comms/connect/hours-of-operation`, `GET /api/aws-comms/connect/users`, `GET /api/aws-comms/connect/routing-profiles`
@@ -182,6 +183,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
 - `platform_credentials`, `distribution_hub_content`, `distribution_hub_deliveries`, `distribution_hub_credentials`
 - `anomaly_alerts`, `metrics_history`, `audience_analytics`, `revenue_tracking`
 - `publish_history`
+- `scheduled_posts`
 - `mediaconvert_jobs`, `transcribe_jobs`
 - `ivs_channels`, `mediapackage_channels`, `mediapackage_endpoints`
 - `workmail_users`
@@ -427,9 +429,10 @@ All features verified and signed off:
 - **Testing**: 100% pass rate (19/19 backend, all frontend tests passed)
 
 ## Backlog
-- **P1**: Post-scheduling functionality to connected social media accounts
+- **P1**: Connect to Live APIs for real-time metrics from social media platforms
 - **P2**: Replace mock data in analytics with real API-sourced data
 - **P3**: Revenue auto-import from platform APIs when credentials are connected
+- **P2**: API Key Guidance - help user find/provide Facebook & Google OAuth keys
 
 ### Phase 24 - Content Lightbox / Full-Size Preview (2026-03-15)
 - **Lightbox Modal** - Full-screen overlay for viewing uploaded content at full size:
@@ -470,3 +473,26 @@ All features verified and signed off:
 - New records added: AAAA (IPv6), DKIM (3 CNAME keys), SES verification TXT, CAA (SSL authority), Mail CNAME, Google Search Console TXT, SRV (VoIP)
 - Backend `_get_required_dns_records()` in `/app/backend/routes/domain_routes.py` updated
 - Frontend auto-renders new records via existing dynamic table in `DomainConfigPage.jsx`
+
+### Phase 27 - Post-Scheduling Feature (2026-03-16)
+- **Scheduled Posts CRUD API** - Full lifecycle management for scheduled social media posts:
+  - `POST /api/integrations/scheduled-posts` - Create with future ISO 8601 time, validates past times
+  - `GET /api/integrations/scheduled-posts` - List with optional status filter (pending/publishing/published/failed)
+  - `PUT /api/integrations/scheduled-posts/{id}` - Update text, platforms, time (pending only)
+  - `DELETE /api/integrations/scheduled-posts/{id}` - Delete pending or failed posts
+- **Background Scheduler Service** (`/app/backend/services/scheduler_service.py`):
+  - Runs every 30 seconds checking for due posts
+  - Publishes via existing multi-platform engine (Twitter/X, TikTok, Snapchat)
+  - Status pipeline: pending -> publishing -> published/failed
+  - Saves results to `publish_history` collection for unified feed
+  - Registered in `startup.py` as async background task
+- **Frontend Scheduling UI** in `LiveIntegrationsPage.jsx`:
+  - "Schedule for later" toggle in Publish Composer
+  - Shadcn Calendar date picker with Popover + hour/minute UTC selectors
+  - "Schedule Post" button (amber theme) replaces "Publish Now" when scheduling
+  - New "Scheduled" tab showing all scheduled posts with status badges
+  - Inline edit for pending posts (text + datetime-local input)
+  - Delete button for pending/failed posts
+  - Refresh button, empty state guidance
+- **DB Collection**: `scheduled_posts` (id, user_id, text, platforms, media_url, scheduled_time, status, results, created_at, updated_at)
+- **Testing**: 100% pass rate (12/12 backend, all frontend tests passed - iteration_88)
