@@ -528,3 +528,22 @@ All features verified and signed off:
 - **Removed 5 dead lazy imports** from `App.js`: `GS1Dashboard`, `LicensingDashboard`, `PlatformLicenseManager`, `LicensingStatus`, `ComprehensiveLicensingComponents`
 - **Kept** `GS1AssetRegistryComponents.js` (still used by `ComprehensivePlatformComponents.js`)
 - **Verified**: App loads, GS1 & Licensing Hub renders correctly, zero lint errors
+
+### Phase 29 - Comprehensive Dead Code Cleanup (2026-03-18)
+- **28 dead files removed (~11,000 lines)** across frontend and backend
+- **Frontend (7 files)**:
+  - `EnhancedApp.js` (365 lines) — never imported
+  - `EnhancedUploadComponent_old.js` (834 lines) — old copy, superseded by `EnhancedUploadComponent.js`
+  - `DOOHRouter.jsx` (234 lines) — never imported
+  - `SocialMediaDashboard.js` (353 lines) — replaced by `SocialMediaDashboardEnhanced.js`
+  - `utils/accessibility.js` (279 lines) — never imported
+  - `utils/formValidation.js` (322 lines) — never imported
+  - `utils/logger.js` (39 lines) — never imported
+- **Backend Services (7 files)**:
+  - `compliance_dispute_service.py`, `delivery_optimization_service.py`, `distribution_svc.py`, `format_optimization_service.py`, `gs1_profile_service.py`, `pinpoint_service.py` (migrated to Connect), `post_scheduler_service.py` (superseded by `scheduler_service.py`)
+- **Backend Utils (11 files)**:
+  - `blockchain_contracts.py`, `dao_removal_integration.py`, `ddex_integration.py`, `encryption_utils.py`, `enhanced_distribution_platforms.py`, `enhanced_validation.py`, `ethereum_integration.py`, `label_simple.py`, `migrate_labels_to_uln.py`, `postgres_ledger.py`, `qldb_mock.py`
+- **Backend API Endpoints (3 files)**:
+  - `agency_onboarding_endpoints.py`, `image_upload_endpoints.py`, `ipi_endpoints.py` — never imported in router_setup.py or server.py
+- **Also cleaned**: All `__pycache__` directories
+- **Verified**: Backend healthy, frontend compiles successfully, login + navigation working
