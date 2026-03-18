@@ -79,6 +79,7 @@ const PlatformLicenseManager = lazy(() => import("./LicensingComponents").then(m
 const LicensingStatus = lazy(() => import("./LicensingComponents").then(m => ({ default: m.LicensingStatus })));
 const GS1Dashboard = lazy(() => import("./GS1Components").then(m => ({ default: m.GS1Dashboard })));
 const ComprehensiveLicensingComponents = lazy(() => import("./ComprehensiveLicensingComponents"));
+const GS1LicensingHub = lazy(() => import("./pages/GS1LicensingHub"));
 const ContentRemovalDashboard = lazy(() => import("./ContentRemovalComponents"));
 const AboutPage = lazy(() => import("./AboutPage"));
 const EnhancedUploadComponent = lazy(() => import("./EnhancedUploadComponent"));
@@ -303,7 +304,7 @@ function App() {
             <Route path="/workflow-integration" element={<ProtectedRoute><WorkflowIntegrationDashboard /></ProtectedRoute>} />
             <Route path="/support-center" element={<ProtectedRoute><SupportSystemDashboard /></ProtectedRoute>} />
             <Route path="/comprehensive-platform" element={<ProtectedRoute><ComprehensivePlatform /></ProtectedRoute>} />
-            <Route path="/comprehensive-licensing" element={<ProtectedRoute><ComprehensiveLicensingComponents /></ProtectedRoute>} />
+            <Route path="/comprehensive-licensing" element={<ProtectedRoute><GS1LicensingHub /></ProtectedRoute>} />
             <Route path="/content-removal" element={<ProtectedRoute><ContentRemovalDashboard /></ProtectedRoute>} />
             <Route path="/about" element={<AboutPage />} />
 
@@ -340,13 +341,13 @@ function App() {
             <Route path="/payment/bank" element={<ProtectedRoute><BankAccountManager /></ProtectedRoute>} />
             <Route path="/payment/wallet" element={<ProtectedRoute><DigitalWalletManager /></ProtectedRoute>} />
 
-            {/* Licensing routes */}
-            <Route path="/licensing" element={<ProtectedRoute><LicensingDashboard /></ProtectedRoute>} />
-            <Route path="/licensing/platforms" element={<ProtectedRoute><PlatformLicenseManager /></ProtectedRoute>} />
-            <Route path="/licensing/status" element={<ProtectedRoute><LicensingStatus /></ProtectedRoute>} />
-
-            {/* GS1 routes */}
-            <Route path="/gs1" element={<ProtectedRoute><GS1Dashboard /></ProtectedRoute>} />
+            {/* Unified GS1 & Licensing Hub */}
+            <Route path="/gs1-licensing" element={<ProtectedRoute><GS1LicensingHub /></ProtectedRoute>} />
+            {/* Legacy routes redirect to unified hub */}
+            <Route path="/licensing" element={<ProtectedRoute><GS1LicensingHub /></ProtectedRoute>} />
+            <Route path="/licensing/platforms" element={<ProtectedRoute><GS1LicensingHub /></ProtectedRoute>} />
+            <Route path="/licensing/status" element={<ProtectedRoute><GS1LicensingHub /></ProtectedRoute>} />
+            <Route path="/gs1" element={<ProtectedRoute><GS1LicensingHub /></ProtectedRoute>} />
 
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />

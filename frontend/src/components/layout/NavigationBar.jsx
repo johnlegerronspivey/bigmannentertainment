@@ -174,10 +174,8 @@ const NavigationBar = () => {
                   <Link to="/ddex" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>DDEX</Link>
                   <Link to="/sponsorship" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Sponsorship</Link>
                   <Link to="/tax" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Tax Management</Link>
-                  <Link to="/licensing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Licensing</Link>
-                  <Link to="/comprehensive-licensing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Comprehensive Licensing</Link>
+                  <Link to="/gs1-licensing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>GS1 & Licensing</Link>
                   <Link to="/content-removal" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Content Removal</Link>
-                  <Link to="/gs1" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>GS1</Link>
                   <Link to="/social-strategy" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Social Media Strategy</Link>
                   <Link to="/content-ingestion" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Content Ingestion</Link>
                   <Link to="/comprehensive-workflow" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>End-to-End Workflow</Link>
