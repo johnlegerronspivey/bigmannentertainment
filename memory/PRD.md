@@ -87,7 +87,7 @@ Build a comprehensive creator tools platform for Big Mann Entertainment that ena
   - `models/` - 30 model files (27 moved + 3 existing)
   - `utils/` - 34 utility/miscellaneous files
   - Root retains only: `server.py`, `startup.py`, `router_setup.py`, `middleware.py`
-- **Root-level Cleanup** - Moved 82 markdown docs to `/app/docs/`, 179 legacy test scripts to `/app/tests/legacy/`, 7 admin scripts to `/app/scripts/`
+- **Root-level Cleanup** - Moved 82 markdown docs to `/app/docs/`, 7 admin scripts to `/app/scripts/`. Legacy test scripts (179) were moved to `/app/tests/legacy/` then fully removed in Phase 30.
 - **sys.path Backward Compatibility** - Added `api/`, `services/`, `models/`, `utils/` to Python path in `server.py` so all existing bare imports continue to work
 
 ### Phase 13 - API Documentation & Developer Onboarding (2026-03-11)
@@ -433,6 +433,7 @@ All features verified and signed off:
 - **P2**: Replace mock data in analytics with real API-sourced data
 - **P3**: Revenue auto-import from platform APIs when credentials are connected
 - **P2**: API Key Guidance - help user find/provide Facebook & Google OAuth keys
+- **P3**: Add Quick Actions Panel to GS1 Hub's Overview tab
 
 ### Phase 24 - Content Lightbox / Full-Size Preview (2026-03-15)
 - **Lightbox Modal** - Full-screen overlay for viewing uploaded content at full size:
@@ -547,3 +548,14 @@ All features verified and signed off:
   - `agency_onboarding_endpoints.py`, `image_upload_endpoints.py`, `ipi_endpoints.py` — never imported in router_setup.py or server.py
 - **Also cleaned**: All `__pycache__` directories
 - **Verified**: Backend healthy, frontend compiles successfully, login + navigation working
+
+### Phase 30 - Legacy Test Scripts Audit & Cleanup (2026-03-18)
+- **183 legacy test files removed (~102,576 lines, 4.9 MB)** from `/app/tests/legacy/`
+  - 179 Python test scripts, 2 log files, 2 JSON result files
+  - All HTTP-based tests (using `requests` library), none directly imported backend modules
+  - 105 files hardcoded to stale preview URLs (e.g. `social-profile-sync.preview.emergentagent.com`)
+  - ~40 files referenced deleted modules (QLDB, blockchain/ethereum/DAO, DDEX, agency_onboarding, DOOH/pDOOH)
+  - Zero references from any active code, CI/CD config, or other scripts
+  - The app maintains 76 active test files in `/app/backend/tests/` covering all modern features
+- **Also cleaned**: Empty `/app/tests/` directory and its `__init__.py`
+- **Verified**: Backend healthy (all services operational), frontend renders correctly, login working
