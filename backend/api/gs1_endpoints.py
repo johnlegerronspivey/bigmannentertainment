@@ -21,7 +21,7 @@ from gs1_service import GS1Service
 logger = logging.getLogger(__name__)
 
 # Create router
-router = APIRouter(prefix="/api/gs1", tags=["GS1 Asset Registry"])
+router = APIRouter(prefix="/gs1", tags=["GS1 Asset Registry"])
 
 # Global service instance (will be initialized in server.py)
 gs1_service: Optional[GS1Service] = None

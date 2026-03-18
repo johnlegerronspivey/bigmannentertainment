@@ -507,3 +507,17 @@ All features verified and signed off:
   - `pyjwt` 2.10.1 → 2.12.1 (GHSA-752w-5fwx-jx9f)
   - `pyopenssl` 25.3.0 → 26.0.0 (GHSA-vp96-hxj8-p424, GHSA-5pwr-322w-8jr4)
 - **Final audit: 0 vulnerabilities** on both frontend and backend
+
+### Phase 27 - Unified GS1 & Licensing Hub (2026-03-18)
+- **Consolidated 3 separate pages** (`/gs1`, `/licensing`, `/comprehensive-licensing`) into a single unified page at `/gs1-licensing`
+- **6 Tabs**: Overview, GS1 & Business, Products & Barcodes, Platform Licensing, Compensation, Agreements & Compliance
+- **Overview**: Combined dashboard with stat cards (Platforms Licensed, Active Licenses, Compliance Rate, GS1 Assets), Business Entity summary, Financial Summary, Platform Categories
+- **GS1 & Business**: GS1 registry info, business entity details, capabilities (GTIN/GLN/ISRC/ISAN), legal & contact details
+- **Products & Barcodes**: UPC/GTIN product CRUD + barcode generator with download
+- **Platform Licensing**: License management with activate/deactivate, status filter, "License All Platforms" bulk action
+- **Compensation**: Sub-tabs for Statutory Rates, Daily Compensation, Compensation Analytics
+- **Agreements & Compliance**: Sub-tabs for License Agreements, Automated Workflows, Compliance Docs + Generate All Licenses
+- **Bug Fix**: Fixed GS1 API endpoint routing (double `/api` prefix issue in `gs1_endpoints.py`)
+- **Navigation**: Single "GS1 & Licensing" link in Business dropdown; legacy routes redirect to hub
+- **Files**: Created `/app/frontend/src/pages/GS1LicensingHub.jsx`, updated `App.js`, `NavigationBar.jsx`, `gs1_endpoints.py`
+- **Testing**: 95% pass (iteration_89) + API fix verified
