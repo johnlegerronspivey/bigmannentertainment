@@ -521,3 +521,10 @@ All features verified and signed off:
 - **Navigation**: Single "GS1 & Licensing" link in Business dropdown; legacy routes redirect to hub
 - **Files**: Created `/app/frontend/src/pages/GS1LicensingHub.jsx`, updated `App.js`, `NavigationBar.jsx`, `gs1_endpoints.py`
 - **Testing**: 95% pass (iteration_89) + API fix verified
+
+
+### Phase 28 - Dead Code Cleanup (2026-03-18)
+- **Removed 3 unused component files**: `GS1Components.js`, `LicensingComponents.js`, `ComprehensiveLicensingComponents.js`
+- **Removed 5 dead lazy imports** from `App.js`: `GS1Dashboard`, `LicensingDashboard`, `PlatformLicenseManager`, `LicensingStatus`, `ComprehensiveLicensingComponents`
+- **Kept** `GS1AssetRegistryComponents.js` (still used by `ComprehensivePlatformComponents.js`)
+- **Verified**: App loads, GS1 & Licensing Hub renders correctly, zero lint errors

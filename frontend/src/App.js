@@ -74,11 +74,6 @@ const EarningsDashboard = lazy(() => import("./EarningsComponents").then(m => ({
 const RoyaltySplitManager = lazy(() => import("./EarningsComponents").then(m => ({ default: m.RoyaltySplitManager })));
 const PaymentComponent = lazy(() => import("./PaymentComponent"));
 const EarningsComponent = lazy(() => import("./EarningsComponent"));
-const LicensingDashboard = lazy(() => import("./LicensingComponents").then(m => ({ default: m.LicensingDashboard })));
-const PlatformLicenseManager = lazy(() => import("./LicensingComponents").then(m => ({ default: m.PlatformLicenseManager })));
-const LicensingStatus = lazy(() => import("./LicensingComponents").then(m => ({ default: m.LicensingStatus })));
-const GS1Dashboard = lazy(() => import("./GS1Components").then(m => ({ default: m.GS1Dashboard })));
-const ComprehensiveLicensingComponents = lazy(() => import("./ComprehensiveLicensingComponents"));
 const GS1LicensingHub = lazy(() => import("./pages/GS1LicensingHub"));
 const ContentRemovalDashboard = lazy(() => import("./ContentRemovalComponents"));
 const AboutPage = lazy(() => import("./AboutPage"));
