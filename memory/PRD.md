@@ -469,10 +469,30 @@ All features verified and signed off:
   - Replaces previous `setTimeout(poll, 3000)` polling approach
 - **Testing**: 100% pass rate (9/9 backend, all frontend tests passed)
 
-### Phase 26 - DNS Configuration Guide Update (2026-03-15)
-- **Expanded DNS records** from 7 to 16 record types in the DNS Configuration Guide
-- New records added: AAAA (IPv6), DKIM (3 CNAME keys), SES verification TXT, CAA (SSL authority), Mail CNAME, Google Search Console TXT, SRV (VoIP)
+### Phase 26 - DNS Configuration Guide Update (2026-03-15, expanded 2026-03-18)
+- **Expanded DNS records** from 16 to 31 record types (8 new record types, 7 new categories)
+- **New record types**: NAPTR (SIP routing), additional CAA (Let's Encrypt, iodef), SRV (SMTP submission)
+- **New records added**:
+  - `app.` and `staging.` CNAME subdomains
+  - BIMI (Brand Indicators for Message Identification) TXT record
+  - WorkMail autodiscover CNAME
+  - MTA-STS enforcement TXT + policy host CNAME
+  - SMTP TLS Reporting (`_smtp._tls`) TXT record
+  - CAA for Let's Encrypt + iodef reporting
+  - SRV for SMTP submission service discovery
+  - NAPTR for SIP over TCP/UDP (Amazon Connect VoIP)
+  - Apple Business/Pay and Facebook/Meta domain verification TXT records
+  - `status.` CNAME for health monitoring page
+- **Updated existing values**:
+  - SPF: `~all` → `-all` (strict), added `include:amazonworkmail.com`
+  - DMARC: `p=quarantine` → `p=reject; sp=reject; adkim=s; aspf=s` with forensic reporting
+  - A/AAAA: Updated to "ALIAS to CloudFront or ELB endpoint"
+  - API subdomain: priority upgraded from `recommended` → `required`
+  - MX/CDN/CAA: priority upgraded from `optional`/`recommended` → `required`
+- **Auto-configure expanded**: Route53 auto-config now creates 12 record types (was 6): SPF, DMARC, SES, DKIM, WWW, API, MX, mail, autodiscover, MTA-STS, TLS reporting, CAA
+- **Frontend**: Added CAA, NAPTR, NS, PTR to record type dropdown for manual record creation
 - Backend `_get_required_dns_records()` in `/app/backend/routes/domain_routes.py` updated
+- Backend `auto_configure()` in `/app/backend/services/route53_svc.py` expanded
 - Frontend auto-renders new records via existing dynamic table in `DomainConfigPage.jsx`
 
 ### Phase 27 - Post-Scheduling Feature (2026-03-16)

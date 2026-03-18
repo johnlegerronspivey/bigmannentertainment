@@ -111,65 +111,71 @@ class Route53Service:
             raise RuntimeError("Route53 not available")
 
         results = []
-        cloudfront_domain = os.getenv("CLOUDFRONT_DOMAIN", "cdn.bigmannentertainment.com")
 
-        # 1. SPF
-        try:
-            self.upsert_record(DOMAIN, "TXT", ['"v=spf1 include:amazonses.com ~all"'], 300)
-            results.append({"record": f"TXT {DOMAIN} (SPF)", "status": "ok"})
-        except Exception as e:
-            results.append({"record": f"TXT {DOMAIN} (SPF)", "status": "error", "error": str(e)})
+        def _try(label, fn):
+            try:
+                fn()
+                results.append({"record": label, "status": "ok"})
+            except Exception as e:
+                results.append({"record": label, "status": "error", "error": str(e)})
 
-        # 2. DMARC
-        try:
-            self.upsert_record(
-                f"_dmarc.{DOMAIN}",
-                "TXT",
-                [f'"v=DMARC1; p=quarantine; rua=mailto:dmarc@{DOMAIN}"'],
-                300,
-            )
-            results.append({"record": f"TXT _dmarc.{DOMAIN}", "status": "ok"})
-        except Exception as e:
-            results.append({"record": f"TXT _dmarc.{DOMAIN}", "status": "error", "error": str(e)})
+        # 1. SPF (updated: includes WorkMail, strict -all)
+        _try(f"TXT {DOMAIN} (SPF)", lambda: self.upsert_record(
+            DOMAIN, "TXT",
+            ['"v=spf1 include:amazonses.com include:amazonworkmail.com -all"'], 300))
+
+        # 2. DMARC (updated: strict policy with forensic reporting)
+        _try(f"TXT _dmarc.{DOMAIN}", lambda: self.upsert_record(
+            f"_dmarc.{DOMAIN}", "TXT",
+            [f'"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; rua=mailto:dmarc-reports@{DOMAIN}; ruf=mailto:dmarc-forensic@{DOMAIN}; pct=100"'],
+            300))
 
         # 3. SES verification TXT (if token provided)
         if ses_verification_token:
-            try:
-                self.upsert_record(
-                    f"_amazonses.{DOMAIN}",
-                    "TXT",
-                    [f'"{ses_verification_token}"'],
-                    300,
-                )
-                results.append({"record": f"TXT _amazonses.{DOMAIN}", "status": "ok"})
-            except Exception as e:
-                results.append({"record": f"TXT _amazonses.{DOMAIN}", "status": "error", "error": str(e)})
+            _try(f"TXT _amazonses.{DOMAIN}", lambda: self.upsert_record(
+                f"_amazonses.{DOMAIN}", "TXT",
+                [f'"{ses_verification_token}"'], 300))
 
         # 4. DKIM CNAMEs
         for token in (dkim_tokens or []):
-            try:
-                self.upsert_record(
-                    f"{token}._domainkey.{DOMAIN}",
-                    "CNAME",
-                    [f"{token}.dkim.amazonses.com"],
-                    300,
-                )
-                results.append({"record": f"CNAME {token}._domainkey (DKIM)", "status": "ok"})
-            except Exception as e:
-                results.append({"record": f"CNAME {token}._domainkey (DKIM)", "status": "error", "error": str(e)})
+            _try(f"CNAME {token}._domainkey (DKIM)", lambda t=token: self.upsert_record(
+                f"{t}._domainkey.{DOMAIN}", "CNAME",
+                [f"{t}.dkim.amazonses.com"], 300))
 
         # 5. WWW redirect
-        try:
-            self.upsert_record(f"www.{DOMAIN}", "CNAME", [DOMAIN], 300)
-            results.append({"record": f"CNAME www.{DOMAIN}", "status": "ok"})
-        except Exception as e:
-            results.append({"record": f"CNAME www.{DOMAIN}", "status": "error", "error": str(e)})
+        _try(f"CNAME www.{DOMAIN}", lambda: self.upsert_record(
+            f"www.{DOMAIN}", "CNAME", [DOMAIN], 300))
 
-        # 6. MX for SES inbound
-        try:
-            self.upsert_record(DOMAIN, "MX", ["10 inbound-smtp.us-east-1.amazonaws.com"], 300)
-            results.append({"record": f"MX {DOMAIN}", "status": "ok"})
-        except Exception as e:
-            results.append({"record": f"MX {DOMAIN}", "status": "error", "error": str(e)})
+        # 6. API subdomain
+        _try(f"CNAME api.{DOMAIN}", lambda: self.upsert_record(
+            f"api.{DOMAIN}", "CNAME", [DOMAIN], 300))
+
+        # 7. MX for SES inbound
+        _try(f"MX {DOMAIN}", lambda: self.upsert_record(
+            DOMAIN, "MX", ["10 inbound-smtp.us-east-1.amazonaws.com"], 300))
+
+        # 8. Mail subdomain
+        _try(f"CNAME mail.{DOMAIN}", lambda: self.upsert_record(
+            f"mail.{DOMAIN}", "CNAME",
+            ["inbound-smtp.us-east-1.amazonaws.com"], 300))
+
+        # 9. WorkMail autodiscover
+        _try(f"CNAME autodiscover.{DOMAIN}", lambda: self.upsert_record(
+            f"autodiscover.{DOMAIN}", "CNAME",
+            ["autodiscover.mail.us-east-1.awsapps.com"], 300))
+
+        # 10. MTA-STS
+        _try(f"TXT _mta-sts.{DOMAIN}", lambda: self.upsert_record(
+            f"_mta-sts.{DOMAIN}", "TXT",
+            ['"v=STSv1; id=20260218"'], 300))
+
+        # 11. SMTP TLS Reporting
+        _try(f"TXT _smtp._tls.{DOMAIN}", lambda: self.upsert_record(
+            f"_smtp._tls.{DOMAIN}", "TXT",
+            [f'"v=TLSRPTv1; rua=mailto:tls-reports@{DOMAIN}"'], 300))
+
+        # 12. CAA - Amazon ACM
+        _try(f"CAA {DOMAIN} (amazon)", lambda: self.upsert_record(
+            DOMAIN, "CAA", ['0 issue "amazon.com"'], 300))
 
         return results

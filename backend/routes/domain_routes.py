@@ -20,77 +20,106 @@ route53_service = Route53Service()
 def _get_required_dns_records(domain: str):
     """Build the list of recommended DNS records."""
     cloudfront_dist = os.getenv("CLOUDFRONT_DISTRIBUTION_ID", "")
+    cloudfront_domain = os.getenv("CLOUDFRONT_DOMAIN", f"cdn.{domain}")
     return [
+        # ── Core Website Records ────────────────────────────────────
         {
             "type": "A",
             "name": domain,
-            "value": "Your server IP or load balancer",
-            "purpose": "Main website",
+            "value": "ALIAS to CloudFront or ELB endpoint",
+            "purpose": "Main website - apex domain routing",
             "priority": "required",
         },
         {
             "type": "AAAA",
             "name": domain,
-            "value": "Your IPv6 address",
+            "value": "ALIAS to CloudFront or ELB endpoint (IPv6)",
             "purpose": "IPv6 support for main website",
-            "priority": "recommended",
+            "priority": "required",
         },
         {
             "type": "CNAME",
             "name": f"www.{domain}",
             "value": domain,
-            "purpose": "WWW redirect",
+            "purpose": "WWW redirect to apex domain",
             "priority": "required",
         },
         {
             "type": "CNAME",
             "name": f"api.{domain}",
             "value": domain,
-            "purpose": "API subdomain",
+            "purpose": "API subdomain for backend services",
+            "priority": "required",
+        },
+        {
+            "type": "CNAME",
+            "name": f"app.{domain}",
+            "value": domain,
+            "purpose": "Web application subdomain",
             "priority": "recommended",
         },
         {
             "type": "CNAME",
-            "name": f"cdn.{domain}",
-            "value": f"{cloudfront_dist}.cloudfront.net" if cloudfront_dist else "d36jfidccx04u0.cloudfront.net",
-            "purpose": "CDN / CloudFront",
+            "name": f"staging.{domain}",
+            "value": domain,
+            "purpose": "Staging environment subdomain",
             "priority": "recommended",
         },
+
+        # ── CDN / CloudFront ────────────────────────────────────────
+        {
+            "type": "CNAME",
+            "name": f"cdn.{domain}",
+            "value": f"{cloudfront_dist}.cloudfront.net" if cloudfront_dist else cloudfront_domain,
+            "purpose": "CDN / CloudFront media delivery",
+            "priority": "required",
+        },
+
+        # ── Email Authentication (SPF, DKIM, DMARC, BIMI) ──────────
         {
             "type": "TXT",
             "name": domain,
-            "value": "v=spf1 include:amazonses.com ~all",
-            "purpose": "SPF - Email authentication",
+            "value": "v=spf1 include:amazonses.com include:amazonworkmail.com -all",
+            "purpose": "SPF - Authorized email senders (SES + WorkMail)",
             "priority": "required",
         },
         {
             "type": "TXT",
             "name": f"_dmarc.{domain}",
-            "value": f"v=DMARC1; p=quarantine; rua=mailto:dmarc@{domain}",
-            "purpose": "DMARC - Email policy",
-            "priority": "recommended",
+            "value": f"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; rua=mailto:dmarc-reports@{domain}; ruf=mailto:dmarc-forensic@{domain}; pct=100",
+            "purpose": "DMARC - Strict email policy with aggregate + forensic reporting",
+            "priority": "required",
         },
         {
             "type": "CNAME",
             "name": f"<token1>._domainkey.{domain}",
             "value": "<token1>.dkim.amazonses.com",
-            "purpose": "DKIM - Email signature verification (key 1)",
+            "purpose": "DKIM - Email signature verification (key 1 of 3)",
             "priority": "required",
         },
         {
             "type": "CNAME",
             "name": f"<token2>._domainkey.{domain}",
             "value": "<token2>.dkim.amazonses.com",
-            "purpose": "DKIM - Email signature verification (key 2)",
+            "purpose": "DKIM - Email signature verification (key 2 of 3)",
             "priority": "required",
         },
         {
             "type": "CNAME",
             "name": f"<token3>._domainkey.{domain}",
             "value": "<token3>.dkim.amazonses.com",
-            "purpose": "DKIM - Email signature verification (key 3)",
+            "purpose": "DKIM - Email signature verification (key 3 of 3)",
             "priority": "required",
         },
+        {
+            "type": "TXT",
+            "name": f"default._bimi.{domain}",
+            "value": f"v=BIMI1; l=https://cdn.{domain}/assets/bimi-logo.svg",
+            "purpose": "BIMI - Brand logo in email clients (requires VMC certificate)",
+            "priority": "recommended",
+        },
+
+        # ── SES & WorkMail ──────────────────────────────────────────
         {
             "type": "TXT",
             "name": f"_amazonses.{domain}",
@@ -99,38 +128,132 @@ def _get_required_dns_records(domain: str):
             "priority": "required",
         },
         {
-            "type": "CAA",
-            "name": domain,
-            "value": '0 issue "amazon.com"',
-            "purpose": "Certificate Authority Authorization - restricts SSL issuers",
-            "priority": "recommended",
-        },
-        {
             "type": "MX",
             "name": domain,
             "value": "10 inbound-smtp.us-east-1.amazonaws.com",
-            "purpose": "Email receiving via SES",
-            "priority": "optional",
+            "purpose": "Email receiving via SES inbound",
+            "priority": "required",
         },
         {
             "type": "CNAME",
             "name": f"mail.{domain}",
-            "value": f"inbound-smtp.us-east-1.amazonaws.com",
+            "value": "inbound-smtp.us-east-1.amazonaws.com",
             "purpose": "Mail subdomain for email routing",
+            "priority": "recommended",
+        },
+        {
+            "type": "CNAME",
+            "name": f"autodiscover.{domain}",
+            "value": "autodiscover.mail.us-east-1.awsapps.com",
+            "purpose": "WorkMail auto-discover for Outlook/mobile clients",
+            "priority": "recommended",
+        },
+
+        # ── MTA-STS & TLS Reporting ────────────────────────────────
+        {
+            "type": "TXT",
+            "name": f"_mta-sts.{domain}",
+            "value": "v=STSv1; id=20260218",
+            "purpose": "MTA-STS - Enforce TLS for inbound email",
+            "priority": "recommended",
+        },
+        {
+            "type": "CNAME",
+            "name": f"mta-sts.{domain}",
+            "value": domain,
+            "purpose": "MTA-STS policy host (serves /.well-known/mta-sts.txt)",
+            "priority": "recommended",
+        },
+        {
+            "type": "TXT",
+            "name": f"_smtp._tls.{domain}",
+            "value": f"v=TLSRPTv1; rua=mailto:tls-reports@{domain}",
+            "purpose": "SMTP TLS Reporting - receive TLS failure reports",
+            "priority": "recommended",
+        },
+
+        # ── SSL / Certificate Authority ─────────────────────────────
+        {
+            "type": "CAA",
+            "name": domain,
+            "value": '0 issue "amazon.com"',
+            "purpose": "CAA - Authorize Amazon ACM to issue SSL certificates",
+            "priority": "required",
+        },
+        {
+            "type": "CAA",
+            "name": domain,
+            "value": '0 issue "letsencrypt.org"',
+            "purpose": "CAA - Authorize Let's Encrypt as backup SSL issuer",
+            "priority": "recommended",
+        },
+        {
+            "type": "CAA",
+            "name": domain,
+            "value": '0 iodef "mailto:security@' + domain + '"',
+            "purpose": "CAA - Report unauthorized certificate issuance attempts",
+            "priority": "recommended",
+        },
+
+        # ── Service Discovery ───────────────────────────────────────
+        {
+            "type": "SRV",
+            "name": f"_sip._tls.{domain}",
+            "value": f"10 5 443 sip.{domain}",
+            "purpose": "SIP/TLS service discovery for Amazon Connect VoIP",
+            "priority": "optional",
+        },
+        {
+            "type": "SRV",
+            "name": f"_submission._tcp.{domain}",
+            "value": "10 5 587 email-smtp.us-east-1.amazonaws.com",
+            "purpose": "SMTP submission service discovery for email clients",
+            "priority": "optional",
+        },
+        {
+            "type": "NAPTR",
+            "name": domain,
+            "value": '10 100 "S" "SIP+D2T" "" _sip._tcp.' + domain,
+            "purpose": "NAPTR - SIP over TCP service routing for VoIP/Connect",
+            "priority": "optional",
+        },
+        {
+            "type": "NAPTR",
+            "name": domain,
+            "value": '20 100 "S" "SIP+D2U" "" _sip._udp.' + domain,
+            "purpose": "NAPTR - SIP over UDP fallback for VoIP/Connect",
+            "priority": "optional",
+        },
+
+        # ── Verification & Ownership ───────────────────────────────
+        {
+            "type": "TXT",
+            "name": domain,
+            "value": "google-site-verification=<your-verification-code>",
+            "purpose": "Google Search Console - site ownership verification",
             "priority": "optional",
         },
         {
             "type": "TXT",
             "name": domain,
-            "value": "google-site-verification=<your-verification-code>",
-            "purpose": "Google Search Console verification",
+            "value": "apple-domain-verification=<your-apple-token>",
+            "purpose": "Apple - domain verification for Apple Business/Pay",
             "priority": "optional",
         },
         {
-            "type": "SRV",
-            "name": f"_sip._tls.{domain}",
-            "value": f"1 443 sipserver.{domain}",
-            "purpose": "SIP/VoIP service discovery",
+            "type": "TXT",
+            "name": domain,
+            "value": "facebook-domain-verification=<your-fb-token>",
+            "purpose": "Facebook/Meta - domain verification for Business Suite",
+            "priority": "optional",
+        },
+
+        # ── Status & Monitoring ─────────────────────────────────────
+        {
+            "type": "CNAME",
+            "name": f"status.{domain}",
+            "value": domain,
+            "purpose": "Status page subdomain for service health monitoring",
             "priority": "optional",
         },
     ]

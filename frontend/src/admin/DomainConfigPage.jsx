@@ -210,7 +210,7 @@ export default function DomainConfigPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-slate-400">
-            Automatically create all required DNS records in Route53 — SPF, DMARC, DKIM, SES verification, WWW redirect, and MX for email.
+            Automatically create all required DNS records in Route53 — SPF, DMARC, DKIM, SES verification, MTA-STS, TLS reporting, WorkMail autodiscover, WWW/API/mail subdomains, MX, and CAA.
           </p>
           <button data-testid="auto-configure-dns" onClick={handleAutoConfig} disabled={autoConfiguring}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium transition-colors">
@@ -265,7 +265,7 @@ export default function DomainConfigPage() {
                   <label className="text-xs text-slate-400 mb-1 block">Type</label>
                   <select data-testid="record-type-select" value={newRecord.type} onChange={e => setNewRecord(p => ({ ...p, type: e.target.value }))}
                     className="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-violet-500">
-                    {['A', 'AAAA', 'CNAME', 'TXT', 'MX', 'SRV'].map(t => <option key={t} value={t}>{t}</option>)}
+                    {['A', 'AAAA', 'CNAME', 'TXT', 'MX', 'CAA', 'SRV', 'NAPTR', 'NS', 'PTR'].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
