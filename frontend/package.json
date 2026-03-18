@@ -150,7 +150,7 @@
     "@walletconnect/types": "^2.23.4",
     "@walletconnect/universal-provider": "^2.23.4",
     "@walletconnect/ethereum-provider": "^2.23.4",
-    "fast-xml-parser": ">=5.3.8",
+    "fast-xml-parser": ">=5.5.6",
     "minimatch": ">=10.2.3",
     "hono": ">=4.12.7",
     "flatted": ">=3.4.0",

@@ -496,3 +496,14 @@ All features verified and signed off:
   - Refresh button, empty state guidance
 - **DB Collection**: `scheduled_posts` (id, user_id, text, platforms, media_url, scheduled_time, status, results, created_at, updated_at)
 - **Testing**: 100% pass rate (12/12 backend, all frontend tests passed - iteration_88)
+
+### Phase 26 - CVE Vulnerability Remediation Round 2 (2026-02)
+- **Frontend: 9 HIGH vulnerabilities resolved** via yarn resolutions:
+  - `fast-xml-parser` 5.5.5 → >=5.5.6 (CVE-2026-33036 — numeric entity expansion bypass, DoS HIGH)
+- **Backend: 7 vulnerabilities in 5 packages resolved** via pip upgrade:
+  - `authlib` 1.6.7 → 1.6.9 (GHSA-wvwj-cvrp-7pv5, GHSA-7432-952r-cw78)
+  - `black` 25.1.0 → 26.3.1 (GHSA-3936-cmfr-pm3m)
+  - `pyasn1` 0.6.2 → 0.6.3 (GHSA-jr27-m4p2-rc6r)
+  - `pyjwt` 2.10.1 → 2.12.1 (GHSA-752w-5fwx-jx9f)
+  - `pyopenssl` 25.3.0 → 26.0.0 (GHSA-vp96-hxj8-p424, GHSA-5pwr-322w-8jr4)
+- **Final audit: 0 vulnerabilities** on both frontend and backend
