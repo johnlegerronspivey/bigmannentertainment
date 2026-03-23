@@ -411,8 +411,7 @@ class TestPasswordResetClearsLockout:
     
     def test_password_reset_clears_lockout(self, api_client, mongo_client):
         """Test that resetting password clears lockout state"""
-        from passlib.context import CryptContext
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        import bcrypt
         
         # Lock the account
         lock_time = datetime.utcnow() + timedelta(minutes=15)
@@ -445,7 +444,7 @@ class TestPasswordResetClearsLockout:
         assert user["locked_until"] is None, "locked_until should be cleared"
         
         # IMPORTANT: Reset password back to original Test1234!
-        original_hash = pwd_context.hash(OWNER_PASSWORD)
+        original_hash = bcrypt.hashpw(OWNER_PASSWORD.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
         mongo_client.users.update_one(
             {"email": OWNER_EMAIL},
             {"$set": {
