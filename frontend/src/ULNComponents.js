@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BlockchainIntegrationDashboard, BlockchainContractsViewer, BlockchainAuditTrail } from './BlockchainComponents';
 import { EnhancedEditLabelModal } from './EnhancedULNComponents';
 import { BulkLabelEditor, AdvancedSearch, LabelDataExporter } from './ULNAdminComponents';
+import { BlockchainLedger } from './uln/BlockchainLedger';
+import { AnalyticsDashboard } from './uln/AnalyticsDashboard';
+import { OnboardingWizard } from './uln/OnboardingWizard';
+import { InterLabelMessaging } from './uln/InterLabelMessaging';
 
 // Get API URL from environment
 const API = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
@@ -81,7 +85,7 @@ export const ULNDashboard = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">🌐 Unified Label Network</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Unified Label Network</h1>
           <p className="text-xl text-gray-600">
             Complete ecosystem for cross-label collaboration, content sharing, and royalty distribution
           </p>
@@ -89,18 +93,19 @@ export const ULNDashboard = () => {
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow mb-8">
-          <nav className="flex space-x-8 px-6 py-4">
-            {['overview', 'labels', 'content', 'royalties', 'dao', 'blockchain', 'analytics'].map((tab) => (
+          <nav className="flex flex-wrap gap-2 px-6 py-4">
+            {['overview', 'labels', 'content', 'royalties', 'dao', 'blockchain', 'analytics', 'onboarding', 'messaging'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
+                data-testid={`uln-tab-${tab}`}
                 className={`capitalize font-medium py-2 px-4 rounded-md transition-colors ${
                   activeTab === tab 
                     ? 'bg-purple-100 text-purple-700' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {tab === 'dao' ? 'DAO Governance' : tab.replace('_', ' ')}
+                {tab === 'dao' ? 'DAO Governance' : tab === 'onboarding' ? 'Register Label' : tab === 'messaging' ? 'Messages' : tab.replace('_', ' ')}
               </button>
             ))}
           </nav>
@@ -125,16 +130,24 @@ export const ULNDashboard = () => {
               <DAOGovernance />
             )}
             {activeTab === 'blockchain' && (
-              <div className="space-y-8">
-                <BlockchainIntegrationDashboard />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <BlockchainContractsViewer />
-                  <BlockchainAuditTrail />
-                </div>
+              <div className="bg-slate-900 rounded-lg p-6">
+                <BlockchainLedger />
               </div>
             )}
             {activeTab === 'analytics' && (
-              <ULNAnalytics stats={dashboardStats} />
+              <div className="bg-slate-900 rounded-lg p-6">
+                <AnalyticsDashboard />
+              </div>
+            )}
+            {activeTab === 'onboarding' && (
+              <div className="bg-slate-900 rounded-lg p-6">
+                <OnboardingWizard />
+              </div>
+            )}
+            {activeTab === 'messaging' && (
+              <div className="bg-slate-900 rounded-lg p-6">
+                <InterLabelMessaging />
+              </div>
             )}
           </>
         )}
