@@ -594,3 +594,50 @@ All features verified and signed off:
   - The app maintains 76 active test files in `/app/backend/tests/` covering all modern features
 - **Also cleaned**: Empty `/app/tests/` directory and its `__init__.py`
 - **Verified**: Backend healthy (all services operational), frontend renders correctly, login working
+
+### Phase 31 - ULN Enhanced Features (2026-03-23)
+Five major ULN enhancements implemented and tested (23/23 backend tests passed, 100% frontend):
+
+1. **Real Blockchain Integration**
+   - SHA-256 cryptographic hash chain stored in MongoDB
+   - Proof-of-work block mining (difficulty=2)
+   - Merkle tree transaction verification
+   - Smart contract deployment & execution
+   - Full chain integrity verification
+   - Block explorer with expandable block details
+   - New collections: `uln_blockchain_blocks`, `uln_blockchain_transactions`, `uln_smart_contracts_live`, `uln_blockchain_meta`
+
+2. **Live Royalty Data**
+   - Seeded 955 real royalty earnings across 20 labels, 12 months
+   - Platform data: Spotify, Apple Music, YouTube Music, Amazon Music, Tidal, Deezer, SoundCloud, Pandora
+   - Royalty types: streaming, performance, mechanical, sync, master
+   - Revenue ranges from $500 to $50,000 per transaction
+   - Collection: `royalty_earnings`
+
+3. **ULN Analytics Dashboard**
+   - Cross-label performance ranking (sorted by total royalties)
+   - Monthly revenue trends with bar chart (12-month view)
+   - Genre distribution with horizontal bar charts
+   - Territory breakdown with grid cards
+   - Content sharing analytics with top sharers
+   - DAO governance analytics (proposals by status/type)
+
+4. **Label Onboarding Workflow**
+   - 5-step guided wizard: Basic Info → Business Details → Key Personnel → Smart Contract Setup → Review & Submit
+   - Session persistence (resume in-progress onboarding)
+   - Auto-generates registration payload on completion
+   - Collection: `uln_onboarding`
+
+5. **Inter-Label Messaging**
+   - Direct messaging between label entities
+   - Thread-based conversations with subjects
+   - Read receipts and unread count tracking
+   - Label selector for multi-label users
+   - Collections: `uln_message_threads`, `uln_messages`
+
+**New files:**
+- Backend: `services/uln_blockchain_service.py`, `services/uln_analytics_service.py`, `services/uln_messaging_service.py`, `services/uln_onboarding_service.py`, `api/uln_enhanced_endpoints.py`
+- Frontend: `src/uln/BlockchainLedger.jsx`, `src/uln/AnalyticsDashboard.jsx`, `src/uln/OnboardingWizard.jsx`, `src/uln/InterLabelMessaging.jsx`
+- Tests: `backend/tests/test_uln_enhanced_features.py`
+
+**ULN now has 9 tabs:** Overview, Labels, Content, Royalties, DAO Governance, Blockchain, Analytics, Register Label, Messages
