@@ -37,18 +37,27 @@ const CredentialModal = ({ platform, onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [urlResult, setUrlResult] = useState(null);
+  const [showManualMetrics, setShowManualMetrics] = useState(false);
+  const [manualMetrics, setManualMetrics] = useState({ followers: '', following: '', posts: '', engagement_rate: '' });
 
   const handleSaveUrl = async () => {
     if (!profileUrl.trim()) { setError('Please enter your profile URL'); return; }
     setSaving(true);
     setError('');
     try {
+      const manual = showManualMetrics && manualMetrics.followers
+        ? { followers: parseInt(manualMetrics.followers) || 0, following: parseInt(manualMetrics.following) || 0, posts: parseInt(manualMetrics.posts) || 0, engagement_rate: parseFloat(manualMetrics.engagement_rate) || 0 }
+        : undefined;
       const res = await axios.post(
         `${BACKEND_URL}/api/social/connect-url`,
-        { profile_url: profileUrl, display_name: displayName || undefined, platform_id: platform.platform_id },
+        { profile_url: profileUrl, display_name: displayName || undefined, platform_id: platform.platform_id, manual_metrics: manual },
         authHeaders(),
       );
       setUrlResult(res.data);
+      // If auto-scrape returned no metrics and user hasn't entered manual yet, prompt them
+      if (!res.data.metrics_available && !showManualMetrics) {
+        setShowManualMetrics(true);
+      }
       onSaved();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to connect with URL');
@@ -102,10 +111,30 @@ const CredentialModal = ({ platform, onClose, onSaved }) => {
             <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg" data-testid="url-connect-success">
               <p className="text-sm text-emerald-400 font-medium flex items-center gap-1.5"><Check size={14} /> Connected via URL</p>
               {urlResult.initial_metrics && (
-                <div className="mt-2 flex gap-4 text-xs text-gray-300">
-                  <span>{formatNum(urlResult.initial_metrics.followers)} followers</span>
-                  <span>{urlResult.initial_metrics.posts} posts</span>
-                  <span>{urlResult.initial_metrics.engagement_rate}% engagement</span>
+                <div className="mt-2 space-y-1.5">
+                  {(urlResult.initial_metrics.full_name || urlResult.initial_metrics.page_name) && (
+                    <p className="text-xs text-white font-medium flex items-center gap-1.5">
+                      {urlResult.initial_metrics.full_name || urlResult.initial_metrics.page_name}
+                      {urlResult.initial_metrics.is_verified && <Check size={10} className="text-blue-400" />}
+                      {urlResult.initial_metrics.category && <span className="text-gray-500 font-normal ml-1">· {urlResult.initial_metrics.category}</span>}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-3 text-xs text-gray-300">
+                    <span data-testid="url-metric-followers">{formatNum(urlResult.initial_metrics.followers)} followers</span>
+                    {urlResult.initial_metrics.following > 0 && <span data-testid="url-metric-following">{formatNum(urlResult.initial_metrics.following)} following</span>}
+                    <span data-testid="url-metric-posts">{formatNum(urlResult.initial_metrics.posts)} posts</span>
+                    <span data-testid="url-metric-engagement">{urlResult.initial_metrics.engagement_rate}% engagement</span>
+                    {urlResult.initial_metrics.page_likes > 0 && <span data-testid="url-metric-page-likes">{formatNum(urlResult.initial_metrics.page_likes)} page likes</span>}
+                  </div>
+                  {urlResult.initial_metrics.bio && (
+                    <p className="text-[11px] text-gray-400 mt-1 line-clamp-2" data-testid="url-metric-bio">{urlResult.initial_metrics.bio}</p>
+                  )}
+                  {(urlResult.initial_metrics.impressions > 0 || urlResult.initial_metrics.reach > 0) && (
+                    <div className="flex gap-3 text-[10px] text-gray-500 mt-1">
+                      {urlResult.initial_metrics.impressions > 0 && <span>~{formatNum(urlResult.initial_metrics.impressions)} est. impressions</span>}
+                      {urlResult.initial_metrics.reach > 0 && <span>~{formatNum(urlResult.initial_metrics.reach)} est. reach</span>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -133,7 +162,55 @@ const CredentialModal = ({ platform, onClose, onSaved }) => {
                 <label className="block text-xs font-medium text-gray-400 mb-1.5">Display Name (optional)</label>
                 <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="@yourhandle" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none" data-testid="credential-display-name-url" />
               </div>
+              {/* Manual Metrics Toggle */}
+              <button
+                type="button"
+                onClick={() => setShowManualMetrics(!showManualMetrics)}
+                className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-cyan-400 transition"
+                data-testid="toggle-manual-metrics"
+              >
+                {showManualMetrics ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                {showManualMetrics ? 'Hide manual metrics' : 'Add metrics manually (if auto-fetch fails)'}
+              </button>
+              {showManualMetrics && (
+                <div className="space-y-2.5 p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg" data-testid="manual-metrics-form">
+                  <p className="text-[10px] text-amber-300/80 leading-relaxed">Some platforms block automated data fetching. Enter your public stats here as a fallback.</p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[10px] font-medium text-gray-400 mb-1">Followers</label>
+                      <input type="number" min="0" value={manualMetrics.followers} onChange={e => setManualMetrics(m => ({ ...m, followers: e.target.value }))} placeholder="e.g. 10000" className="w-full px-2.5 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none" data-testid="manual-followers" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-medium text-gray-400 mb-1">Following</label>
+                      <input type="number" min="0" value={manualMetrics.following} onChange={e => setManualMetrics(m => ({ ...m, following: e.target.value }))} placeholder="e.g. 500" className="w-full px-2.5 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none" data-testid="manual-following" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-medium text-gray-400 mb-1">Posts</label>
+                      <input type="number" min="0" value={manualMetrics.posts} onChange={e => setManualMetrics(m => ({ ...m, posts: e.target.value }))} placeholder="e.g. 250" className="w-full px-2.5 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none" data-testid="manual-posts" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-medium text-gray-400 mb-1">Engagement %</label>
+                      <input type="number" min="0" max="100" step="0.1" value={manualMetrics.engagement_rate} onChange={e => setManualMetrics(m => ({ ...m, engagement_rate: e.target.value }))} placeholder="e.g. 3.5" className="w-full px-2.5 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none" data-testid="manual-engagement" />
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
+          )}
+
+          {/* URL connected but no metrics — prompt manual entry */}
+          {urlResult && !urlResult.metrics_available && !showManualMetrics && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg" data-testid="url-no-metrics-prompt">
+              <p className="text-xs text-amber-400 font-medium">Connected, but auto-fetch couldn't retrieve metrics</p>
+              <p className="text-[11px] text-gray-400 mt-1">{platform.name} blocks automated data retrieval. You can enter your metrics manually to track your performance.</p>
+              <button
+                onClick={() => { setShowManualMetrics(true); setUrlResult(null); }}
+                className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 font-medium transition"
+                data-testid="add-metrics-manually-btn"
+              >
+                + Add metrics manually
+              </button>
+            </div>
           )}
 
           {/* API Mode */}
@@ -323,11 +400,15 @@ const AnalyticsPlatformRow = ({ platform }) => {
         <p className="text-[10px] text-gray-500">{platform.type.replace(/_/g, ' ')}</p>
       </div>
       <div className="text-right w-20">
-        <p className="text-sm font-semibold text-white">{formatNum(platform.followers)}</p>
+        <p className="text-sm font-semibold text-white" data-testid={`row-followers-${platform.platform_id}`}>{formatNum(platform.followers)}</p>
         <p className="text-[10px] text-gray-500">followers</p>
       </div>
+      <div className="text-right w-14">
+        <p className="text-sm font-semibold text-gray-300" data-testid={`row-posts-${platform.platform_id}`}>{formatNum(platform.posts || 0)}</p>
+        <p className="text-[10px] text-gray-500">posts</p>
+      </div>
       <div className="text-right w-16">
-        <p className="text-sm font-semibold text-cyan-400">{platform.engagement_rate}%</p>
+        <p className="text-sm font-semibold text-cyan-400" data-testid={`row-engagement-${platform.platform_id}`}>{platform.engagement_rate}%</p>
         <p className="text-[10px] text-gray-500">engage</p>
       </div>
       <div className="w-20 hidden sm:block">

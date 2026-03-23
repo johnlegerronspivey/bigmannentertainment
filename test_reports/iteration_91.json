@@ -1,0 +1,72 @@
+{
+  "summary": "Comprehensive testing of URL Scrapers and Manual Metrics features for Facebook & Instagram. All 15 backend API tests passed (100%). Frontend UI components verified: Social Dashboard loads, Analytics tab shows platform rows with posts column, Credential modal has URL connect mode with manual metrics form.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_url_scrapers_manual_metrics.py",
+    "/app/test_reports/pytest/url_scrapers_manual_metrics_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "URL detection correctly identifies Facebook and Instagram URLs with various formats (with/without www, with @, profile.php?id=, etc.)",
+    "connect-url endpoint properly handles manual_metrics parameter and stores them in platform_credentials collection",
+    "metrics_source field correctly indicates 'auto' or 'manual' based on how metrics were obtained",
+    "Dashboard metrics endpoint properly merges manual_metrics into sim_metrics for display",
+    "Frontend credential modal has proper URL connect mode toggle with Profile URL input",
+    "Manual metrics form has all required fields: followers, following, posts, engagement_rate",
+    "Platform cards show 'via URL' badge for URL-connected platforms",
+    "Analytics tab shows platform performance with posts column as requested"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_url_scrapers_manual_metrics.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100% (All UI components verified)"
+  },
+  "seed_data_creation": "Test data created via connect-url endpoint with manual_metrics for Facebook and Instagram",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "URL Scrapers and Manual Metrics features fully tested. Backend: URL detection works for FB/IG URLs, connect-url endpoint accepts manual_metrics, dashboard/platform metrics include manual metrics data. Frontend: Social dashboard at /social shows 6 connected platforms (Instagram, Twitter/X, Facebook, TikTok, YouTube, Snapchat), Analytics tab shows platform performance with posts column, Credential modal has URL connect mode with manual metrics form. Facebook shows 'Manual Metrics Test' and Instagram shows 'Manual IG Test' - both connected via URL with manual metrics fallback. Test credentials: owner@bigmannentertainment.com / Test1234!",
+  "tested_features": {
+    "url_detection": {
+      "POST /api/social/url-detect (Facebook page)": "PASS - Detects facebook platform and extracts username",
+      "POST /api/social/url-detect (Facebook profile ID)": "PASS - Handles profile.php?id= format",
+      "POST /api/social/url-detect (Instagram profile)": "PASS - Detects instagram platform",
+      "POST /api/social/url-detect (Instagram with @)": "PASS - Handles @ symbol in URL",
+      "POST /api/social/url-detect (Invalid URL)": "PASS - Returns 400 for unknown platforms",
+      "Various FB URL formats": "PASS - www, non-www, mobile, with/without protocol",
+      "Various IG URL formats": "PASS - www, non-www, with @, trailing slash"
+    },
+    "connect_url": {
+      "POST /api/social/connect-url (Facebook)": "PASS - Connects via URL, returns metrics_source",
+      "POST /api/social/connect-url (Instagram)": "PASS - Connects via URL, returns metrics_source",
+      "POST /api/social/connect-url (with manual_metrics)": "PASS - Stores manual metrics when auto-scrape fails",
+      "POST /api/social/connect-url (Instagram with manual)": "PASS - Manual metrics stored correctly"
+    },
+    "metrics_endpoints": {
+      "GET /api/social/metrics/dashboard": "PASS - Returns aggregated metrics including manual data",
+      "GET /api/social/metrics/platforms": "PASS - Shows FB/IG with correct data and posts column",
+      "GET /api/social/url-supported": "PASS - Lists FB and IG as URL-supported platforms",
+      "GET /api/social/connections": "PASS - Shows has_url_connect and connection_method fields"
+    },
+    "frontend": {
+      "Social Dashboard loads at /social": "PASS - Shows 6 of 123 platforms connected",
+      "Analytics tab": "PASS - Shows platform performance with posts column (323, 266, 361 posts)",
+      "Platform cards": "PASS - Show 'via URL' badge for URL-connected platforms",
+      "Credential modal URL mode": "PASS - Has Profile URL input and Quick Connect section",
+      "Manual metrics toggle": "PASS - Shows 'Add metrics manually (if auto-fetch fails)'",
+      "Manual metrics form": "PASS - Has followers, following, posts, engagement_rate fields",
+      "Connect with URL button": "PASS - Cyan button for URL-based connection"
+    }
+  },
+  "test_credentials_used": "owner@bigmannentertainment.com / Test1234!",
+  "note_on_meta_scraping": "As documented, Meta platforms (Facebook/Instagram) block server-side scraping from cloud IPs. The manual_metrics fallback is the key feature that allows users to enter their metrics manually when auto-scrape fails. This is working as designed."
+}

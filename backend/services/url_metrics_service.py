@@ -331,28 +331,149 @@ async def _fetch_tiktok_url(username: str) -> Optional[Dict]:
 
 
 async def _fetch_instagram_url(username: str) -> Optional[Dict]:
-    """Attempt to fetch Instagram metrics from public endpoints."""
-    # Try the web profile info endpoint
-    data = await _fetch_json(
+    """Fetch Instagram metrics using multiple strategies with fallback."""
+
+    # ── Strategy 1: web_profile_info API (most data-rich) ──
+    api_data = await _fetch_json(
         f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}",
         headers={**BROWSER_HEADERS, "X-IG-App-ID": "936619743392459"}
     )
-    if data and "data" in data:
-        user = data["data"].get("user", {})
+    if api_data and "data" in api_data:
+        user = api_data["data"].get("user", {})
         followers = user.get("edge_followed_by", {}).get("count", 0)
+        following = user.get("edge_follow", {}).get("count", 0)
         posts = user.get("edge_owner_to_timeline_media", {}).get("count", 0)
+        full_name = user.get("full_name", "")
+        bio = user.get("biography", "")
+        is_verified = user.get("is_verified", False)
+
+        # Calculate engagement from recent posts if available
+        avg_likes = 0
+        avg_comments = 0
+        recent_edges = user.get("edge_owner_to_timeline_media", {}).get("edges", [])
+        if recent_edges:
+            total_likes = sum(e.get("node", {}).get("edge_liked_by", {}).get("count", 0) for e in recent_edges)
+            total_comments = sum(e.get("node", {}).get("edge_media_to_comment", {}).get("count", 0) for e in recent_edges)
+            n = len(recent_edges)
+            avg_likes = total_likes // n if n else 0
+            avg_comments = total_comments // n if n else 0
+
+        engagement_rate = 0.0
+        if followers > 0 and (avg_likes + avg_comments) > 0:
+            engagement_rate = round(((avg_likes + avg_comments) / followers) * 100, 2)
+        elif followers > 0 and posts > 0:
+            engagement_rate = round(min(3.5 * (1000 / max(followers, 1000)), 12.0), 2)
+
         if followers > 0:
             return {
                 "followers": followers,
+                "following": following,
                 "posts": posts,
-                "engagement_rate": round(min(followers * 0.035 / max(posts, 1), 15.0), 2) if posts else 0.0,
+                "engagement_rate": engagement_rate,
+                "likes": avg_likes,
+                "comments": avg_comments,
+                "shares": 0,
+                "impressions": int(followers * 2.5),
+                "reach": int(followers * 1.5),
+                "username": username,
+                "full_name": full_name,
+                "bio": bio,
+                "is_verified": is_verified,
+            }
+
+    # ── Strategy 2: HTML page scrape with embedded JSON ──
+    html = await _fetch_text(f"https://www.instagram.com/{username}/")
+    if html:
+        followers = 0
+        following = 0
+        posts = 0
+        full_name = ""
+        bio = ""
+        is_verified = False
+
+        # Try shared_data / additional_data JSON blobs
+        for json_pattern in [
+            r'window\._sharedData\s*=\s*(\{.+?\});\s*</script>',
+            r'"ProfilePage":\s*\[\{(.+?)\}\]',
+        ]:
+            m = re.search(json_pattern, html, re.DOTALL)
+            if m:
+                try:
+                    blob = json.loads(m.group(1)) if json_pattern.startswith('window') else None
+                    if blob:
+                        user = blob.get("entry_data", {}).get("ProfilePage", [{}])[0].get("graphql", {}).get("user", {})
+                        followers = user.get("edge_followed_by", {}).get("count", 0)
+                        following = user.get("edge_follow", {}).get("count", 0)
+                        posts = user.get("edge_owner_to_timeline_media", {}).get("count", 0)
+                        full_name = user.get("full_name", "")
+                        bio = user.get("biography", "")
+                        is_verified = user.get("is_verified", False)
+                except (json.JSONDecodeError, IndexError, KeyError):
+                    pass
+
+        # Fallback: regex from meta tags and inline data
+        if followers == 0:
+            desc = _search_meta(html, "description")
+            if desc:
+                # "1,234 Followers, 567 Following, 89 Posts"
+                m = re.search(r'([\d,\.]+[KMB]?)\s*Followers', desc, re.IGNORECASE)
+                if m:
+                    followers = _extract_number(m.group(1))
+                m = re.search(r'([\d,\.]+[KMB]?)\s*Following', desc, re.IGNORECASE)
+                if m:
+                    following = _extract_number(m.group(1))
+                m = re.search(r'([\d,\.]+[KMB]?)\s*Posts', desc, re.IGNORECASE)
+                if m:
+                    posts = _extract_number(m.group(1))
+
+        # Additional regex patterns from embedded JSON
+        if followers == 0:
+            m = re.search(r'"edge_followed_by":\s*\{"count":\s*(\d+)', html)
+            if m:
+                followers = int(m.group(1))
+        if posts == 0:
+            m = re.search(r'"edge_owner_to_timeline_media":\s*\{"count":\s*(\d+)', html)
+            if m:
+                posts = int(m.group(1))
+
+        if followers > 0:
+            engagement_rate = round(min(3.5 * (1000 / max(followers, 1000)), 12.0), 2) if posts > 0 else 0.0
+            return {
+                "followers": followers,
+                "following": following,
+                "posts": posts,
+                "engagement_rate": engagement_rate,
                 "likes": 0,
                 "comments": 0,
                 "shares": 0,
                 "impressions": int(followers * 2.5),
                 "reach": int(followers * 1.5),
                 "username": username,
+                "full_name": full_name,
+                "bio": bio,
+                "is_verified": is_verified,
             }
+
+    # ── Strategy 3: oEmbed for profile validation ──
+    oembed = await _fetch_json(f"https://api.instagram.com/oembed/?url=https://www.instagram.com/{username}/")
+    if oembed and oembed.get("author_name"):
+        return {
+            "followers": 0,
+            "following": 0,
+            "posts": 0,
+            "engagement_rate": 0.0,
+            "likes": 0,
+            "comments": 0,
+            "shares": 0,
+            "impressions": 0,
+            "reach": 0,
+            "username": oembed.get("author_name", username),
+            "full_name": oembed.get("author_name", ""),
+            "bio": "",
+            "is_verified": False,
+            "profile_confirmed": True,
+        }
+
     return None
 
 
@@ -431,29 +552,176 @@ async def _fetch_spotify_url(artist_id: str) -> Optional[Dict]:
 
 
 async def _fetch_facebook_url(username: str) -> Optional[Dict]:
-    """Attempt to fetch Facebook page info."""
-    html = await _fetch_text(f"https://www.facebook.com/{username}")
-    if not html:
-        return None
+    """Fetch Facebook page/profile info using multiple strategies with fallback."""
+
     followers = 0
-    likes = 0
-    m = re.search(r'(\d[\d,\.]*[KMB]?)\s*(?:followers|Followers)', html)
-    if m:
-        followers = _extract_number(m.group(1))
-    m = re.search(r'(\d[\d,\.]*[KMB]?)\s*(?:likes|Likes)', html)
-    if m:
-        likes = _extract_number(m.group(1))
-    if followers > 0 or likes > 0:
+    page_likes = 0
+    posts = 0
+    page_name = ""
+    category = ""
+    about = ""
+
+    # ── Strategy 1: Main page HTML scrape ──
+    html = await _fetch_text(f"https://www.facebook.com/{username}")
+    if html:
+        # Extract from meta tags first (most reliable)
+        desc = _search_meta(html, "description")
+        title = _search_meta(html, "title")
+        if title:
+            page_name = title.split("|")[0].split("-")[0].strip()
+
+        if desc:
+            # Patterns like "X likes · Y followers" or "X followers"
+            m = re.search(r'([\d,\.]+[KMB]?)\s*(?:likes|Likes)', desc, re.IGNORECASE)
+            if m:
+                page_likes = _extract_number(m.group(1))
+            m = re.search(r'([\d,\.]+[KMB]?)\s*(?:followers|Followers)', desc, re.IGNORECASE)
+            if m:
+                followers = _extract_number(m.group(1))
+            m = re.search(r'([\d,\.]+[KMB]?)\s*(?:talking about|people talking)', desc, re.IGNORECASE)
+            if m:
+                # "talking about" count is a useful engagement signal
+                _extract_number(m.group(1))
+
+        # Try embedded JSON data from the page
+        for json_re in [
+            r'"page_likers":\s*\{"global_likers_count":\s*(\d+)',
+            r'"follower_count":\s*(\d+)',
+            r'"followers_count":\s*(\d+)',
+            r'"friend_count":\s*(\d+)',
+        ]:
+            m = re.search(json_re, html)
+            if m and followers == 0:
+                followers = int(m.group(1))
+
+        for json_re in [
+            r'"page_like_count":\s*(\d+)',
+            r'"global_likers_count":\s*(\d+)',
+            r'"fan_count":\s*(\d+)',
+        ]:
+            m = re.search(json_re, html)
+            if m and page_likes == 0:
+                page_likes = int(m.group(1))
+
+        # Try to get category
+        m = re.search(r'"category_name":\s*"([^"]+)"', html)
+        if m:
+            category = m.group(1)
+        if not category:
+            m = re.search(r'"category":\s*"([^"]+)"', html)
+            if m:
+                category = m.group(1)
+
+        # Try to extract page about/description from embedded data
+        m = re.search(r'"about":\s*"([^"]*)"', html)
+        if m:
+            about = m.group(1)[:200]
+
+        # Follower text patterns in visible HTML
+        if followers == 0:
+            for pattern in [
+                r'(\d[\d,\.]*[KMB]?)\s*(?:followers|Followers|people follow)',
+                r'(?:followers|Followers)[^<]{0,20}(\d[\d,\.]*[KMB]?)',
+            ]:
+                m = re.search(pattern, html)
+                if m:
+                    followers = _extract_number(m.group(1))
+                    break
+
+        if page_likes == 0:
+            for pattern in [
+                r'(\d[\d,\.]*[KMB]?)\s*(?:likes|Likes|people like)',
+                r'(?:likes|Likes)[^<]{0,20}(\d[\d,\.]*[KMB]?)',
+            ]:
+                m = re.search(pattern, html)
+                if m:
+                    page_likes = _extract_number(m.group(1))
+                    break
+
+        # Try to estimate post count from timeline data
+        timeline_items = re.findall(r'"creation_time":\s*\d+', html)
+        if timeline_items:
+            posts = len(timeline_items)
+
+    # ── Strategy 2: Mobile page fallback (sometimes cleaner HTML) ──
+    if followers == 0 and page_likes == 0:
+        m_html = await _fetch_text(f"https://m.facebook.com/{username}")
+        if m_html:
+            desc = _search_meta(m_html, "description")
+            if desc:
+                m = re.search(r'([\d,\.]+[KMB]?)\s*(?:likes|Likes)', desc, re.IGNORECASE)
+                if m:
+                    page_likes = _extract_number(m.group(1))
+                m = re.search(r'([\d,\.]+[KMB]?)\s*(?:followers|Followers)', desc, re.IGNORECASE)
+                if m:
+                    followers = _extract_number(m.group(1))
+
+            # Mobile page often shows stats in specific divs
+            for pattern in [
+                r'(\d[\d,\.]*[KMB]?)\s*(?:followers|Followers)',
+                r'(\d[\d,\.]*[KMB]?)\s*(?:likes|Likes)',
+            ]:
+                m = re.search(pattern, m_html)
+                if m:
+                    val = _extract_number(m.group(1))
+                    if followers == 0:
+                        followers = val
+                    elif page_likes == 0:
+                        page_likes = val
+
+            if not page_name:
+                title = _search_meta(m_html, "title")
+                if title:
+                    page_name = title.split("|")[0].split("-")[0].strip()
+
+    # ── Strategy 3: Graph API public endpoint (no auth needed for public pages) ──
+    if followers == 0 and page_likes == 0:
+        graph_data = await _fetch_json(
+            f"https://graph.facebook.com/{username}?fields=name,fan_count,followers_count,category,about,posts.limit(0).summary(true)",
+        )
+        if graph_data and "id" in graph_data:
+            followers = graph_data.get("followers_count", 0)
+            page_likes = graph_data.get("fan_count", 0)
+            page_name = graph_data.get("name", "")
+            category = graph_data.get("category", "")
+            about = (graph_data.get("about", "") or "")[:200]
+            posts_summary = graph_data.get("posts", {}).get("summary", {})
+            posts = posts_summary.get("total_count", 0)
+
+    # ── Build result ──
+    primary_count = followers or page_likes
+    if primary_count > 0:
+        # Compute engagement estimate based on followers-to-likes ratio
+        if followers > 0 and page_likes > 0:
+            like_ratio = page_likes / followers
+            engagement_rate = round(min(like_ratio * 3.0, 10.0), 2)
+        elif followers > 0:
+            # Typical Facebook page engagement: 0.5-3% depending on size
+            if followers < 10000:
+                engagement_rate = 3.5
+            elif followers < 100000:
+                engagement_rate = 2.0
+            elif followers < 1000000:
+                engagement_rate = 1.2
+            else:
+                engagement_rate = 0.7
+        else:
+            engagement_rate = 2.5
+
         return {
-            "followers": followers or likes,
-            "posts": 0,
-            "engagement_rate": 2.5,
-            "likes": likes,
+            "followers": followers,
+            "page_likes": page_likes,
+            "posts": posts,
+            "engagement_rate": engagement_rate,
+            "likes": page_likes,
             "comments": 0,
             "shares": 0,
-            "impressions": (followers or likes) * 3,
-            "reach": (followers or likes) * 2,
+            "impressions": primary_count * 3,
+            "reach": primary_count * 2,
             "username": username,
+            "page_name": page_name,
+            "category": category,
+            "about": about,
         }
     return None
 

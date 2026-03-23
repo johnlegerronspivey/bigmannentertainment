@@ -45,6 +45,7 @@ class URLConnectPayload(BaseModel):
     profile_url: str
     display_name: Optional[str] = None
     platform_id: Optional[str] = None  # Optional, auto-detected from URL
+    manual_metrics: Optional[Dict[str, Any]] = None  # Fallback: user-supplied metrics
 
 
 class PostPayload(BaseModel):
@@ -357,6 +358,20 @@ async def dashboard_metrics(
         # Generate simulated as fallback
         sim_metrics = _generate_metrics_for_platform(user_id, pid, ptype)
 
+        # If manual metrics exist, use them as the simulated base
+        manual = doc.get("manual_metrics")
+        if manual and manual.get("followers", 0) > 0:
+            sim_metrics.update({
+                "followers": manual["followers"],
+                "following": manual.get("following", 0),
+                "posts": manual.get("posts", 0),
+                "engagement_rate": manual.get("engagement_rate", sim_metrics["engagement_rate"]),
+                "likes": manual.get("likes", 0),
+                "page_likes": manual.get("page_likes", 0),
+                "impressions": int(manual["followers"] * 2.5),
+                "reach": int(manual["followers"] * 1.5),
+            })
+
         # Try live fetch with fallback
         credentials = doc.get("credentials", {})
         metrics = await fetch_metrics_with_fallback(
@@ -429,6 +444,21 @@ async def platform_metrics(
         ptype = cfg.get("type", "other")
 
         sim_metrics = _generate_metrics_for_platform(user_id, pid, ptype)
+
+        # If manual metrics exist, use them as the simulated base
+        manual = doc.get("manual_metrics")
+        if manual and manual.get("followers", 0) > 0:
+            sim_metrics.update({
+                "followers": manual["followers"],
+                "following": manual.get("following", 0),
+                "posts": manual.get("posts", 0),
+                "engagement_rate": manual.get("engagement_rate", sim_metrics["engagement_rate"]),
+                "likes": manual.get("likes", 0),
+                "page_likes": manual.get("page_likes", 0),
+                "impressions": int(manual["followers"] * 2.5),
+                "reach": int(manual["followers"] * 1.5),
+            })
+
         credentials = doc.get("credentials", {})
         metrics = await fetch_metrics_with_fallback(
             user_id, pid, credentials, sim_metrics, force_refresh=force_refresh
@@ -503,6 +533,21 @@ async def refresh_metrics(current_user=Depends(get_current_user)):
         credentials = doc.get("credentials", {})
 
         sim_metrics = _generate_metrics_for_platform(user_id, pid, ptype)
+
+        # If manual metrics exist, use them as the simulated base
+        manual = doc.get("manual_metrics")
+        if manual and manual.get("followers", 0) > 0:
+            sim_metrics.update({
+                "followers": manual["followers"],
+                "following": manual.get("following", 0),
+                "posts": manual.get("posts", 0),
+                "engagement_rate": manual.get("engagement_rate", sim_metrics["engagement_rate"]),
+                "likes": manual.get("likes", 0),
+                "page_likes": manual.get("page_likes", 0),
+                "impressions": int(manual["followers"] * 2.5),
+                "reach": int(manual["followers"] * 1.5),
+            })
+
         metrics = await fetch_metrics_with_fallback(
             user_id, pid, credentials, sim_metrics, force_refresh=True
         )
@@ -664,6 +709,30 @@ async def connect_with_url(
     if has_url_adapter(pid):
         metrics_result = await fetch_metrics_from_url(pid, url)
 
+    # If auto-scrape failed and user provided manual metrics, use those
+    manual = payload.manual_metrics
+    metrics_source = "auto"
+    if (not metrics_result or metrics_result.get("followers", 0) == 0) and manual:
+        followers = int(manual.get("followers", 0))
+        following = int(manual.get("following", 0))
+        posts = int(manual.get("posts", 0))
+        engagement = float(manual.get("engagement_rate", 0))
+        if followers > 0:
+            metrics_result = {
+                "followers": followers,
+                "following": following,
+                "posts": posts,
+                "engagement_rate": engagement if engagement > 0 else round(min(3.0 * (1000 / max(followers, 1000)), 10.0), 2),
+                "likes": int(manual.get("likes", 0)),
+                "page_likes": int(manual.get("page_likes", 0)),
+                "comments": 0,
+                "shares": 0,
+                "impressions": int(followers * 2.5),
+                "reach": int(followers * 1.5),
+                "username": username or display_name,
+            }
+            metrics_source = "manual"
+
     # Save connection
     doc = {
         "user_id": user_id,
@@ -675,6 +744,17 @@ async def connect_with_url(
         "connected_at": now,
         "updated_at": now,
     }
+    # Store manual metrics in credentials if provided so they can be used as fallback
+    if metrics_source == "manual" and metrics_result:
+        doc["manual_metrics"] = {
+            "followers": metrics_result.get("followers", 0),
+            "following": metrics_result.get("following", 0),
+            "posts": metrics_result.get("posts", 0),
+            "engagement_rate": metrics_result.get("engagement_rate", 0),
+            "likes": metrics_result.get("likes", 0),
+            "page_likes": metrics_result.get("page_likes", 0),
+        }
+
     await db.platform_credentials.update_one(
         {"user_id": user_id, "platform_id": pid},
         {"$set": doc},
@@ -687,11 +767,22 @@ async def connect_with_url(
         "platform_name": cfg.get("name", pid),
         "username": display_name,
         "connection_method": "url",
+        "metrics_source": metrics_source,
         "metrics_available": metrics_result is not None and metrics_result.get("followers", 0) > 0,
         "initial_metrics": {
             "followers": metrics_result.get("followers", 0),
+            "following": metrics_result.get("following", 0),
             "posts": metrics_result.get("posts", 0),
             "engagement_rate": metrics_result.get("engagement_rate", 0),
+            "likes": metrics_result.get("likes", 0),
+            "page_likes": metrics_result.get("page_likes", 0),
+            "impressions": metrics_result.get("impressions", 0),
+            "reach": metrics_result.get("reach", 0),
+            "full_name": metrics_result.get("full_name", ""),
+            "bio": metrics_result.get("bio", ""),
+            "page_name": metrics_result.get("page_name", ""),
+            "category": metrics_result.get("category", ""),
+            "is_verified": metrics_result.get("is_verified", False),
         } if metrics_result else None,
     }
 
