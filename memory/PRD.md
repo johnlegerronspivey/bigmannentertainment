@@ -10,18 +10,16 @@ Build a social media management and creator tools platform featuring the Unified
 - **ULN Phase A: Identity & Label Switcher** — `uln_labels`, `label_members`, `GET /me/labels`, Label Switcher UI, Members Tab
 - **ULN Phase B: Catalog, Rights & Distribution** — `label_assets`, `label_rights`, `label_endpoints` collections, Full CRUD APIs, modular UI
 - **ULN Phase C: Governance, Disputes & Audit** — `label_governance`, `label_disputes` collections, full CRUD APIs, governance rules (5 types), dispute management (6 types) with response timeline, audit trail integration, modular frontend components
+- **ULNComponents.js Refactoring (2026-03-25)** — Reduced from 2289 to 224 lines by extracting 6 component groups into `/app/frontend/src/uln/`
 
-### Phase C Details (Completed 2026-03-25)
-**Backend:**
-- `label_governance` collection: Rules with types (voting, content_approval, financial, distribution, membership), enforcement (automatic/manual), status (active/inactive/draft), conditions
-- `label_disputes` collection: Disputes with types (royalty_split, rights_ownership, distribution, content_takedown, membership, other), priorities, response timeline, resolution tracking
-- Audit trail hooks for all governance/dispute actions
-- Full CRUD + respond endpoints
-
-**Frontend:**
-- `LabelGovernance.js`: Rule type summary cards, rules table, create/edit modal with conditions builder
-- `LabelDisputes.js`: Status filter pills, dispute list with badges, detail modal with timeline, respond form with status changes
-- `LabelMembers.js`: Extracted from ULNComponents.js (cleanup from Phase B)
+### Refactoring Details (Completed 2026-03-25)
+Extracted from `ULNComponents.js`:
+- `ULNOverview.js` — Overview metrics, global distribution, recent activity, system status
+- `LabelHub.js` — Label hub with filters, cards, edit modal, bulk edit, advanced search, export
+- `CrossLabelContentSharing.js` — Federated content, metadata sync, permissions, usage attribution
+- `RoyaltyPoolManagement.js` — Royalty pools, earnings processing, payout ledger, distribution management
+- `DAOGovernance.js` — Proposals, voting interface, governance rules, governance history
+- `ULNAnalytics.js` — Network growth, financial analytics, governance analytics
 
 ### Backlog
 - **P1**: Revenue Tracking — Connect mocked-up feature to real data sources
@@ -30,6 +28,7 @@ Build a social media management and creator tools platform featuring the Unified
 - **P4**: Automated CVE monitoring dashboard
 - **P5**: ULN Notification System
 - **P6**: Catalog Bulk Import via CSV
+- **P7**: Governance Dashboard widget on Overview tab
 
 ## Architecture
 ```
@@ -47,8 +46,14 @@ Build a social media management and creator tools platform featuring the Unified
 │   │   └── uln_governance_disputes_service.py
 │   └── router_setup.py
 ├── frontend/src/
-│   ├── ULNComponents.js (Main orchestrator)
+│   ├── ULNComponents.js (Orchestrator only - 224 lines)
 │   └── uln/
+│       ├── ULNOverview.js
+│       ├── LabelHub.js
+│       ├── CrossLabelContentSharing.js
+│       ├── RoyaltyPoolManagement.js
+│       ├── DAOGovernance.js
+│       ├── ULNAnalytics.js
 │       ├── LabelCatalog.js
 │       ├── LabelDistributionStatus.js
 │       ├── LabelAuditSnapshot.js
