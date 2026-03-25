@@ -26,7 +26,13 @@ A unified label is: Identity-centric, Rights-aware, Distribution-native, Governa
   - Members tab with table, role badges, add/remove/edit
   - Auto-add owner on label registration
   - Role hierarchy: owner(4) > admin(3) > a_and_r(2) > viewer(1)
-  - Testing: 100% pass (14/14 backend, all frontend verified - iteration_92)
+  - `GET /api/uln/labels/{id}/catalog` — catalog assets per label (seed data)
+  - `GET /api/uln/labels/{id}/distribution/status` — DSP endpoint statuses per label (seed data)
+  - `GET /api/uln/labels/{id}/audit-snapshot` — downloadable JSON audit snapshot
+  - Catalog tab: assets table with title, type, artist, ISRC, release, status, streams
+  - Distribution tab: summary cards, health bar, endpoints table
+  - Audit Snapshot tab: download button, included-sections list
+  - Testing: 100% pass (20/20 backend, all frontend verified - iteration_93)
 
 - **Phase B — Catalog, Rights & Distribution** (UPCOMING)
   - `label_assets` collection: `{labelId, assetId, type, status}`
@@ -75,16 +81,30 @@ A unified label is: Identity-centric, Rights-aware, Distribution-native, Governa
 - Auto-owner on registration
 - Label Switcher UI + Members tab
 
+### Phase 34: ULN Phase A — Catalog, Distribution & Audit Snapshot ✅
+- GET /labels/{id}/catalog — returns seed catalog assets per label
+- GET /labels/{id}/distribution/status — returns DSP endpoint statuses with health summary
+- GET /labels/{id}/audit-snapshot — downloadable JSON snapshot (label, members, catalog, distribution, audit trail)
+- Catalog tab: title, type, artist, ISRC, release date, status, streams
+- Distribution tab: summary cards (total/live/pending/errors), health bar, endpoints table
+- Audit Snapshot tab: download button with included-sections description
+- New backend service: uln_catalog_distribution_service.py
+- New endpoints: uln_catalog_distribution_endpoints.py
+
 ## Key API Endpoints
 - Auth: `POST /api/auth/login`, `POST /api/auth/register`
 - ULN Core: `GET/POST /api/uln/labels`, `GET /api/uln/dashboard/stats`
 - ULN Members: `GET /api/uln/me/labels`, `GET/POST /api/uln/labels/{id}/members`, `PUT/DELETE member/{userId}`
+- ULN Catalog: `GET /api/uln/labels/{id}/catalog`
+- ULN Distribution: `GET /api/uln/labels/{id}/distribution/status`
+- ULN Audit: `GET /api/uln/labels/{id}/audit-snapshot`
 - Social: `GET /api/social/platforms`, `POST /api/social/connect-url`
 - Distribution: `POST /api/distribution-hub/distribute`
 - Analytics: `GET /api/analytics/overview`
 
 ## DB Collections
-- `users`, `uln_labels`, `label_members` (NEW), `uln_blockchain_blocks`, `uln_blockchain_transactions`
+- `users`, `uln_labels`, `label_members`, `label_assets` (Phase B), `label_distribution_status` (Phase B)
+- `uln_blockchain_blocks`, `uln_blockchain_transactions`
 - `uln_smart_contracts_live`, `royalty_earnings`, `uln_onboarding`, `uln_message_threads`, `uln_messages`
 - `platform_credentials`, `platform_metrics`, `user_content`, `distribution_hub_content`
 - `uln_audit_trail`, `notifications`, `messages`, `conversations`
@@ -94,9 +114,9 @@ A unified label is: Identity-centric, Rights-aware, Distribution-native, Governa
 - Admin: `cveadmin@test.com` / `Test1234!`
 
 ## Backlog (Prioritized)
-- **P0**: Phase B — Catalog & Rights Binding (label_assets, label_rights, catalog API)
-- **P0**: Phase C — Distribution Graph (label_endpoints, per-label distribution)
-- **P1**: Phase D — Governance, Disputes & Audit Snapshot
+- **P0**: Phase B — Catalog & Rights Binding (real label_assets data, label_rights, rights management UI)
+- **P0**: Phase B — Distribution Graph (real label_endpoints data, per-label distribution, credentials binding)
+- **P1**: Phase C — Governance, Disputes & Audit (label_disputes, dispute resolution, governance rules)
 - **P1**: Connect to Live APIs for real-time metrics (blocked by Meta API keys)
 - **P2**: Revenue auto-import from platform APIs
 - **P3**: Quick Actions Panel for GS1 Hub
