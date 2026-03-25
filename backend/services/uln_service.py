@@ -83,6 +83,10 @@ class ULNService:
             result = await self.uln_labels.insert_one(label_dict)
             
             if result.inserted_id:
+                # Auto-add creator as owner in label_members
+                from services.uln_label_members_service import ensure_owner_membership
+                await ensure_owner_membership(global_id.id, created_by)
+
                 # Create audit trail entry
                 await self._create_audit_entry(
                     action_type="label_registered",
