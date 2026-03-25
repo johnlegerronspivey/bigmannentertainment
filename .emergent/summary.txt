@@ -1,133 +1,143 @@
-<analysis>**original_problem_statement:**
-The user first confirmed that the five previously implemented Unified Label Network (ULN) features are working correctly. Following this verification, the user asked the agent to find and implement Facebook and Instagram API integrations. When presented with the steps to acquire API keys, the user inquired if there was an alternative method to implement these integrations without needing API keys.
+<analysis>**original_problem_statement**: 
+1. Enhance the existing URL scrapers for Facebook & Instagram to pull more public data (follower count, post count, engagement estimates) when users connect via profile URL, bypassing the need for API keys.
+2. Implement a Unified Label Network (ULN) architecture upgrade. The user requested a 3-layer architecture and specified starting with a Quick Win version that includes: Adding  everywhere, building  + a Label Switcher in UI, building  + , and adding a Label Audit Snapshot export (JSON → S3 → downloadable link).
 
-**PRODUCT REQUIREMENTS from PRD:**
-- **[VERIFIED]** Implement 5 new ULN features (Blockchain, Analytics, Onboarding, Messaging, Live Royalties).
-- **[Upcoming]** Fetch real-time metrics from live social media APIs.
+**PRODUCT REQUIREMENTS**:
+- **[VERIFIED]** Enhance Facebook & Instagram URL scrapers (with fallback to manual metric entry if blocked by anti-bot measures).
+- **[VERIFIED]** ULN Phase A (Identity & Label Switcher):  backend collection, , Label Switcher UI, Members Tab.
+- **[Upcoming/Missed]** ULN Phase A (Quick Win Remaining): Implement , , and Label Audit Snapshot export to S3.
+- **[Future]** Phase B - Catalog, Rights & Distribution binding (, , ).
+- **[Future]** Phase C - Governance, Disputes & Audit (, , ).
 - **[Future]** Connect the mocked Revenue Tracking feature to real data sources.
-- **[Future]** Guide the user on providing missing API keys for social media integrations.
 - **[Future]** DNS Health Checker.
 - **[Future]** Quick Actions Panel for GS1 Hub.
 - **[Future]** Automated CVE monitoring dashboard.
-- **[Future]** Implement a notification system for ULN events.
 
 **User's preferred language**: English
 
-**what currently exists?**
-A full-stack social media management platform with a React frontend and a FastAPI backend. Five major features for the Unified Label Network (ULN) have been implemented, tested by the agent, and now successfully verified by the user. The application's environment variables include empty placeholders for  and . The application is running and healthy.
+**what currently exists?** 
+A full-stack social media management and creator tools platform. The ULN (Unified Label Network) tab now has a foundational Identity layer with an active Label Switcher dropdown and Members management UI. The Social dashboard supports connecting Facebook and Instagram via URL, scraping public metrics, and falling back to a manual data entry form when platforms block server requests. 
 
 **Last working item**:
-- **Last item agent was working:** The agent was addressing the user's request to integrate Facebook and Instagram. After researching the official API key acquisition process, the agent was confronted with a question from the user about implementing the integration without keys. The agent has asked the user to clarify if they wish to explore unofficial methods like web scraping, highlighting the associated risks (instability, potential violation of terms of service).
-- **Status:** USER VERIFICATION PENDING
-- **Agent Testing Done:** N/A
-- **Which testing method agent to use?** N/A
-- **User Testing Done:** N/A
+    - Last item agent was working: Implementing Phase A (Quick Win) of the Unified Label Upgrade. The agent successfully built the Identity layer (Label Switcher, auto-membership on creation, and Members Tab).
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: Y
+    - Which testing method agent to use?: NA
+    - User Testing Done: N
 
-**All Pending/In progress Issue list**:
-  - Issue 1: (P0) Blocked approach for Social Media Integration. The user is hesitant to use API keys for Facebook/Instagram integration and has asked for alternative methods. Progress on the Connect to Live APIs task is blocked until the user decides on an approach.
-
-  **Issues Detail:**
-  - **Issue 1: Blocked approach for Social Media Integration**
-     - **Attempted fixes:** The agent researched the official method for obtaining API keys and presented the requirements to the user.
-     - **Next debug checklist:**
-         1. Wait for the user's response to the last  prompt.
-         2. If the user agrees to use API keys, guide them through the process as researched.
-         3. If the user insists on a key-less method, the next agent must carefully explain the significant downsides and seek explicit confirmation before attempting any high-risk implementation like web scraping. Call the  to see if any alternative, officially supported authentication methods exist.
-     - **Why fix this issue and what will be achieved with the fix?** Resolving this will unblock the Connect to Live APIs task, a primary goal in the product backlog, allowing the application to display real-time social media data.
-     - **Status:** BLOCKED
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** Both
-     - **Blocked on other issue:** N/A
+**All Pending/In progress Issue list**: 
+None. 
 
 **In progress Task List**:
-- None.
+  - Task 1: Complete the remaining Quick Win ULN features (P0)
+     - Where to resume: Review the user's initial Quick win version request. The previous agent implemented Identity/Members but skipped the Catalog API, Distribution API, and Audit Snapshot. 
+     - What will be achieved with this?: Fulfilling the exact acceptance criteria the user defined for the Quick Win phase.
+     - Status: IN PROGRESS
+     - Should Test frontend/backend/both after fix?: Both
+     - Blocked on something: None.
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks:**
-    - **(P0) Connect to Live APIs:** This is the current high-priority task, currently blocked by the API key issue. The goal is to fetch and display real-time metrics from social media platforms.
-- **Future Tasks:**
-    - **(P1) Implement Revenue Tracking:** Connect the existing mocked-up Revenue Tracking feature to real data sources.
-    - **(P2) ULN Notification System:** Implement a notification system for ULN events (e.g., new messages, royalty distributions).
-    - **(P3) DNS Health Checker:** Add a health checker that validates DNS record configuration.
-    - **(P4) Quick Actions Panel for GS1 Hub:** Add a Quick Actions panel to the GS1 Hub's Overview tab for common tasks.
-    - **(P5) Automated CVE monitoring dashboard:** Build an admin dashboard that periodically scans for new vulnerabilities.
+    Upcoming Tasks:
+    - (P0) Implement remaining Quick Win Phase A items: 
+        - Build  and display in UI.
+        - Build  and display in UI.
+        - Add a Label Audit Snapshot export (JSON → S3 → downloadable link).
+        - Backfill/Add  into assets, endpoints, and events (previous agent only did members).
+    
+    Future Tasks:
+    - (P1) Phase B - Catalog, Rights & Distribution: Implement ,  (splits, territories, AI consent), and  tables/logic.
+    - (P1) Phase C - Governance, Disputes & Audit: Implement ,  logic and wire hooks into label IDs.
+    - (P2) Implement Revenue Tracking: Connect the existing mocked-up Revenue Tracking feature to real data sources.
+    - (P3) DNS Health Checker.
+    - (P4) Quick Actions Panel for GS1 Hub.
+    - (P5) Automated CVE monitoring dashboard.
 
 **Completed work in this session**
-- **User Verification of ULN Features:** The user confirmed that the 5 previously implemented ULN features (Blockchain, Analytics, Onboarding, Messaging, Live Royalties) are working as expected.
+- Enhanced Facebook & Instagram URL scrapers in  (added Threads support via IG fallback).
+- Added Manual Metrics Entry fallback in social connections when auto-scraping is blocked by Meta.
+- Created  backend service and endpoints (, ).
+- Built the UI Label Switcher component in the ULN header and a Members management tab.
+- Integrated auto-owner assignment on label registration/onboarding.
 
 **Earlier issues found/mentioned but not fixed**
-- None.
+None.
 
 **Known issue recurrence from previous fork**
-- None.
+  - Issue recurrence in previous fork: None.
+  - Recurrence count: 0
+  - Status: RESOLVED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **User-driven Prioritization:** The agent correctly shifted focus from its planned work to the user's new request for social media integration.
-- **API Integration Research:** The agent used the  to find current documentation for integrating with the Facebook Graph API.
-- **Credential Handling:** Identified that environment variables for Facebook (, ) are present but empty.
-- **Risk Communication:** When the user inquired about a non-standard integration path, the agent correctly used  to communicate the risks and seek clarification before proceeding.
+- **Fallback Workarounds:** Meta frequently blocks server-side scraping. The agent implemented a robust fallback requiring manual user entry of metrics if scraping fails, ensuring the system doesn't break.
+- **Role-Based Access Control (RBAC):** Labels now have distinct roles (Owner, Admin, A&R, Viewer) attached to user JWT contexts via the  collection.
+- **Context-Aware UI:** The frontend now heavily relies on the  state managed by the Label Switcher to dictate what data is fetched and shown.
 
 **key DB schema**
-- No database schema changes were made in this session.
+  - : {global_id, name, ownerUserId, status}
+  - : {label_id, user_id, role, joined_at}
 
 **changes in tech stack**
-- None.
+  - None
 
-**All files of reference**
-- : Reviewed to understand project goals.
-- : Inspected to check for existing Facebook credentials.
-- : Latest test report referenced from the previous session.
+**All files of reference** 
+  -  (Updated FB/IG scrapers)
+  -  (Added manual metrics payload handling)
+  -  (Updated to handle manual fallback UI)
+  -  (Created for label identity/roles)
+  -  (Created for label membership routing)
+  -  (Created Label Switcher & Members Tab)
+  -  (Added uln_label_members routing)
 
-**Areas that need refactoring**:
-- None identified.
+**Areas that need refactoring**: 
+  -  is quite large (>2200 lines). In future forks, it may be beneficial to split  and the  into their own dedicated component files to maintain readability.
 
 **key api endpoints**
-- No new endpoints were created. The existing endpoints for ULN features were implicitly verified by the user.
+  - 
+  - 
+  - 
+  - 
 
-**Critical Info for New Agent**
-- The five major ULN features are considered complete and have been signed off on by the user. Do not revisit them.
-- The immediate priority is resolving the user's question about integrating Facebook and Instagram **without API keys**.
-- **Do not proceed with any implementation** until the user responds to the last question. Their decision will determine the path forward:
-    1.  **Official Path (Preferred):** If they agree to use API keys, your task is to guide them on obtaining and providing the  and .
-    2.  **Unofficial Path (High-Risk):** If they insist on a key-less method, you must re-iterate the risks (instability, violation of ToS) and obtain explicit consent. Only then should you explore options like web scraping, which will require a completely different implementation strategy. Before attempting this, call  to confirm no other official methods are available.
+**Critical Info for New Agent** 
+The previous agent successfully tackled the complex Identity / Label Switcher portion of the user's Quick Win request but **forgot** to implement the remaining endpoints specifically requested for this phase: , , and the Audit Snapshot export (JSON to S3). You should immediately tackle these missed items to fully close out Phase A before moving to Phase B.
 
-**documents and test reports created in this job**
-- None.
+**documents and test reports created in this job** 
+  - 
+  - 
+  - 
 
-**Last 10 User Messages and any pending HUMAN messages**
-- **User:** 
-    - **Summary:** User is asking for an alternative to the standard API key-based integration.
-    - **Status:** Pending user response to the agent's follow-up question about risks.
-- **User:** 
-    - **Summary:** User requested the agent to start work on social media integration.
-    - **Status:** In progress, but blocked by the key issue.
-- **User:** 
-    - **Summary:** User verified the work from the previous session.
-    - **Status:** Completed.
-- **User:** 
-    - **Summary:** Initial instruction for the session.
-    - **Status:** Completed.
+**Last 10 User Messages and any pending HUMAN messages** 
+ - **User**: 
+   - Completion Status: IN PROGRESS (Partially completed; missing catalog, distribution status, and S3 export features explicitly asked for in the quick win).
+ - **User**: Provided detailed architecture for Unified Label (3 Layers) and defined the Quick win version.
+   - Completion Status: Noted for roadmap. Phase A started.
+ - **User**: 
+   - Completion Status: COMPLETED.
+ - **User**: 
+   - Completion Status: COMPLETED.
 
 **Project Health Check:**
-- **Running**: Yes
-- **Broken**: No
-- **Mocked**: Revenue Tracking, Social Media API data.
+- Broken: None
+- Mocked: Revenue Tracking
 
-**3rd Party Integrations**
-- No new integrations were added. The focus is on preparing for Facebook/Instagram integration.
+**3rd Party Integrations** 
+  - Facebook/Instagram/Threads URL Scraping (Requires NO keys; uses public scraping + manual fallback).
 
 **Testing status**
-- **Testing agent used after significant changes:** NO (No changes were implemented).
-- **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** None.
-- **Known regressions:** None.
+  - Testing agent used after significant changes: YES (Iterations 91 & 92 passed 100%)
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: , 
+  - Known regressions: None
 
 **Credentials to test flow:**
-- **Email:** 
-- **Password:** 
+- Email: 
+- Password: 
 
 **What agent forgot to execute**
-- Nothing. The agent correctly handled the user's changing requests and is currently blocked waiting for user input, which is the correct procedure.</analysis>
+The agent missed 3 specific requirements explicitly listed by the user under the Quick win version:
+1. Build 
+2. Build 
+3. Add a Label Audit Snapshot export (JSON → S3 → downloadable link)
+*Note: Make sure to implement these first to truly complete Phase A before moving on to Phase B.*</analysis>

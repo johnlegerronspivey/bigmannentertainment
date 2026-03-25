@@ -77,6 +77,7 @@ from tenant_endpoints import router as tenant_router
 from live_integrations_api import router as live_integrations_router
 from uln_enhanced_endpoints import router as uln_enhanced_router
 from uln_label_members_endpoints import router as uln_label_members_router
+from uln_catalog_distribution_endpoints import router as uln_catalog_dist_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -116,7 +117,8 @@ routers = [
     tenant_router,
     live_integrations_router,
     uln_enhanced_router,
-    uln_label_members_router
+    uln_label_members_router,
+    uln_catalog_dist_router,
 ]
 
 for router in routers:

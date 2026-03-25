@@ -166,7 +166,7 @@ export const ULNDashboard = () => {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow mb-8">
           <nav className="flex flex-wrap gap-2 px-6 py-4">
-            {['overview', 'labels', 'members', 'content', 'royalties', 'dao', 'blockchain', 'analytics', 'onboarding', 'messaging'].map((tab) => (
+            {['overview', 'labels', 'members', 'catalog', 'distribution', 'audit', 'content', 'royalties', 'dao', 'blockchain', 'analytics', 'onboarding', 'messaging'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -177,7 +177,7 @@ export const ULNDashboard = () => {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {tab === 'dao' ? 'DAO Governance' : tab === 'onboarding' ? 'Register Label' : tab === 'messaging' ? 'Messages' : tab === 'members' ? 'Members' : tab.replace('_', ' ')}
+                {tab === 'dao' ? 'DAO Governance' : tab === 'onboarding' ? 'Register Label' : tab === 'messaging' ? 'Messages' : tab === 'members' ? 'Members' : tab === 'catalog' ? 'Catalog' : tab === 'distribution' ? 'Distribution' : tab === 'audit' ? 'Audit Snapshot' : tab.replace('_', ' ')}
               </button>
             ))}
           </nav>
@@ -194,6 +194,15 @@ export const ULNDashboard = () => {
             )}
             {activeTab === 'members' && (
               <LabelMembers activeLabel={activeLabel} onMemberChange={() => fetchMyLabels()} />
+            )}
+            {activeTab === 'catalog' && (
+              <LabelCatalog activeLabel={activeLabel} />
+            )}
+            {activeTab === 'distribution' && (
+              <LabelDistributionStatus activeLabel={activeLabel} />
+            )}
+            {activeTab === 'audit' && (
+              <LabelAuditSnapshot activeLabel={activeLabel} />
             )}
             {activeTab === 'content' && (
               <CrossLabelContentSharing />
@@ -2555,6 +2564,339 @@ const CreateContentSharingModal = ({ onClose, onCreated }) => {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+};
+
+// ===== LABEL CATALOG COMPONENT =====
+
+const STATUS_BADGE = {
+  released: 'bg-emerald-100 text-emerald-800',
+  'pre-release': 'bg-amber-100 text-amber-800',
+  draft: 'bg-gray-100 text-gray-600',
+  taken_down: 'bg-red-100 text-red-800',
+};
+
+const LabelCatalog = ({ activeLabel }) => {
+  const [catalog, setCatalog] = useState({ assets: [], total_assets: 0, is_seed_data: false });
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
+  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  useEffect(() => {
+    if (activeLabel) fetchCatalog();
+  }, [activeLabel?.label_id]);
+
+  const fetchCatalog = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/uln/labels/${activeLabel.label_id}/catalog`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setCatalog(data);
+      }
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  };
+
+  if (!activeLabel) {
+    return (
+      <div className="bg-white rounded-xl shadow p-8 text-center" data-testid="catalog-no-label">
+        <p className="text-gray-500">Select a label from the switcher above to view its catalog.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6" data-testid="label-catalog-panel">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Catalog</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            <span className="font-medium text-purple-700">{activeLabel.name}</span> &middot; {catalog.total_assets} asset{catalog.total_assets !== 1 ? 's' : ''}
+          </p>
+        </div>
+        {catalog.is_seed_data && (
+          <span className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium" data-testid="catalog-seed-badge">
+            Sample Data &mdash; Real assets will appear after Phase B
+          </span>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div></div>
+        ) : catalog.assets.length === 0 ? (
+          <div className="p-8 text-center text-gray-500" data-testid="catalog-empty">No assets in this label's catalog yet.</div>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-200" data-testid="catalog-table">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Streams</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {catalog.assets.map((a) => (
+                <tr key={a.asset_id} data-testid={`catalog-row-${a.asset_id}`}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{a.title}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{a.type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{a.artist}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-500">{a.isrc}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{a.release_date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_BADGE[a.status] || 'bg-gray-100 text-gray-700'}`}>{a.status}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right font-medium">
+                    {a.streams_total != null ? a.streams_total.toLocaleString() : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
+// ===== LABEL DISTRIBUTION STATUS COMPONENT =====
+
+const DSP_STATUS_BADGE = {
+  live: 'bg-emerald-100 text-emerald-800',
+  pending: 'bg-amber-100 text-amber-800',
+  error: 'bg-red-100 text-red-800',
+  disabled: 'bg-gray-100 text-gray-600',
+};
+
+const LabelDistributionStatus = ({ activeLabel }) => {
+  const [distData, setDistData] = useState({ endpoints: [], summary: {} });
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
+  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  useEffect(() => {
+    if (activeLabel) fetchDistribution();
+  }, [activeLabel?.label_id]);
+
+  const fetchDistribution = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/uln/labels/${activeLabel.label_id}/distribution/status`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setDistData(data);
+      }
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  };
+
+  if (!activeLabel) {
+    return (
+      <div className="bg-white rounded-xl shadow p-8 text-center" data-testid="dist-no-label">
+        <p className="text-gray-500">Select a label from the switcher above to view distribution status.</p>
+      </div>
+    );
+  }
+
+  const { summary } = distData;
+
+  return (
+    <div className="space-y-6" data-testid="label-distribution-panel">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Distribution Status</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            <span className="font-medium text-purple-700">{activeLabel.name}</span> &middot; {summary.total_endpoints || 0} endpoint{(summary.total_endpoints || 0) !== 1 ? 's' : ''}
+          </p>
+        </div>
+        {distData.is_seed_data && (
+          <span className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium" data-testid="dist-seed-badge">
+            Sample Data
+          </span>
+        )}
+      </div>
+
+      {/* Summary Cards */}
+      {summary.total_endpoints > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4" data-testid="dist-summary-cards">
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-2xl font-bold text-gray-900">{summary.total_endpoints}</p>
+            <p className="text-xs text-gray-500 mt-1">Total Endpoints</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-2xl font-bold text-emerald-600">{summary.live}</p>
+            <p className="text-xs text-gray-500 mt-1">Live</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-2xl font-bold text-amber-600">{summary.pending}</p>
+            <p className="text-xs text-gray-500 mt-1">Pending</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-2xl font-bold text-red-600">{summary.error}</p>
+            <p className="text-xs text-gray-500 mt-1">Errors</p>
+          </div>
+        </div>
+      )}
+
+      {/* Health bar */}
+      {summary.total_endpoints > 0 && (
+        <div className="bg-white rounded-xl shadow p-4" data-testid="dist-health-bar">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">Distribution Health</span>
+            <span className="text-sm font-bold text-gray-900">{summary.health_pct}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className={`h-2.5 rounded-full transition-all ${summary.health_pct >= 80 ? 'bg-emerald-500' : summary.health_pct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+              style={{ width: `${summary.health_pct}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
+
+      {/* Endpoints Table */}
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div></div>
+        ) : distData.endpoints.length === 0 ? (
+          <div className="p-8 text-center text-gray-500" data-testid="dist-empty">No distribution endpoints configured.</div>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-200" data-testid="dist-table">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Delivery</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Assets Delivered</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Errors</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {distData.endpoints.map((ep) => (
+                <tr key={ep.endpoint_id} data-testid={`dist-row-${ep.endpoint_id}`}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ep.platform}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${DSP_STATUS_BADGE[ep.status] || 'bg-gray-100 text-gray-700'}`}>{ep.status}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {ep.last_delivery ? new Date(ep.last_delivery).toLocaleString() : '—'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{ep.assets_delivered}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                    {ep.errors > 0 ? (
+                      <span className="text-red-600 font-medium" title={ep.error_message || ''}>{ep.errors}</span>
+                    ) : (
+                      <span className="text-gray-400">0</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
+// ===== LABEL AUDIT SNAPSHOT COMPONENT =====
+
+const LabelAuditSnapshot = ({ activeLabel }) => {
+  const [downloading, setDownloading] = useState(false);
+  const [lastDownload, setLastDownload] = useState(null);
+  const token = localStorage.getItem('token');
+
+  const handleDownload = async () => {
+    if (!activeLabel) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(`${API}/api/uln/labels/${activeLabel.label_id}/audit-snapshot`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `label_${activeLabel.label_id}_audit_snapshot.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        setLastDownload(new Date().toLocaleString());
+      }
+    } catch (e) { console.error(e); }
+    setDownloading(false);
+  };
+
+  if (!activeLabel) {
+    return (
+      <div className="bg-white rounded-xl shadow p-8 text-center" data-testid="audit-no-label">
+        <p className="text-gray-500">Select a label from the switcher above to export an audit snapshot.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6" data-testid="label-audit-snapshot-panel">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Audit Snapshot</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Export a comprehensive JSON snapshot of <span className="font-medium text-purple-700">{activeLabel.name}</span> for compliance and record-keeping.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Full Label Snapshot</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Includes: label metadata, members, catalog assets, distribution endpoints, and recent audit trail entries.
+            </p>
+          </div>
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-lg font-medium text-sm hover:bg-purple-700 transition disabled:opacity-50 shrink-0"
+            data-testid="audit-download-btn"
+          >
+            {downloading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Generating...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Download Snapshot
+              </>
+            )}
+          </button>
+        </div>
+        {lastDownload && (
+          <p className="text-xs text-gray-400 mt-3" data-testid="audit-last-download">Last downloaded: {lastDownload}</p>
+        )}
+      </div>
+
+      <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+        <h4 className="text-sm font-semibold text-gray-700 mb-3">What's included in the snapshot?</h4>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+          <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Label metadata & configuration</li>
+          <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> All team members & roles</li>
+          <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Catalog assets (titles, ISRCs, UPCs)</li>
+          <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Distribution endpoint statuses</li>
+          <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Distribution health summary</li>
+          <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Recent audit trail (up to 100 entries)</li>
+        </ul>
       </div>
     </div>
   );
