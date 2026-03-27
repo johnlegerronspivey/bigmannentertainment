@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BlockchainLedger } from './uln/BlockchainLedger';
 import { AnalyticsDashboard } from './uln/AnalyticsDashboard';
 import { OnboardingWizard } from './uln/OnboardingWizard';
@@ -14,6 +14,7 @@ import { LabelHub } from './uln/LabelHub';
 import { CrossLabelContentSharing } from './uln/CrossLabelContentSharing';
 import { RoyaltyPoolManagement } from './uln/RoyaltyPoolManagement';
 import { DAOGovernance } from './uln/DAOGovernance';
+import { ULNNotifications } from './uln/ULNNotifications';
 
 const API = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
 
@@ -25,11 +26,34 @@ export const ULNDashboard = () => {
   const [myLabels, setMyLabels] = useState([]);
   const [activeLabel, setActiveLabel] = useState(null);
   const [showLabelSwitcher, setShowLabelSwitcher] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  const fetchUnreadNotifCount = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const params = new URLSearchParams();
+      if (activeLabel?.label_id) params.set('label_id', activeLabel.label_id);
+      const res = await fetch(`${API}/api/uln/notifications/unread-count?${params}`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadNotifCount(data.unread_count || 0);
+      }
+    } catch (e) { /* silent */ }
+  }, [activeLabel?.label_id]);
 
   useEffect(() => {
     fetchDashboardStats();
     fetchMyLabels();
   }, []);
+
+  useEffect(() => {
+    fetchUnreadNotifCount();
+    const interval = setInterval(fetchUnreadNotifCount, 30000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadNotifCount]);
 
   const fetchMyLabels = async () => {
     try {
@@ -120,7 +144,21 @@ export const ULNDashboard = () => {
             </p>
           </div>
           {/* Label Switcher */}
-          {myLabels.length > 0 && (
+          <div className="flex items-center gap-3">
+            {/* Notification Bell */}
+            <button
+              onClick={() => setActiveTab('notifications')}
+              className="relative p-2.5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow transition"
+              data-testid="notification-bell-btn"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              {unreadNotifCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center" data-testid="header-notif-badge">
+                  {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                </span>
+              )}
+            </button>
+            {myLabels.length > 0 && (
             <div className="relative" data-testid="label-switcher-container">
               <button
                 onClick={() => setShowLabelSwitcher(!showLabelSwitcher)}
@@ -166,12 +204,13 @@ export const ULNDashboard = () => {
               )}
             </div>
           )}
+          </div>
         </div>
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow mb-8">
           <nav className="flex flex-wrap gap-2 px-6 py-4">
-            {['overview', 'labels', 'members', 'catalog', 'distribution', 'governance', 'disputes', 'audit', 'content', 'royalties', 'dao', 'blockchain', 'analytics', 'onboarding', 'messaging'].map((tab) => (
+            {['overview', 'notifications', 'labels', 'members', 'catalog', 'distribution', 'governance', 'disputes', 'audit', 'content', 'royalties', 'dao', 'blockchain', 'analytics', 'onboarding', 'messaging'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -182,7 +221,12 @@ export const ULNDashboard = () => {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {tab === 'dao' ? 'DAO Governance' : tab === 'onboarding' ? 'Register Label' : tab === 'messaging' ? 'Messages' : tab === 'members' ? 'Members' : tab === 'catalog' ? 'Catalog' : tab === 'distribution' ? 'Distribution' : tab === 'audit' ? 'Audit Snapshot' : tab === 'governance' ? 'Governance' : tab === 'disputes' ? 'Disputes' : tab.replace('_', ' ')}
+                {tab === 'notifications' ? (
+                  <span className="flex items-center gap-1.5">
+                    Notifications
+                    {unreadNotifCount > 0 && <span className="text-[10px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded-full">{unreadNotifCount}</span>}
+                  </span>
+                ) : tab === 'dao' ? 'DAO Governance' : tab === 'onboarding' ? 'Register Label' : tab === 'messaging' ? 'Messages' : tab === 'members' ? 'Members' : tab === 'catalog' ? 'Catalog' : tab === 'distribution' ? 'Distribution' : tab === 'audit' ? 'Audit Snapshot' : tab === 'governance' ? 'Governance' : tab === 'disputes' ? 'Disputes' : tab.replace('_', ' ')}
               </button>
             ))}
           </nav>
@@ -192,6 +236,7 @@ export const ULNDashboard = () => {
         {dashboardStats && (
           <>
             {activeTab === 'overview' && <ULNOverview stats={dashboardStats} />}
+            {activeTab === 'notifications' && <ULNNotifications activeLabel={activeLabel} />}
             {activeTab === 'labels' && <LabelHub />}
             {activeTab === 'members' && <LabelMembers activeLabel={activeLabel} onMemberChange={() => fetchMyLabels()} />}
             {activeTab === 'catalog' && <LabelCatalog activeLabel={activeLabel} />}

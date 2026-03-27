@@ -6,6 +6,7 @@ Roles: owner, admin, a_and_r, viewer
 """
 
 import logging
+import asyncio
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 from config.database import db
@@ -58,6 +59,22 @@ async def add_member(label_id: str, user_id: str, role: str, added_by: str) -> D
         "changes": {"user_id": user_id, "role": role},
         "timestamp": now,
     })
+
+    # Emit notification
+    try:
+        from services.uln_notification_service import emit_notification
+        label_name = label.get("metadata_profile", {}).get("name", label_id)
+        asyncio.ensure_future(emit_notification(
+            label_id=label_id,
+            notification_type="member_added",
+            title="New Member Added",
+            message=f"User was added as {role} to {label_name}",
+            severity="info",
+            actor_id=added_by,
+            metadata={"user_id": user_id, "role": role},
+        ))
+    except Exception:
+        pass
 
     return {"success": True, "label_id": label_id, "user_id": user_id, "role": role}
 

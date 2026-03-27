@@ -7,6 +7,7 @@ Hooks into label IDs and generates audit trail entries.
 
 import logging
 import uuid
+import asyncio
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from config.database import db
@@ -115,6 +116,21 @@ async def create_governance_rule(label_id: str, data: Dict[str, Any], user_id: s
     await _write_audit(label_id, user_id, "governance_rule_created",
                        f"Created governance rule '{rule['title']}' ({rule_type})",
                        {"rule_id": rule_id, "rule_type": rule_type})
+
+    # Emit notification
+    try:
+        from services.uln_notification_service import emit_notification
+        asyncio.ensure_future(emit_notification(
+            label_id=label_id,
+            notification_type="governance_rule_created",
+            title="New Governance Rule",
+            message=f"Rule '{rule['title']}' ({rule_type}) was created",
+            severity="info",
+            actor_id=user_id,
+            metadata={"rule_id": rule_id, "rule_type": rule_type},
+        ))
+    except Exception:
+        pass
 
     return {"success": True, "rule": saved}
 
@@ -251,6 +267,22 @@ async def create_dispute(label_id: str, data: Dict[str, Any], user_id: str) -> D
                        f"Filed dispute '{dispute['title']}' ({dispute_type}, {priority})",
                        {"dispute_id": dispute_id, "dispute_type": dispute_type, "priority": priority})
 
+    # Emit notification
+    try:
+        from services.uln_notification_service import emit_notification
+        sev = "warning" if priority in ("high", "critical") else "info"
+        asyncio.ensure_future(emit_notification(
+            label_id=label_id,
+            notification_type="dispute_filed",
+            title="New Dispute Filed",
+            message=f"Dispute '{dispute['title']}' ({dispute_type}) — priority: {priority}",
+            severity=sev,
+            actor_id=user_id,
+            metadata={"dispute_id": dispute_id, "dispute_type": dispute_type, "priority": priority},
+        ))
+    except Exception:
+        pass
+
     return {"success": True, "dispute": saved}
 
 
@@ -332,6 +364,23 @@ async def respond_to_dispute(label_id: str, dispute_id: str, data: Dict[str, Any
     await _write_audit(label_id, user_id, "dispute_response_added",
                        f"Responded to dispute {dispute_id}",
                        {"dispute_id": dispute_id, "action": response_entry["action"]})
+
+    # Emit notification
+    try:
+        from services.uln_notification_service import emit_notification
+        ntype = "dispute_resolved" if new_status == "resolved" else "dispute_updated"
+        ntitle = "Dispute Resolved" if new_status == "resolved" else "Dispute Updated"
+        asyncio.ensure_future(emit_notification(
+            label_id=label_id,
+            notification_type=ntype,
+            title=ntitle,
+            message=f"Dispute {dispute_id}: {message[:80]}",
+            severity="success" if new_status == "resolved" else "info",
+            actor_id=user_id,
+            metadata={"dispute_id": dispute_id, "action": response_entry["action"]},
+        ))
+    except Exception:
+        pass
 
     return {"success": True, "dispute": saved}
 
