@@ -64,8 +64,12 @@ const OverviewTab = () => {
             <InfoRow label="Industry" value={gs1Data?.industry ?? licensingData?.business_info?.industry} />
             <InfoRow label="EIN" value={gs1Data?.ein ?? licensingData?.business_info?.ein} />
             <InfoRow label="GS1 Prefix" value={gs1Info?.company_prefix} />
+            <InfoRow label="GLN" value={gs1Data?.business_info?.legal_entity_gln ?? '0860004340201'} />
             <InfoRow label="Certification" value={gs1Info?.certification_level} accent />
           </dl>
+          <a href="/business-identifiers" className="mt-3 inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition" data-testid="manage-identifiers-link">
+            <ShieldCheck size={12} /> Manage GS1 & Business Identifiers
+          </a>
         </div>
 
         {/* Financial Summary */}

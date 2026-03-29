@@ -54,6 +54,33 @@ MINIMUM_REVENUE_PERCENTAGES = {
     "default_royalty_share": 100.0,
 }
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  IMMUTABLE BUSINESS & GS1 IDENTIFIERS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROTECTED_GS1_COMPANY_PREFIX = "08600043402"
+PROTECTED_GLN = "0860004340201"
+PROTECTED_EIN = "270658077"
+PROTECTED_DUNS = "000000000"  # Placeholder — update when real DUNS assigned
+PROTECTED_BUSINESS_REGISTRATION = "BME-2024-001"
+
+PROTECTED_BUSINESS_IDENTIFIERS = {
+    "gs1_company_prefix": PROTECTED_GS1_COMPANY_PREFIX,
+    "gln": PROTECTED_GLN,
+    "ein": PROTECTED_EIN,
+    "duns": PROTECTED_DUNS,
+    "business_registration_number": PROTECTED_BUSINESS_REGISTRATION,
+    "business_entity": PROTECTED_BUSINESS_NAME,
+    "business_owner": PROTECTED_OWNER_FULL_NAME,
+    "business_type": "Sole Proprietorship",
+}
+
+# Fields on business_identifiers that are locked for the protected owner
+LOCKED_IDENTIFIER_FIELDS = frozenset({
+    "gs1_company_prefix", "gln", "ein", "duns",
+    "business_registration_number", "business_entity",
+    "business_owner", "business_type",
+})
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -196,6 +223,32 @@ def block_revenue_share_modification(
             )
             logger.warning(f"[OWNERSHIP GUARD] Blocked revenue share change: {msg}")
             return msg
+    return None
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  GUARD: BUSINESS & GS1 IDENTIFIERS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+def block_identifier_change(user_id: str, updates: Dict[str, Any], actor_description: str = "unknown") -> Optional[str]:
+    """
+    Prevents modification of protected business/GS1 identifiers
+    for John LeGerron Spivey / Big Mann Entertainment.
+    Returns error message if blocked, None if safe.
+    """
+    if not is_protected_owner(user_id=user_id):
+        return None
+
+    violated = LOCKED_IDENTIFIER_FIELDS & set(updates.keys())
+    if violated:
+        msg = (
+            f"OWNERSHIP PROTECTION: Cannot modify {', '.join(sorted(violated))} "
+            f"on the business identifiers of {PROTECTED_OWNER_FULL_NAME} / {PROTECTED_BUSINESS_NAME}. "
+            f"These identifiers are permanently locked."
+        )
+        logger.warning(f"[OWNERSHIP GUARD] Blocked identifier change by '{actor_description}': {msg}")
+        return msg
     return None
 
 

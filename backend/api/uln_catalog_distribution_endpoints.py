@@ -46,6 +46,7 @@ class AssetCreateRequest(BaseModel):
     artist: str = ""
     isrc: str = ""
     upc: str = ""
+    gtin: str = ""
     release_date: str = ""
     genre: str = ""
     status: str = "draft"
@@ -59,6 +60,7 @@ class AssetUpdateRequest(BaseModel):
     artist: Optional[str] = None
     isrc: Optional[str] = None
     upc: Optional[str] = None
+    gtin: Optional[str] = None
     release_date: Optional[str] = None
     genre: Optional[str] = None
     status: Optional[str] = None
@@ -87,6 +89,8 @@ class EndpointCreateRequest(BaseModel):
     status: str = "pending"
     endpoint_type: str = "streaming"
     credentials_ref: str = ""
+    gs1_gln: str = ""
+    gs1_company_prefix: str = ""
 
 
 class EndpointUpdateRequest(BaseModel):
@@ -113,6 +117,12 @@ async def label_catalog(label_id: str, current_user: User = Depends(get_current_
 
 @router.post("/labels/{label_id}/catalog/assets")
 async def add_asset(label_id: str, req: AssetCreateRequest, current_user: User = Depends(get_current_user)):
+    # Mandatory GS1 identifier validation
+    from utils.gs1_validators import validate_asset_identifiers
+    id_errors = validate_asset_identifiers({"gtin": req.gtin, "isrc": req.isrc, "upc": req.upc})
+    if id_errors:
+        raise HTTPException(status_code=400, detail={"validation_errors": id_errors, "message": "GS1 identifier validation failed"})
+
     result = await create_asset(label_id, req.dict(), current_user.id)
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -166,6 +176,24 @@ async def label_distribution_status(label_id: str, current_user: User = Depends(
 
 @router.post("/labels/{label_id}/endpoints")
 async def add_endpoint(label_id: str, req: EndpointCreateRequest, current_user: User = Depends(get_current_user)):
+    # Mandatory GS1 identifiers on distribution endpoints
+    from utils.gs1_validators import validate_gln, validate_gs1_company_prefix
+    errors = {}
+    if not req.gs1_gln.strip():
+        errors["gs1_gln"] = "GLN is required for distribution endpoints"
+    else:
+        err = validate_gln(req.gs1_gln)
+        if err:
+            errors["gs1_gln"] = err
+    if not req.gs1_company_prefix.strip():
+        errors["gs1_company_prefix"] = "GS1 Company Prefix is required for distribution endpoints"
+    else:
+        err = validate_gs1_company_prefix(req.gs1_company_prefix)
+        if err:
+            errors["gs1_company_prefix"] = err
+    if errors:
+        raise HTTPException(status_code=400, detail={"validation_errors": errors, "message": "GS1 identifier validation failed"})
+
     result = await create_endpoint(label_id, req.dict(), current_user.id)
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])

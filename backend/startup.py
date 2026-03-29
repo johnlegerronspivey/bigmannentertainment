@@ -4,6 +4,7 @@ Extracted from server.py — initializes database indexes, external services,
 payment/metadata pipelines, and AWS media services.
 """
 from pathlib import Path
+from datetime import datetime, timezone
 from config.database import db
 from db_optimizer import DatabaseOptimizer
 
@@ -172,6 +173,41 @@ async def startup_event():
                     print(f"  [OWNERSHIP GUARD] Restored owner role on label {lid}")
     except Exception as e:
         print(f"  [OWNERSHIP GUARD] Startup check failed: {str(e)}")
+
+    # ── OWNERSHIP PROTECTION: Enforce immutable business identifiers on every startup ──
+    try:
+        from utils.ownership_guard import PROTECTED_BUSINESS_IDENTIFIERS, PROTECTED_GS1_COMPANY_PREFIX
+
+        # Find all labels owned by the protected owner
+        owner_labels = await db.label_members.find(
+            {"user_id": PROTECTED_OWNER_USER_ID, "role": "owner"}, {"_id": 0, "label_id": 1}
+        ).to_list(length=None)
+
+        for lbl_doc in owner_labels:
+            lid = lbl_doc.get("label_id")
+            if not lid:
+                continue
+            now = datetime.now(timezone.utc).isoformat()
+            ident_doc = {
+                **PROTECTED_BUSINESS_IDENTIFIERS,
+                "label_id": lid,
+                "owner_user_id": PROTECTED_OWNER_USER_ID,
+                "updated_at": now,
+                "updated_by": "system_startup",
+            }
+            result = await db.business_identifiers.update_one(
+                {"label_id": lid},
+                {"$set": ident_doc, "$setOnInsert": {"created_at": now, "created_by": "system_startup"}},
+                upsert=True,
+            )
+            if result.upserted_id:
+                print(f"  [OWNERSHIP GUARD] Pre-populated business identifiers for label {lid}")
+            elif result.modified_count > 0:
+                print(f"  [OWNERSHIP GUARD] Re-asserted business identifiers for label {lid}")
+
+        print(f"  [OWNERSHIP GUARD] Business identifiers enforced for {len(owner_labels)} owned labels")
+    except Exception as e:
+        print(f"  [OWNERSHIP GUARD] Business identifiers startup check failed: {str(e)}")
 
 
 async def shutdown_event():

@@ -122,6 +122,7 @@ const DomainConfigPage = lazy(() => import("./admin/DomainConfigPage"));
 const DNSHealthPage = lazy(() => import("./pages/DNSHealthPage"));
 const CVEMonitorDashboard = lazy(() => import("./pages/CVEMonitorDashboard"));
 const CatalogImportPage = lazy(() => import("./pages/CatalogImportPage"));
+const BusinessIdentifiersPage = lazy(() => import("./pages/BusinessIdentifiersPage"));
 const RDSUpgradePage = lazy(() => import("./pages/RDSUpgradePage"));
 const CreatorProfilesPage = lazy(() => import("./pages/CreatorProfilesPage"));
 const WatermarkPage = lazy(() => import("./pages/WatermarkPage"));
@@ -260,6 +261,7 @@ function App() {
             <Route path="/dns-health" element={<ProtectedRoute><DNSHealthPage /></ProtectedRoute>} />
             <Route path="/cve-monitor" element={<ProtectedRoute><CVEMonitorDashboard /></ProtectedRoute>} />
             <Route path="/catalog-import" element={<ProtectedRoute><CatalogImportPage /></ProtectedRoute>} />
+            <Route path="/business-identifiers" element={<ProtectedRoute><BusinessIdentifiersPage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}

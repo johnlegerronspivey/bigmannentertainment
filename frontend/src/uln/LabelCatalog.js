@@ -14,7 +14,7 @@ const ASSET_TYPES = ['single', 'album', 'ep', 'compilation', 'mixtape'];
 const ASSET_STATUSES = ['draft', 'pre-release', 'released', 'taken_down'];
 const TERRITORY_OPTIONS = ['GLOBAL', 'US', 'UK', 'EU', 'CA', 'AU', 'JP', 'BR', 'KR', 'IN', 'MX'];
 
-const emptyAsset = { title: '', type: 'single', artist: '', isrc: '', upc: '', release_date: '', genre: '', status: 'draft', platforms: [], streams_total: 0 };
+const emptyAsset = { title: '', type: 'single', artist: '', isrc: '', upc: '', gtin: '', release_date: '', genre: '', status: 'draft', platforms: [], streams_total: 0 };
 
 export const LabelCatalog = ({ activeLabel }) => {
   const [catalog, setCatalog] = useState({ assets: [], total_assets: 0 });
@@ -53,6 +53,7 @@ export const LabelCatalog = ({ activeLabel }) => {
 
   const handleSave = async () => {
     if (!form.title.trim()) { setFormError('Title is required'); return; }
+    if (!form.gtin || !form.gtin.trim()) { setFormError('GTIN is required for every catalog asset'); return; }
     setSaving(true); setFormError('');
     try {
       const url = editingAsset
@@ -62,7 +63,15 @@ export const LabelCatalog = ({ activeLabel }) => {
       const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
       const data = await res.json();
       if (res.ok && data.success) { setShowForm(false); fetchCatalog(); }
-      else setFormError(data.detail || data.error || 'Failed to save');
+      else {
+        const detail = data.detail;
+        if (detail?.validation_errors) {
+          const errMsgs = Object.entries(detail.validation_errors).map(([k, v]) => `${k}: ${v}`).join('; ');
+          setFormError(errMsgs);
+        } else {
+          setFormError(typeof detail === 'string' ? detail : detail?.message || data.error || 'Failed to save');
+        }
+      }
     } catch (e) { setFormError('Network error'); }
     setSaving(false);
   };
@@ -161,6 +170,11 @@ export const LabelCatalog = ({ activeLabel }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Artist</label>
                 <input value={form.artist} onChange={e => setForm(f => ({ ...f, artist: e.target.value }))} className="w-full border rounded-lg px-3 py-2 text-sm" data-testid="asset-artist-input" />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">GTIN (Global Trade Item Number) <span className="text-red-500">*</span></label>
+                <input value={form.gtin || ''} onChange={e => setForm(f => ({ ...f, gtin: e.target.value }))} className="w-full border rounded-lg px-3 py-2 text-sm font-mono" placeholder="e.g. 00860004340201 (8/12/13/14 digits)" data-testid="asset-gtin-input" />
+                <p className="text-xs text-gray-400 mt-0.5">Mandatory GS1 identifier with Modulo-10 check digit</p>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">ISRC</label>
@@ -208,8 +222,8 @@ export const LabelCatalog = ({ activeLabel }) => {
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GTIN</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISRC</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Streams</th>
                 <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -221,8 +235,8 @@ export const LabelCatalog = ({ activeLabel }) => {
                   <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{a.title}</td>
                   <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{a.type}</td>
                   <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-600">{a.artist}</td>
-                  <td className="px-5 py-4 whitespace-nowrap text-xs font-mono text-gray-500">{a.isrc}</td>
-                  <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-600">{a.release_date || '—'}</td>
+                  <td className="px-5 py-4 whitespace-nowrap text-xs font-mono text-gray-500">{a.gtin || '—'}</td>
+                  <td className="px-5 py-4 whitespace-nowrap text-xs font-mono text-gray-500">{a.isrc || '—'}</td>
                   <td className="px-5 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_BADGE[a.status] || 'bg-gray-100 text-gray-700'}`}>{a.status}</span>
                   </td>

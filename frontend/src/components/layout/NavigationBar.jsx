@@ -171,6 +171,7 @@ const NavigationBar = () => {
               {isBusinessDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600 max-h-80 overflow-y-auto">
                   <Link to="/business" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Business Identifiers</Link>
+                  <Link to="/business-identifiers" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 font-semibold" onClick={closeAllDropdowns} data-testid="nav-gs1-identifiers-link">GS1 & Business IDs (Mandatory)</Link>
                   <Link to="/ddex" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>DDEX</Link>
                   <Link to="/sponsorship" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Sponsorship</Link>
                   <Link to="/tax" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Tax Management</Link>
