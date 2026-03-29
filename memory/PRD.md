@@ -14,6 +14,7 @@ Build a social media management and creator tools platform featuring the Unified
 - **ULN Notification System (2026-03-27)** — Real-time notification system with MongoDB-backed CRUD, user preferences, type/severity filtering, unread badges (bell + tab), and integration hooks into governance/disputes/members services
 - **Ownership Protection System (2026-03-29)** — Immutable ownership guard for John LeGerron Spivey / Big Mann Entertainment. Protects account identity, label ownership roles, and revenue percentages (master_licensing >= 100%). Includes startup drift correction, audit trail for blocked violations, and API verification endpoint.
 - **DNS Health Checker (2026-03-29)** — Full DNS lookup and health monitoring system. Supports 9 record types (A, AAAA, MX, NS, TXT, CNAME, SOA, SRV, CAA), comprehensive domain health checks with scoring (A record, IPv6, nameservers, mail, SPF, DMARC, SOA, HTTP, HTTPS), domain monitoring with refresh, and lookup history. Uses real dnspython library. Frontend page at /dns-health with 4 tabs.
+- **Automated CVE Monitor (2026-03-29)** — Real-time CVE vulnerability tracking from NVD (National Vulnerability Database) feeds. Features: NVD API integration pulling live CVE data, Watch Rules for monitoring keywords/packages/vendors with severity filters, automated alert generation when watched items match new CVEs, alert management (acknowledge/dismiss), severity breakdown charts, 7-day trend visualization. Backend at /api/cve-monitor, Frontend at /cve-monitor with 4 tabs (Overview, CVE Feed, Watch Rules, Alerts). Uses real NVD API — no mocked data.
 
 ### Ownership Protection Details (2026-03-29)
 **Protected Fields (IMMUTABLE):**
@@ -35,7 +36,6 @@ Build a social media management and creator tools platform featuring the Unified
 ### Backlog
 - **P0**: Revenue Tracking — Connect mocked-up feature to real data sources
 - **P1**: Quick Actions Panel for GS1 Hub
-- **P2**: Automated CVE monitoring dashboard
 - **P3**: Catalog Bulk Import via CSV
 - **P4**: Governance Dashboard widget on Overview tab
 
@@ -45,6 +45,7 @@ Build a social media management and creator tools platform featuring the Unified
 ├── backend/
 │   ├── api/
 │   │   ├── dns_health_endpoints.py (DNS Health Checker)
+│   │   ├── cve_monitor_endpoints.py (Automated CVE Monitor)
 │   │   ├── uln_endpoints.py (+ ownership protection status endpoint)
 │   │   ├── uln_label_members_endpoints.py
 │   │   ├── uln_catalog_distribution_endpoints.py
@@ -53,6 +54,7 @@ Build a social media management and creator tools platform featuring the Unified
 │   │   └── rbac_endpoints.py (+ ownership guard)
 │   ├── services/
 │   │   ├── dns_health_service.py (DNS lookup, health check, monitoring)
+│   │   ├── cve_monitor_service.py (NVD feed, watches, alerts)
 │   │   ├── uln_service.py
 │   │   ├── uln_label_members_service.py (+ ownership guard)
 │   │   ├── uln_catalog_distribution_service.py
@@ -67,7 +69,8 @@ Build a social media management and creator tools platform featuring the Unified
 │   └── router_setup.py
 ├── frontend/src/
 │   ├── pages/
-│   │   └── DNSHealthPage.jsx (DNS Health Checker)
+│   │   ├── DNSHealthPage.jsx (DNS Health Checker)
+│   │   └── CVEMonitorDashboard.jsx (Automated CVE Monitor)
 │   ├── ULNComponents.js (Orchestrator)
 │   └── uln/
 │       ├── ULNOverview.js
@@ -95,6 +98,18 @@ Build a social media management and creator tools platform featuring the Unified
 | `/api/dns/monitors` | GET/POST | List/add monitored domains |
 | `/api/dns/monitors/{id}` | DELETE | Remove monitored domain |
 | `/api/dns/monitors/{id}/refresh` | POST | Refresh health check on monitor |
+| `/api/cve-monitor/health` | GET | CVE Monitor health check |
+| `/api/cve-monitor/stats` | GET | Monitoring statistics (feeds, watches, alerts, trends) |
+| `/api/cve-monitor/feed` | GET | Cached CVE feed entries with search/filter |
+| `/api/cve-monitor/feed/refresh` | POST | Fetch fresh CVEs from NVD API |
+| `/api/cve-monitor/watches` | GET/POST | List/create watch rules |
+| `/api/cve-monitor/watches/{id}/toggle` | PUT | Toggle watch enabled/disabled |
+| `/api/cve-monitor/watches/{id}` | DELETE | Delete watch rule |
+| `/api/cve-monitor/watches/{id}/refresh` | POST | Refresh specific watch against NVD |
+| `/api/cve-monitor/alerts` | GET | List alerts with status/severity filter |
+| `/api/cve-monitor/alerts/{id}/acknowledge` | PUT | Acknowledge an alert |
+| `/api/cve-monitor/alerts/{id}/dismiss` | PUT | Dismiss an alert |
+| `/api/cve-monitor/alerts/acknowledge-all` | POST | Acknowledge all new alerts |
 | `/api/uln/ownership-protection/status` | GET | Verify immutable ownership integrity |
 | `/api/uln/notifications` | GET/POST | List/create notifications |
 | `/api/uln/notifications/unread-count` | GET | Unread count |
