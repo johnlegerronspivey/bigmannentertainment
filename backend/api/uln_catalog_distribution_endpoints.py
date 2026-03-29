@@ -2,11 +2,12 @@
 ULN Catalog, Rights, Distribution & Audit Endpoints
 =====================================================
 Phase B — Full CRUD for label_assets, label_rights, label_endpoints.
+Includes CSV bulk-import for catalog migration.
 """
 
 import json
 import logging
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.responses import Response
 from typing import Dict, Any
 from pydantic import BaseModel, Field
@@ -25,6 +26,11 @@ from services.uln_catalog_distribution_service import (
     update_endpoint,
     delete_endpoint,
     generate_audit_snapshot,
+)
+from services.catalog_import_service import (
+    parse_and_import_csv,
+    preview_csv,
+    generate_csv_template,
 )
 
 logger = logging.getLogger(__name__)
@@ -201,3 +207,68 @@ async def label_audit_snapshot(label_id: str, current_user: User = Depends(get_c
             "Content-Disposition": f'attachment; filename="label_{label_id}_audit_snapshot.json"'
         },
     )
+
+
+
+# ── CSV Bulk Import ─────────────────────────────────────────────────
+
+
+@router.get("/labels/{label_id}/catalog/csv-template")
+async def download_csv_template(label_id: str, current_user: User = Depends(get_current_user)):
+    csv_content = generate_csv_template()
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="catalog_import_template_{label_id}.csv"'
+        },
+    )
+
+
+@router.post("/labels/{label_id}/catalog/preview-csv")
+async def preview_csv_upload(
+    label_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are accepted")
+
+    content = await file.read()
+    try:
+        csv_text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        try:
+            csv_text = content.decode("latin-1")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Unable to decode CSV file")
+
+    result = await preview_csv(csv_text)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.post("/labels/{label_id}/catalog/import-csv")
+async def import_csv_catalog(
+    label_id: str,
+    file: UploadFile = File(...),
+    skip_duplicates: bool = Form(default=True),
+    current_user: User = Depends(get_current_user),
+):
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are accepted")
+
+    content = await file.read()
+    try:
+        csv_text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        try:
+            csv_text = content.decode("latin-1")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Unable to decode CSV file")
+
+    result = await parse_and_import_csv(label_id, csv_text, current_user.id, skip_duplicates)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result

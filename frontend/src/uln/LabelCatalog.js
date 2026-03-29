@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -119,10 +120,16 @@ export const LabelCatalog = ({ activeLabel }) => {
             <span className="font-medium text-purple-700">{activeLabel.name}</span> &middot; {catalog.total_assets} asset{catalog.total_assets !== 1 ? 's' : ''}
           </p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-purple-700 transition" data-testid="add-asset-btn">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Add Asset
-        </button>
+        <div className="flex items-center gap-2">
+          <Link to="/catalog-import" className="flex items-center gap-2 border border-purple-300 text-purple-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-purple-50 transition" data-testid="import-csv-btn">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            Import CSV
+          </Link>
+          <button onClick={openCreate} className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-purple-700 transition" data-testid="add-asset-btn">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Add Asset
+          </button>
+        </div>
       </div>
 
       {/* Asset Form Modal */}

@@ -121,6 +121,7 @@ const ContentModerationComponent = lazy(() => import("./ContentModerationCompone
 const DomainConfigPage = lazy(() => import("./admin/DomainConfigPage"));
 const DNSHealthPage = lazy(() => import("./pages/DNSHealthPage"));
 const CVEMonitorDashboard = lazy(() => import("./pages/CVEMonitorDashboard"));
+const CatalogImportPage = lazy(() => import("./pages/CatalogImportPage"));
 const RDSUpgradePage = lazy(() => import("./pages/RDSUpgradePage"));
 const CreatorProfilesPage = lazy(() => import("./pages/CreatorProfilesPage"));
 const WatermarkPage = lazy(() => import("./pages/WatermarkPage"));
@@ -258,6 +259,7 @@ function App() {
             <Route path="/aws-infrastructure" element={<ProtectedRoute><AWSInfrastructurePage /></ProtectedRoute>} />
             <Route path="/dns-health" element={<ProtectedRoute><DNSHealthPage /></ProtectedRoute>} />
             <Route path="/cve-monitor" element={<ProtectedRoute><CVEMonitorDashboard /></ProtectedRoute>} />
+            <Route path="/catalog-import" element={<ProtectedRoute><CatalogImportPage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}

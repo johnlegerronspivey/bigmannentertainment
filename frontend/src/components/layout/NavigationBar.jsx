@@ -305,6 +305,7 @@ const NavigationBar = () => {
                   <Link to="/label/marketing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Marketing</Link>
                   <Link to="/label/financial" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Financial Management</Link>
                   <Link to="/label/royalties" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Royalty Splits</Link>
+                  <Link to="/catalog-import" className="block px-4 py-2 text-sm text-amber-300 hover:bg-slate-700 font-medium" onClick={closeAllDropdowns} data-testid="nav-catalog-import-link">CSV Catalog Import</Link>
                 </div>
               )}
             </div>
