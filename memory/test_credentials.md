@@ -1,11 +1,10 @@
 # Test Credentials
 
-## Owner Account
+## Owner Account (Protected)
 - Email: owner@bigmannentertainment.com
 - Password: Test1234!
-- Role: super_admin
+- User ID: 0659dd6d-e447-4022-a05a-f775b1509572
 
-## Admin Account
+## CVE Admin Account
 - Email: cveadmin@test.com
 - Password: Test1234!
-- Role: admin

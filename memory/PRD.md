@@ -1,135 +1,106 @@
-# Big Mann Entertainment - Product Requirements Document
+# Big Mann Entertainment — Social Media Management & Creator Tools Platform
+## Product Requirements Document (PRD)
 
-## Original Problem Statement
-Build a social media management and creator tools platform featuring the Unified Label Network (ULN) for cross-label collaboration, content sharing, and royalty distribution. The platform includes Facebook/Instagram URL scrapers and a multi-phase ULN architecture.
+### Owner & Protection
+- **Protected Owner**: John LeGerron Spivey
+- **Protected Business**: Big Mann Entertainment
+- **User ID**: 0659dd6d-e447-4022-a05a-f775b1509572
+- Immutable Ownership Guard active — cannot be bypassed or altered.
 
-## Core Features
+---
 
-### Implemented
-- **Facebook & Instagram URL Scrapers** — Public data scraping with manual metric fallback
-- **ULN Phase A: Identity & Label Switcher** — `uln_labels`, `label_members`, `GET /me/labels`, Label Switcher UI, Members Tab
-- **ULN Phase B: Catalog, Rights & Distribution** — `label_assets`, `label_rights`, `label_endpoints` collections, Full CRUD APIs, modular UI
-- **ULN Phase C: Governance, Disputes & Audit** — `label_governance`, `label_disputes` collections, full CRUD APIs, governance rules (5 types), dispute management (6 types) with response timeline, audit trail integration, modular frontend components
-- **ULNComponents.js Refactoring (2026-03-25)** — Reduced from 2289 to 224 lines by extracting 6 component groups into `/app/frontend/src/uln/`
-- **ULN Notification System (2026-03-27)** — Real-time notification system with MongoDB-backed CRUD, user preferences, type/severity filtering, unread badges (bell + tab), and integration hooks into governance/disputes/members services
-- **Ownership Protection System (2026-03-29)** — Immutable ownership guard for John LeGerron Spivey / Big Mann Entertainment. Protects account identity, label ownership roles, and revenue percentages (master_licensing >= 100%). Includes startup drift correction, audit trail for blocked violations, and API verification endpoint.
-- **DNS Health Checker (2026-03-29)** — Full DNS lookup and health monitoring system. Supports 9 record types (A, AAAA, MX, NS, TXT, CNAME, SOA, SRV, CAA), comprehensive domain health checks with scoring (A record, IPv6, nameservers, mail, SPF, DMARC, SOA, HTTP, HTTPS), domain monitoring with refresh, and lookup history. Uses real dnspython library. Frontend page at /dns-health with 4 tabs.
-- **Automated CVE Monitor (2026-03-29)** — Real-time CVE vulnerability tracking from NVD (National Vulnerability Database) feeds. Features: NVD API integration pulling live CVE data, Watch Rules for monitoring keywords/packages/vendors with severity filters, automated alert generation when watched items match new CVEs, alert management (acknowledge/dismiss), severity breakdown charts, 7-day trend visualization. Backend at /api/cve-monitor, Frontend at /cve-monitor with 4 tabs (Overview, CVE Feed, Watch Rules, Alerts). Uses real NVD API — no mocked data.
+## Implemented Features
 
-- **Catalog CSV Bulk Import (2026-03-29)** — Full CSV upload workflow for migrating existing catalogs into label assets. Features: CSV template download with example data, drag-and-drop file upload, CSV preview with per-row validation, bulk import with ISRC/UPC duplicate detection, skip-duplicates toggle, detailed import report (imported/skipped/errors), audit trail logging. Backend at /api/uln/labels/{label_id}/catalog (csv-template, preview-csv, import-csv). Frontend at /catalog-import with 3-step wizard (Upload, Preview, Results). Accessible from Label dropdown nav and LabelCatalog "Import CSV" button.
+### Core Platform
+- [x] Full-stack app: React frontend + FastAPI backend + MongoDB
+- [x] User authentication (JWT-based login/register)
+- [x] Admin roles and protected routes
+- [x] Unified Label Network (ULN) with full label management
 
-### Ownership Protection Details (2026-03-29)
-**Protected Fields (IMMUTABLE):**
-- Account: email, full_name, business_name, role (super_admin), is_admin (true), is_active (true), account_status (active)
-- Label membership: owner role on all labels — cannot be demoted or removed
-- Revenue: master_licensing >= 100%, default_royalty_share >= 100%
+### ULN Notification System (Verified)
+- In-app notifications for Governance, Disputes, Members, etc.
 
-**Guard Points:**
-1. `utils/ownership_guard.py` — Central guard module with constants + validation functions
-2. `routes/admin_routes.py` — Admin user update blocked for protected fields
-3. `services/uln_label_members_service.py` — Role change & removal blocked
-4. `api/uln_endpoints.py` — Revenue percentage modification blocked + status verification endpoint
-5. `api/rbac_endpoints.py` — CVE role change & account deactivation blocked
-6. `startup.py` — Server boot re-asserts correct values (drift correction)
-7. `uln_audit_trail` collection — All blocked attempts logged with severity "critical"
+### Immutable Ownership & Percentage Protections (Verified)
+- `master_licensing` enforced at 100%
+- `default_royalty_share` enforced at 100%
+- Ownership Guard protects John LeGerron Spivey / Big Mann Entertainment
 
-**Verification endpoint:** `GET /api/uln/ownership-protection/status`
+### ULN Components Refactoring (Verified)
+- Phase A/B/C UI components fully refactored
 
-### Backlog
-- **P0**: Revenue Tracking — Connect mocked-up feature to real data sources
-- **P1**: Quick Actions Panel for GS1 Hub
-- **P2**: Governance Dashboard widget on Overview tab
+### DNS Health Checker (Verified)
+- DNS lookup and health monitoring via dnspython
+
+### Automated CVE Monitoring Dashboard (Verified)
+- Real-time CVE monitoring via NVD public API
+
+### Catalog Bulk Import — CSV Upload (Verified)
+- Drag-and-drop CSV upload for catalog migration
+- Duplication detection (ISRC/UPC)
+- Template download
+- Backend: `/app/backend/services/catalog_import_service.py`
+- Frontend: `/app/frontend/src/pages/CatalogImportPage.jsx`
+
+### Mandatory GS1 & Business Identifiers (Verified — Mar 29, 2026)
+- **GS1 Identifiers**: GTIN (8/12/13/14), GLN (13), GS1 Company Prefix (7-11), ISRC (ISO 3901), UPC (12)
+- **Business Identifiers**: EIN, DUNS, Business Registration Number
+- **Validation**: Full GS1 Modulo-10 check-digit verification + format checks
+- **Enforcement**: Mandatory at all touchpoints (label profile, catalog assets, distributions)
+- **Protection**: John LeGerron Spivey / Big Mann Entertainment identifiers pre-populated & immutable
+- **Compliance API**: Check whether a label has all mandatory identifiers
+- Backend: `/app/backend/utils/gs1_validators.py`, `/app/backend/api/gs1_business_identifiers_endpoints.py`
+- Frontend: `/app/frontend/src/pages/BusinessIdentifiersPage.jsx`
+
+---
+
+## API Endpoints (GS1 Business Identifiers)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/gs1-identifiers/protected-owner` | Get immutable protected owner identifiers |
+| POST | `/api/gs1-identifiers/validate` | Validate a single GS1/business identifier |
+| GET | `/api/gs1-identifiers/labels/{label_id}` | Get label business identifiers |
+| PUT | `/api/gs1-identifiers/labels/{label_id}` | Create/update label business identifiers |
+| GET | `/api/gs1-identifiers/labels/{label_id}/compliance` | Compliance check for mandatory identifiers |
+
+---
+
+## Upcoming Tasks
+- (P0) Revenue Tracking: Connect mocked revenue feature to real data sources
+- (P1) Quick Actions Panel for GS1 Hub
+- (P2) Governance Dashboard widget on Overview tab (active rules count, open disputes)
+
+## 3rd Party Integrations
+- NVD (National Vulnerability Database) — Public REST API (no keys)
+- Facebook/Instagram/Threads URL Scraping — Public scraping + manual fallback (no keys)
+- DNS Resolution — dnspython (no keys)
 
 ## Architecture
 ```
 /app
 ├── backend/
 │   ├── api/
-│   │   ├── dns_health_endpoints.py (DNS Health Checker)
-│   │   ├── cve_monitor_endpoints.py (Automated CVE Monitor)
-│   │   ├── uln_endpoints.py (+ ownership protection status endpoint)
-│   │   ├── uln_label_members_endpoints.py
-│   │   ├── uln_catalog_distribution_endpoints.py (+ CSV import endpoints)
-│   │   ├── uln_governance_disputes_endpoints.py
-│   │   ├── uln_notification_endpoints.py
-│   │   └── rbac_endpoints.py (+ ownership guard)
+│   │   ├── gs1_business_identifiers_endpoints.py
+│   │   ├── uln_catalog_distribution_endpoints.py
+│   │   ├── gs1_endpoints.py
+│   │   ├── cve_monitor_endpoints.py
+│   │   └── ...
 │   ├── services/
-│   │   ├── dns_health_service.py (DNS lookup, health check, monitoring)
-│   │   ├── cve_monitor_service.py (NVD feed, watches, alerts)
-│   │   ├── catalog_import_service.py (CSV parsing, validation, bulk import)
-│   │   ├── uln_service.py
-│   │   ├── uln_label_members_service.py (+ ownership guard)
-│   │   ├── uln_catalog_distribution_service.py
-│   │   ├── uln_governance_disputes_service.py
-│   │   └── uln_notification_service.py
-│   ├── routes/
-│   │   └── admin_routes.py (+ ownership guard)
+│   │   ├── catalog_import_service.py
+│   │   └── ...
 │   ├── utils/
-│   │   ├── uln_auth.py
-│   │   └── ownership_guard.py (central protection module)
-│   ├── startup.py (+ drift correction on boot)
-│   └── router_setup.py
+│   │   ├── gs1_validators.py
+│   │   ├── ownership_guard.py
+│   │   └── ...
+│   ├── router_setup.py
+│   ├── startup.py
+│   └── server.py
 ├── frontend/src/
 │   ├── pages/
-│   │   ├── DNSHealthPage.jsx (DNS Health Checker)
-│   │   ├── CVEMonitorDashboard.jsx (Automated CVE Monitor)
-│   │   └── CatalogImportPage.jsx (CSV Bulk Import)
-│   ├── ULNComponents.js (Orchestrator)
-│   └── uln/
-│       ├── ULNOverview.js
-│       ├── LabelHub.js
-│       ├── CrossLabelContentSharing.js
-│       ├── RoyaltyPoolManagement.js
-│       ├── DAOGovernance.js
-│       ├── ULNAnalytics.js
-│       ├── LabelCatalog.js
-│       ├── LabelDistributionStatus.js
-│       ├── LabelAuditSnapshot.js
-│       ├── LabelGovernance.js
-│       ├── LabelDisputes.js
-│       ├── LabelMembers.js
-│       └── ULNNotifications.js
-└── memory/PRD.md
+│   │   ├── BusinessIdentifiersPage.jsx
+│   │   ├── CatalogImportPage.jsx
+│   │   ├── GS1LicensingHub.jsx
+│   │   └── CVEMonitorDashboard.jsx
+│   ├── uln/LabelCatalog.js
+│   ├── components/layout/NavigationBar.jsx
+│   └── App.js
 ```
-
-## Key API Endpoints
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/dns/lookup` | POST | DNS record lookup (9 types) |
-| `/api/dns/health/{domain}` | GET | Comprehensive DNS health check with scoring |
-| `/api/dns/history` | GET | Lookup history (paginated) |
-| `/api/dns/monitors` | GET/POST | List/add monitored domains |
-| `/api/dns/monitors/{id}` | DELETE | Remove monitored domain |
-| `/api/dns/monitors/{id}/refresh` | POST | Refresh health check on monitor |
-| `/api/cve-monitor/health` | GET | CVE Monitor health check |
-| `/api/cve-monitor/stats` | GET | Monitoring statistics (feeds, watches, alerts, trends) |
-| `/api/cve-monitor/feed` | GET | Cached CVE feed entries with search/filter |
-| `/api/cve-monitor/feed/refresh` | POST | Fetch fresh CVEs from NVD API |
-| `/api/cve-monitor/watches` | GET/POST | List/create watch rules |
-| `/api/cve-monitor/watches/{id}/toggle` | PUT | Toggle watch enabled/disabled |
-| `/api/cve-monitor/watches/{id}` | DELETE | Delete watch rule |
-| `/api/cve-monitor/watches/{id}/refresh` | POST | Refresh specific watch against NVD |
-| `/api/cve-monitor/alerts` | GET | List alerts with status/severity filter |
-| `/api/cve-monitor/alerts/{id}/acknowledge` | PUT | Acknowledge an alert |
-| `/api/cve-monitor/alerts/{id}/dismiss` | PUT | Dismiss an alert |
-| `/api/cve-monitor/alerts/acknowledge-all` | POST | Acknowledge all new alerts |
-| `/api/uln/ownership-protection/status` | GET | Verify immutable ownership integrity |
-| `/api/uln/labels/{id}/catalog/csv-template` | GET | Download CSV import template |
-| `/api/uln/labels/{id}/catalog/preview-csv` | POST | Preview & validate CSV before import |
-| `/api/uln/labels/{id}/catalog/import-csv` | POST | Bulk import assets from CSV |
-| `/api/uln/notifications` | GET/POST | List/create notifications |
-| `/api/uln/notifications/unread-count` | GET | Unread count |
-| `/api/uln/notifications/{id}/read` | PUT | Mark as read |
-| `/api/uln/notifications/read-all` | PUT | Mark all as read |
-| `/api/uln/notifications/preferences` | GET/PUT | User preferences |
-| `/api/admin/users/{id}` | PUT | Update user (GUARDED) |
-
-## Test Credentials
-- Email: `owner@bigmannentertainment.com`
-- Password: `Test1234!`
-- Protected User ID: `0659dd6d-e447-4022-a05a-f775b1509572`
-- Known Label ID: `BM-LBL-9D0377FB`
-
-## Project Health
-- **Mocked**: Revenue Tracking (Pending real API integration)
-- **All other features**: Real MongoDB-backed implementations (including DNS Health Checker using real dnspython)
