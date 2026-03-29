@@ -12,7 +12,8 @@ Build a social media management and creator tools platform featuring the Unified
 - **ULN Phase C: Governance, Disputes & Audit** — `label_governance`, `label_disputes` collections, full CRUD APIs, governance rules (5 types), dispute management (6 types) with response timeline, audit trail integration, modular frontend components
 - **ULNComponents.js Refactoring (2026-03-25)** — Reduced from 2289 to 224 lines by extracting 6 component groups into `/app/frontend/src/uln/`
 - **ULN Notification System (2026-03-27)** — Real-time notification system with MongoDB-backed CRUD, user preferences, type/severity filtering, unread badges (bell + tab), and integration hooks into governance/disputes/members services
-- **Ownership Protection System (2026-03-29)** — Immutable ownership guard for John LeGerron Spivey / Big Mann Entertainment. Protects account identity, label ownership roles, and revenue percentages. Includes startup drift correction, audit trail for blocked violations, and API verification endpoint.
+- **Ownership Protection System (2026-03-29)** — Immutable ownership guard for John LeGerron Spivey / Big Mann Entertainment. Protects account identity, label ownership roles, and revenue percentages (master_licensing >= 100%). Includes startup drift correction, audit trail for blocked violations, and API verification endpoint.
+- **DNS Health Checker (2026-03-29)** — Full DNS lookup and health monitoring system. Supports 9 record types (A, AAAA, MX, NS, TXT, CNAME, SOA, SRV, CAA), comprehensive domain health checks with scoring (A record, IPv6, nameservers, mail, SPF, DMARC, SOA, HTTP, HTTPS), domain monitoring with refresh, and lookup history. Uses real dnspython library. Frontend page at /dns-health with 4 tabs.
 
 ### Ownership Protection Details (2026-03-29)
 **Protected Fields (IMMUTABLE):**
@@ -32,18 +33,18 @@ Build a social media management and creator tools platform featuring the Unified
 **Verification endpoint:** `GET /api/uln/ownership-protection/status`
 
 ### Backlog
-- **P1**: Revenue Tracking — Connect mocked-up feature to real data sources
-- **P2**: DNS Health Checker
-- **P3**: Quick Actions Panel for GS1 Hub
-- **P4**: Automated CVE monitoring dashboard
-- **P6**: Catalog Bulk Import via CSV
-- **P7**: Governance Dashboard widget on Overview tab
+- **P0**: Revenue Tracking — Connect mocked-up feature to real data sources
+- **P1**: Quick Actions Panel for GS1 Hub
+- **P2**: Automated CVE monitoring dashboard
+- **P3**: Catalog Bulk Import via CSV
+- **P4**: Governance Dashboard widget on Overview tab
 
 ## Architecture
 ```
 /app
 ├── backend/
 │   ├── api/
+│   │   ├── dns_health_endpoints.py (DNS Health Checker)
 │   │   ├── uln_endpoints.py (+ ownership protection status endpoint)
 │   │   ├── uln_label_members_endpoints.py
 │   │   ├── uln_catalog_distribution_endpoints.py
@@ -51,6 +52,7 @@ Build a social media management and creator tools platform featuring the Unified
 │   │   ├── uln_notification_endpoints.py
 │   │   └── rbac_endpoints.py (+ ownership guard)
 │   ├── services/
+│   │   ├── dns_health_service.py (DNS lookup, health check, monitoring)
 │   │   ├── uln_service.py
 │   │   ├── uln_label_members_service.py (+ ownership guard)
 │   │   ├── uln_catalog_distribution_service.py
@@ -60,10 +62,12 @@ Build a social media management and creator tools platform featuring the Unified
 │   │   └── admin_routes.py (+ ownership guard)
 │   ├── utils/
 │   │   ├── uln_auth.py
-│   │   └── ownership_guard.py (NEW — central protection module)
+│   │   └── ownership_guard.py (central protection module)
 │   ├── startup.py (+ drift correction on boot)
 │   └── router_setup.py
 ├── frontend/src/
+│   ├── pages/
+│   │   └── DNSHealthPage.jsx (DNS Health Checker)
 │   ├── ULNComponents.js (Orchestrator)
 │   └── uln/
 │       ├── ULNOverview.js
@@ -85,6 +89,12 @@ Build a social media management and creator tools platform featuring the Unified
 ## Key API Endpoints
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
+| `/api/dns/lookup` | POST | DNS record lookup (9 types) |
+| `/api/dns/health/{domain}` | GET | Comprehensive DNS health check with scoring |
+| `/api/dns/history` | GET | Lookup history (paginated) |
+| `/api/dns/monitors` | GET/POST | List/add monitored domains |
+| `/api/dns/monitors/{id}` | DELETE | Remove monitored domain |
+| `/api/dns/monitors/{id}/refresh` | POST | Refresh health check on monitor |
 | `/api/uln/ownership-protection/status` | GET | Verify immutable ownership integrity |
 | `/api/uln/notifications` | GET/POST | List/create notifications |
 | `/api/uln/notifications/unread-count` | GET | Unread count |
@@ -101,4 +111,4 @@ Build a social media management and creator tools platform featuring the Unified
 
 ## Project Health
 - **Mocked**: Revenue Tracking (Pending real API integration)
-- **All other features**: Real MongoDB-backed implementations
+- **All other features**: Real MongoDB-backed implementations (including DNS Health Checker using real dnspython)
