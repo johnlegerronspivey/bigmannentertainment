@@ -119,6 +119,7 @@ const CVEManagementDashboard = lazy(() => import("./CVEManagementDashboard"));
 const TenantManagement = lazy(() => import("./TenantManagement"));
 const ContentModerationComponent = lazy(() => import("./ContentModerationComponent"));
 const DomainConfigPage = lazy(() => import("./admin/DomainConfigPage"));
+const DNSHealthPage = lazy(() => import("./pages/DNSHealthPage"));
 const RDSUpgradePage = lazy(() => import("./pages/RDSUpgradePage"));
 const CreatorProfilesPage = lazy(() => import("./pages/CreatorProfilesPage"));
 const WatermarkPage = lazy(() => import("./pages/WatermarkPage"));
@@ -254,6 +255,7 @@ function App() {
             <Route path="/aws-ai-content" element={<ProtectedRoute><AWSAIContentPage /></ProtectedRoute>} />
             <Route path="/aws-messaging" element={<ProtectedRoute><AWSMessagingPage /></ProtectedRoute>} />
             <Route path="/aws-infrastructure" element={<ProtectedRoute><AWSInfrastructurePage /></ProtectedRoute>} />
+            <Route path="/dns-health" element={<ProtectedRoute><DNSHealthPage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}

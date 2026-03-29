@@ -259,6 +259,7 @@ const NavigationBar = () => {
                   <Link to="/aws-ai-content" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-ai-content-link">AI Content (Translate/Polly)</Link>
                   <Link to="/aws-messaging" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-messaging-link">Messaging & Events</Link>
                   <Link to="/aws-infrastructure" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns} data-testid="nav-aws-infra-link">Infrastructure</Link>
+                  <Link to="/dns-health" className="block px-4 py-2 text-sm text-emerald-300 hover:bg-slate-700 font-medium" onClick={closeAllDropdowns} data-testid="nav-dns-health-link">DNS Health Checker</Link>
                 </div>
               )}
             </div>
