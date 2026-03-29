@@ -120,6 +120,7 @@ const TenantManagement = lazy(() => import("./TenantManagement"));
 const ContentModerationComponent = lazy(() => import("./ContentModerationComponent"));
 const DomainConfigPage = lazy(() => import("./admin/DomainConfigPage"));
 const DNSHealthPage = lazy(() => import("./pages/DNSHealthPage"));
+const CVEMonitorDashboard = lazy(() => import("./pages/CVEMonitorDashboard"));
 const RDSUpgradePage = lazy(() => import("./pages/RDSUpgradePage"));
 const CreatorProfilesPage = lazy(() => import("./pages/CreatorProfilesPage"));
 const WatermarkPage = lazy(() => import("./pages/WatermarkPage"));
@@ -256,6 +257,7 @@ function App() {
             <Route path="/aws-messaging" element={<ProtectedRoute><AWSMessagingPage /></ProtectedRoute>} />
             <Route path="/aws-infrastructure" element={<ProtectedRoute><AWSInfrastructurePage /></ProtectedRoute>} />
             <Route path="/dns-health" element={<ProtectedRoute><DNSHealthPage /></ProtectedRoute>} />
+            <Route path="/cve-monitor" element={<ProtectedRoute><CVEMonitorDashboard /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}

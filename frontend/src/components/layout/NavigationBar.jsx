@@ -224,6 +224,7 @@ const NavigationBar = () => {
                   <Link to="/rights-compliance" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Rights & Compliance</Link>
                   <Link to="/audit-trail" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Audit Trail</Link>
                   <Link to="/cve-management" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>CVE Brain</Link>
+                  <Link to="/cve-monitor" className="block px-4 py-2 text-sm text-red-300 hover:bg-slate-700 font-medium" onClick={closeAllDropdowns} data-testid="nav-cve-monitor-link">CVE Monitor</Link>
                   <Link to="/security-audit" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Security Audit</Link>
                   <Link to="/macie" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Macie PII Detection</Link>
                   <Link to="/tenant-management" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Tenant Management</Link>

@@ -81,6 +81,7 @@ from uln_catalog_distribution_endpoints import router as uln_catalog_dist_router
 from uln_governance_disputes_endpoints import router as uln_governance_disputes_router
 from uln_notification_endpoints import router as uln_notification_router
 from dns_health_endpoints import router as dns_health_router
+from cve_monitor_endpoints import router as cve_monitor_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -125,6 +126,7 @@ routers = [
     uln_governance_disputes_router,
     uln_notification_router,
     dns_health_router,
+    cve_monitor_router,
 ]
 
 for router in routers:
