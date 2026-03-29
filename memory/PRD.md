@@ -16,6 +16,8 @@ Build a social media management and creator tools platform featuring the Unified
 - **DNS Health Checker (2026-03-29)** — Full DNS lookup and health monitoring system. Supports 9 record types (A, AAAA, MX, NS, TXT, CNAME, SOA, SRV, CAA), comprehensive domain health checks with scoring (A record, IPv6, nameservers, mail, SPF, DMARC, SOA, HTTP, HTTPS), domain monitoring with refresh, and lookup history. Uses real dnspython library. Frontend page at /dns-health with 4 tabs.
 - **Automated CVE Monitor (2026-03-29)** — Real-time CVE vulnerability tracking from NVD (National Vulnerability Database) feeds. Features: NVD API integration pulling live CVE data, Watch Rules for monitoring keywords/packages/vendors with severity filters, automated alert generation when watched items match new CVEs, alert management (acknowledge/dismiss), severity breakdown charts, 7-day trend visualization. Backend at /api/cve-monitor, Frontend at /cve-monitor with 4 tabs (Overview, CVE Feed, Watch Rules, Alerts). Uses real NVD API — no mocked data.
 
+- **Catalog CSV Bulk Import (2026-03-29)** — Full CSV upload workflow for migrating existing catalogs into label assets. Features: CSV template download with example data, drag-and-drop file upload, CSV preview with per-row validation, bulk import with ISRC/UPC duplicate detection, skip-duplicates toggle, detailed import report (imported/skipped/errors), audit trail logging. Backend at /api/uln/labels/{label_id}/catalog (csv-template, preview-csv, import-csv). Frontend at /catalog-import with 3-step wizard (Upload, Preview, Results). Accessible from Label dropdown nav and LabelCatalog "Import CSV" button.
+
 ### Ownership Protection Details (2026-03-29)
 **Protected Fields (IMMUTABLE):**
 - Account: email, full_name, business_name, role (super_admin), is_admin (true), is_active (true), account_status (active)
@@ -36,8 +38,7 @@ Build a social media management and creator tools platform featuring the Unified
 ### Backlog
 - **P0**: Revenue Tracking — Connect mocked-up feature to real data sources
 - **P1**: Quick Actions Panel for GS1 Hub
-- **P3**: Catalog Bulk Import via CSV
-- **P4**: Governance Dashboard widget on Overview tab
+- **P2**: Governance Dashboard widget on Overview tab
 
 ## Architecture
 ```
@@ -48,13 +49,14 @@ Build a social media management and creator tools platform featuring the Unified
 │   │   ├── cve_monitor_endpoints.py (Automated CVE Monitor)
 │   │   ├── uln_endpoints.py (+ ownership protection status endpoint)
 │   │   ├── uln_label_members_endpoints.py
-│   │   ├── uln_catalog_distribution_endpoints.py
+│   │   ├── uln_catalog_distribution_endpoints.py (+ CSV import endpoints)
 │   │   ├── uln_governance_disputes_endpoints.py
 │   │   ├── uln_notification_endpoints.py
 │   │   └── rbac_endpoints.py (+ ownership guard)
 │   ├── services/
 │   │   ├── dns_health_service.py (DNS lookup, health check, monitoring)
 │   │   ├── cve_monitor_service.py (NVD feed, watches, alerts)
+│   │   ├── catalog_import_service.py (CSV parsing, validation, bulk import)
 │   │   ├── uln_service.py
 │   │   ├── uln_label_members_service.py (+ ownership guard)
 │   │   ├── uln_catalog_distribution_service.py
@@ -70,7 +72,8 @@ Build a social media management and creator tools platform featuring the Unified
 ├── frontend/src/
 │   ├── pages/
 │   │   ├── DNSHealthPage.jsx (DNS Health Checker)
-│   │   └── CVEMonitorDashboard.jsx (Automated CVE Monitor)
+│   │   ├── CVEMonitorDashboard.jsx (Automated CVE Monitor)
+│   │   └── CatalogImportPage.jsx (CSV Bulk Import)
 │   ├── ULNComponents.js (Orchestrator)
 │   └── uln/
 │       ├── ULNOverview.js
@@ -111,6 +114,9 @@ Build a social media management and creator tools platform featuring the Unified
 | `/api/cve-monitor/alerts/{id}/dismiss` | PUT | Dismiss an alert |
 | `/api/cve-monitor/alerts/acknowledge-all` | POST | Acknowledge all new alerts |
 | `/api/uln/ownership-protection/status` | GET | Verify immutable ownership integrity |
+| `/api/uln/labels/{id}/catalog/csv-template` | GET | Download CSV import template |
+| `/api/uln/labels/{id}/catalog/preview-csv` | POST | Preview & validate CSV before import |
+| `/api/uln/labels/{id}/catalog/import-csv` | POST | Bulk import assets from CSV |
 | `/api/uln/notifications` | GET/POST | List/create notifications |
 | `/api/uln/notifications/unread-count` | GET | Unread count |
 | `/api/uln/notifications/{id}/read` | PUT | Mark as read |
