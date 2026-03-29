@@ -18,7 +18,7 @@ Build a social media management and creator tools platform featuring the Unified
 **Protected Fields (IMMUTABLE):**
 - Account: email, full_name, business_name, role (super_admin), is_admin (true), is_active (true), account_status (active)
 - Label membership: owner role on all labels — cannot be demoted or removed
-- Revenue: master_licensing >= 85%, default_royalty_share >= 100%
+- Revenue: master_licensing >= 100%, default_royalty_share >= 100%
 
 **Guard Points:**
 1. `utils/ownership_guard.py` — Central guard module with constants + validation functions

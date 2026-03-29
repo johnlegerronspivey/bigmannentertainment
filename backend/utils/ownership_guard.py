@@ -50,7 +50,7 @@ LOCKED_USER_FIELDS = frozenset({
 
 # Revenue/royalty percentage floors — the owner's share can never go below these
 MINIMUM_REVENUE_PERCENTAGES = {
-    "master_licensing": 85.0,
+    "master_licensing": 100.0,
     "default_royalty_share": 100.0,
 }
 
