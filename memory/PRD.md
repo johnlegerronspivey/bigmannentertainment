@@ -12,24 +12,24 @@ Build a social media management and creator tools platform featuring the Unified
 - **ULN Phase C: Governance, Disputes & Audit** — `label_governance`, `label_disputes` collections, full CRUD APIs, governance rules (5 types), dispute management (6 types) with response timeline, audit trail integration, modular frontend components
 - **ULNComponents.js Refactoring (2026-03-25)** — Reduced from 2289 to 224 lines by extracting 6 component groups into `/app/frontend/src/uln/`
 - **ULN Notification System (2026-03-27)** — Real-time notification system with MongoDB-backed CRUD, user preferences, type/severity filtering, unread badges (bell + tab), and integration hooks into governance/disputes/members services
+- **Ownership Protection System (2026-03-29)** — Immutable ownership guard for John LeGerron Spivey / Big Mann Entertainment. Protects account identity, label ownership roles, and revenue percentages. Includes startup drift correction, audit trail for blocked violations, and API verification endpoint.
 
-### Refactoring Details (Completed 2026-03-25)
-Extracted from `ULNComponents.js`:
-- `ULNOverview.js` — Overview metrics, global distribution, recent activity, system status
-- `LabelHub.js` — Label hub with filters, cards, edit modal, bulk edit, advanced search, export
-- `CrossLabelContentSharing.js` — Federated content, metadata sync, permissions, usage attribution
-- `RoyaltyPoolManagement.js` — Royalty pools, earnings processing, payout ledger, distribution management
-- `DAOGovernance.js` — Proposals, voting interface, governance rules, governance history
-- `ULNAnalytics.js` — Network growth, financial analytics, governance analytics
+### Ownership Protection Details (2026-03-29)
+**Protected Fields (IMMUTABLE):**
+- Account: email, full_name, business_name, role (super_admin), is_admin (true), is_active (true), account_status (active)
+- Label membership: owner role on all labels — cannot be demoted or removed
+- Revenue: master_licensing >= 85%, default_royalty_share >= 100%
 
-### ULN Notification System (Completed 2026-03-27)
-- **Backend**: `uln_notification_service.py` + `uln_notification_endpoints.py`
-- **Collections**: `uln_notifications`, `uln_notification_preferences`
-- **13 notification types**: member_added, member_removed, governance_rule_created/updated/deleted, dispute_filed/updated/resolved, catalog_asset_added, distribution_updated, royalty_payout, label_registered, system
-- **4 severity levels**: info, warning, success, error
-- **Features**: CRUD, mark read/all read, delete/clear all, user preferences (enabled toggle + muted types), type filtering, unread-only filter, pagination
-- **Frontend**: `ULNNotifications.js` component, notification bell with badge in header, tab with unread count badge
-- **Integration**: Auto-emits notifications when governance rules created, disputes filed/responded, members added
+**Guard Points:**
+1. `utils/ownership_guard.py` — Central guard module with constants + validation functions
+2. `routes/admin_routes.py` — Admin user update blocked for protected fields
+3. `services/uln_label_members_service.py` — Role change & removal blocked
+4. `api/uln_endpoints.py` — Revenue percentage modification blocked + status verification endpoint
+5. `api/rbac_endpoints.py` — CVE role change & account deactivation blocked
+6. `startup.py` — Server boot re-asserts correct values (drift correction)
+7. `uln_audit_trail` collection — All blocked attempts logged with severity "critical"
+
+**Verification endpoint:** `GET /api/uln/ownership-protection/status`
 
 ### Backlog
 - **P1**: Revenue Tracking — Connect mocked-up feature to real data sources
@@ -44,20 +44,27 @@ Extracted from `ULNComponents.js`:
 /app
 ├── backend/
 │   ├── api/
-│   │   ├── uln_endpoints.py
+│   │   ├── uln_endpoints.py (+ ownership protection status endpoint)
 │   │   ├── uln_label_members_endpoints.py
 │   │   ├── uln_catalog_distribution_endpoints.py
 │   │   ├── uln_governance_disputes_endpoints.py
-│   │   └── uln_notification_endpoints.py (NEW)
+│   │   ├── uln_notification_endpoints.py
+│   │   └── rbac_endpoints.py (+ ownership guard)
 │   ├── services/
 │   │   ├── uln_service.py
-│   │   ├── uln_label_members_service.py
+│   │   ├── uln_label_members_service.py (+ ownership guard)
 │   │   ├── uln_catalog_distribution_service.py
 │   │   ├── uln_governance_disputes_service.py
-│   │   └── uln_notification_service.py (NEW)
+│   │   └── uln_notification_service.py
+│   ├── routes/
+│   │   └── admin_routes.py (+ ownership guard)
+│   ├── utils/
+│   │   ├── uln_auth.py
+│   │   └── ownership_guard.py (NEW — central protection module)
+│   ├── startup.py (+ drift correction on boot)
 │   └── router_setup.py
 ├── frontend/src/
-│   ├── ULNComponents.js (Orchestrator - ~270 lines)
+│   ├── ULNComponents.js (Orchestrator)
 │   └── uln/
 │       ├── ULNOverview.js
 │       ├── LabelHub.js
@@ -71,37 +78,27 @@ Extracted from `ULNComponents.js`:
 │       ├── LabelGovernance.js
 │       ├── LabelDisputes.js
 │       ├── LabelMembers.js
-│       └── ULNNotifications.js (NEW)
+│       └── ULNNotifications.js
 └── memory/PRD.md
 ```
 
 ## Key API Endpoints
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/uln/me/labels` | GET | List user's labels |
-| `/api/uln/labels/{id}/members` | GET/POST | Label members |
-| `/api/uln/labels/{id}/catalog` | GET/POST | Catalog assets |
-| `/api/uln/labels/{id}/distribution/status` | GET/POST | Distribution endpoints |
-| `/api/uln/labels/{id}/audit-snapshot` | GET | Audit snapshot |
-| `/api/uln/labels/{id}/governance` | GET/POST | Governance rules |
-| `/api/uln/labels/{id}/governance/{rule_id}` | PUT/DELETE | Update/delete rule |
-| `/api/uln/labels/{id}/disputes` | GET/POST | Label disputes |
-| `/api/uln/labels/{id}/disputes/{dispute_id}` | GET/PUT | Dispute detail/update |
-| `/api/uln/labels/{id}/disputes/{dispute_id}/respond` | POST | Respond to dispute |
-| `/api/uln/labels/{id}/governance-disputes-summary` | GET | Combined summary |
+| `/api/uln/ownership-protection/status` | GET | Verify immutable ownership integrity |
 | `/api/uln/notifications` | GET/POST | List/create notifications |
 | `/api/uln/notifications/unread-count` | GET | Unread count |
 | `/api/uln/notifications/{id}/read` | PUT | Mark as read |
 | `/api/uln/notifications/read-all` | PUT | Mark all as read |
-| `/api/uln/notifications/{id}` | DELETE | Delete notification |
-| `/api/uln/notifications/clear` | DELETE | Clear all |
 | `/api/uln/notifications/preferences` | GET/PUT | User preferences |
+| `/api/admin/users/{id}` | PUT | Update user (GUARDED) |
 
 ## Test Credentials
 - Email: `owner@bigmannentertainment.com`
 - Password: `Test1234!`
+- Protected User ID: `0659dd6d-e447-4022-a05a-f775b1509572`
 - Known Label ID: `BM-LBL-9D0377FB`
 
 ## Project Health
-- **Mocked**: Revenue Tracking (pending real API integration)
+- **Mocked**: Revenue Tracking (Pending real API integration)
 - **All other features**: Real MongoDB-backed implementations

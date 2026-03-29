@@ -156,6 +156,11 @@ async def list_users(cve_user: dict = Depends(_require_permission("users.view"))
 @router.put("/users/{user_id}/role")
 async def change_user_role(user_id: str, body: RoleUpdate, cve_user: dict = Depends(_require_permission("users.manage"))):
     """Change a user's CVE role. Enforces role hierarchy."""
+    # OWNERSHIP PROTECTION
+    from utils.ownership_guard import is_protected_owner
+    if is_protected_owner(user_id=user_id):
+        raise HTTPException(status_code=403, detail="OWNERSHIP PROTECTION: Cannot change the role of John LeGerron Spivey / Big Mann Entertainment.")
+
     if body.role not in ROLES:
         raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(ROLES.keys())}")
 
@@ -190,6 +195,11 @@ async def change_user_role(user_id: str, body: RoleUpdate, cve_user: dict = Depe
 @router.put("/users/{user_id}/status")
 async def change_user_status(user_id: str, body: StatusUpdate, cve_user: dict = Depends(_require_permission("users.manage"))):
     """Activate or deactivate a CVE user."""
+    # OWNERSHIP PROTECTION
+    from utils.ownership_guard import is_protected_owner
+    if is_protected_owner(user_id=user_id) and not body.is_active:
+        raise HTTPException(status_code=403, detail="OWNERSHIP PROTECTION: Cannot deactivate the account of John LeGerron Spivey / Big Mann Entertainment.")
+
     if user_id == cve_user["user_id"]:
         raise HTTPException(status_code=400, detail="Cannot deactivate your own account")
 

@@ -81,6 +81,13 @@ async def add_member(label_id: str, user_id: str, role: str, added_by: str) -> D
 
 async def remove_member(label_id: str, user_id: str, removed_by: str) -> Dict[str, Any]:
     """Remove a user from a label."""
+    # OWNERSHIP PROTECTION: Cannot remove the protected owner from any label
+    from utils.ownership_guard import block_owner_removal_from_label, log_ownership_violation
+    blocked = block_owner_removal_from_label(label_id, user_id)
+    if blocked:
+        await log_ownership_violation(db, removed_by, "remove_member", {"label_id": label_id, "user_id": user_id})
+        return {"success": False, "error": blocked}
+
     existing = await db.label_members.find_one({"label_id": label_id, "user_id": user_id})
     if not existing:
         return {"success": False, "error": "User is not a member of this label"}
@@ -109,6 +116,13 @@ async def remove_member(label_id: str, user_id: str, removed_by: str) -> Dict[st
 
 async def update_member_role(label_id: str, user_id: str, new_role: str, updated_by: str) -> Dict[str, Any]:
     """Change a member's role within a label."""
+    # OWNERSHIP PROTECTION: Cannot change the protected owner's role
+    from utils.ownership_guard import block_owner_role_change, log_ownership_violation
+    blocked = block_owner_role_change(label_id, user_id, new_role)
+    if blocked:
+        await log_ownership_violation(db, updated_by, "update_member_role", {"label_id": label_id, "user_id": user_id, "new_role": new_role})
+        return {"success": False, "error": blocked}
+
     if new_role not in VALID_ROLES:
         return {"success": False, "error": f"Invalid role '{new_role}'"}
 

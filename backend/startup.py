@@ -130,6 +130,49 @@ async def startup_event():
     except Exception as e:
         print(f"  Post Scheduler failed: {str(e)}")
 
+    # ── OWNERSHIP PROTECTION: Enforce immutable owner fields on every startup ──
+    try:
+        from utils.ownership_guard import (
+            PROTECTED_OWNER_USER_ID,
+            PROTECTED_OWNER_EMAIL,
+            PROTECTED_OWNER_FULL_NAME,
+            PROTECTED_BUSINESS_NAME,
+            PROTECTED_OWNER_ROLE,
+            PROTECTED_OWNER_IS_ADMIN,
+            PROTECTED_OWNER_IS_ACTIVE,
+            PROTECTED_OWNER_ACCOUNT_STATUS,
+        )
+        result = await db.users.update_one(
+            {"id": PROTECTED_OWNER_USER_ID},
+            {"$set": {
+                "email": PROTECTED_OWNER_EMAIL,
+                "full_name": PROTECTED_OWNER_FULL_NAME,
+                "business_name": PROTECTED_BUSINESS_NAME,
+                "role": PROTECTED_OWNER_ROLE,
+                "is_admin": PROTECTED_OWNER_IS_ADMIN,
+                "is_active": PROTECTED_OWNER_IS_ACTIVE,
+                "account_status": PROTECTED_OWNER_ACCOUNT_STATUS,
+            }},
+        )
+        if result.modified_count > 0:
+            print("  [OWNERSHIP GUARD] Re-asserted protected owner fields (drift detected and corrected)")
+        else:
+            print("  [OWNERSHIP GUARD] Protected owner fields verified — no drift")
+
+        # Ensure owner membership on every label
+        async for lbl in db.uln_labels.find({"status": "active"}, {"_id": 0, "global_id": 1}):
+            lid = lbl.get("global_id", {}).get("id")
+            if lid:
+                existing = await db.label_members.find_one({"label_id": lid, "user_id": PROTECTED_OWNER_USER_ID})
+                if existing and existing.get("role") != "owner":
+                    await db.label_members.update_one(
+                        {"label_id": lid, "user_id": PROTECTED_OWNER_USER_ID},
+                        {"$set": {"role": "owner"}},
+                    )
+                    print(f"  [OWNERSHIP GUARD] Restored owner role on label {lid}")
+    except Exception as e:
+        print(f"  [OWNERSHIP GUARD] Startup check failed: {str(e)}")
+
 
 async def shutdown_event():
     """Cleanup on application shutdown."""

@@ -107,25 +107,33 @@ async def update_user(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_admin_user)
 ):
+    # OWNERSHIP PROTECTION — block changes to protected owner account
+    from utils.ownership_guard import block_protected_user_update, log_ownership_violation, is_protected_owner
+    update_fields = {}
+    if user_update.full_name is not None:
+        update_fields["full_name"] = user_update.full_name
+    if user_update.business_name is not None:
+        update_fields["business_name"] = user_update.business_name
+    if user_update.is_active is not None:
+        update_fields["is_active"] = user_update.is_active
+    if user_update.role is not None:
+        update_fields["role"] = user_update.role
+        update_fields["is_admin"] = user_update.role in ["admin", "super_admin", "moderator"]
+    if user_update.account_status is not None:
+        update_fields["account_status"] = user_update.account_status
+
+    blocked = block_protected_user_update(user_id, update_fields, actor_description=current_user.id)
+    if blocked:
+        await log_ownership_violation(db, current_user.id, "admin_update_user", {"target": user_id, "updates": list(update_fields.keys())})
+        raise HTTPException(status_code=403, detail=blocked)
+
     # Find user
     user_doc = await db.users.find_one({"id": user_id})
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
     
     # Build update data
-    update_data = {}
-    if user_update.full_name is not None:
-        update_data["full_name"] = user_update.full_name
-    if user_update.business_name is not None:
-        update_data["business_name"] = user_update.business_name
-    if user_update.is_active is not None:
-        update_data["is_active"] = user_update.is_active
-    if user_update.role is not None:
-        update_data["role"] = user_update.role
-        # Also update is_admin based on role
-        update_data["is_admin"] = user_update.role in ["admin", "super_admin", "moderator"]
-    if user_update.account_status is not None:
-        update_data["account_status"] = user_update.account_status
+    update_data = update_fields.copy()
     
     if update_data:
         update_data["updated_at"] = datetime.utcnow()

@@ -32,6 +32,48 @@ from uln_auth import get_current_user, get_current_admin_user, User, db
 uln_router = APIRouter(prefix="/uln", tags=["Unified Label Network"])
 uln_service = ULNService()
 
+
+# ===== OWNERSHIP PROTECTION VERIFICATION =====
+
+@uln_router.get("/ownership-protection/status")
+async def ownership_protection_status(current_user: User = Depends(get_current_user)):
+    """
+    Returns the immutable ownership protection status for
+    John LeGerron Spivey / Big Mann Entertainment.
+    """
+    from utils.ownership_guard import (
+        PROTECTED_OWNER_USER_ID, PROTECTED_OWNER_EMAIL,
+        PROTECTED_OWNER_FULL_NAME, PROTECTED_BUSINESS_NAME,
+        PROTECTED_OWNER_ROLE, MINIMUM_REVENUE_PERCENTAGES,
+    )
+    owner_doc = await db.users.find_one({"id": PROTECTED_OWNER_USER_ID}, {"_id": 0, "password_hash": 0})
+
+    # Verify integrity
+    checks = {
+        "email_locked": owner_doc.get("email") == PROTECTED_OWNER_EMAIL if owner_doc else False,
+        "name_locked": owner_doc.get("full_name") == PROTECTED_OWNER_FULL_NAME if owner_doc else False,
+        "business_locked": owner_doc.get("business_name") == PROTECTED_BUSINESS_NAME if owner_doc else False,
+        "role_locked": owner_doc.get("role") == PROTECTED_OWNER_ROLE if owner_doc else False,
+        "admin_locked": owner_doc.get("is_admin") is True if owner_doc else False,
+        "active_locked": owner_doc.get("is_active") is True if owner_doc else False,
+    }
+
+    # Count labels where owner has "owner" role
+    owner_labels = await db.label_members.count_documents({"user_id": PROTECTED_OWNER_USER_ID, "role": "owner"})
+    total_labels = await db.label_members.count_documents({"user_id": PROTECTED_OWNER_USER_ID})
+
+    return {
+        "success": True,
+        "protected_owner": PROTECTED_OWNER_FULL_NAME,
+        "protected_business": PROTECTED_BUSINESS_NAME,
+        "integrity_checks": checks,
+        "all_checks_pass": all(checks.values()),
+        "label_ownership": {"owner_role_count": owner_labels, "total_memberships": total_labels},
+        "minimum_revenue_percentages": MINIMUM_REVENUE_PERCENTAGES,
+        "protection_level": "IMMUTABLE",
+    }
+
+
 # ===== LABEL REGISTRY SERVICE ENDPOINTS =====
 
 @uln_router.post("/labels/register", response_model=Dict[str, Any])
@@ -99,6 +141,19 @@ async def update_label_metadata(
     current_user: User = Depends(get_current_admin_user)
 ):
     """Update label metadata profile"""
+    # OWNERSHIP PROTECTION — block changes to revenue percentages
+    from utils.ownership_guard import block_revenue_share_modification, log_ownership_violation, is_protected_owner
+    if is_protected_owner(user_id=current_user.id) or True:
+        rev_agreements = metadata_updates.get("revenue_sharing_agreements")
+        if rev_agreements:
+            # Check that the label's owner is the protected owner
+            label_doc = await db.uln_labels.find_one({"global_id.id": global_id}, {"_id": 0, "owner_user_id": 1})
+            owner_id = label_doc.get("owner_user_id", "") if label_doc else ""
+            blocked = block_revenue_share_modification(rev_agreements, owner_id)
+            if blocked:
+                await log_ownership_violation(db, current_user.id, "update_label_metadata", {"label": global_id, "blocked": blocked})
+                raise HTTPException(status_code=403, detail=blocked)
+
     result = await uln_service.update_label_metadata(
         global_id, metadata_updates, current_user.id
     )
