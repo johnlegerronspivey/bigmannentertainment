@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
-import { Building2, Package, BarChart3, Scale, FileText, DollarSign, ShieldCheck, RefreshCw, Loader2, AlertCircle, ChevronDown, ChevronUp, Download, Plus, X } from 'lucide-react';
+import { Building2, Package, BarChart3, Scale, FileText, DollarSign, ShieldCheck, RefreshCw, Loader2, AlertCircle, ChevronDown, ChevronUp, Download, Plus, X, Gavel, TriangleAlert } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -10,6 +10,173 @@ const getAuthHeaders = () => {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
+};
+
+/* ─── Governance Dashboard Widget ─── */
+const DISPUTE_STATUS_STYLES = {
+  open: 'bg-blue-500/20 text-blue-300',
+  under_review: 'bg-yellow-500/20 text-yellow-300',
+  resolved: 'bg-emerald-500/20 text-emerald-300',
+  escalated: 'bg-red-500/20 text-red-300',
+  closed: 'bg-slate-500/20 text-slate-400',
+};
+
+const PRIORITY_DOT = {
+  critical: 'bg-red-500',
+  high: 'bg-orange-500',
+  medium: 'bg-blue-500',
+  low: 'bg-slate-400',
+};
+
+const RULE_TYPE_COLORS = {
+  voting: 'bg-indigo-500/20 text-indigo-300',
+  content_approval: 'bg-emerald-500/20 text-emerald-300',
+  financial: 'bg-amber-500/20 text-amber-300',
+  distribution: 'bg-cyan-500/20 text-cyan-300',
+  membership: 'bg-rose-500/20 text-rose-300',
+};
+
+const GovernanceWidget = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API}/api/gs1/governance-overview`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <LoadingState text="Loading governance data..." />;
+  if (!data) return null;
+
+  const { governance, disputes } = data;
+  const openCount = disputes.open_disputes + disputes.under_review + disputes.escalated_disputes;
+
+  return (
+    <div className="bg-white/[.06] border border-white/10 rounded-2xl p-6" data-testid="governance-widget">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+          <Gavel size={18} className="text-purple-400" /> Governance & Disputes
+        </h3>
+        {openCount > 0 && (
+          <span className="text-xs font-medium bg-red-500/20 text-red-300 px-2.5 py-1 rounded-full" data-testid="governance-open-badge">
+            {openCount} open
+          </span>
+        )}
+      </div>
+
+      {/* Top Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
+          <div className="text-xl font-bold text-purple-400">{governance.active_rules}</div>
+          <div className="text-slate-500 text-[11px] mt-0.5">Active Rules</div>
+        </div>
+        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
+          <div className="text-xl font-bold text-white">{governance.total_rules}</div>
+          <div className="text-slate-500 text-[11px] mt-0.5">Total Rules</div>
+        </div>
+        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
+          <div className="text-xl font-bold text-amber-400">{disputes.open_disputes}</div>
+          <div className="text-slate-500 text-[11px] mt-0.5">Open Disputes</div>
+        </div>
+        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
+          <div className="text-xl font-bold text-emerald-400">{disputes.resolved_disputes + disputes.closed_disputes}</div>
+          <div className="text-slate-500 text-[11px] mt-0.5">Resolved / Closed</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Left — Rules by Type + Disputes by Priority */}
+        <div className="space-y-4">
+          {/* Rules by Type */}
+          {Object.keys(governance.rules_by_type).length > 0 && (
+            <div>
+              <span className="text-slate-400 text-xs uppercase tracking-wider">Rules by Type</span>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {Object.entries(governance.rules_by_type).map(([type, count]) => (
+                  <span key={type} className={`px-2.5 py-1 rounded-lg text-xs font-medium ${RULE_TYPE_COLORS[type] || 'bg-slate-500/20 text-slate-300'}`}>
+                    {type.replace(/_/g, ' ')} ({count})
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Disputes by Priority */}
+          {Object.keys(disputes.disputes_by_priority).length > 0 && (
+            <div>
+              <span className="text-slate-400 text-xs uppercase tracking-wider">Disputes by Priority</span>
+              <div className="space-y-1.5 mt-2">
+                {['critical', 'high', 'medium', 'low'].map(pri => {
+                  const count = disputes.disputes_by_priority[pri];
+                  if (!count) return null;
+                  return (
+                    <div key={pri} className="flex items-center gap-2 text-sm">
+                      <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[pri]}`} />
+                      <span className="text-slate-300 capitalize">{pri}</span>
+                      <span className="ml-auto text-white font-mono text-xs">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Dispute Status Breakdown */}
+          <div>
+            <span className="text-slate-400 text-xs uppercase tracking-wider">Dispute Status</span>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {[
+                { key: 'open_disputes', label: 'Open' },
+                { key: 'under_review', label: 'Under Review' },
+                { key: 'escalated_disputes', label: 'Escalated' },
+                { key: 'resolved_disputes', label: 'Resolved' },
+                { key: 'closed_disputes', label: 'Closed' },
+              ].map(s => {
+                const count = disputes[s.key];
+                if (!count) return null;
+                const statusKey = s.key.replace('_disputes', '');
+                return (
+                  <span key={s.key} className={`px-2.5 py-1 rounded-lg text-xs font-medium ${DISPUTE_STATUS_STYLES[statusKey] || DISPUTE_STATUS_STYLES[s.key.replace('_disputes', '')] || 'bg-slate-500/20 text-slate-300'}`}>
+                    {s.label}: {count}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right — Recent Disputes */}
+        <div>
+          <span className="text-slate-400 text-xs uppercase tracking-wider">Recent Disputes</span>
+          {disputes.recent_disputes.length > 0 ? (
+            <div className="space-y-2 mt-2">
+              {disputes.recent_disputes.map(d => (
+                <div key={d.dispute_id} className="bg-white/[.03] border border-white/5 rounded-lg px-3.5 py-2.5 flex items-start gap-3 hover:bg-white/[.05] transition" data-testid={`recent-dispute-${d.dispute_id}`}>
+                  <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[d.priority] || 'bg-slate-400'}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-white truncate">{d.title}</div>
+                    <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+                      <span>{d.dispute_type?.replace(/_/g, ' ')}</span>
+                      <span className="text-slate-600">|</span>
+                      <span>{d.label_id}</span>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${DISPUTE_STATUS_STYLES[d.status] || 'bg-slate-500/20 text-slate-400'}`}>
+                    {d.status?.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-500 text-sm mt-2">No recent disputes.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 /* ─── Overview Tab ─── */
@@ -102,6 +269,9 @@ const OverviewTab = () => {
           </div>
         </div>
       )}
+
+      {/* Governance Dashboard Widget */}
+      <GovernanceWidget />
     </div>
   );
 };

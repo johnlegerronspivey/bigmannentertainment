@@ -789,3 +789,65 @@ async def get_quick_actions_summary(
             "pending_reviews": 0,
             "identifiers_count": 0,
         }
+
+
+@router.get("/governance-overview")
+async def get_governance_overview(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Aggregated governance rules & disputes summary across all labels for the GS1 Hub Overview widget."""
+    try:
+        from config.database import db as _db
+
+        total_rules = await _db.label_governance.count_documents({})
+        active_rules = await _db.label_governance.count_documents({"status": "active"})
+        draft_rules = await _db.label_governance.count_documents({"status": "draft"})
+        inactive_rules = await _db.label_governance.count_documents({"status": "inactive"})
+
+        rules_by_type = {}
+        async for doc in _db.label_governance.aggregate([{"$group": {"_id": "$rule_type", "count": {"$sum": 1}}}]):
+            rules_by_type[doc["_id"]] = doc["count"]
+
+        total_disputes = await _db.label_disputes.count_documents({})
+        open_disputes = await _db.label_disputes.count_documents({"status": "open"})
+        under_review = await _db.label_disputes.count_documents({"status": "under_review"})
+        resolved_disputes = await _db.label_disputes.count_documents({"status": "resolved"})
+        escalated_disputes = await _db.label_disputes.count_documents({"status": "escalated"})
+        closed_disputes = await _db.label_disputes.count_documents({"status": "closed"})
+
+        disputes_by_priority = {}
+        async for doc in _db.label_disputes.aggregate([{"$group": {"_id": "$priority", "count": {"$sum": 1}}}]):
+            disputes_by_priority[doc["_id"]] = doc["count"]
+
+        recent_disputes = []
+        async for doc in _db.label_disputes.find(
+            {}, {"_id": 0, "dispute_id": 1, "title": 1, "status": 1, "priority": 1, "dispute_type": 1, "label_id": 1, "created_at": 1}
+        ).sort("created_at", -1).limit(5):
+            recent_disputes.append(doc)
+
+        return {
+            "governance": {
+                "total_rules": total_rules,
+                "active_rules": active_rules,
+                "draft_rules": draft_rules,
+                "inactive_rules": inactive_rules,
+                "rules_by_type": rules_by_type,
+            },
+            "disputes": {
+                "total_disputes": total_disputes,
+                "open_disputes": open_disputes,
+                "under_review": under_review,
+                "resolved_disputes": resolved_disputes,
+                "escalated_disputes": escalated_disputes,
+                "closed_disputes": closed_disputes,
+                "disputes_by_priority": disputes_by_priority,
+                "recent_disputes": recent_disputes,
+            },
+        }
+    except Exception as e:
+        logger.error(f"Governance overview error: {e}")
+        return {
+            "governance": {"total_rules": 0, "active_rules": 0, "draft_rules": 0, "inactive_rules": 0, "rules_by_type": {}},
+            "disputes": {"total_disputes": 0, "open_disputes": 0, "under_review": 0, "resolved_disputes": 0, "escalated_disputes": 0, "closed_disputes": 0, "disputes_by_priority": {}, "recent_disputes": []},
+        }
+
