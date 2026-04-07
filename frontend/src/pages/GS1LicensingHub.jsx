@@ -905,8 +905,186 @@ const ErrorBanner = ({ message, onDismiss }) => (
   </div>
 );
 
+/* ─── Quick Actions Panel ─── */
+const QuickActionsPanel = ({ onSwitchTab, onActionComplete }) => {
+  const [summary, setSummary] = useState(null);
+  const [actionLoading, setActionLoading] = useState('');
+
+  useEffect(() => {
+    fetch(`${API}/api/gs1/quick-actions/summary`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setSummary(d); })
+      .catch(() => {});
+  }, []);
+
+  const runAction = async (key, url, method = 'POST') => {
+    setActionLoading(key);
+    try {
+      const res = await fetch(`${API}${url}`, { method, headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        onActionComplete(key, data);
+      } else {
+        onActionComplete(key, null, 'Action failed');
+      }
+    } catch {
+      onActionComplete(key, null, 'Network error');
+    } finally {
+      setActionLoading('');
+    }
+  };
+
+  const actions = [
+    {
+      key: 'create-product',
+      label: 'Create Product',
+      desc: 'Register a new UPC/GTIN product',
+      icon: <Plus size={18} />,
+      badge: summary?.products_count,
+      badgeLabel: 'products',
+      color: 'from-emerald-600/20 to-emerald-500/5 border-emerald-500/20 hover:border-emerald-400/40',
+      iconBg: 'bg-emerald-500/20 text-emerald-400',
+      onClick: () => onSwitchTab('products'),
+    },
+    {
+      key: 'generate-barcode',
+      label: 'Generate Barcode',
+      desc: 'Create UPC barcode images',
+      icon: <BarChart3 size={18} />,
+      badge: summary?.digital_links_count,
+      badgeLabel: 'links',
+      color: 'from-sky-600/20 to-sky-500/5 border-sky-500/20 hover:border-sky-400/40',
+      iconBg: 'bg-sky-500/20 text-sky-400',
+      onClick: () => onSwitchTab('products'),
+    },
+    {
+      key: 'license-all',
+      label: 'License All Platforms',
+      desc: 'Activate licenses for all platforms',
+      icon: <Scale size={18} />,
+      badge: summary?.active_licenses,
+      badgeLabel: 'active',
+      color: 'from-purple-600/20 to-purple-500/5 border-purple-500/20 hover:border-purple-400/40',
+      iconBg: 'bg-purple-500/20 text-purple-400',
+      onClick: () => runAction('license-all', '/api/licensing/initialize-all-platforms'),
+      isAction: true,
+    },
+    {
+      key: 'compliance-check',
+      label: 'Compliance Check',
+      desc: 'Review pending compliance docs',
+      icon: <ShieldCheck size={18} />,
+      badge: summary?.pending_reviews,
+      badgeLabel: 'pending',
+      color: 'from-amber-600/20 to-amber-500/5 border-amber-500/20 hover:border-amber-400/40',
+      iconBg: 'bg-amber-500/20 text-amber-400',
+      onClick: () => onSwitchTab('agreements'),
+    },
+    {
+      key: 'business-ids',
+      label: 'Business Identifiers',
+      desc: 'Manage mandatory GS1 & business IDs',
+      icon: <Building2 size={18} />,
+      badge: summary?.identifiers_count,
+      badgeLabel: 'configured',
+      color: 'from-rose-600/20 to-rose-500/5 border-rose-500/20 hover:border-rose-400/40',
+      iconBg: 'bg-rose-500/20 text-rose-400',
+      onClick: () => { window.location.href = '/business-identifiers'; },
+      isNav: true,
+    },
+    {
+      key: 'csv-import',
+      label: 'CSV Catalog Import',
+      desc: 'Bulk import catalog assets via CSV',
+      icon: <Download size={18} className="rotate-180" />,
+      color: 'from-teal-600/20 to-teal-500/5 border-teal-500/20 hover:border-teal-400/40',
+      iconBg: 'bg-teal-500/20 text-teal-400',
+      onClick: () => { window.location.href = '/catalog-import'; },
+      isNav: true,
+    },
+    {
+      key: 'gen-licenses',
+      label: 'Generate Comprehensive',
+      desc: 'Create all platform license agreements',
+      icon: <FileText size={18} />,
+      badge: summary?.compliance_docs,
+      badgeLabel: 'docs',
+      color: 'from-indigo-600/20 to-indigo-500/5 border-indigo-500/20 hover:border-indigo-400/40',
+      iconBg: 'bg-indigo-500/20 text-indigo-400',
+      onClick: () => runAction('gen-licenses', '/api/comprehensive-licensing/generate-all-platform-licenses'),
+      isAction: true,
+    },
+    {
+      key: 'view-rates',
+      label: 'Statutory Rates',
+      desc: 'View current compensation rates',
+      icon: <DollarSign size={18} />,
+      color: 'from-lime-600/20 to-lime-500/5 border-lime-500/20 hover:border-lime-400/40',
+      iconBg: 'bg-lime-500/20 text-lime-400',
+      onClick: () => onSwitchTab('compensation'),
+    },
+  ];
+
+  return (
+    <div className="mb-8" data-testid="quick-actions-panel">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-white tracking-tight flex items-center gap-2">
+          <RefreshCw size={16} className="text-purple-400" />
+          Quick Actions
+        </h2>
+        <span className="text-xs text-slate-500 uppercase tracking-wider">GS1 Hub Shortcuts</span>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {actions.map(a => (
+          <button
+            key={a.key}
+            onClick={a.onClick}
+            disabled={actionLoading === a.key}
+            className={`group relative bg-gradient-to-br ${a.color} border rounded-xl p-4 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60`}
+            data-testid={`quick-action-${a.key}`}
+          >
+            {actionLoading === a.key && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl z-10">
+                <Loader2 size={20} className="animate-spin text-white" />
+              </div>
+            )}
+            <div className="flex items-start justify-between mb-2">
+              <div className={`${a.iconBg} p-2 rounded-lg`}>
+                {a.icon}
+              </div>
+              {a.badge !== undefined && a.badge !== null && (
+                <span className="text-[10px] text-slate-400 font-mono bg-white/[.06] px-1.5 py-0.5 rounded-md">
+                  {a.badge} {a.badgeLabel}
+                </span>
+              )}
+            </div>
+            <div className="text-sm font-medium text-white group-hover:text-white/90 leading-tight">{a.label}</div>
+            <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">{a.desc}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 /* ─── Main Hub Page ─── */
 export default function GS1LicensingHub() {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [actionResult, setActionResult] = useState(null);
+
+  const handleActionComplete = (key, data, error) => {
+    if (error) {
+      setActionResult({ type: 'error', message: error });
+    } else if (key === 'license-all') {
+      setActionResult({ type: 'success', message: `Licensed ${data?.platforms_licensed ?? 0} platforms successfully!` });
+      setActiveTab('licensing');
+    } else if (key === 'gen-licenses') {
+      setActionResult({ type: 'success', message: `Generated ${data?.platforms_licensed ?? 0} comprehensive license agreements!` });
+      setActiveTab('agreements');
+    }
+    setTimeout(() => setActionResult(null), 5000);
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white" data-testid="gs1-licensing-hub">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -920,8 +1098,29 @@ export default function GS1LicensingHub() {
           </p>
         </div>
 
+        {/* Quick Actions Panel */}
+        <QuickActionsPanel
+          onSwitchTab={setActiveTab}
+          onActionComplete={handleActionComplete}
+        />
+
+        {/* Action Result Banner */}
+        {actionResult && (
+          <div
+            className={`mb-6 px-4 py-3 rounded-xl text-sm flex justify-between items-center transition-all ${
+              actionResult.type === 'success'
+                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+                : 'bg-red-500/10 border border-red-500/30 text-red-300'
+            }`}
+            data-testid="quick-action-result"
+          >
+            <span>{actionResult.message}</span>
+            <button onClick={() => setActionResult(null)} className="ml-3 opacity-60 hover:opacity-100"><X size={14} /></button>
+          </div>
+        )}
+
         {/* Tabs */}
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-white/[.04] border border-white/10 rounded-xl p-1 flex flex-wrap gap-0.5 h-auto w-full justify-start mb-6">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-400 rounded-lg px-4 py-2 text-sm" data-testid="tab-overview">
               <BarChart3 size={14} className="mr-1.5" /> Overview

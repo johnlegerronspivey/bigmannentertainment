@@ -728,3 +728,64 @@ async def get_products(
     except Exception as e:
         logger.error(f"Error retrieving products: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/quick-actions/summary")
+async def get_quick_actions_summary(
+    service: GS1Service = Depends(get_gs1_service)
+):
+    """Aggregated summary for the Quick Actions Panel on GS1 Hub."""
+    try:
+        from config.database import db as _db
+
+        products_count = await service.assets_collection.count_documents({})
+        digital_links_count = await service.digital_links_collection.count_documents({})
+
+        # Licensing stats
+        active_licenses = 0
+        total_licenses = 0
+        try:
+            lic_col = _db["platform_licenses"]
+            total_licenses = await lic_col.count_documents({})
+            active_licenses = await lic_col.count_documents({"license_status": "active"})
+        except Exception:
+            pass
+
+        # Compliance docs
+        compliance_docs = 0
+        pending_reviews = 0
+        try:
+            comp_col = _db["compliance_documents"]
+            compliance_docs = await comp_col.count_documents({})
+            pending_reviews = await comp_col.count_documents({"legal_review_status": "pending"})
+        except Exception:
+            pass
+
+        # Business identifiers
+        identifiers_count = 0
+        try:
+            biz_col = _db["business_identifiers"]
+            identifiers_count = await biz_col.count_documents({})
+        except Exception:
+            pass
+
+        return {
+            "products_count": products_count,
+            "digital_links_count": digital_links_count,
+            "active_licenses": active_licenses,
+            "total_licenses": total_licenses,
+            "compliance_docs": compliance_docs,
+            "pending_reviews": pending_reviews,
+            "identifiers_count": identifiers_count,
+        }
+    except Exception as e:
+        logger.error(f"Quick actions summary error: {e}")
+        return {
+            "products_count": 0,
+            "digital_links_count": 0,
+            "active_licenses": 0,
+            "total_licenses": 0,
+            "compliance_docs": 0,
+            "pending_reviews": 0,
+            "identifiers_count": 0,
+        }
