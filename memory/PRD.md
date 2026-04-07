@@ -72,11 +72,19 @@
 - Backend: `/app/backend/api/gs1_endpoints.py` (quick-actions/summary)
 - Frontend: `/app/frontend/src/pages/GS1LicensingHub.jsx` (QuickActionsPanel component)
 
+### Governance Dashboard Widget on Overview Tab (Verified — Apr 7, 2026)
+- Aggregated governance rules & disputes widget on GS1 Hub Overview tab
+- Stats: Active Rules, Total Rules, Open Disputes, Resolved/Closed
+- Rules by Type badges, Disputes by Priority breakdown, Dispute Status chips
+- Recent Disputes list (last 5) with priority dots, titles, types, label IDs, status badges
+- Open count badge when active disputes exist
+- Backend: `/app/backend/api/gs1_endpoints.py` (governance-overview endpoint)
+- Frontend: `/app/frontend/src/pages/GS1LicensingHub.jsx` (GovernanceWidget component)
+
 ---
 
 ## Upcoming Tasks
 - (P0) Revenue Tracking: Connect mocked revenue feature to real data sources
-- (P2) Governance Dashboard widget on Overview tab (active rules count, open disputes)
 
 ## 3rd Party Integrations
 - NVD (National Vulnerability Database) — Public REST API (no keys)
