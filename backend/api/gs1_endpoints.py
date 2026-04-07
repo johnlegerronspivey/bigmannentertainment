@@ -5,6 +5,7 @@ FastAPI router for GS1 identifier management and Digital Link operations
 
 from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from fastapi.responses import JSONResponse, Response
+from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import logging
 from datetime import datetime, timezone
@@ -850,4 +851,135 @@ async def get_governance_overview(
             "governance": {"total_rules": 0, "active_rules": 0, "draft_rules": 0, "inactive_rules": 0, "rules_by_type": {}},
             "disputes": {"total_disputes": 0, "open_disputes": 0, "under_review": 0, "resolved_disputes": 0, "escalated_disputes": 0, "closed_disputes": 0, "disputes_by_priority": {}, "recent_disputes": []},
         }
+
+
+@router.get("/disputes")
+async def list_all_disputes(
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    service: GS1Service = Depends(get_gs1_service),
+):
+    """List all disputes across all labels with optional filtering."""
+    try:
+        from config.database import db as _db
+
+        query: Dict[str, Any] = {}
+        if status:
+            query["status"] = status
+        if priority:
+            query["priority"] = priority
+
+        total = await _db.label_disputes.count_documents(query)
+        skip = (page - 1) * page_size
+
+        disputes = []
+        async for doc in _db.label_disputes.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(page_size):
+            # Resolve label name
+            label = await _db.uln_labels.find_one(
+                {"global_id.id": doc.get("label_id")},
+                {"_id": 0, "metadata_profile.name": 1},
+            )
+            doc["label_name"] = label.get("metadata_profile", {}).get("name", "Unknown") if label else "Unknown"
+            disputes.append(doc)
+
+        return {
+            "disputes": disputes,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": max(1, (total + page_size - 1) // page_size),
+        }
+    except Exception as e:
+        logger.error(f"List disputes error: {e}")
+        return {"disputes": [], "total": 0, "page": 1, "page_size": page_size, "total_pages": 1}
+
+
+@router.get("/disputes/{dispute_id}")
+async def get_dispute_by_id(
+    dispute_id: str,
+    service: GS1Service = Depends(get_gs1_service),
+):
+    """Get a single dispute by its dispute_id (cross-label lookup)."""
+    try:
+        from config.database import db as _db
+
+        doc = await _db.label_disputes.find_one({"dispute_id": dispute_id}, {"_id": 0})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Dispute not found")
+
+        label = await _db.uln_labels.find_one(
+            {"global_id.id": doc.get("label_id")},
+            {"_id": 0, "metadata_profile.name": 1},
+        )
+        doc["label_name"] = label.get("metadata_profile", {}).get("name", "Unknown") if label else "Unknown"
+
+        return {"success": True, "dispute": doc}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get dispute error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class DisputeRespondBody(BaseModel):
+    message: str
+    new_status: Optional[str] = None
+    resolution: Optional[str] = None
+
+
+@router.post("/disputes/{dispute_id}/respond")
+async def respond_to_dispute_global(
+    dispute_id: str,
+    body: DisputeRespondBody,
+    service: GS1Service = Depends(get_gs1_service),
+):
+    """Add a response / status change to a dispute (cross-label, no auth required for GS1 Hub)."""
+    try:
+        from config.database import db as _db
+
+        existing = await _db.label_disputes.find_one({"dispute_id": dispute_id})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Dispute not found")
+
+        now = datetime.now(timezone.utc).isoformat()
+        import uuid as _uuid
+        response_id = f"RESP-{_uuid.uuid4().hex[:12].upper()}"
+
+        response_entry = {
+            "response_id": response_id,
+            "author_id": "gs1-hub-user",
+            "author_name": "GS1 Hub",
+            "message": body.message,
+            "action": "comment",
+            "created_at": now,
+        }
+
+        update_fields: Dict[str, Any] = {"updated_at": now}
+        if body.new_status and body.new_status in ["open", "under_review", "resolved", "escalated", "closed"]:
+            update_fields["status"] = body.new_status
+            response_entry["action"] = "status_change"
+            if body.new_status == "resolved":
+                update_fields["resolved_at"] = now
+                update_fields["resolution"] = body.resolution or body.message
+
+        await _db.label_disputes.update_one(
+            {"dispute_id": dispute_id},
+            {"$push": {"responses": response_entry}, "$set": update_fields},
+        )
+
+        updated = await _db.label_disputes.find_one({"dispute_id": dispute_id}, {"_id": 0})
+        label = await _db.uln_labels.find_one(
+            {"global_id.id": updated.get("label_id")},
+            {"_id": 0, "metadata_profile.name": 1},
+        )
+        updated["label_name"] = label.get("metadata_profile", {}).get("name", "Unknown") if label else "Unknown"
+
+        return {"success": True, "dispute": updated}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Respond to dispute error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 

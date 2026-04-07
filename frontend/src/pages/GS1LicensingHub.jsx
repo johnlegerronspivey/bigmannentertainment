@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
-import { Building2, Package, BarChart3, Scale, FileText, DollarSign, ShieldCheck, RefreshCw, Loader2, AlertCircle, ChevronDown, ChevronUp, Download, Plus, X, Gavel, TriangleAlert } from 'lucide-react';
+import { Building2, Package, BarChart3, Scale, FileText, DollarSign, ShieldCheck, RefreshCw, Loader2, AlertCircle, ChevronDown, ChevronUp, Download, Plus, X, Gavel, TriangleAlert, ArrowLeft, Send, ChevronRight, Eye, MessageSquare, Filter } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -36,17 +36,338 @@ const RULE_TYPE_COLORS = {
   membership: 'bg-rose-500/20 text-rose-300',
 };
 
+/* ─── Dispute Detail Modal ─── */
+const DISPUTE_TYPE_LABELS = {
+  royalty_split: 'Royalty Split',
+  rights_ownership: 'Rights Ownership',
+  distribution: 'Distribution',
+  content_takedown: 'Content Takedown',
+  membership: 'Membership',
+  other: 'Other',
+};
+
+const DisputeDetailModal = ({ disputeId, onClose, onUpdated }) => {
+  const [dispute, setDispute] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [responseText, setResponseText] = useState('');
+  const [responseStatus, setResponseStatus] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const fetchDetail = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/gs1/disputes/${disputeId}`);
+      if (res.ok) {
+        const d = await res.json();
+        setDispute(d.dispute);
+      }
+    } catch {}
+    setLoading(false);
+  }, [disputeId]);
+
+  useEffect(() => { fetchDetail(); }, [fetchDetail]);
+
+  const handleRespond = async () => {
+    if (!responseText.trim()) return;
+    setSending(true);
+    try {
+      const body = { message: responseText };
+      if (responseStatus) body.new_status = responseStatus;
+      if (responseStatus === 'resolved') body.resolution = responseText;
+      const res = await fetch(`${API}/api/gs1/disputes/${disputeId}/respond`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setDispute(d.dispute);
+        setResponseText('');
+        setResponseStatus('');
+        if (onUpdated) onUpdated();
+      }
+    } catch {}
+    setSending(false);
+  };
+
+  const isActive = dispute && dispute.status !== 'closed' && dispute.status !== 'resolved';
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-[#12121e] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()} data-testid="dispute-detail-modal">
+        {loading ? (
+          <div className="flex items-center justify-center py-20"><Loader2 size={24} className="animate-spin text-purple-400" /></div>
+        ) : !dispute ? (
+          <div className="p-8 text-center text-slate-400">Dispute not found.</div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-white/10 flex items-start justify-between shrink-0">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-semibold text-white truncate" data-testid="dispute-detail-title">{dispute.title}</h3>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${DISPUTE_STATUS_STYLES[dispute.status] || 'bg-slate-500/20 text-slate-400'}`}>
+                    {dispute.status?.replace(/_/g, ' ')}
+                  </span>
+                  <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/[.06] text-slate-300`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[dispute.priority] || 'bg-slate-400'}`} />
+                    {dispute.priority}
+                  </span>
+                  <span className="text-[10px] text-slate-500">{DISPUTE_TYPE_LABELS[dispute.dispute_type] || dispute.dispute_type?.replace(/_/g, ' ')}</span>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-slate-500 hover:text-white ml-3 p-1 rounded-lg hover:bg-white/[.06] transition" data-testid="close-dispute-detail">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+              {/* Meta info */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-white/[.04] rounded-lg px-3 py-2">
+                  <span className="text-slate-500 text-[11px]">Label</span>
+                  <p className="text-white text-sm font-medium truncate" data-testid="dispute-detail-label">{dispute.label_name || dispute.label_id}</p>
+                </div>
+                <div className="bg-white/[.04] rounded-lg px-3 py-2">
+                  <span className="text-slate-500 text-[11px]">Filed</span>
+                  <p className="text-white text-sm">{dispute.created_at ? new Date(dispute.created_at).toLocaleDateString() : '—'}</p>
+                </div>
+                <div className="bg-white/[.04] rounded-lg px-3 py-2">
+                  <span className="text-slate-500 text-[11px]">Dispute ID</span>
+                  <p className="text-slate-300 text-xs font-mono truncate" data-testid="dispute-detail-id">{dispute.dispute_id}</p>
+                </div>
+                {dispute.assigned_to && (
+                  <div className="bg-white/[.04] rounded-lg px-3 py-2">
+                    <span className="text-slate-500 text-[11px]">Assigned To</span>
+                    <p className="text-white text-sm truncate">{dispute.assigned_to}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <span className="text-slate-400 text-xs uppercase tracking-wider">Description</span>
+                <p className="text-sm text-slate-300 mt-1.5 leading-relaxed">{dispute.description || 'No description provided.'}</p>
+              </div>
+
+              {/* Resolution */}
+              {dispute.resolution && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
+                  <span className="text-emerald-400 text-xs uppercase tracking-wider font-medium">Resolution</span>
+                  <p className="text-sm text-emerald-300 mt-1">{dispute.resolution}</p>
+                  {dispute.resolved_at && <p className="text-[10px] text-emerald-500/60 mt-1">Resolved {new Date(dispute.resolved_at).toLocaleString()}</p>}
+                </div>
+              )}
+
+              {/* Activity Timeline */}
+              <div>
+                <span className="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <MessageSquare size={12} /> Activity ({dispute.responses?.length || 0})
+                </span>
+                {(!dispute.responses || dispute.responses.length === 0) ? (
+                  <p className="text-slate-500 text-sm mt-2">No activity yet.</p>
+                ) : (
+                  <div className="space-y-3 mt-3">
+                    {dispute.responses.map((r, i) => (
+                      <div key={r.response_id || i} className="flex gap-3" data-testid={`dispute-response-${r.response_id || i}`}>
+                        <div className="w-7 h-7 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                          {(r.author_name || r.author_id || '?')[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-white">{r.author_name || r.author_id}</span>
+                            {r.action === 'status_change' && <span className="text-[10px] bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded">Status changed</span>}
+                          </div>
+                          <p className="text-sm text-slate-300 mt-0.5">{r.message}</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">{r.created_at ? new Date(r.created_at).toLocaleString() : ''}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Response Form */}
+              {isActive && (
+                <div className="border-t border-white/10 pt-4 space-y-3">
+                  <textarea
+                    value={responseText}
+                    onChange={e => setResponseText(e.target.value)}
+                    rows={3}
+                    className="w-full bg-white/[.06] text-white border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-purple-500 focus:outline-none transition placeholder-slate-500"
+                    placeholder="Write a response..."
+                    data-testid="dispute-respond-input"
+                  />
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={responseStatus}
+                      onChange={e => setResponseStatus(e.target.value)}
+                      className="bg-white/[.06] text-white border border-white/10 rounded-lg px-3 py-2 text-sm"
+                      data-testid="dispute-respond-status"
+                    >
+                      <option value="">Comment only</option>
+                      <option value="under_review">Move to Under Review</option>
+                      <option value="escalated">Escalate</option>
+                      <option value="resolved">Mark Resolved</option>
+                      <option value="closed">Close</option>
+                    </select>
+                    <button
+                      onClick={handleRespond}
+                      disabled={sending || !responseText.trim()}
+                      className="bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-medium py-2 px-5 rounded-xl text-sm transition flex items-center gap-1.5"
+                      data-testid="dispute-respond-submit"
+                    >
+                      {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Dispute List Modal ─── */
+const DisputeListModal = ({ initialFilter, onClose }) => {
+  const [disputes, setDisputes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState(initialFilter?.status || '');
+  const [priorityFilter, setPriorityFilter] = useState(initialFilter?.priority || '');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [selectedDisputeId, setSelectedDisputeId] = useState(null);
+
+  const fetchDisputes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter) params.append('status', statusFilter);
+      if (priorityFilter) params.append('priority', priorityFilter);
+      params.append('page', String(page));
+      params.append('page_size', '15');
+      const res = await fetch(`${API}/api/gs1/disputes?${params}`);
+      if (res.ok) {
+        const d = await res.json();
+        setDisputes(d.disputes || []);
+        setTotalPages(d.total_pages || 1);
+        setTotal(d.total || 0);
+      }
+    } catch {}
+    setLoading(false);
+  }, [statusFilter, priorityFilter, page]);
+
+  useEffect(() => { fetchDisputes(); }, [fetchDisputes]);
+  useEffect(() => { setPage(1); }, [statusFilter, priorityFilter]);
+
+  if (selectedDisputeId) {
+    return <DisputeDetailModal disputeId={selectedDisputeId} onClose={() => setSelectedDisputeId(null)} onUpdated={fetchDisputes} />;
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-[#12121e] border border-white/10 rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()} data-testid="dispute-list-modal">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <Gavel size={18} className="text-purple-400" />
+            <h3 className="text-base font-semibold text-white">All Disputes ({total})</h3>
+          </div>
+          <button onClick={onClose} className="text-slate-500 hover:text-white p-1 rounded-lg hover:bg-white/[.06] transition" data-testid="close-dispute-list">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="px-6 py-3 border-b border-white/5 flex items-center gap-3 flex-wrap shrink-0">
+          <Filter size={14} className="text-slate-500" />
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-white/[.06] text-white border border-white/10 rounded-lg px-3 py-1.5 text-xs" data-testid="dispute-list-status-filter">
+            <option value="">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="under_review">Under Review</option>
+            <option value="escalated">Escalated</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+          <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className="bg-white/[.06] text-white border border-white/10 rounded-lg px-3 py-1.5 text-xs" data-testid="dispute-list-priority-filter">
+            <option value="">All Priorities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-16"><Loader2 size={20} className="animate-spin text-purple-400" /></div>
+          ) : disputes.length === 0 ? (
+            <div className="text-center py-16 text-slate-500 text-sm" data-testid="dispute-list-empty">No disputes match the current filters.</div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {disputes.map(d => (
+                <button
+                  key={d.dispute_id}
+                  onClick={() => setSelectedDisputeId(d.dispute_id)}
+                  className="w-full text-left px-6 py-3.5 hover:bg-white/[.04] transition flex items-start gap-3 group"
+                  data-testid={`dispute-list-row-${d.dispute_id}`}
+                >
+                  <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[d.priority] || 'bg-slate-400'}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-white font-medium truncate">{d.title}</span>
+                      <ChevronRight size={14} className="text-slate-600 group-hover:text-purple-400 transition shrink-0" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+                      <span>{d.dispute_type?.replace(/_/g, ' ')}</span>
+                      <span className="text-slate-700">|</span>
+                      <span>{d.label_name || d.label_id}</span>
+                      <span className="text-slate-700">|</span>
+                      <span>{d.created_at ? new Date(d.created_at).toLocaleDateString() : '—'}</span>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${DISPUTE_STATUS_STYLES[d.status] || 'bg-slate-500/20 text-slate-400'}`}>
+                    {d.status?.replace(/_/g, ' ')}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-3 border-t border-white/10 flex items-center justify-between text-sm shrink-0">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="text-slate-400 hover:text-white disabled:opacity-30 text-xs" data-testid="dispute-list-prev">Previous</button>
+            <span className="text-slate-500 text-xs">Page {page} of {totalPages}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="text-slate-400 hover:text-white disabled:opacity-30 text-xs" data-testid="dispute-list-next">Next</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Governance Dashboard Widget ─── */
 const GovernanceWidget = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDisputeId, setSelectedDisputeId] = useState(null);
+  const [showDisputeList, setShowDisputeList] = useState(null); // null | { status?, priority? }
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     fetch(`${API}/api/gs1/governance-overview`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setData(d); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   if (loading) return <LoadingState text="Loading governance data..." />;
   if (!data) return null;
@@ -55,127 +376,171 @@ const GovernanceWidget = () => {
   const openCount = disputes.open_disputes + disputes.under_review + disputes.escalated_disputes;
 
   return (
-    <div className="bg-white/[.06] border border-white/10 rounded-2xl p-6" data-testid="governance-widget">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Gavel size={18} className="text-purple-400" /> Governance & Disputes
-        </h3>
-        {openCount > 0 && (
-          <span className="text-xs font-medium bg-red-500/20 text-red-300 px-2.5 py-1 rounded-full" data-testid="governance-open-badge">
-            {openCount} open
-          </span>
-        )}
-      </div>
+    <>
+      <div className="bg-white/[.06] border border-white/10 rounded-2xl p-6" data-testid="governance-widget">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Gavel size={18} className="text-purple-400" /> Governance & Disputes
+          </h3>
+          <div className="flex items-center gap-2">
+            {openCount > 0 && (
+              <button
+                onClick={() => setShowDisputeList({ status: 'open' })}
+                className="text-xs font-medium bg-red-500/20 text-red-300 px-2.5 py-1 rounded-full hover:bg-red-500/30 transition cursor-pointer"
+                data-testid="governance-open-badge"
+              >
+                {openCount} open
+              </button>
+            )}
+            <button
+              onClick={() => setShowDisputeList({})}
+              className="text-xs text-purple-400 hover:text-purple-300 transition flex items-center gap-1"
+              data-testid="governance-view-all"
+            >
+              <Eye size={12} /> View All
+            </button>
+          </div>
+        </div>
 
-      {/* Top Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
-          <div className="text-xl font-bold text-purple-400">{governance.active_rules}</div>
-          <div className="text-slate-500 text-[11px] mt-0.5">Active Rules</div>
+        {/* Top Stats Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
+            <div className="text-xl font-bold text-purple-400">{governance.active_rules}</div>
+            <div className="text-slate-500 text-[11px] mt-0.5">Active Rules</div>
+          </div>
+          <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
+            <div className="text-xl font-bold text-white">{governance.total_rules}</div>
+            <div className="text-slate-500 text-[11px] mt-0.5">Total Rules</div>
+          </div>
+          <button className="bg-white/[.04] rounded-xl px-4 py-3 text-center hover:bg-white/[.06] transition" onClick={() => setShowDisputeList({ status: 'open' })} data-testid="governance-stat-open">
+            <div className="text-xl font-bold text-amber-400">{disputes.open_disputes}</div>
+            <div className="text-slate-500 text-[11px] mt-0.5">Open Disputes</div>
+          </button>
+          <button className="bg-white/[.04] rounded-xl px-4 py-3 text-center hover:bg-white/[.06] transition" onClick={() => setShowDisputeList({ status: 'resolved' })} data-testid="governance-stat-resolved">
+            <div className="text-xl font-bold text-emerald-400">{disputes.resolved_disputes + disputes.closed_disputes}</div>
+            <div className="text-slate-500 text-[11px] mt-0.5">Resolved / Closed</div>
+          </button>
         </div>
-        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
-          <div className="text-xl font-bold text-white">{governance.total_rules}</div>
-          <div className="text-slate-500 text-[11px] mt-0.5">Total Rules</div>
-        </div>
-        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
-          <div className="text-xl font-bold text-amber-400">{disputes.open_disputes}</div>
-          <div className="text-slate-500 text-[11px] mt-0.5">Open Disputes</div>
-        </div>
-        <div className="bg-white/[.04] rounded-xl px-4 py-3 text-center">
-          <div className="text-xl font-bold text-emerald-400">{disputes.resolved_disputes + disputes.closed_disputes}</div>
-          <div className="text-slate-500 text-[11px] mt-0.5">Resolved / Closed</div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Left — Rules by Type + Disputes by Priority */}
-        <div className="space-y-4">
-          {/* Rules by Type */}
-          {Object.keys(governance.rules_by_type).length > 0 && (
-            <div>
-              <span className="text-slate-400 text-xs uppercase tracking-wider">Rules by Type</span>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {Object.entries(governance.rules_by_type).map(([type, count]) => (
-                  <span key={type} className={`px-2.5 py-1 rounded-lg text-xs font-medium ${RULE_TYPE_COLORS[type] || 'bg-slate-500/20 text-slate-300'}`}>
-                    {type.replace(/_/g, ' ')} ({count})
-                  </span>
-                ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Left — Rules by Type + Disputes by Priority */}
+          <div className="space-y-4">
+            {/* Rules by Type */}
+            {Object.keys(governance.rules_by_type).length > 0 && (
+              <div>
+                <span className="text-slate-400 text-xs uppercase tracking-wider">Rules by Type</span>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {Object.entries(governance.rules_by_type).map(([type, count]) => (
+                    <span key={type} className={`px-2.5 py-1 rounded-lg text-xs font-medium ${RULE_TYPE_COLORS[type] || 'bg-slate-500/20 text-slate-300'}`}>
+                      {type.replace(/_/g, ' ')} ({count})
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Disputes by Priority */}
-          {Object.keys(disputes.disputes_by_priority).length > 0 && (
+            {/* Disputes by Priority */}
+            {Object.keys(disputes.disputes_by_priority).length > 0 && (
+              <div>
+                <span className="text-slate-400 text-xs uppercase tracking-wider">Disputes by Priority</span>
+                <div className="space-y-1.5 mt-2">
+                  {['critical', 'high', 'medium', 'low'].map(pri => {
+                    const count = disputes.disputes_by_priority[pri];
+                    if (!count) return null;
+                    return (
+                      <button key={pri} onClick={() => setShowDisputeList({ priority: pri })} className="flex items-center gap-2 text-sm w-full hover:bg-white/[.04] rounded-lg px-2 py-1 -mx-2 transition" data-testid={`governance-priority-${pri}`}>
+                        <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[pri]}`} />
+                        <span className="text-slate-300 capitalize">{pri}</span>
+                        <span className="ml-auto text-white font-mono text-xs">{count}</span>
+                        <ChevronRight size={12} className="text-slate-600" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Dispute Status Breakdown */}
             <div>
-              <span className="text-slate-400 text-xs uppercase tracking-wider">Disputes by Priority</span>
-              <div className="space-y-1.5 mt-2">
-                {['critical', 'high', 'medium', 'low'].map(pri => {
-                  const count = disputes.disputes_by_priority[pri];
+              <span className="text-slate-400 text-xs uppercase tracking-wider">Dispute Status</span>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { key: 'open_disputes', label: 'Open', status: 'open' },
+                  { key: 'under_review', label: 'Under Review', status: 'under_review' },
+                  { key: 'escalated_disputes', label: 'Escalated', status: 'escalated' },
+                  { key: 'resolved_disputes', label: 'Resolved', status: 'resolved' },
+                  { key: 'closed_disputes', label: 'Closed', status: 'closed' },
+                ].map(s => {
+                  const count = disputes[s.key];
                   if (!count) return null;
+                  const statusKey = s.key.replace('_disputes', '');
                   return (
-                    <div key={pri} className="flex items-center gap-2 text-sm">
-                      <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[pri]}`} />
-                      <span className="text-slate-300 capitalize">{pri}</span>
-                      <span className="ml-auto text-white font-mono text-xs">{count}</span>
-                    </div>
+                    <button
+                      key={s.key}
+                      onClick={() => setShowDisputeList({ status: s.status })}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80 transition cursor-pointer ${DISPUTE_STATUS_STYLES[statusKey] || DISPUTE_STATUS_STYLES[s.key.replace('_disputes', '')] || 'bg-slate-500/20 text-slate-300'}`}
+                      data-testid={`governance-status-${s.status}`}
+                    >
+                      {s.label}: {count}
+                    </button>
                   );
                 })}
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Dispute Status Breakdown */}
+          {/* Right — Recent Disputes */}
           <div>
-            <span className="text-slate-400 text-xs uppercase tracking-wider">Dispute Status</span>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {[
-                { key: 'open_disputes', label: 'Open' },
-                { key: 'under_review', label: 'Under Review' },
-                { key: 'escalated_disputes', label: 'Escalated' },
-                { key: 'resolved_disputes', label: 'Resolved' },
-                { key: 'closed_disputes', label: 'Closed' },
-              ].map(s => {
-                const count = disputes[s.key];
-                if (!count) return null;
-                const statusKey = s.key.replace('_disputes', '');
-                return (
-                  <span key={s.key} className={`px-2.5 py-1 rounded-lg text-xs font-medium ${DISPUTE_STATUS_STYLES[statusKey] || DISPUTE_STATUS_STYLES[s.key.replace('_disputes', '')] || 'bg-slate-500/20 text-slate-300'}`}>
-                    {s.label}: {count}
-                  </span>
-                );
-              })}
-            </div>
+            <span className="text-slate-400 text-xs uppercase tracking-wider">Recent Disputes</span>
+            {disputes.recent_disputes.length > 0 ? (
+              <div className="space-y-2 mt-2">
+                {disputes.recent_disputes.map(d => (
+                  <button
+                    key={d.dispute_id}
+                    onClick={() => setSelectedDisputeId(d.dispute_id)}
+                    className="w-full text-left bg-white/[.03] border border-white/5 rounded-lg px-3.5 py-2.5 flex items-start gap-3 hover:bg-white/[.06] hover:border-white/10 transition group"
+                    data-testid={`recent-dispute-${d.dispute_id}`}
+                  >
+                    <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[d.priority] || 'bg-slate-400'}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm text-white truncate">{d.title}</span>
+                        <ChevronRight size={12} className="text-slate-600 group-hover:text-purple-400 transition shrink-0" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+                        <span>{d.dispute_type?.replace(/_/g, ' ')}</span>
+                        <span className="text-slate-600">|</span>
+                        <span>{d.label_id}</span>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${DISPUTE_STATUS_STYLES[d.status] || 'bg-slate-500/20 text-slate-400'}`}>
+                      {d.status?.replace(/_/g, ' ')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500 text-sm mt-2">No recent disputes.</p>
+            )}
           </div>
         </div>
-
-        {/* Right — Recent Disputes */}
-        <div>
-          <span className="text-slate-400 text-xs uppercase tracking-wider">Recent Disputes</span>
-          {disputes.recent_disputes.length > 0 ? (
-            <div className="space-y-2 mt-2">
-              {disputes.recent_disputes.map(d => (
-                <div key={d.dispute_id} className="bg-white/[.03] border border-white/5 rounded-lg px-3.5 py-2.5 flex items-start gap-3 hover:bg-white/[.05] transition" data-testid={`recent-dispute-${d.dispute_id}`}>
-                  <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[d.priority] || 'bg-slate-400'}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white truncate">{d.title}</div>
-                    <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
-                      <span>{d.dispute_type?.replace(/_/g, ' ')}</span>
-                      <span className="text-slate-600">|</span>
-                      <span>{d.label_id}</span>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${DISPUTE_STATUS_STYLES[d.status] || 'bg-slate-500/20 text-slate-400'}`}>
-                    {d.status?.replace(/_/g, ' ')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-500 text-sm mt-2">No recent disputes.</p>
-          )}
-        </div>
       </div>
-    </div>
+
+      {/* Modals */}
+      {selectedDisputeId && (
+        <DisputeDetailModal
+          disputeId={selectedDisputeId}
+          onClose={() => setSelectedDisputeId(null)}
+          onUpdated={loadData}
+        />
+      )}
+      {showDisputeList !== null && (
+        <DisputeListModal
+          initialFilter={showDisputeList}
+          onClose={() => setShowDisputeList(null)}
+        />
+      )}
+    </>
   );
 };
 
