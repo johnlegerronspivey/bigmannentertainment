@@ -4,7 +4,7 @@
 Build a social media management and creator tools platform featuring the Unified Label Network (ULN) with Notification System, immutable Ownership Protection for John LeGerron Spivey / Big Mann Entertainment, DNS Health Checker, CVE Monitoring Dashboard, GS1 & Business Identifiers Enforcement, Quick Actions Panel, Governance Dashboard widget with drill-down, and Revenue Tracking.
 
 ## Architecture
-- **Frontend**: React 19 + TailwindCSS + Shadcn UI (**Vite 8** + Rolldown/Oxc)
+- **Frontend**: React 19 + **Tailwind CSS v4** + Shadcn UI (**Vite 8** + Rolldown/Oxc + `@tailwindcss/vite`)
 - **Backend**: FastAPI + MongoDB
 - **Auth**: JWT-based with bcrypt password hashing
 
@@ -33,11 +33,19 @@ Build a social media management and creator tools platform featuring the Unified
   - Backend remains at 0 vulnerabilities
   - 100% test pass rate (iteration 107)
 
+- [x] **Tailwind CSS v3 to v4 Migration (Apr 8, 2026)**:
+  - Upgraded from Tailwind CSS v3.4.17 to v4.2.2
+  - Replaced PostCSS-based plugin with `@tailwindcss/vite` Vite plugin
+  - Converted `tailwind.config.js` to CSS-first `@theme inline` in `index.css`
+  - Replaced `tailwindcss-animate` with `tw-animate-css`
+  - Added `@reference` directive in `App.css` for `@apply` support
+  - Removed `tailwind.config.js`, emptied `postcss.config.js`
+  - 100% test pass rate (iteration 108, 6+ pages verified)
+
 ## Pending / Upcoming Tasks
 - [ ] (P0) Connect Revenue Tracking to real data sources (currently mocked)
 - [ ] (P1) "Register New Target" for DNS Health Checker (monitor bigmannentertainment.com)
-- [ ] (P2) Upgrade Tailwind CSS v3 to v4 (performance improvements)
-- [ ] Connect AWS Route 53 external DNS health
+- [ ] (P2) Connect AWS Route 53 external DNS health
 
 ## Key API Endpoints
 - `GET /api/gs1/quick-actions/summary`
