@@ -27,10 +27,16 @@ Build a social media management and creator tools platform featuring the Unified
   - Env var compat: `process.env.REACT_APP_*` preserved via Vite `define`
   - Removed: react-scripts, @craco/craco, cra-template, postinstall patch
   - 100% test pass rate (17/17 backend, all frontend pages verified)
+- [x] **Frontend CVE Elimination via Yarn Resolutions (Apr 8, 2026)**:
+  - Frontend vulnerabilities: 30 -> 0 (all eliminated)
+  - Added yarn resolutions: picomatch>=2.3.2, glob>=10.5.0, yaml>=2.8.3
+  - Backend remains at 0 vulnerabilities
+  - 100% test pass rate (iteration 107)
 
 ## Pending / Upcoming Tasks
 - [ ] (P0) Connect Revenue Tracking to real data sources (currently mocked)
 - [ ] (P1) "Register New Target" for DNS Health Checker (monitor bigmannentertainment.com)
+- [ ] (P2) Upgrade Tailwind CSS v3 to v4 (performance improvements)
 - [ ] Connect AWS Route 53 external DNS health
 
 ## Key API Endpoints
