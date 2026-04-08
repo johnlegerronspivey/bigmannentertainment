@@ -4,7 +4,7 @@
 Build a social media management and creator tools platform featuring the Unified Label Network (ULN) with Notification System, immutable Ownership Protection for John LeGerron Spivey / Big Mann Entertainment, DNS Health Checker, CVE Monitoring Dashboard, GS1 & Business Identifiers Enforcement, Quick Actions Panel, Governance Dashboard widget with drill-down, and Revenue Tracking.
 
 ## Architecture
-- **Frontend**: React 19 + TailwindCSS + Shadcn UI (CRA + Craco)
+- **Frontend**: React 19 + TailwindCSS + Shadcn UI (**Vite 8** + Rolldown/Oxc)
 - **Backend**: FastAPI + MongoDB
 - **Auth**: JWT-based with bcrypt password hashing
 
@@ -18,8 +18,15 @@ Build a social media management and creator tools platform featuring the Unified
 - [x] Governance Dashboard widget on Overview tab
 - [x] Interactive drill-down from Governance widget to individual disputes
 - [x] **CVE Vulnerability Fix & Upgrade (Apr 8, 2026)**:
-  - Backend: 17 vulnerabilities → 0 (aiohttp, cbor2, cryptography, litellm, pygments, requests upgraded)
-  - Frontend: 94 vulnerabilities → 48 (lodash, node-forge, serialize-javascript, underscore upgraded; remaining 48 are un-overridable transitive deps in react-scripts/webpack)
+  - Backend: 17 vulnerabilities -> 0
+  - Frontend: 94 -> 48 (pre-Vite migration)
+- [x] **CRA to Vite 8 Migration (Apr 8, 2026)**:
+  - Migrated from Create React App + Craco to Vite 8.0.7 with Rolldown/Oxc
+  - Frontend vulnerabilities: 48 -> 30 (eliminated all CRA/webpack/react-scripts CVEs)
+  - Custom `transformWithOxc` plugin for JSX-in-.js file compat
+  - Env var compat: `process.env.REACT_APP_*` preserved via Vite `define`
+  - Removed: react-scripts, @craco/craco, cra-template, postinstall patch
+  - 100% test pass rate (17/17 backend, all frontend pages verified)
 
 ## Pending / Upcoming Tasks
 - [ ] (P0) Connect Revenue Tracking to real data sources (currently mocked)
