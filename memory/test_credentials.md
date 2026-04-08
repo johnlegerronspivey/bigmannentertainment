@@ -1,6 +1,6 @@
 # Test Credentials
 
-## Owner Account (Protected)
+## Owner Account
 - Email: owner@bigmannentertainment.com
 - Password: Test1234!
 - User ID: 0659dd6d-e447-4022-a05a-f775b1509572
