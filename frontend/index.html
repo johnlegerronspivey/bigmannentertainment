@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" href="/big-mann-logo.png" />
+        <link rel="apple-touch-icon" href="/big-mann-logo.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#7c3aed" />
+        <meta name="description" content="Big Mann Entertainment - Professional Music Distribution Platform by John LeGerron Spivey" />
+        <meta property="og:image" content="/big-mann-logo.png" />
+        <meta property="og:title" content="Big Mann Entertainment | Professional Music Distribution Platform" />
+        <meta property="og:description" content="Complete Media Distribution Empire - Professional Music Distribution Platform by John LeGerron Spivey" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="/big-mann-logo.png" />
+        <link rel="canonical" href="https://bigmannentertainment.com" />
+        <link rel="manifest" href="/manifest.json" />
+        <title>Big Mann Entertainment | Professional Music Distribution Platform</title>
+    </head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <!-- Disable External Tracking -->
+        <script>
+            // Block external platform analytics by intercepting script loads
+            const originalAppendChild = Node.prototype.appendChild;
+            const originalInsertBefore = Node.prototype.insertBefore;
+            
+            const blockList = [
+                'connect.facebook.net',
+                'fbevents.js',
+                'facebook.net',
+                'googletagmanager.com',
+                'google-analytics.com',
+                'gtag/js',
+                'blitzllama.com',
+                'mpc-prod',
+                'gameplay.blitzllama'
+            ];
+            
+            // Block platform analytics domains
+            const blockPatterns = [/\.bigmannentertainment\.com/, /loading-preview/];
+            
+            const isBlocked = (src) => blockList.some(b => src.includes(b)) || blockPatterns.some(p => p.test(src));
+            
+            Node.prototype.appendChild = function(child) {
+                if (child.tagName === 'SCRIPT' || child.tagName === 'IFRAME') {
+                    const src = child.src || child.getAttribute('src') || '';
+                    if (isBlocked(src)) {
+                        return child;
+                    }
+                }
+                return originalAppendChild.call(this, child);
+            };
+            
+            Node.prototype.insertBefore = function(child, reference) {
+                if (child.tagName === 'SCRIPT' || child.tagName === 'IFRAME') {
+                    const src = child.src || child.getAttribute('src') || '';
+                    if (isBlocked(src)) {
+                        return child;
+                    }
+                }
+                return originalInsertBefore.call(this, child, reference);
+            };
+            
+            // Comprehensive Facebook Pixel stub to prevent errors and warnings
+            window.fbq = function() { return; };
+            window.fbq.push = function() { return; };
+            window.fbq.loaded = true;
+            window.fbq.version = '2.0';
+            window.fbq.queue = [];
+            window.fbq.callMethod = function() { return; };
+            window._fbq = window.fbq;
+            
+            // Prevent Facebook Pixel from initializing
+            window.FB = window.FB || {};
+            window.FB.init = function() { return; };
+            window.FB.AppEvents = { logEvent: function() { return; } };
+            
+            // Watch for dynamically injected scripts and remove them
+            if (typeof MutationObserver !== 'undefined') {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.tagName === 'SCRIPT' || node.tagName === 'IFRAME') {
+                                const src = node.src || '';
+                                if (isBlocked(src)) {
+                                    node.remove();
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                if (document.body) {
+                    observer.observe(document.body, { childList: true, subtree: true });
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        observer.observe(document.body, { childList: true, subtree: true });
+                    });
+                }
+            }
+            
+            // Stub out gtag if Google Analytics tries to load
+            window.gtag = function() { return; };
+            window.dataLayer = window.dataLayer || [];
+            
+            // Suppress Meta Pixel console warnings
+            const originalConsoleWarn = console.warn;
+            console.warn = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('[Meta Pixel]') || 
+                    message.includes('Facebook') || 
+                    message.includes('invalid email') ||
+                    message.includes('fbevents')) {
+                    return;
+                }
+                originalConsoleWarn.apply(console, args);
+            };
+            
+            // Suppress Meta Pixel console errors
+            const originalConsoleError = console.error;
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('connect.facebook.net') || 
+                    message.includes('fbevents') ||
+                    blockPatterns.some(p => p.test(message))) {
+                    return;
+                }
+                originalConsoleError.apply(console, args);
+            };
+        </script>
+        <div id="root"></div>
+        <script>
+            // PostHog stub - analytics disabled by default
+            window.posthog = {
+                init: function() {},
+                capture: function() {},
+                identify: function() {},
+                reset: function() {},
+                set: function() {},
+                get_distinct_id: function() { return null; },
+                isFeatureEnabled: function() { return false; }
+            };
+        </script>
+        <script type="module" src="/src/index.js"></script>
+    </body>
+</html>
