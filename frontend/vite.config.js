@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv, transformWithOxc } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
 // Plugin to handle JSX in .js files (CRA migration compat)
@@ -26,7 +27,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), transformJsxInJs()],
+    plugins: [tailwindcss(), react(), transformJsxInJs()],
     define: {
       ...processEnvDefine,
       'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),

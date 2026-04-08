@@ -1,7 +1,5 @@
 /* Custom styles for Big Mann Entertainment */
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@reference "./index.css";
 
 /* Global Background */
 body {
