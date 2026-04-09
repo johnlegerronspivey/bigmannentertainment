@@ -3,7 +3,7 @@ import { api } from "../utils/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import {
   DollarSign, TrendingUp, BarChart3, Music, Plus, RefreshCw,
-  ArrowUpRight, ArrowDownRight, ChevronDown, X, Filter, Layers
+  ArrowUpRight, ArrowDownRight, ChevronDown, X, Filter, Layers, Download
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -119,6 +119,7 @@ export default function RevenueTrackingPage() {
     description: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const PLATFORM_OPTIONS = [
     { id: "spotify", name: "Spotify" },
@@ -203,6 +204,35 @@ export default function RevenueTrackingPage() {
     }
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (filterPlatform) params.set("platform_id", filterPlatform);
+      if (filterSource) params.set("source", filterSource);
+      const qStr = params.toString();
+      const url = `${process.env.REACT_APP_BACKEND_URL}/api/revenue/export${qStr ? "?" + qStr : ""}`;
+      const token = localStorage.getItem("token");
+      const res = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `revenue_report.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+      toast.success("CSV exported successfully");
+    } catch {
+      toast.error("Failed to export CSV");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const prevMonth = overview?.monthly_trend?.length >= 2
     ? overview.monthly_trend[overview.monthly_trend.length - 2].amount
     : 0;
@@ -233,6 +263,14 @@ export default function RevenueTrackingPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <button
+              data-testid="revenue-export-btn"
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm border border-slate-700 transition-colors disabled:opacity-50"
+            >
+              <Download size={14} /> {exporting ? "Exporting..." : "Export CSV"}
+            </button>
             <button
               data-testid="revenue-refresh-btn"
               onClick={loadOverview}
@@ -615,6 +653,14 @@ export default function RevenueTrackingPage() {
                 ))}
               </select>
               <span className="text-xs text-slate-500 ml-auto">{txTotal} total</span>
+              <button
+                data-testid="tx-export-btn"
+                onClick={handleExport}
+                disabled={exporting}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs border border-slate-600 transition-colors disabled:opacity-50 ml-2"
+              >
+                <Download size={12} /> {exporting ? "..." : "Export"}
+              </button>
             </div>
 
             {/* Transactions Table */}
