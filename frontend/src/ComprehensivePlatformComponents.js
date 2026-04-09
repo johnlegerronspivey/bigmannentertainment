@@ -1070,7 +1070,7 @@ const DistributionTracker = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Active Jobs</p>
-              <p className="text-2xl font-bold text-blue-600">{analytics.active_jobs || '3'}</p>
+              <p className="text-2xl font-bold text-blue-600">{analytics.active_jobs || '0'}</p>
             </div>
             <span className="text-2xl">🔄</span>
           </div>
@@ -1079,7 +1079,7 @@ const DistributionTracker = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
-              <p className="text-2xl font-bold text-green-600">{analytics.success_rate || '93.6'}%</p>
+              <p className="text-2xl font-bold text-green-600">{analytics.success_rate || '0'}%</p>
             </div>
             <span className="text-2xl">✅</span>
           </div>
@@ -1088,7 +1088,7 @@ const DistributionTracker = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Avg. Delivery Time</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.average_delivery_time || '4.2'}h</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.average_delivery_time || '0'}h</p>
             </div>
             <span className="text-2xl">⏱️</span>
           </div>
@@ -1407,7 +1407,7 @@ const RoyaltyEngine = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${revenueAnalytics.total_revenue?.toLocaleString() || '156,432'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">${revenueAnalytics.total_revenue?.toLocaleString() || '0'}</p>
             </div>
             <span className="text-2xl">💰</span>
           </div>
@@ -1425,7 +1425,7 @@ const RoyaltyEngine = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Growth</p>
-              <p className="text-2xl font-bold text-green-600">{revenueAnalytics.growth_rate || '+18.4'}%</p>
+              <p className="text-2xl font-bold text-green-600">{revenueAnalytics.growth_rate ?? 0}%</p>
             </div>
             <span className="text-2xl">📈</span>
           </div>
@@ -1669,7 +1669,7 @@ const AnalyticsForecasting = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Streams</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{performanceMetrics.total_streams?.toLocaleString() || '2,456,789'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{performanceMetrics.total_streams?.toLocaleString() || '0'}</p>
             </div>
             <span className="text-2xl">🎵</span>
           </div>
@@ -1678,7 +1678,7 @@ const AnalyticsForecasting = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Engagement Rate</p>
-              <p className="text-2xl font-bold text-blue-600">{performanceMetrics.engagement_rate || '7.8'}%</p>
+              <p className="text-2xl font-bold text-blue-600">{performanceMetrics.engagement_rate ?? 0}%</p>
             </div>
             <span className="text-2xl">👍</span>
           </div>
@@ -1687,7 +1687,7 @@ const AnalyticsForecasting = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Views</p>
-              <p className="text-2xl font-bold text-green-600">{performanceMetrics.total_views?.toLocaleString() || '5,678,901'}</p>
+              <p className="text-2xl font-bold text-green-600">{performanceMetrics.total_views?.toLocaleString() || '0'}</p>
             </div>
             <span className="text-2xl">👁️</span>
           </div>
@@ -1734,7 +1734,7 @@ const AnalyticsForecasting = () => {
                   <div key={asset.id || index} className="flex justify-between items-center">
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">{asset.title}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{asset.streams?.toLocaleString() || 0} streams</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{asset.events?.toLocaleString() || asset.streams?.toLocaleString() || 0} events</p>
                     </div>
                     <p className="font-semibold text-green-600">${(asset.revenue || 0).toLocaleString()}</p>
                   </div>
@@ -1749,7 +1749,7 @@ const AnalyticsForecasting = () => {
                   <div key={platform.name || index} className="flex justify-between items-center">
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">{platform.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{platform.streams?.toLocaleString() || 0} streams</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{platform.events?.toLocaleString() || platform.streams?.toLocaleString() || 0} events</p>
                     </div>
                     <p className="font-semibold text-blue-600">{platform.engagement_rate || 0}% engagement</p>
                   </div>
