@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../utils/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Calendar } from "../components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import {
   DollarSign, TrendingUp, BarChart3, Music, Plus, RefreshCw,
-  ArrowUpRight, ArrowDownRight, ChevronDown, X, Filter, Layers, Download
+  ArrowUpRight, ArrowDownRight, ChevronDown, X, Filter, Layers, Download,
+  CalendarDays
 } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 const SOURCE_COLORS = {
   streaming: "#8b5cf6",
@@ -98,6 +102,126 @@ function SourcePie({ sources }) {
   );
 }
 
+function DateRangePicker({ dateRange, onDateRangeChange }) {
+  const [open, setOpen] = useState(false);
+
+  const clearRange = (e) => {
+    e.stopPropagation();
+    onDateRangeChange({ from: undefined, to: undefined });
+  };
+
+  const hasRange = dateRange?.from || dateRange?.to;
+
+  const label = hasRange
+    ? `${dateRange.from ? format(dateRange.from, "MMM d, yyyy") : "Start"} — ${dateRange.to ? format(dateRange.to, "MMM d, yyyy") : "End"}`
+    : "Select date range";
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          data-testid="date-range-picker-trigger"
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm border transition-colors ${
+            hasRange
+              ? "bg-purple-600/20 border-purple-500/50 text-purple-300 hover:bg-purple-600/30"
+              : "bg-slate-800 border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+          }`}
+        >
+          <CalendarDays size={14} />
+          <span className="whitespace-nowrap">{label}</span>
+          {hasRange && (
+            <span
+              data-testid="date-range-clear-btn"
+              onClick={clearRange}
+              className="ml-1 rounded-full hover:bg-purple-500/30 p-0.5 transition-colors"
+            >
+              <X size={12} />
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 bg-slate-900 border-slate-700" align="start" sideOffset={8}>
+        <div className="p-3">
+          <p className="text-xs text-slate-400 mb-2 font-medium">Pick a start and end date</p>
+          <Calendar
+            mode="range"
+            selected={dateRange}
+            onSelect={(range) => {
+              onDateRangeChange(range || { from: undefined, to: undefined });
+              if (range?.from && range?.to) {
+                setOpen(false);
+              }
+            }}
+            numberOfMonths={2}
+            className="rounded-md"
+            classNames={{
+              months: "flex flex-col sm:flex-row gap-4",
+              month: "space-y-3",
+              caption: "flex justify-center pt-1 relative items-center text-slate-200 text-sm",
+              caption_label: "text-sm font-medium text-slate-200",
+              nav: "space-x-1 flex items-center",
+              nav_button: "h-7 w-7 bg-slate-800 border border-slate-600 rounded-md flex items-center justify-center hover:bg-slate-700 text-slate-300 transition-colors",
+              nav_button_previous: "absolute left-1",
+              nav_button_next: "absolute right-1",
+              table: "w-full border-collapse",
+              head_row: "flex",
+              head_cell: "text-slate-500 rounded-md w-8 font-normal text-[0.75rem] text-center",
+              row: "flex w-full mt-1",
+              cell: "relative p-0 text-center text-sm focus-within:z-20 [&:has([aria-selected])]:bg-purple-500/20 [&:has([aria-selected].day-outside)]:bg-purple-500/10 [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
+              day: "h-8 w-8 p-0 font-normal text-slate-300 rounded-md hover:bg-slate-700 transition-colors flex items-center justify-center",
+              day_range_start: "day-range-start bg-purple-600 text-white hover:bg-purple-500 rounded-l-md",
+              day_range_end: "day-range-end bg-purple-600 text-white hover:bg-purple-500 rounded-r-md",
+              day_selected: "bg-purple-600 text-white hover:bg-purple-500",
+              day_today: "bg-slate-700 text-white font-semibold",
+              day_outside: "day-outside text-slate-600 aria-selected:bg-purple-500/10 aria-selected:text-slate-400",
+              day_disabled: "text-slate-700",
+              day_range_middle: "aria-selected:bg-purple-500/20 aria-selected:text-purple-200",
+              day_hidden: "invisible",
+            }}
+          />
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700">
+            <div className="flex gap-2">
+              {[
+                { label: "7d", days: 7 },
+                { label: "30d", days: 30 },
+                { label: "90d", days: 90 },
+                { label: "1y", days: 365 },
+              ].map(({ label: presetLabel, days }) => (
+                <button
+                  key={presetLabel}
+                  data-testid={`date-preset-${presetLabel}`}
+                  onClick={() => {
+                    const to = new Date();
+                    const from = new Date();
+                    from.setDate(from.getDate() - days);
+                    onDateRangeChange({ from, to });
+                    setOpen(false);
+                  }}
+                  className="px-2.5 py-1 rounded text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition-colors"
+                >
+                  {presetLabel}
+                </button>
+              ))}
+            </div>
+            {hasRange && (
+              <button
+                data-testid="date-range-clear-all"
+                onClick={() => {
+                  onDateRangeChange({ from: undefined, to: undefined });
+                  setOpen(false);
+                }}
+                className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function RevenueTrackingPage() {
   const [overview, setOverview] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -108,6 +232,7 @@ export default function RevenueTrackingPage() {
   const [tab, setTab] = useState("overview");
   const [filterPlatform, setFilterPlatform] = useState("");
   const [filterSource, setFilterSource] = useState("");
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm, setAddForm] = useState({
     platform_id: "spotify",
@@ -153,6 +278,8 @@ export default function RevenueTrackingPage() {
       let q = "/revenue/transactions?limit=50";
       if (filterPlatform) q += `&platform_id=${filterPlatform}`;
       if (filterSource) q += `&source=${filterSource}`;
+      if (dateRange?.from) q += `&date_from=${format(dateRange.from, "yyyy-MM-dd")}`;
+      if (dateRange?.to) q += `&date_to=${format(dateRange.to, "yyyy-MM-dd")}`;
       const data = await api.get(q);
       setTransactions(data.transactions || []);
       setTxTotal(data.total || 0);
@@ -161,7 +288,7 @@ export default function RevenueTrackingPage() {
     } finally {
       setTxLoading(false);
     }
-  }, [filterPlatform, filterSource]);
+  }, [filterPlatform, filterSource, dateRange]);
 
   const loadPlatformDetail = async (pid) => {
     try {
@@ -210,6 +337,8 @@ export default function RevenueTrackingPage() {
       const params = new URLSearchParams();
       if (filterPlatform) params.set("platform_id", filterPlatform);
       if (filterSource) params.set("source", filterSource);
+      if (dateRange?.from) params.set("date_from", format(dateRange.from, "yyyy-MM-dd"));
+      if (dateRange?.to) params.set("date_to", format(dateRange.to, "yyyy-MM-dd"));
       const qStr = params.toString();
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/revenue/export${qStr ? "?" + qStr : ""}`;
       const token = localStorage.getItem("token");
@@ -262,7 +391,8 @@ export default function RevenueTrackingPage() {
               {overview?.period || "Last 12 months"} &middot; {overview?.total_transactions || 0} transactions
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
+            <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
             <button
               data-testid="revenue-export-btn"
               onClick={handleExport}
@@ -652,6 +782,7 @@ export default function RevenueTrackingPage() {
                   <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
                 ))}
               </select>
+              <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
               <span className="text-xs text-slate-500 ml-auto">{txTotal} total</span>
               <button
                 data-testid="tx-export-btn"

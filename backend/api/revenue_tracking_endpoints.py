@@ -59,6 +59,8 @@ async def add_revenue(req: RecordRevenueRequest, current_user: User = Depends(ge
 async def list_transactions(
     platform_id: Optional[str] = Query(None),
     source: Optional[str] = Query(None),
+    date_from: Optional[str] = Query(None, description="ISO date string, e.g. 2025-01-01"),
+    date_to: Optional[str] = Query(None, description="ISO date string, e.g. 2025-12-31"),
     limit: int = Query(50, ge=1, le=200),
     skip: int = Query(0, ge=0),
     current_user: User = Depends(get_current_user),
@@ -69,6 +71,13 @@ async def list_transactions(
         query["platform_id"] = platform_id
     if source:
         query["source"] = source
+    if date_from or date_to:
+        date_filter = {}
+        if date_from:
+            date_filter["$gte"] = date_from
+        if date_to:
+            date_filter["$lte"] = date_to + "T23:59:59"
+        query["date"] = date_filter
 
     total = await db[REVENUE_COLLECTION].count_documents(query)
     records = []
