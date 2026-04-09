@@ -84,6 +84,7 @@ from dns_health_endpoints import router as dns_health_router
 from cve_monitor_endpoints import router as cve_monitor_router
 from gs1_business_identifiers_endpoints import router as gs1_biz_identifiers_router
 from aws_dns_health_endpoints import router as aws_dns_health_router
+from revenue_tracking_endpoints import router as revenue_tracking_router
 
 # Main API Router
 api_router = APIRouter(prefix="/api")
@@ -131,6 +132,7 @@ routers = [
     cve_monitor_router,
     gs1_biz_identifiers_router,
     aws_dns_health_router,
+    revenue_tracking_router,
 ]
 
 for router in routers:

@@ -324,6 +324,7 @@ const NavigationBar = () => {
                 <div className="absolute top-full left-0 mt-2 w-44 bg-slate-800 rounded-md shadow-lg py-1 z-50 border border-slate-600">
                   <Link to="/earnings" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Earnings</Link>
                   <Link to="/payments" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Payments</Link>
+                  <Link to="/revenue" className="block px-4 py-2 text-sm text-emerald-300 hover:bg-slate-700 font-medium" onClick={closeAllDropdowns} data-testid="nav-revenue-tracking-link">Revenue Tracking</Link>
                   <Link to="/pricing" className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700" onClick={closeAllDropdowns}>Pricing</Link>
                 </div>
               )}
@@ -381,6 +382,7 @@ const NavigationBar = () => {
               <Link to="/industry" className="hover:text-purple-200 py-2 px-2" onClick={() => setIsMenuOpen(false)}>Industry</Link>
               <Link to="/earnings" className="hover:text-purple-200 py-2 px-2" onClick={() => setIsMenuOpen(false)}>Earnings</Link>
               <Link to="/payments" className="hover:text-purple-200 py-2 px-2" onClick={() => setIsMenuOpen(false)}>Payments</Link>
+              <Link to="/revenue" className="hover:text-purple-200 py-2 px-2" onClick={() => setIsMenuOpen(false)}>Revenue Tracking</Link>
               <Link to="/pricing" className="hover:text-purple-200 py-2 px-2" onClick={() => setIsMenuOpen(false)}>Pricing</Link>
               <Link to="/label/dashboard" className="hover:text-purple-200 py-2 px-2" onClick={() => setIsMenuOpen(false)}>Label</Link>
               

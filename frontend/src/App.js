@@ -143,6 +143,7 @@ const AWSBlockchainPage = lazy(() => import("./pages/AWSBlockchainPage"));
 const AWSAIContentPage = lazy(() => import("./pages/AWSAIContentPage"));
 const AWSMessagingPage = lazy(() => import("./pages/AWSMessagingPage"));
 const AWSInfrastructurePage = lazy(() => import("./pages/AWSInfrastructurePage"));
+const RevenueTrackingPage = lazy(() => import("./pages/RevenueTrackingPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -262,6 +263,7 @@ function App() {
             <Route path="/cve-monitor" element={<ProtectedRoute><CVEMonitorDashboard /></ProtectedRoute>} />
             <Route path="/catalog-import" element={<ProtectedRoute><CatalogImportPage /></ProtectedRoute>} />
             <Route path="/business-identifiers" element={<ProtectedRoute><BusinessIdentifiersPage /></ProtectedRoute>} />
+            <Route path="/revenue" element={<ProtectedRoute><RevenueTrackingPage /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Business routes */}
