@@ -356,7 +356,7 @@ const KPISnapshotCards = ({ kpiData, onCardClick }) => {
     {
       id: 'assets-live',
       title: '🎬 Assets Live',
-      value: kpiData?.assetsLive || '1,248',
+      value: kpiData?.assetsLive || '0',
       status: '✅',
       statusColor: 'text-green-500',
       bgColor: isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -364,7 +364,7 @@ const KPISnapshotCards = ({ kpiData, onCardClick }) => {
     {
       id: 'platforms-connected',
       title: '🌐 Platforms Connected',
-      value: kpiData?.platformsConnected || '32',
+      value: kpiData?.platformsConnected || '0',
       status: '🔄',
       statusColor: 'text-blue-500',
       bgColor: isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -372,7 +372,7 @@ const KPISnapshotCards = ({ kpiData, onCardClick }) => {
     {
       id: 'royalties-today',
       title: '💸 Royalties Today',
-      value: kpiData?.royaltiesToday || '$12,430.88',
+      value: kpiData?.royaltiesToday || '$0.00',
       status: '📈',
       statusColor: 'text-green-500',
       bgColor: isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -380,7 +380,7 @@ const KPISnapshotCards = ({ kpiData, onCardClick }) => {
     {
       id: 'pending-payouts',
       title: '⏳ Pending Payouts',
-      value: kpiData?.pendingPayouts || '$3,210.00',
+      value: kpiData?.pendingPayouts || '$0.00',
       status: '⚠️',
       statusColor: 'text-yellow-500',
       bgColor: isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -396,7 +396,7 @@ const KPISnapshotCards = ({ kpiData, onCardClick }) => {
     {
       id: 'forecast-roi',
       title: '📈 Forecast ROI (30d)',
-      value: kpiData?.forecastROI || '+18.4%',
+      value: kpiData?.forecastROI || '0%',
       status: '📊',
       statusColor: 'text-purple-500',
       bgColor: isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -535,77 +535,51 @@ export const ComprehensivePlatform = () => {
   const [notifications, setNotifications] = useState([]);
   const [user, setUser] = useState({ name: 'John LeGerron Spivey', email: 'owner@bigmannentertainment.com' });
 
-  // Initialize sample data
+  // Fetch real KPI data from backend
   useEffect(() => {
-    // Sample KPI data
-    setKpiData({
-      assetsLive: '1,248',
-      platformsConnected: '32',
-      royaltiesToday: '$12,430.88',
-      pendingPayouts: '$3,210.00',
-      complianceFlags: '2',
-      forecastROI: '+18.4%'
-    });
+    const fetchKpiData = async () => {
+      try {
+        const [contentRes, complianceRes, campaignRes, contributorRes] = await Promise.allSettled([
+          axios.get(`${API}/api/platform/content/stats?user_id=user_123`),
+          axios.get(`${API}/api/platform/compliance/status?user_id=user_123`),
+          axios.get(`${API}/api/platform/sponsorship/analytics?user_id=user_123`),
+          axios.get(`${API}/api/platform/contributors/stats?user_id=user_123`),
+        ]);
+        const content = contentRes.status === 'fulfilled' ? contentRes.value?.data : {};
+        const compliance = complianceRes.status === 'fulfilled' ? complianceRes.value?.data : {};
+        const campaign = campaignRes.status === 'fulfilled' ? campaignRes.value?.data : {};
+        const contributor = contributorRes.status === 'fulfilled' ? contributorRes.value?.data : {};
 
-    // Sample recent activities
-    setRecentActivities([
-      {
-        icon: '🎵',
-        description: 'New track "Summer Vibes" approved for distribution',
-        timestamp: '2 minutes ago'
-      },
-      {
-        icon: '💰',
-        description: 'Royalty payment of $1,250.00 processed to Artist_123',
-        timestamp: '15 minutes ago'
-      },
-      {
-        icon: '📡',
-        description: 'Content successfully delivered to Spotify',
-        timestamp: '1 hour ago'
-      },
-      {
-        icon: '🛡️',
-        description: 'Compliance check completed for territory US',
-        timestamp: '2 hours ago'
-      }
-    ]);
+        const totalAssets = content?.stats?.total_assets || 0;
+        const liveAssets = content?.stats?.by_status?.live || 0;
+        const compScore = compliance?.overall_compliance?.score || 0;
+        const compFlags = (compliance?.overall_compliance?.needs_attention || 0) + (compliance?.overall_compliance?.non_compliant || 0);
+        const totalCampaigns = campaign?.analytics?.overview?.total_campaigns || 0;
+        const totalEarned = contributor?.stats?.earnings?.total_earned || 0;
+        const pendingEarnings = contributor?.stats?.earnings?.pending || 0;
 
-    // Sample system alerts
-    setSystemAlerts([
-      {
-        title: 'Delivery Failed',
-        message: 'Unable to deliver content to TikTok due to API limits',
-        severity: 'high'
-      },
-      {
-        title: 'Low Balance',
-        message: 'Payout wallet balance below $1,000',
-        severity: 'medium'
+        setKpiData({
+          assetsLive: liveAssets.toLocaleString(),
+          platformsConnected: totalCampaigns.toString(),
+          royaltiesToday: `$${totalEarned.toLocaleString()}`,
+          pendingPayouts: `$${pendingEarnings.toLocaleString()}`,
+          complianceFlags: compFlags.toString(),
+          forecastROI: `${compScore}%`
+        });
+      } catch (e) {
+        console.error('KPI fetch error:', e);
+        setKpiData({
+          assetsLive: '0', platformsConnected: '0', royaltiesToday: '$0',
+          pendingPayouts: '$0', complianceFlags: '0', forecastROI: '0%'
+        });
       }
-    ]);
+    };
+    fetchKpiData();
 
-    // Sample notifications
-    setNotifications([
-      {
-        title: 'New Royalty Payment',
-        message: 'You received $245.67 from Spotify streams',
-        time: '5 min ago',
-        read: false
-      },
-      {
-        title: 'Content Approved',
-        message: 'Your track "Midnight Dreams" has been approved',
-        time: '1 hour ago',
-        read: false
-      },
-      {
-        title: 'System Maintenance',
-        message: 'Scheduled maintenance tonight at 2 AM EST',
-        time: '3 hours ago',
-        read: true
-      }
-    ]);
+    // Recent activities & alerts will be populated from real data as user navigates
+    setRecentActivities([]);
+    setSystemAlerts([]);
+    setNotifications([]);
   }, []);
 
   const handleSearch = (query) => {
@@ -784,7 +758,7 @@ const ContentManager = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Assets</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.total_assets || '1,248'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.total_assets || '0'}</p>
             </div>
             <span className="text-2xl">📁</span>
           </div>
@@ -793,7 +767,7 @@ const ContentManager = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Storage Used</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.total_size || '45.2 GB'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.total_size || '0 B'}</p>
             </div>
             <span className="text-2xl">💾</span>
           </div>
@@ -802,7 +776,7 @@ const ContentManager = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">This Month</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.this_month?.uploaded || '67'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.this_month?.uploaded || '0'}</p>
             </div>
             <span className="text-2xl">📈</span>
           </div>
@@ -811,7 +785,7 @@ const ContentManager = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Live Assets</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.by_status?.live || '1,100'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contentStats.by_status?.live || '0'}</p>
             </div>
             <span className="text-2xl">✅</span>
           </div>
@@ -954,15 +928,15 @@ const ContentManager = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Audio</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{contentStats.by_type?.audio || '892'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{contentStats.by_type?.audio || '0'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Video</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{contentStats.by_type?.video || '234'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{contentStats.by_type?.video || '0'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Image</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{contentStats.by_type?.image || '122'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{contentStats.by_type?.image || '0'}</span>
                 </div>
               </div>
             </div>
@@ -972,15 +946,15 @@ const ContentManager = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Live</span>
-                  <span className="font-medium text-green-600">{contentStats.by_status?.live || '1,100'}</span>
+                  <span className="font-medium text-green-600">{contentStats.by_status?.live || '0'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Pending Review</span>
-                  <span className="font-medium text-yellow-600">{contentStats.by_status?.pending_review || '35'}</span>
+                  <span className="font-medium text-yellow-600">{contentStats.by_status?.pending_review || '0'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Draft</span>
-                  <span className="font-medium text-gray-600">{contentStats.by_status?.draft || '113'}</span>
+                  <span className="font-medium text-gray-600">{contentStats.by_status?.draft || '0'}</span>
                 </div>
               </div>
             </div>
@@ -1061,7 +1035,7 @@ const DistributionTracker = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Jobs</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.total_jobs || '156'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.total_jobs || '0'}</p>
             </div>
             <span className="text-2xl">📤</span>
           </div>
@@ -1416,7 +1390,7 @@ const RoyaltyEngine = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Pending Payouts</p>
-              <p className="text-2xl font-bold text-yellow-600">$3,210</p>
+              <p className="text-2xl font-bold text-yellow-600">$0</p>
             </div>
             <span className="text-2xl">⏳</span>
           </div>
@@ -1434,7 +1408,7 @@ const RoyaltyEngine = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Contributors</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">234</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{revenueAnalytics.contributors || '0'}</p>
             </div>
             <span className="text-2xl">👥</span>
           </div>
@@ -1497,17 +1471,17 @@ const RoyaltyEngine = () => {
               <div className={`${isDarkMode ? 'bg-green-800 border-green-700' : 'bg-green-50 border-green-200'} border rounded-lg p-4`}>
                 <h3 className="font-semibold text-green-900 dark:text-green-100">Instant Payouts</h3>
                 <p className="text-green-700 dark:text-green-300 text-sm mt-1">Crypto & Digital Wallets</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-2">$12,450</p>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-2">$0</p>
               </div>
               <div className={`${isDarkMode ? 'bg-blue-800 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4`}>
                 <h3 className="font-semibold text-blue-900 dark:text-blue-100">Scheduled Payouts</h3>
                 <p className="text-blue-700 dark:text-blue-300 text-sm mt-1">Bank Transfers & ACH</p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-2">$8,750</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-2">$0</p>
               </div>
               <div className={`${isDarkMode ? 'bg-yellow-800 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4`}>
                 <h3 className="font-semibold text-yellow-900 dark:text-yellow-100">Pending Review</h3>
                 <p className="text-yellow-700 dark:text-yellow-300 text-sm mt-1">Manual Approval Required</p>
-                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mt-2">$3,210</p>
+                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mt-2">$0</p>
               </div>
             </div>
 
@@ -2050,7 +2024,7 @@ const ComplianceCenter = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Compliance Score</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{complianceStatus.score || '87.5'}%</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{complianceStatus.score || '0'}%</p>
             </div>
             <span className="text-2xl">🛡️</span>
           </div>
@@ -2059,7 +2033,7 @@ const ComplianceCenter = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Compliant Assets</p>
-              <p className="text-2xl font-bold text-green-600">{complianceStatus.compliant_assets || '1,092'}</p>
+              <p className="text-2xl font-bold text-green-600">{complianceStatus.compliant_assets || '0'}</p>
             </div>
             <span className="text-2xl">✅</span>
           </div>
@@ -2068,7 +2042,7 @@ const ComplianceCenter = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Needs Attention</p>
-              <p className="text-2xl font-bold text-yellow-600">{complianceStatus.needs_attention || '134'}</p>
+              <p className="text-2xl font-bold text-yellow-600">{complianceStatus.needs_attention || '0'}</p>
             </div>
             <span className="text-2xl">⚠️</span>
           </div>
@@ -2077,7 +2051,7 @@ const ComplianceCenter = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Non-Compliant</p>
-              <p className="text-2xl font-bold text-red-600">{complianceStatus.non_compliant || '22'}</p>
+              <p className="text-2xl font-bold text-red-600">{complianceStatus.non_compliant || '0'}</p>
             </div>
             <span className="text-2xl">❌</span>
           </div>
@@ -2398,7 +2372,7 @@ const SponsorshipCampaigns = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Campaigns</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.overview?.total_campaigns || '15'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.overview?.total_campaigns || '0'}</p>
             </div>
             <span className="text-2xl">🎯</span>
           </div>
@@ -2407,7 +2381,7 @@ const SponsorshipCampaigns = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Active Campaigns</p>
-              <p className="text-2xl font-bold text-green-600">{analytics.overview?.active_campaigns || '3'}</p>
+              <p className="text-2xl font-bold text-green-600">{analytics.overview?.active_campaigns || '0'}</p>
             </div>
             <span className="text-2xl">🟢</span>
           </div>
@@ -2416,7 +2390,7 @@ const SponsorshipCampaigns = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Spend</p>
-              <p className="text-2xl font-bold text-blue-600">${analytics.overview?.total_spent?.toLocaleString() || '89,750'}</p>
+              <p className="text-2xl font-bold text-blue-600">${analytics.overview?.total_spent?.toLocaleString() || '0'}</p>
             </div>
             <span className="text-2xl">💰</span>
           </div>
@@ -2425,7 +2399,7 @@ const SponsorshipCampaigns = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">ROI</p>
-              <p className="text-2xl font-bold text-purple-600">{analytics.overview?.roi || '161.4'}%</p>
+              <p className="text-2xl font-bold text-purple-600">{analytics.overview?.roi || '0'}%</p>
             </div>
             <span className="text-2xl">📈</span>
           </div>
@@ -2798,7 +2772,7 @@ const ContributorHub = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Collaborations</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contributorStats.profile?.total_collaborations || '15'}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{contributorStats.profile?.total_collaborations || '0'}</p>
             </div>
             <span className="text-2xl">🤝</span>
           </div>
@@ -2807,7 +2781,7 @@ const ContributorHub = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
-              <p className="text-2xl font-bold text-green-600">{contributorStats.profile?.success_rate || '93.3'}%</p>
+              <p className="text-2xl font-bold text-green-600">{contributorStats.profile?.success_rate || '0'}%</p>
             </div>
             <span className="text-2xl">✅</span>
           </div>
@@ -2816,7 +2790,7 @@ const ContributorHub = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Earned</p>
-              <p className="text-2xl font-bold text-blue-600">${contributorStats.earnings?.total_earned?.toLocaleString() || '12,450'}</p>
+              <p className="text-2xl font-bold text-blue-600">${contributorStats.earnings?.total_earned?.toLocaleString() || '0'}</p>
             </div>
             <span className="text-2xl">💰</span>
           </div>
@@ -2825,7 +2799,7 @@ const ContributorHub = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Average Rating</p>
-              <p className="text-2xl font-bold text-yellow-600">{contributorStats.profile?.average_rating || '4.7'}⭐</p>
+              <p className="text-2xl font-bold text-yellow-600">{contributorStats.profile?.average_rating || '0'}⭐</p>
             </div>
             <span className="text-2xl">⭐</span>
           </div>
@@ -3078,7 +3052,7 @@ const ContributorHub = () => {
               <div className={`${isDarkMode ? 'bg-green-800 border-green-700' : 'bg-green-50 border-green-200'} border rounded-lg p-4`}>
                 <h3 className="font-semibold text-green-900 dark:text-green-100">Total Earned</h3>
                 <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-2">
-                  ${contributorStats.earnings?.total_earned?.toLocaleString() || '12,450'}
+                  ${contributorStats.earnings?.total_earned?.toLocaleString() || '0'}
                 </p>
               </div>
               <div className={`${isDarkMode ? 'bg-blue-800 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4`}>
@@ -3140,7 +3114,7 @@ const ContributorHub = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Success Rate</span>
-                      <span className="font-medium text-green-600">{contributorStats.profile?.success_rate || '93.3'}%</span>
+                      <span className="font-medium text-green-600">{contributorStats.profile?.success_rate || '0'}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Response Rate</span>

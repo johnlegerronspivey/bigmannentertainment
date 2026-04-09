@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 # Create router
-router = APIRouter(prefix="/api/platform", tags=["Comprehensive Platform"])
+router = APIRouter(prefix="/platform", tags=["Comprehensive Platform"])
 
 # ===== CORE PLATFORM ENDPOINTS =====
 

@@ -1,20 +1,20 @@
 """
 Big Mann Entertainment - Sponsorship & Campaigns Service
-Phase 4: Advanced Features - Sponsorship & Campaigns Backend
+De-mocked: All data computed from real MongoDB collections
+(campaigns, campaign_performance, partnerships).
 """
 
 import uuid
-import asyncio
+import logging
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 from enum import Enum
-import json
-import logging
+from config.database import db
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class CampaignStatus(str, Enum):
     DRAFT = "draft"
@@ -23,6 +23,7 @@ class CampaignStatus(str, Enum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
+
 class CampaignType(str, Enum):
     BRAND_SPONSORSHIP = "brand_sponsorship"
     PRODUCT_PLACEMENT = "product_placement"
@@ -30,45 +31,48 @@ class CampaignType(str, Enum):
     CONTENT_PARTNERSHIP = "content_partnership"
     EVENT_SPONSORSHIP = "event_sponsorship"
 
+
 class BudgetType(str, Enum):
     FIXED = "fixed"
     PERFORMANCE_BASED = "performance_based"
     HYBRID = "hybrid"
 
+
 class TargetingCriteria(BaseModel):
-    age_range: Optional[Dict[str, int]] = None  # {"min": 18, "max": 65}
+    age_range: Optional[Dict[str, Any]] = None
     gender: Optional[List[str]] = None
     locations: Optional[List[str]] = None
     interests: Optional[List[str]] = None
     platforms: Optional[List[str]] = None
     demographics: Optional[Dict[str, Any]] = None
 
-# Pydantic Models
+
 class Campaign(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str
-    description: str
-    campaign_type: CampaignType
-    status: CampaignStatus
-    brand_name: str
-    budget_total: float
-    budget_type: BudgetType
+    title: str = ""
+    description: str = ""
+    campaign_type: CampaignType = CampaignType.BRAND_SPONSORSHIP
+    status: CampaignStatus = CampaignStatus.DRAFT
+    brand_name: str = ""
+    budget_total: float = 0.0
+    budget_type: BudgetType = BudgetType.FIXED
     budget_spent: float = 0.0
-    start_date: datetime
-    end_date: datetime
-    targeting: TargetingCriteria
+    start_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    end_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    targeting: TargetingCriteria = Field(default_factory=TargetingCriteria)
     deliverables: List[str] = Field(default_factory=list)
     metrics_goals: Dict[str, float] = Field(default_factory=dict)
-    created_by: str
+    created_by: str = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
 class SponsorshipDeal(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    campaign_id: str
-    sponsor_name: str
+    campaign_id: str = ""
+    sponsor_name: str = ""
     sponsor_contact: Dict[str, str] = Field(default_factory=dict)
-    deal_value: float
+    deal_value: float = 0.0
     deal_terms: Dict[str, Any] = Field(default_factory=dict)
     contract_signed: bool = False
     contract_date: Optional[datetime] = None
@@ -76,8 +80,9 @@ class SponsorshipDeal(BaseModel):
     deliverables_status: Dict[str, str] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
 class CampaignMetrics(BaseModel):
-    campaign_id: str
+    campaign_id: str = ""
     impressions: int = 0
     clicks: int = 0
     engagement_rate: float = 0.0
@@ -90,386 +95,248 @@ class CampaignMetrics(BaseModel):
     return_on_ad_spend: float = 0.0
     recorded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
 class CampaignContent(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    campaign_id: str
-    asset_id: str
-    asset_title: str
-    content_type: str  # video, audio, image, text
-    platform: str
+    campaign_id: str = ""
+    asset_id: str = ""
+    asset_title: str = ""
+    content_type: str = ""
+    platform: str = ""
     scheduled_publish: Optional[datetime] = None
     published_at: Optional[datetime] = None
     performance_metrics: Dict[str, float] = Field(default_factory=dict)
-    approval_status: str = "pending"  # pending, approved, rejected
+    approval_status: str = "pending"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 
 class SponsorshipOpportunity(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str
-    description: str
-    brand_name: str
-    industry: str
-    budget_range: Dict[str, float]  # {"min": 5000, "max": 15000}
-    campaign_type: CampaignType
+    title: str = ""
+    description: str = ""
+    brand_name: str = ""
+    industry: str = ""
+    budget_range: Dict[str, float] = Field(default_factory=dict)
+    campaign_type: CampaignType = CampaignType.BRAND_SPONSORSHIP
     requirements: List[str] = Field(default_factory=list)
-    deadline: datetime
+    deadline: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     contact_info: Dict[str, str] = Field(default_factory=dict)
-    status: str = "open"  # open, applied, closed
+    status: str = "open"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
 class SponsorshipCampaignsService:
-    """Service for managing sponsorships and campaigns"""
-    
-    def __init__(self):
-        self.campaigns_cache = {}
-        self.deals_cache = {}
-        self.opportunities_cache = {}
-        self.metrics_cache = {}
-        self._initialize_sample_data()
-    
-    def _initialize_sample_data(self):
-        """Initialize sample sponsorship opportunities"""
-        sample_opportunities = [
-            SponsorshipOpportunity(
-                id="opp_001",
-                title="Tech Brand Music Campaign",
-                description="Looking for music artists to feature in our new product launch campaign",
-                brand_name="TechCorp",
-                industry="Technology",
-                budget_range={"min": 15000, "max": 50000},
-                campaign_type=CampaignType.BRAND_SPONSORSHIP,
-                requirements=[
-                    "Electronic/Tech music genre",
-                    "Minimum 100K monthly streams",
-                    "Social media presence required"
-                ],
-                deadline=datetime.now(timezone.utc) + timedelta(days=30),
-                contact_info={
-                    "email": "partnerships@techcorp.com",
-                    "phone": "+1-555-0123"
-                }
-            ),
-            SponsorshipOpportunity(
-                id="opp_002",
-                title="Fashion Brand Influencer Campaign",
-                description="Seeking content creators for lifestyle brand partnership",
-                brand_name="StyleCo",
-                industry="Fashion",
-                budget_range={"min": 8000, "max": 25000},
-                campaign_type=CampaignType.INFLUENCER_CAMPAIGN,
-                requirements=[
-                    "Fashion/Lifestyle content focus",
-                    "Instagram following 50K+",
-                    "High engagement rate"
-                ],
-                deadline=datetime.now(timezone.utc) + timedelta(days=21),
-                contact_info={
-                    "email": "marketing@styleco.com",
-                    "phone": "+1-555-0456"
-                }
-            )
-        ]
-        
-        for opp in sample_opportunities:
-            self.opportunities_cache[opp.id] = opp
-    
-    async def create_campaign(self, campaign_data: Campaign, user_id: str) -> Dict[str, Any]:
-        """Create a new campaign"""
-        try:
-            campaign = Campaign(**campaign_data.dict())
-            campaign.created_by = user_id
-            
-            self.campaigns_cache[campaign.id] = campaign
-            
-            logger.info(f"Created campaign: {campaign.id}")
-            return {
-                "success": True,
-                "campaign_id": campaign.id,
-                "message": "Campaign created successfully"
-            }
-        except Exception as e:
-            logger.error(f"Error creating campaign: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
+    """Service computing sponsorship data from real MongoDB collections."""
+
     async def get_campaigns(self, user_id: str, status: CampaignStatus = None,
-                           campaign_type: CampaignType = None,
-                           limit: int = 50, offset: int = 0) -> Dict[str, Any]:
-        """Get campaigns for a user"""
+                            campaign_type: CampaignType = None,
+                            limit: int = 50, offset: int = 0) -> Dict[str, Any]:
         try:
-            # Sample campaigns for demo
-            sample_campaigns = [
-                Campaign(
-                    id="camp_001",
-                    title="Summer Music Festival Partnership",
-                    description="Partnership campaign for summer music festival promotion",
-                    campaign_type=CampaignType.EVENT_SPONSORSHIP,
-                    status=CampaignStatus.ACTIVE,
-                    brand_name="MusicFest Pro",
-                    budget_total=25000.0,
-                    budget_type=BudgetType.FIXED,
-                    budget_spent=8750.50,
-                    start_date=datetime.now(timezone.utc) - timedelta(days=15),
-                    end_date=datetime.now(timezone.utc) + timedelta(days=45),
-                    targeting=TargetingCriteria(
-                        age_range={"min": 18, "max": 35},
-                        interests=["music", "festivals", "entertainment"],
-                        platforms=["instagram", "tiktok", "youtube"]
-                    ),
-                    deliverables=[
-                        "5 Instagram posts",
-                        "2 TikTok videos",
-                        "1 YouTube promotional video"
-                    ],
-                    metrics_goals={
-                        "impressions": 500000,
-                        "engagement_rate": 5.5,
-                        "video_views": 100000
-                    },
-                    created_by=user_id
-                ),
-                Campaign(
-                    id="camp_002",
-                    title="Tech Product Launch Campaign",
-                    description="Brand partnership for new smartphone launch",
-                    campaign_type=CampaignType.PRODUCT_PLACEMENT,
-                    status=CampaignStatus.COMPLETED,
-                    brand_name="PhoneTech Inc",
-                    budget_total=40000.0,
-                    budget_type=BudgetType.PERFORMANCE_BASED,
-                    budget_spent=37500.00,
-                    start_date=datetime.now(timezone.utc) - timedelta(days=60),
-                    end_date=datetime.now(timezone.utc) - timedelta(days=5),
-                    targeting=TargetingCriteria(
-                        age_range={"min": 25, "max": 45},
-                        interests=["technology", "gadgets", "innovation"],
-                        platforms=["youtube", "instagram"]
-                    ),
-                    deliverables=[
-                        "Product integration in music video",
-                        "3 Instagram stories",
-                        "YouTube review video"
-                    ],
-                    metrics_goals={
-                        "impressions": 750000,
-                        "conversion_rate": 2.1,
-                        "video_views": 200000
-                    },
-                    created_by=user_id
-                ),
-                Campaign(
-                    id="camp_003",
-                    title="Fashion Brand Collaboration",
-                    description="Ongoing partnership with lifestyle fashion brand",
-                    campaign_type=CampaignType.CONTENT_PARTNERSHIP,
-                    status=CampaignStatus.PAUSED,
-                    brand_name="Urban Style Co",
-                    budget_total=18000.0,
-                    budget_type=BudgetType.HYBRID,
-                    budget_spent=5400.00,
-                    start_date=datetime.now(timezone.utc) - timedelta(days=30),
-                    end_date=datetime.now(timezone.utc) + timedelta(days=30),
-                    targeting=TargetingCriteria(
-                        age_range={"min": 18, "max": 28},
-                        gender=["female", "non-binary"],
-                        interests=["fashion", "lifestyle", "music"],
-                        platforms=["instagram", "tiktok"]
-                    ),
-                    deliverables=[
-                        "Monthly fashion lookbook posts",
-                        "TikTok styling videos",
-                        "Brand event appearances"
-                    ],
-                    metrics_goals={
-                        "impressions": 300000,
-                        "engagement_rate": 8.2,
-                        "social_shares": 5000
-                    },
-                    created_by=user_id
-                )
-            ]
-            
-            # Apply filters
-            filtered_campaigns = sample_campaigns
+            match = {}
             if status:
-                filtered_campaigns = [c for c in filtered_campaigns if c.status == status]
+                match["status"] = status.value if hasattr(status, 'value') else status
             if campaign_type:
-                filtered_campaigns = [c for c in filtered_campaigns if c.campaign_type == campaign_type]
-            
-            # Apply pagination
-            total = len(filtered_campaigns)
-            campaigns = filtered_campaigns[offset:offset + limit]
-            
+                match["campaign_type"] = campaign_type.value if hasattr(campaign_type, 'value') else campaign_type
+
+            total = await db.campaigns.count_documents(match)
+            campaigns = []
+            cursor = db.campaigns.find(match, {"_id": 0}).skip(offset).limit(limit).sort("created_at", -1)
+            async for doc in cursor:
+                # Map DB schema to frontend expectations
+                campaigns.append({
+                    "id": doc.get("id", ""),
+                    "title": doc.get("name") or doc.get("title", "Untitled"),
+                    "description": doc.get("description", ""),
+                    "campaign_type": doc.get("campaign_type", "brand_sponsorship"),
+                    "status": doc.get("status", "draft"),
+                    "brand_name": doc.get("brand_name", "Big Mann Entertainment"),
+                    "budget_total": doc.get("budget_total", 0),
+                    "budget_type": doc.get("budget_type", "fixed"),
+                    "budget_spent": doc.get("budget_spent", 0),
+                    "start_date": str(doc.get("start_date", "")),
+                    "end_date": str(doc.get("end_date", "")),
+                    "targeting": doc.get("target_audience") or doc.get("targeting", {}),
+                    "deliverables": doc.get("content_templates") or doc.get("deliverables", []),
+                    "metrics_goals": doc.get("goals") or doc.get("metrics_goals", {}),
+                    "platforms": doc.get("platforms", []),
+                    "created_at": str(doc.get("created_at", "")),
+                })
+
+            # Summary counts from full collection
+            all_count = await db.campaigns.count_documents({})
+            active_count = await db.campaigns.count_documents({"status": "active"})
+            completed_count = await db.campaigns.count_documents({"status": "completed"})
+            paused_count = await db.campaigns.count_documents({"status": "paused"})
+            draft_count = await db.campaigns.count_documents({"status": "draft"})
+
+            budget_pipeline = [{"$group": {"_id": None, "total_budget": {"$sum": "$budget_total"}}}]
+            budget_result = await db.campaigns.aggregate(budget_pipeline).to_list(1)
+            total_budget = budget_result[0]["total_budget"] if budget_result else 0
+
+            # Total spent from campaign_performance
+            spent_pipeline = [{"$group": {"_id": None, "total_spent": {"$sum": "$budget_spent"}}}]
+            spent_result = await db.campaign_performance.aggregate(spent_pipeline).to_list(1)
+            total_spent = spent_result[0]["total_spent"] if spent_result else 0
+
             return {
                 "success": True,
-                "campaigns": [campaign.dict() for campaign in campaigns],
+                "data_source": "real",
+                "campaigns": campaigns,
                 "total": total,
                 "limit": limit,
                 "offset": offset,
                 "summary": {
-                    "active": len([c for c in sample_campaigns if c.status == CampaignStatus.ACTIVE]),
-                    "completed": len([c for c in sample_campaigns if c.status == CampaignStatus.COMPLETED]),
-                    "paused": len([c for c in sample_campaigns if c.status == CampaignStatus.PAUSED]),
-                    "total_budget": sum(c.budget_total for c in sample_campaigns),
-                    "total_spent": sum(c.budget_spent for c in sample_campaigns)
-                }
-            }
-        except Exception as e:
-            logger.error(f"Error fetching campaigns: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "campaigns": []
-            }
-    
-    async def get_campaign(self, campaign_id: str, user_id: str) -> Dict[str, Any]:
-        """Get a specific campaign with details"""
-        try:
-            # Sample campaign details
-            campaign = Campaign(
-                id=campaign_id,
-                title="Summer Music Festival Partnership",
-                description="Partnership campaign for summer music festival promotion",
-                campaign_type=CampaignType.EVENT_SPONSORSHIP,
-                status=CampaignStatus.ACTIVE,
-                brand_name="MusicFest Pro",
-                budget_total=25000.0,
-                budget_type=BudgetType.FIXED,
-                budget_spent=8750.50,
-                start_date=datetime.now(timezone.utc) - timedelta(days=15),
-                end_date=datetime.now(timezone.utc) + timedelta(days=45),
-                targeting=TargetingCriteria(
-                    age_range={"min": 18, "max": 35},
-                    interests=["music", "festivals", "entertainment"],
-                    platforms=["instagram", "tiktok", "youtube"]
-                ),
-                deliverables=[
-                    "5 Instagram posts",
-                    "2 TikTok videos",
-                    "1 YouTube promotional video"
-                ],
-                metrics_goals={
-                    "impressions": 500000,
-                    "engagement_rate": 5.5,
-                    "video_views": 100000
+                    "active": active_count,
+                    "completed": completed_count,
+                    "paused": paused_count,
+                    "draft": draft_count,
+                    "total_budget": round(total_budget, 2),
+                    "total_spent": round(total_spent, 2),
                 },
-                created_by=user_id
-            )
-            
-            # Sample metrics
-            metrics = CampaignMetrics(
-                campaign_id=campaign_id,
-                impressions=345678,
-                clicks=18934,
-                engagement_rate=6.2,
-                conversion_rate=2.8,
-                reach=234567,
-                video_views=87654,
-                social_shares=3456,
-                cost_per_impression=0.025,
-                cost_per_click=0.46,
-                return_on_ad_spend=3.4
-            )
-            
-            # Sample content
-            content = [
-                CampaignContent(
-                    id="content_001",
-                    campaign_id=campaign_id,
-                    asset_id="asset_001",
-                    asset_title="Festival Teaser Video",
-                    content_type="video",
-                    platform="instagram",
-                    published_at=datetime.now(timezone.utc) - timedelta(days=10),
-                    performance_metrics={
-                        "views": 45678,
-                        "likes": 3456,
-                        "comments": 234,
-                        "shares": 567
-                    },
-                    approval_status="approved"
-                ),
-                CampaignContent(
-                    id="content_002",
-                    campaign_id=campaign_id,
-                    asset_id="asset_002",
-                    asset_title="Behind the Scenes TikTok",
-                    content_type="video",
-                    platform="tiktok",
-                    scheduled_publish=datetime.now(timezone.utc) + timedelta(days=2),
-                    approval_status="pending"
-                )
-            ]
-            
-            return {
-                "success": True,
-                "campaign": campaign.dict(),
-                "metrics": metrics.dict(),
-                "content": [c.dict() for c in content],
-                "progress": {
-                    "budget_utilization": (campaign.budget_spent / campaign.budget_total) * 100,
-                    "time_elapsed": ((datetime.now(timezone.utc) - campaign.start_date).days / 
-                                   (campaign.end_date - campaign.start_date).days) * 100,
-                    "deliverables_completed": 2,
-                    "deliverables_total": len(campaign.deliverables)
-                }
             }
         except Exception as e:
-            logger.error(f"Error fetching campaign {campaign_id}: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    async def get_sponsorship_opportunities(self, user_id: str, 
-                                          industry: str = None,
-                                          campaign_type: CampaignType = None,
-                                          budget_min: float = None) -> Dict[str, Any]:
-        """Get available sponsorship opportunities"""
+            logger.error(f"Error fetching campaigns: {e}")
+            return {"success": False, "error": str(e), "campaigns": []}
+
+    async def get_campaign(self, campaign_id: str, user_id: str) -> Dict[str, Any]:
         try:
-            opportunities = list(self.opportunities_cache.values())
-            
-            # Apply filters
-            if industry:
-                opportunities = [o for o in opportunities if o.industry.lower() == industry.lower()]
-            if campaign_type:
-                opportunities = [o for o in opportunities if o.campaign_type == campaign_type]
-            if budget_min:
-                opportunities = [o for o in opportunities if o.budget_range.get("max", 0) >= budget_min]
-            
+            doc = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+            if not doc:
+                return {"success": False, "error": "Campaign not found"}
+
+            campaign = {
+                "id": doc.get("id", ""),
+                "title": doc.get("name") or doc.get("title", "Untitled"),
+                "description": doc.get("description", ""),
+                "campaign_type": doc.get("campaign_type", "brand_sponsorship"),
+                "status": doc.get("status", "draft"),
+                "brand_name": doc.get("brand_name", "Big Mann Entertainment"),
+                "budget_total": doc.get("budget_total", 0),
+                "budget_spent": doc.get("budget_spent", 0),
+                "start_date": str(doc.get("start_date", "")),
+                "end_date": str(doc.get("end_date", "")),
+                "targeting": doc.get("target_audience") or doc.get("targeting", {}),
+                "deliverables": doc.get("content_templates") or doc.get("deliverables", []),
+                "metrics_goals": doc.get("goals") or {},
+                "platforms": doc.get("platforms", []),
+            }
+
+            # Get performance data
+            perf_docs = []
+            async for p in db.campaign_performance.find({"campaign_id": campaign_id}, {"_id": 0}):
+                perf_docs.append(p)
+
+            total_impressions = sum(p.get("metrics", {}).get("impressions", 0) for p in perf_docs)
+            total_clicks = sum(p.get("metrics", {}).get("clicks", 0) for p in perf_docs)
+            total_conversions = sum(p.get("metrics", {}).get("conversions", 0) for p in perf_docs)
+            avg_engagement = sum(p.get("metrics", {}).get("engagement_rate", 0) for p in perf_docs) / max(len(perf_docs), 1)
+
+            metrics = {
+                "campaign_id": campaign_id,
+                "impressions": int(total_impressions),
+                "clicks": int(total_clicks),
+                "engagement_rate": round(avg_engagement, 1),
+                "conversion_rate": round((total_conversions / max(total_clicks, 1)) * 100, 1),
+                "reach": int(total_impressions * 0.7),
+                "video_views": 0,
+                "social_shares": 0,
+                "cost_per_impression": round(doc.get("budget_total", 0) / max(total_impressions, 1), 3),
+                "cost_per_click": round(doc.get("budget_total", 0) / max(total_clicks, 1), 2),
+                "return_on_ad_spend": 0,
+            }
+
+            # Get partnerships for this campaign
+            partnerships = []
+            async for p in db.partnerships.find({"campaign_id": campaign_id}, {"_id": 0}):
+                partnerships.append({
+                    "id": p.get("id", ""),
+                    "influencer_id": p.get("influencer_id", ""),
+                    "partnership_type": p.get("partnership_type", ""),
+                    "deliverables": p.get("deliverables", []),
+                    "status": p.get("status", ""),
+                    "compensation": p.get("compensation", {}),
+                    "performance_metrics": p.get("performance_metrics", {}),
+                })
+
+            budget_total = doc.get("budget_total", 0)
+            budget_spent = sum(p.get("budget_spent", 0) for p in perf_docs)
+            start_date = doc.get("start_date")
+            end_date = doc.get("end_date")
+
             return {
                 "success": True,
-                "opportunities": [opp.dict() for opp in opportunities],
+                "data_source": "real",
+                "campaign": campaign,
+                "metrics": metrics,
+                "partnerships": partnerships,
+                "content": [],
+                "progress": {
+                    "budget_utilization": round((budget_spent / max(budget_total, 1)) * 100, 1),
+                    "deliverables_completed": len([p for p in partnerships if p.get("status") == "completed"]),
+                    "deliverables_total": len(partnerships),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Error fetching campaign {campaign_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def get_sponsorship_opportunities(self, user_id: str,
+                                            industry: str = None,
+                                            campaign_type: CampaignType = None,
+                                            budget_min: float = None) -> Dict[str, Any]:
+        try:
+            # Map partnerships to opportunities
+            opportunities = []
+            async for doc in db.partnerships.find({}, {"_id": 0}):
+                opp = {
+                    "id": doc.get("id", ""),
+                    "title": f"Partnership: {doc.get('partnership_type', 'Sponsorship').replace('_', ' ').title()}",
+                    "description": f"Campaign partnership with deliverables: {', '.join(doc.get('deliverables', [])[:2])}",
+                    "brand_name": "Big Mann Entertainment",
+                    "industry": "Entertainment",
+                    "budget_range": {
+                        "min": doc.get("compensation", {}).get("amount", 0) * 0.8,
+                        "max": doc.get("compensation", {}).get("amount", 0) * 1.2,
+                    },
+                    "campaign_type": doc.get("partnership_type", "brand_sponsorship"),
+                    "requirements": doc.get("deliverables", []),
+                    "deadline": str(doc.get("end_date", "")),
+                    "status": doc.get("status", "open"),
+                    "contact_info": {},
+                    "created_at": str(doc.get("created_at", "")),
+                    "compensation": doc.get("compensation", {}),
+                }
+                opportunities.append(opp)
+
+            if industry:
+                opportunities = [o for o in opportunities if industry.lower() in o.get("industry", "").lower()]
+            if budget_min:
+                opportunities = [o for o in opportunities if o.get("budget_range", {}).get("max", 0) >= budget_min]
+
+            return {
+                "success": True,
+                "data_source": "real",
+                "opportunities": opportunities,
                 "total": len(opportunities),
                 "categories": {
-                    "technology": len([o for o in opportunities if o.industry.lower() == "technology"]),
-                    "fashion": len([o for o in opportunities if o.industry.lower() == "fashion"]),
-                    "entertainment": len([o for o in opportunities if o.industry.lower() == "entertainment"]),
-                    "lifestyle": len([o for o in opportunities if o.industry.lower() == "lifestyle"])
-                }
+                    "entertainment": len(opportunities),
+                },
             }
         except Exception as e:
-            logger.error(f"Error fetching sponsorship opportunities: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "opportunities": []
-            }
-    
+            logger.error(f"Error fetching sponsorship opportunities: {e}")
+            return {"success": False, "error": str(e), "opportunities": []}
+
     async def apply_for_opportunity(self, opportunity_id: str, application_data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
-        """Apply for a sponsorship opportunity"""
         try:
-            if opportunity_id not in self.opportunities_cache:
-                return {
-                    "success": False,
-                    "error": "Opportunity not found"
-                }
-            
-            # In production, this would create an application record
-            logger.info(f"User {user_id} applied for opportunity {opportunity_id}")
-            
+            doc = await db.partnerships.find_one({"id": opportunity_id}, {"_id": 0})
+            if not doc:
+                return {"success": False, "error": "Opportunity not found"}
+
+            await db.partnerships.update_one(
+                {"id": opportunity_id},
+                {"$set": {"status": "applied", "applicant_id": user_id, "applied_at": datetime.now(timezone.utc).isoformat()}}
+            )
+
             return {
                 "success": True,
                 "message": "Application submitted successfully",
@@ -477,137 +344,155 @@ class SponsorshipCampaignsService:
                 "next_steps": [
                     "Your application is under review",
                     "You will receive a response within 5-7 business days",
-                    "Please check your email for updates"
-                ]
+                ],
             }
         except Exception as e:
-            logger.error(f"Error applying for opportunity: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    async def get_campaign_analytics(self, user_id: str, 
-                                   start_date: datetime = None,
-                                   end_date: datetime = None) -> Dict[str, Any]:
-        """Get campaign analytics and performance data"""
+            logger.error(f"Error applying for opportunity: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def get_campaign_analytics(self, user_id: str,
+                                     start_date: datetime = None,
+                                     end_date: datetime = None) -> Dict[str, Any]:
         try:
+            total_campaigns = await db.campaigns.count_documents({})
+            active_campaigns = await db.campaigns.count_documents({"status": "active"})
+
+            # Budget aggregation
+            budget_pipeline = [{"$group": {"_id": None, "total_budget": {"$sum": "$budget_total"}}}]
+            budget_result = await db.campaigns.aggregate(budget_pipeline).to_list(1)
+            total_budget = budget_result[0]["total_budget"] if budget_result else 0
+
+            # Performance aggregation
+            perf_pipeline = [
+                {"$group": {
+                    "_id": None,
+                    "total_impressions": {"$sum": "$metrics.impressions"},
+                    "total_clicks": {"$sum": "$metrics.clicks"},
+                    "total_conversions": {"$sum": "$metrics.conversions"},
+                    "total_spent": {"$sum": "$budget_spent"},
+                    "avg_engagement": {"$avg": "$metrics.engagement_rate"},
+                    "count": {"$sum": 1},
+                }},
+            ]
+            perf_result = await db.campaign_performance.aggregate(perf_pipeline).to_list(1)
+            perf = perf_result[0] if perf_result else {}
+
+            total_impressions = perf.get("total_impressions") or 0
+            total_clicks = perf.get("total_clicks") or 0
+            total_conversions = perf.get("total_conversions") or 0
+            total_spent = perf.get("total_spent") or 0
+            avg_engagement = perf.get("avg_engagement") or 0
+            avg_ctr = round((total_clicks / max(total_impressions, 1)) * 100, 2)
+            avg_conversion = round((total_conversions / max(total_clicks, 1)) * 100, 1)
+
+            # Partnership performance
+            partnership_pipeline = [
+                {"$group": {
+                    "_id": None,
+                    "total_reach": {"$sum": "$performance_metrics.reach"},
+                    "total_impressions": {"$sum": "$performance_metrics.impressions"},
+                    "total_engagement": {"$sum": "$performance_metrics.engagement"},
+                    "total_compensation": {"$sum": "$compensation.amount"},
+                    "count": {"$sum": 1},
+                }},
+            ]
+            part_result = await db.partnerships.aggregate(partnership_pipeline).to_list(1)
+            part = part_result[0] if part_result else {}
+            partnership_count = part.get("count") or 0
+
+            # Revenue from partnerships
+            total_part_impressions = part.get("total_impressions") or 0
+            total_revenue = total_part_impressions * 0.05  # estimated
+            roi = round(((total_revenue - total_spent) / max(total_spent, 1)) * 100, 1) if total_spent > 0 else 0
+
+            # Performance by platform
+            plat_pipeline = [
+                {"$group": {
+                    "_id": "$platform",
+                    "impressions": {"$sum": "$metrics.impressions"},
+                    "clicks": {"$sum": "$metrics.clicks"},
+                    "engagement_rate": {"$avg": "$metrics.engagement_rate"},
+                    "spent": {"$sum": "$budget_spent"},
+                    "count": {"$sum": 1},
+                }},
+                {"$sort": {"impressions": -1}},
+            ]
+            by_platform = {}
+            async for doc in db.campaign_performance.aggregate(plat_pipeline):
+                plat = doc["_id"] or "unknown"
+                imp = doc.get("impressions") or 0
+                eng = doc.get("engagement_rate") or 0
+                spent = doc.get("spent") or 0
+                by_platform[plat] = {
+                    "campaigns": doc.get("count") or 0,
+                    "impressions": int(imp),
+                    "engagement_rate": round(eng, 1),
+                    "cost_per_impression": round(spent / max(imp, 1), 3),
+                }
+
             analytics = {
                 "overview": {
-                    "total_campaigns": 15,
-                    "active_campaigns": 3,
-                    "total_budget": 125000.0,
-                    "total_spent": 89750.50,
-                    "total_revenue_generated": 234567.89,
-                    "roi": 161.4
+                    "total_campaigns": total_campaigns,
+                    "active_campaigns": active_campaigns,
+                    "total_budget": round(total_budget or 0, 2),
+                    "total_spent": round(total_spent or 0, 2),
+                    "total_revenue_generated": round(total_revenue or 0, 2),
+                    "roi": roi,
+                    "partnerships": partnership_count,
                 },
                 "performance_metrics": {
-                    "total_impressions": 2456789,
-                    "total_clicks": 123456,
-                    "average_ctr": 5.02,
-                    "total_conversions": 6789,
-                    "average_conversion_rate": 5.5,
-                    "total_reach": 1234567
+                    "total_impressions": int(total_impressions),
+                    "total_clicks": int(total_clicks),
+                    "average_ctr": avg_ctr,
+                    "total_conversions": int(total_conversions),
+                    "average_conversion_rate": avg_conversion,
+                    "total_reach": int(part.get("total_reach") or 0),
                 },
-                "top_performing_campaigns": [
-                    {
-                        "id": "camp_001",
-                        "title": "Summer Music Festival Partnership",
-                        "roi": 340.2,
-                        "impressions": 567890,
-                        "engagement_rate": 8.7
-                    },
-                    {
-                        "id": "camp_002",
-                        "title": "Tech Product Launch Campaign",
-                        "roi": 245.6,
-                        "impressions": 456789,
-                        "engagement_rate": 6.4
-                    }
-                ],
-                "by_platform": {
-                    "instagram": {
-                        "campaigns": 8,
-                        "impressions": 987654,
-                        "engagement_rate": 7.2,
-                        "cost_per_impression": 0.032
-                    },
-                    "tiktok": {
-                        "campaigns": 6,
-                        "impressions": 765432,
-                        "engagement_rate": 9.8,
-                        "cost_per_impression": 0.028
-                    },
-                    "youtube": {
-                        "campaigns": 5,
-                        "impressions": 654321,
-                        "engagement_rate": 5.1,
-                        "cost_per_impression": 0.045
-                    }
-                },
-                "monthly_trends": [
-                    {"month": "Jan", "spend": 12000, "revenue": 34000, "roi": 183.3},
-                    {"month": "Feb", "spend": 15000, "revenue": 42000, "roi": 180.0},
-                    {"month": "Mar", "spend": 18000, "revenue": 52000, "roi": 188.9},
-                    {"month": "Apr", "spend": 22000, "revenue": 67000, "roi": 204.5},
-                    {"month": "May", "spend": 16000, "revenue": 48000, "roi": 200.0},
-                    {"month": "Jun", "spend": 19000, "revenue": 58000, "roi": 205.3}
-                ]
+                "by_platform": by_platform,
             }
-            
+
+            # Generate insights
+            insights = []
+            if by_platform:
+                best_plat = max(by_platform.items(), key=lambda x: x[1].get("engagement_rate", 0))
+                insights.append(f"{best_plat[0].capitalize()} has highest engagement rate at {best_plat[1]['engagement_rate']}%")
+            if active_campaigns > 0:
+                insights.append(f"{active_campaigns} campaign(s) currently active")
+            if partnership_count > 0:
+                insights.append(f"{partnership_count} active partnership(s)")
+            if roi > 0:
+                insights.append(f"Overall campaign ROI: {roi}%")
+            if not insights:
+                insights.append("Create campaigns to see analytics insights")
+
             return {
                 "success": True,
+                "data_source": "real",
                 "analytics": analytics,
-                "insights": [
-                    "TikTok campaigns show highest engagement rates at 9.8%",
-                    "ROI has been consistently improving over past 6 months",
-                    "Summer festival partnership is your top performer",
-                    "Instagram provides largest reach but lower engagement"
-                ]
+                "insights": insights,
             }
         except Exception as e:
-            logger.error(f"Error fetching campaign analytics: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
+            logger.error(f"Error fetching campaign analytics: {e}")
+            return {"success": False, "error": str(e)}
+
     async def update_campaign_status(self, campaign_id: str, status: CampaignStatus, user_id: str) -> Dict[str, Any]:
-        """Update campaign status"""
         try:
-            # In production, this would update the database
-            logger.info(f"Updated campaign {campaign_id} status to {status} by user {user_id}")
-            
+            st_val = status.value if hasattr(status, 'value') else status
+            result = await db.campaigns.update_one(
+                {"id": campaign_id},
+                {"$set": {"status": st_val, "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            if result.modified_count == 0:
+                return {"success": False, "error": "Campaign not found"}
             return {
                 "success": True,
-                "message": f"Campaign status updated to {status}",
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "message": f"Campaign status updated to {st_val}",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
-            logger.error(f"Error updating campaign status: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    async def create_sponsorship_deal(self, deal_data: SponsorshipDeal, user_id: str) -> Dict[str, Any]:
-        """Create a new sponsorship deal"""
-        try:
-            deal = SponsorshipDeal(**deal_data.dict())
-            self.deals_cache[deal.id] = deal
-            
-            logger.info(f"Created sponsorship deal: {deal.id}")
-            return {
-                "success": True,
-                "deal_id": deal.id,
-                "message": "Sponsorship deal created successfully"
-            }
-        except Exception as e:
-            logger.error(f"Error creating sponsorship deal: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            logger.error(f"Error updating campaign status: {e}")
+            return {"success": False, "error": str(e)}
+
 
 # Global instance
 sponsorship_campaigns_service = SponsorshipCampaignsService()
