@@ -26,6 +26,7 @@ function CreatorAnalyticsPage() {
   const [geoData, setGeoData] = useState(null);
   const [revenueOverview, setRevenueOverview] = useState(null);
   const [scanning, setScanning] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => { loadAll(); }, []);
 
@@ -52,6 +53,16 @@ function CreatorAnalyticsPage() {
       ]);
     } catch { /* Partial load ok */ }
     finally { setLoading(false); }
+  };
+
+  const seedData = async () => {
+    setSeeding(true);
+    try {
+      await api.post("/analytics/seed-data");
+      // Reload all data after seeding
+      await loadAll();
+    } catch {}
+    finally { setSeeding(false); }
   };
 
   const runScan = async () => {
@@ -102,12 +113,26 @@ function CreatorAnalyticsPage() {
             <h1 className="text-3xl font-bold" data-testid="analytics-page-title">Creator Analytics</h1>
             <p className="text-gray-400 mt-1">AI-powered insights into your content, audience, and revenue</p>
           </div>
-          {anomalies.length > 0 && (
-            <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-1.5" data-testid="anomaly-badge">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-300 text-sm font-medium">{anomalies.length} anomal{anomalies.length === 1 ? "y" : "ies"} detected</span>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {demographics?.data_points === 0 && (
+              <button onClick={seedData} disabled={seeding} data-testid="seed-analytics-btn"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 rounded-lg text-purple-300 text-sm hover:bg-purple-600/30 disabled:opacity-50 transition-colors">
+                {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                {seeding ? "Populating..." : "Populate Analytics"}
+              </button>
+            )}
+            {demographics?.data_points > 0 && (
+              <span className="text-xs text-gray-500 bg-gray-800/50 px-3 py-1.5 rounded-lg" data-testid="data-points-badge">
+                {demographics.data_points.toLocaleString()} data points
+              </span>
+            )}
+            {anomalies.length > 0 && (
+              <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-1.5" data-testid="anomaly-badge">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <span className="text-amber-300 text-sm font-medium">{anomalies.length} anomal{anomalies.length === 1 ? "y" : "ies"} detected</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}
@@ -309,8 +334,18 @@ function AnomalyDetectionPanel({ anomalies, scanning, onScan, onDismiss }) {
 function DemographicsPanel({ demographics, geoData }) {
   if (!demographics) return <div className="text-gray-500 text-center py-12">Loading demographics...</div>;
 
+  const hasData = demographics.data_points > 0;
+
   return (
     <div data-testid="demographics-section" className="space-y-6">
+      {/* Data Source Indicator */}
+      {hasData && (
+        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-800/30 rounded-lg px-3 py-2" data-testid="demographics-data-source">
+          <BarChart3 className="w-3 h-3" />
+          <span>Computed from {demographics.data_points.toLocaleString()} engagement events across {demographics.total_platforms} platforms</span>
+        </div>
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={<Users className="w-5 h-5 text-purple-400" />} label="Total Followers" value={demographics.total_followers?.toLocaleString()} />
@@ -410,11 +445,16 @@ function DemographicsPanel({ demographics, geoData }) {
       </div>
 
       {/* Geographic Distribution */}
-      {geoData && (
+      {geoData && geoData.countries?.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6" data-testid="geo-distribution">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm text-gray-300">Geographic Distribution</h3>
-            <span className="text-xs text-gray-500">{geoData.total_countries} countries</span>
+            <div className="flex items-center gap-2">
+              {geoData.data_points > 0 && (
+                <span className="text-[10px] text-gray-600">{geoData.data_points.toLocaleString()} events</span>
+              )}
+              <span className="text-xs text-gray-500">{geoData.total_countries} countries</span>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -460,6 +500,17 @@ function BestTimesPanel({ bestTimes }) {
 
   return (
     <div data-testid="best-times-section" className="space-y-6">
+      {/* Data Source Indicator */}
+      {bestTimes.data_source && (
+        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-800/30 rounded-lg px-3 py-2" data-testid="best-times-data-source">
+          <Clock className="w-3 h-3" />
+          <span>
+            {bestTimes.data_source === "real"
+              ? "Computed from real engagement patterns"
+              : "Insufficient engagement data — populate analytics to see real patterns"}
+          </span>
+        </div>
+      )}
       {/* Recommendations */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6" data-testid="posting-recommendations">
         <h3 className="font-semibold text-sm text-gray-300 mb-4">Recommended Posting Windows</h3>

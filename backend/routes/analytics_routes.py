@@ -22,6 +22,7 @@ from services.revenue_tracking_service import (
     get_platform_revenue_detail,
     record_revenue,
 )
+from services.analytics_data_seeder import seed_analytics_events
 
 router = APIRouter(prefix="/analytics", tags=["Creator Analytics"])
 
@@ -274,3 +275,13 @@ async def record_new_revenue(req: RecordRevenueRequest, current_user=Depends(get
     """Record a new revenue entry."""
     user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
     return await record_revenue(user_id, req.dict())
+
+
+# ─── Analytics Data Seeder ───
+
+@router.post("/seed-data")
+async def seed_analytics_data(current_user=Depends(get_current_user)):
+    """Seed realistic analytics events from existing platform and content data."""
+    user_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    result = await seed_analytics_events(user_id, days=90, events_per_day=50)
+    return result
