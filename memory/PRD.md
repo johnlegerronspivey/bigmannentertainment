@@ -20,6 +20,7 @@ Build a social media management and creator tools platform featuring the Unified
 - Revenue Tracking connected to real MongoDB data (2026-04-09) — Full CRUD: overview, per-platform detail, record revenue, paginated transactions with filtering
 - CSV Export for Revenue Reports (2026-04-09) — Download filtered transaction history as CSV for accounting; supports platform, source, and date-range filters
 - Date-Range Picker for Revenue Export & Transactions (2026-04-09) — Dual-month calendar picker with preset shortcuts (7d/30d/90d/1y), clear controls, synced across header and Transactions tab; filters both CSV export and transaction list by date
+- Analytics De-mocked & Connected to Real Data (2026-04-09) — Demographics (age, gender, devices, interests), geographic distribution (countries, US cities), and best-time-to-post analytics now computed from real analytics_events in MongoDB instead of hardcoded values. Data seeder generates 3,800+ events from existing platform data. Data source indicators on frontend.
 
 ### Pending
 - "Register New Target" for DNS Health Checker (local DNS monitors — separate from AWS)
@@ -27,7 +28,7 @@ Build a social media management and creator tools platform featuring the Unified
 ## Architecture
 - **Backend**: FastAPI + MongoDB
 - **Frontend**: React (Vite 8 with Rolldown/Oxc) + Tailwind CSS v4 (CSS-first)
-- **Key Collections**: label_assets, label_rights, label_distributions, uln_labels, users, label_members, business_information, gs1_database, label_governance, label_disputes, business_identifiers, aws_dns_targets, revenue_tracking
+- **Key Collections**: label_assets, label_rights, label_distributions, uln_labels, users, label_members, business_information, gs1_database, label_governance, label_disputes, business_identifiers, aws_dns_targets, revenue_tracking, analytics_events, audience_analytics, metrics_history
 
 ## Protected Owner
 - Owner: John LeGerron Spivey
@@ -39,8 +40,8 @@ Build a social media management and creator tools platform featuring the Unified
 - GLN: 0860004340201
 
 ## Upcoming Tasks (Priority Order)
-- P0: General feature completion and real data integration for remaining mocked UI elements (Analytics, Dashboard)
 - P1: "Register New Target" for local DNS Health Checker (monitors)
+- P2: Scheduled email reports (auto-send weekly/monthly revenue summaries as CSV)
 
 ## Tech Stack Notes
 - Vite 8 uses Rolldown/Oxc (NOT esbuild) — configured via `transformWithOxc`
@@ -58,21 +59,45 @@ Build a social media management and creator tools platform featuring the Unified
 - `GET /api/revenue/overview` — Revenue overview with platform/source/trend breakdowns
 - `GET /api/revenue/platform/{platform_id}` — Per-platform detail with recent transactions
 - `POST /api/revenue/record` — Record new revenue entry
-- `GET /api/revenue/transactions` — Paginated, filterable transaction list
+- `GET /api/revenue/transactions` — Paginated, filterable transaction list (date_from, date_to)
 - `DELETE /api/revenue/transactions/{date_key}` — Delete a transaction
 - `GET /api/revenue/export` — Export transactions as CSV (filters: platform_id, source, date_from, date_to)
 
 ### Frontend
 - Page: `/app/frontend/src/pages/RevenueTrackingPage.jsx`
 - Route: `/revenue` (protected)
-- Navigation: Finance dropdown in NavigationBar
-- Features: Overview dashboard, Platform cards, Transaction list with filters, Record Revenue form, CSV Export with filter support
+- Features: Overview dashboard, Platform cards, Transaction list with date-range picker, Record Revenue form, CSV Export
+
+## Analytics (De-mocked 2026-04-09)
+### Backend
+- Data Seeder: `/app/backend/services/analytics_data_seeder.py`
+- Audience Service: `/app/backend/services/audience_analytics_service.py`
+- Anomaly Service: `/app/backend/services/anomaly_detection_service.py`
+- Routes: `/app/backend/routes/analytics_routes.py` under `/api/analytics`
+
+### API Endpoints
+- `GET /api/analytics/overview` — Content stats from user_content collection
+- `GET /api/analytics/content-performance` — Content performance from user_content
+- `GET /api/analytics/audience` — Audience insights (followers, growth)
+- `GET /api/analytics/revenue` — Basic revenue from creator_profiles
+- `GET /api/analytics/demographics` — Age, gender, device, interest distributions computed from analytics_events
+- `GET /api/analytics/best-times` — Posting time heatmap and recommendations from analytics_events
+- `GET /api/analytics/geo` — Geographic distribution from analytics_events
+- `GET /api/analytics/anomalies` — Anomaly alerts from z-score analysis on metrics_history
+- `POST /api/analytics/anomalies/scan` — Trigger anomaly detection scan
+- `POST /api/analytics/seed-data` — Seed analytics events from existing platform data
+- `GET /api/analytics/revenue/overview` — Comprehensive revenue overview from revenue_tracking
+
+### Frontend
+- Page: `/app/frontend/src/pages/CreatorAnalyticsPage.jsx`
+- Route: `/creator-analytics` (protected)
+- Tabs: Overview, Anomaly Detection, Demographics, Best Time to Post, Content, Revenue
+- Features: Data source indicators, data points badge, populate analytics button (when no data)
 
 ## AWS External DNS Health Tracking (Implemented 2026-04-09)
 ### Backend
 - Service: `/app/backend/services/aws_dns_health_service.py`
 - Endpoints: `/app/backend/api/aws_dns_health_endpoints.py`
-- Routes: Registered via `router_setup.py` under `/api/aws-dns`
 
 ### API Endpoints
 - `POST /api/aws-dns/targets` — Register new domain target
@@ -84,4 +109,3 @@ Build a social media management and creator tools platform featuring the Unified
 
 ### Frontend
 - Added "AWS Health" tab to `/app/frontend/src/pages/DNSHealthPage.jsx`
-- Features: Register form with advanced options, target cards with status badges, global region grid
