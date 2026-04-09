@@ -19,6 +19,7 @@ Build a social media management and creator tools platform featuring the Unified
 - AWS External DNS Health Tracking via Route 53 (2026-04-09) — Register targets, monitor from 13+ global AWS regions, refresh status, delete targets
 - Revenue Tracking connected to real MongoDB data (2026-04-09) — Full CRUD: overview, per-platform detail, record revenue, paginated transactions with filtering
 - CSV Export for Revenue Reports (2026-04-09) — Download filtered transaction history as CSV for accounting; supports platform, source, and date-range filters
+- Date-Range Picker for Revenue Export & Transactions (2026-04-09) — Dual-month calendar picker with preset shortcuts (7d/30d/90d/1y), clear controls, synced across header and Transactions tab; filters both CSV export and transaction list by date
 
 ### Pending
 - "Register New Target" for DNS Health Checker (local DNS monitors — separate from AWS)
@@ -38,8 +39,8 @@ Build a social media management and creator tools platform featuring the Unified
 - GLN: 0860004340201
 
 ## Upcoming Tasks (Priority Order)
+- P0: General feature completion and real data integration for remaining mocked UI elements (Analytics, Dashboard)
 - P1: "Register New Target" for local DNS Health Checker (monitors)
-- P2: General feature completion and real data integration for remaining mocked UI elements
 
 ## Tech Stack Notes
 - Vite 8 uses Rolldown/Oxc (NOT esbuild) — configured via `transformWithOxc`
