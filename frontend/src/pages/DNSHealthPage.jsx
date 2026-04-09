@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Search, Activity, Clock, Plus, Trash2, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, Globe, Shield, Mail, Server } from 'lucide-react';
+import { Search, Activity, Clock, Plus, Trash2, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, Globe, Shield, Mail, Server, Cloud, MapPin, Zap, Settings } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -42,6 +42,19 @@ function ScoreRing({ score }) {
   );
 }
 
+function AWSStatusBadge({ status }) {
+  const isHealthy = status === 'healthy';
+  return (
+    <span data-testid={`aws-status-badge-${status}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+        isHealthy ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/15 text-red-400 border border-red-500/20'
+      }`}>
+      {isHealthy ? <CheckCircle size={12} /> : <XCircle size={12} />}
+      {status}
+    </span>
+  );
+}
+
 export default function DNSHealthPage() {
   const [domain, setDomain] = useState('');
   const [selectedTypes, setSelectedTypes] = useState(["A", "AAAA", "MX", "NS", "TXT", "CNAME"]);
@@ -55,6 +68,19 @@ export default function DNSHealthPage() {
   const [addMonitorDomain, setAddMonitorDomain] = useState('');
   const [addingMonitor, setAddingMonitor] = useState(false);
   const [refreshingId, setRefreshingId] = useState(null);
+
+  // AWS Health state
+  const [awsTargets, setAwsTargets] = useState([]);
+  const [awsLoading, setAwsLoading] = useState(false);
+  const [awsRegDomain, setAwsRegDomain] = useState('');
+  const [awsRegPort, setAwsRegPort] = useState(443);
+  const [awsRegProtocol, setAwsRegProtocol] = useState('HTTPS');
+  const [awsRegPath, setAwsRegPath] = useState('/');
+  const [awsRegInterval, setAwsRegInterval] = useState(30);
+  const [awsRegistering, setAwsRegistering] = useState(false);
+  const [awsRefreshingId, setAwsRefreshingId] = useState(null);
+  const [awsError, setAwsError] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -73,7 +99,18 @@ export default function DNSHealthPage() {
     } catch (e) { console.error(e); }
   }, []);
 
-  useEffect(() => { fetchHistory(); fetchMonitors(); }, [fetchHistory, fetchMonitors]);
+  const fetchAwsTargets = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/aws-dns/targets`, { headers });
+      if (res.ok) { const d = await res.json(); setAwsTargets(d.targets || []); }
+    } catch (e) { console.error(e); }
+  }, []);
+
+  useEffect(() => {
+    fetchHistory();
+    fetchMonitors();
+    fetchAwsTargets();
+  }, [fetchHistory, fetchMonitors, fetchAwsTargets]);
 
   const handleLookup = async (e) => {
     e.preventDefault();
@@ -139,6 +176,56 @@ export default function DNSHealthPage() {
     setRefreshingId(null);
   };
 
+  // --- AWS Health handlers ---
+  const handleRegisterTarget = async () => {
+    if (!awsRegDomain.trim()) return;
+    setAwsRegistering(true);
+    setAwsError('');
+    try {
+      const res = await fetch(`${API}/api/aws-dns/targets`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          domain: awsRegDomain.trim(),
+          port: awsRegPort,
+          protocol: awsRegProtocol,
+          resource_path: awsRegPath,
+          request_interval: awsRegInterval,
+        }),
+      });
+      if (res.ok) {
+        setAwsRegDomain('');
+        setAwsRegPort(443);
+        setAwsRegProtocol('HTTPS');
+        setAwsRegPath('/');
+        setAwsRegInterval(30);
+        setShowAdvanced(false);
+        fetchAwsTargets();
+      } else {
+        const err = await res.json();
+        setAwsError(err.detail || 'Failed to register target');
+      }
+    } catch (e) {
+      setAwsError('Network error registering target');
+    }
+    setAwsRegistering(false);
+  };
+
+  const handleRefreshAwsTarget = async (targetId) => {
+    setAwsRefreshingId(targetId);
+    try {
+      await fetch(`${API}/api/aws-dns/targets/${targetId}/refresh`, { method: 'POST', headers });
+      fetchAwsTargets();
+    } catch (e) { console.error(e); }
+    setAwsRefreshingId(null);
+  };
+
+  const handleDeleteAwsTarget = async (targetId) => {
+    try {
+      await fetch(`${API}/api/aws-dns/targets/${targetId}`, { method: 'DELETE', headers });
+      fetchAwsTargets();
+    } catch (e) { console.error(e); }
+  };
+
   const checkIcons = {
     a_record: Globe,
     ipv6: Globe,
@@ -156,15 +243,16 @@ export default function DNSHealthPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">DNS Health Checker</h1>
-        <p className="text-sm text-slate-400 mt-1">Lookup DNS records, run health checks, and monitor your domains</p>
+        <p className="text-sm text-slate-400 mt-1">Lookup DNS records, run health checks, monitor domains, and track AWS external health</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-900 rounded-lg p-1 w-fit" data-testid="dns-tabs">
+      <div className="flex gap-1 bg-slate-900 rounded-lg p-1 w-fit flex-wrap" data-testid="dns-tabs">
         {[
           { id: 'lookup', label: 'DNS Lookup', icon: Search },
           { id: 'health', label: 'Health Check', icon: Activity },
           { id: 'monitors', label: 'Monitors', icon: Globe },
+          { id: 'aws', label: 'AWS Health', icon: Cloud },
           { id: 'history', label: 'History', icon: Clock },
         ].map(tab => {
           const Icon = tab.icon;
@@ -401,6 +489,182 @@ export default function DNSHealthPage() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AWS Health Tab */}
+      {activeTab === 'aws' && (
+        <div className="space-y-4" data-testid="aws-health-section">
+          {/* Register New Target */}
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm text-slate-300">
+                <Cloud size={16} className="text-amber-400" />
+                Register New Target (AWS Route 53)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <input data-testid="aws-target-domain-input" type="text" value={awsRegDomain}
+                    onChange={e => setAwsRegDomain(e.target.value)}
+                    placeholder="e.g. bigmannentertainment.com"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
+                </div>
+                <button data-testid="aws-register-btn" onClick={handleRegisterTarget}
+                  disabled={awsRegistering || !awsRegDomain.trim()}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium transition-colors whitespace-nowrap">
+                  {awsRegistering
+                    ? <><RefreshCw size={14} className="animate-spin" /> Registering...</>
+                    : <><Zap size={14} /> Register Target</>
+                  }
+                </button>
+              </div>
+
+              {/* Advanced options toggle */}
+              <button data-testid="aws-advanced-toggle" onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                <Settings size={12} /> {showAdvanced ? 'Hide' : 'Show'} Advanced Options
+              </button>
+
+              {showAdvanced && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50" data-testid="aws-advanced-options">
+                  <div>
+                    <label className="block text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Protocol</label>
+                    <select data-testid="aws-protocol-select" value={awsRegProtocol}
+                      onChange={e => setAwsRegProtocol(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded bg-slate-700 border border-slate-600 text-white text-xs focus:outline-none focus:border-violet-500">
+                      <option value="HTTPS">HTTPS</option>
+                      <option value="HTTP">HTTP</option>
+                      <option value="TCP">TCP</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Port</label>
+                    <input data-testid="aws-port-input" type="number" value={awsRegPort}
+                      onChange={e => setAwsRegPort(parseInt(e.target.value) || 443)}
+                      className="w-full px-2 py-1.5 rounded bg-slate-700 border border-slate-600 text-white text-xs focus:outline-none focus:border-violet-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Path</label>
+                    <input data-testid="aws-path-input" type="text" value={awsRegPath}
+                      onChange={e => setAwsRegPath(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded bg-slate-700 border border-slate-600 text-white text-xs focus:outline-none focus:border-violet-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Interval (s)</label>
+                    <select data-testid="aws-interval-select" value={awsRegInterval}
+                      onChange={e => setAwsRegInterval(parseInt(e.target.value))}
+                      className="w-full px-2 py-1.5 rounded bg-slate-700 border border-slate-600 text-white text-xs focus:outline-none focus:border-violet-500">
+                      <option value={10}>10s (fast)</option>
+                      <option value={30}>30s (standard)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {awsError && (
+                <div data-testid="aws-error-msg" className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  {awsError}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* AWS Targets List */}
+          {awsTargets.length === 0 ? (
+            <Card className="bg-slate-900 border-slate-800">
+              <CardContent className="py-12 text-center">
+                <Cloud size={40} className="mx-auto text-slate-600 mb-3" />
+                <p className="text-sm text-slate-400">No AWS health targets registered yet.</p>
+                <p className="text-xs text-slate-500 mt-1">Register a domain above to start tracking it via AWS Route 53 from global locations.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-white">{awsTargets.length} Registered Target{awsTargets.length !== 1 ? 's' : ''}</h2>
+                <button data-testid="aws-refresh-all-btn" onClick={fetchAwsTargets}
+                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors">
+                  <RefreshCw size={12} /> Refresh List
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {awsTargets.map(t => (
+                  <Card key={t.target_id} data-testid={`aws-target-card-${t.target_id}`}
+                    className="bg-slate-900 border-slate-800">
+                    <CardContent className="pt-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="text-sm font-semibold text-white font-mono">{t.domain}</h3>
+                            <AWSStatusBadge status={t.status} />
+                          </div>
+                          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                            <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                              <Cloud size={10} /> {t.config?.type || 'HTTPS'}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Port {t.config?.port || 443}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Path: {t.config?.resource_path || '/'}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Interval: {t.config?.request_interval || 30}s
+                            </span>
+                          </div>
+                          {t.last_checked
+                            ? <p className="text-[10px] text-slate-500 mt-1">Last checked: {new Date(t.last_checked).toLocaleString()}</p>
+                            : <p className="text-[10px] text-slate-500 mt-1">Not checked yet &mdash; click refresh</p>}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button data-testid={`aws-refresh-target-${t.target_id}`}
+                            onClick={() => handleRefreshAwsTarget(t.target_id)}
+                            disabled={awsRefreshingId === t.target_id}
+                            className="p-2 rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50"
+                            title="Refresh status from AWS">
+                            <RefreshCw size={14} className={`text-slate-400 ${awsRefreshingId === t.target_id ? 'animate-spin' : ''}`} />
+                          </button>
+                          <button data-testid={`aws-delete-target-${t.target_id}`}
+                            onClick={() => handleDeleteAwsTarget(t.target_id)}
+                            className="p-2 rounded-md hover:bg-red-900/30 transition-colors"
+                            title="Delete target and AWS health check">
+                            <Trash2 size={14} className="text-red-400" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Checker regions */}
+                      {t.checkers && t.checkers.length > 0 && (
+                        <div className="mt-3 border-t border-slate-800 pt-3">
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">AWS Health Checker Regions ({t.checkers.length})</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {t.checkers.map((c, i) => {
+                              const isUp = (c.status || '').includes('Success');
+                              return (
+                                <div key={i} data-testid={`aws-checker-${i}`}
+                                  className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs ${
+                                    isUp ? 'bg-emerald-500/5 border border-emerald-500/10' : 'bg-red-500/5 border border-red-500/10'
+                                  }`}>
+                                  <MapPin size={10} className={isUp ? 'text-emerald-400' : 'text-red-400'} />
+                                  <span className={`font-mono ${isUp ? 'text-emerald-300' : 'text-red-300'}`}>{c.region}</span>
+                                  <span className={`ml-auto font-medium ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {isUp ? 'UP' : 'DOWN'}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           )}
         </div>
