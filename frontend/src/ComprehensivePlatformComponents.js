@@ -1696,7 +1696,7 @@ const AnalyticsForecasting = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Downloads</p>
-              <p className="text-2xl font-bold text-purple-600">{performanceMetrics.total_downloads?.toLocaleString() || '123,456'}</p>
+              <p className="text-2xl font-bold text-purple-600">{performanceMetrics.total_downloads?.toLocaleString() || '0'}</p>
             </div>
             <span className="text-2xl">⬇️</span>
           </div>
@@ -1882,16 +1882,16 @@ const AnalyticsForecasting = () => {
             <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Overall ROI</h3>
               <div className="text-center py-6">
-                <p className="text-4xl font-bold text-green-600 mb-2">{roiAnalysis.roi_percentage || '525.7'}%</p>
+                <p className="text-4xl font-bold text-green-600 mb-2">{roiAnalysis.roi_percentage ?? 0}%</p>
                 <p className="text-gray-600 dark:text-gray-400">Return on Investment</p>
                 <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600 dark:text-gray-400">Total Investment</p>
-                    <p className="font-semibold text-gray-900 dark:text-white">${roiAnalysis.total_investment?.toLocaleString() || '25,000'}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">${roiAnalysis.total_investment?.toLocaleString() || '0'}</p>
                   </div>
                   <div>
                     <p className="text-gray-600 dark:text-gray-400">Total Revenue</p>
-                    <p className="font-semibold text-gray-900 dark:text-white">${roiAnalysis.total_revenue?.toLocaleString() || '156,432'}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">${roiAnalysis.total_revenue?.toLocaleString() || '0'}</p>
                   </div>
                 </div>
               </div>

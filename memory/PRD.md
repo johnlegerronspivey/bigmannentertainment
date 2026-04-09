@@ -21,6 +21,7 @@ Build a social media management and creator tools platform featuring the Unified
 - CSV Export for Revenue Reports (2026-04-09) — Download filtered transaction history as CSV for accounting; supports platform, source, and date-range filters
 - Date-Range Picker for Revenue Export & Transactions (2026-04-09) — Dual-month calendar picker with preset shortcuts (7d/30d/90d/1y), clear controls, synced across header and Transactions tab; filters both CSV export and transaction list by date
 - Analytics De-mocked & Connected to Real Data (2026-04-09) — Demographics (age, gender, devices, interests), geographic distribution (countries, US cities), and best-time-to-post analytics now computed from real analytics_events in MongoDB instead of hardcoded values. Data seeder generates 3,800+ events from existing platform data. Data source indicators on frontend.
+- Analytics Forecasting De-mocked (2026-04-09) — Revenue analytics, performance metrics, ROI analysis, trend analysis, and forecasting in `analytics_forecasting_service.py` completely rewritten to compute from real MongoDB data (`revenue_tracking`, `analytics_events`). All 5 endpoints return `data_source: "real"`. Frontend fallbacks updated to show `0` instead of hardcoded fake numbers. No random/hardcoded values remain.
 
 ### Pending
 - "Register New Target" for DNS Health Checker (local DNS monitors — separate from AWS)
@@ -42,6 +43,7 @@ Build a social media management and creator tools platform featuring the Unified
 ## Upcoming Tasks (Priority Order)
 - P1: "Register New Target" for local DNS Health Checker (monitors)
 - P2: Scheduled email reports (auto-send weekly/monthly revenue summaries as CSV)
+- P2: AI-powered content recommendations analyzing top-performing content patterns
 
 ## Tech Stack Notes
 - Vite 8 uses Rolldown/Oxc (NOT esbuild) — configured via `transformWithOxc`
@@ -93,6 +95,22 @@ Build a social media management and creator tools platform featuring the Unified
 - Route: `/creator-analytics` (protected)
 - Tabs: Overview, Anomaly Detection, Demographics, Best Time to Post, Content, Revenue
 - Features: Data source indicators, data points badge, populate analytics button (when no data)
+
+## Analytics Forecasting (De-mocked 2026-04-09)
+### Backend
+- Service: `/app/backend/services/analytics_forecasting_service.py` (Rewritten)
+- Endpoints: `/app/backend/api/comprehensive_platform_endpoints.py` (lines 304-372)
+
+### API Endpoints
+- `GET /api/api/platform/analytics/revenue` — Revenue breakdown by platform, asset, source, time period (from revenue_tracking)
+- `GET /api/api/platform/analytics/performance` — Performance metrics from analytics_events
+- `GET /api/api/platform/analytics/roi` — ROI analysis (investment estimated at 10% of revenue)
+- `GET /api/api/platform/analytics/trends` — Trend analysis comparing 30-day periods
+- `POST /api/api/platform/analytics/forecast` — Linear regression forecast from historical monthly data
+
+### Frontend
+- Component: `/app/frontend/src/ComprehensivePlatformComponents.js` (AnalyticsForecasting section)
+- Route: `/comprehensive-platform`
 
 ## AWS External DNS Health Tracking (Implemented 2026-04-09)
 ### Backend
