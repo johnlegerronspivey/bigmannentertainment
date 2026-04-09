@@ -15,32 +15,52 @@ Build a social media management and creator tools platform featuring the Unified
 - Migrate frontend application from Create React App (CRA) to Vite
 - Upgrade Tailwind CSS from v3 to v4
 - DUNS Number 080955411 added to protected Business & GS1 Identifiers (2026-04-08)
+- Business Registration Number updated to Taxpayer ID 12800 (2026-04-08)
+- AWS External DNS Health Tracking via Route 53 (2026-04-09) — Register targets, monitor from 13+ global AWS regions, refresh status, delete targets
 
 ### Pending
 - Connect the mocked Revenue Tracking feature to real data sources
-- Setup AWS external DNS health & track via in-app "Register New Target"
+- "Register New Target" for DNS Health Checker (local DNS monitors — separate from AWS)
 
 ## Architecture
 - **Backend**: FastAPI + MongoDB
 - **Frontend**: React (Vite 8 with Rolldown/Oxc) + Tailwind CSS v4 (CSS-first)
-- **Key Collections**: label_assets, label_rights, label_distributions, uln_labels, users, label_members, business_information, gs1_database, label_governance, label_disputes, business_identifiers
+- **Key Collections**: label_assets, label_rights, label_distributions, uln_labels, users, label_members, business_information, gs1_database, label_governance, label_disputes, business_identifiers, aws_dns_targets
 
 ## Protected Owner
 - Owner: John LeGerron Spivey
 - Business: Big Mann Entertainment
 - DUNS: 080955411
 - EIN: 270658077
+- Taxpayer ID: 12800
 - GS1 Company Prefix: 08600043402
 - GLN: 0860004340201
 
 ## Upcoming Tasks (Priority Order)
 - P0: Connect Revenue Tracking to real data sources
-- P1: "Register New Target" for DNS Health Checker
-- P2: AWS external DNS health tracking
-- P3: General feature completion and real data integration
+- P1: "Register New Target" for local DNS Health Checker (monitors)
+- P2: General feature completion and real data integration
 
 ## Tech Stack Notes
 - Vite 8 uses Rolldown/Oxc (NOT esbuild) — configured via `transformWithOxc`
 - Tailwind v4 CSS-first config in `index.css` with `@theme inline`
 - `@apply` in secondary CSS files requires `@reference "./index.css"`
 - shadcn/ui components configured for Tailwind v4
+
+## AWS External DNS Health Tracking (Implemented 2026-04-09)
+### Backend
+- Service: `/app/backend/services/aws_dns_health_service.py`
+- Endpoints: `/app/backend/api/aws_dns_health_endpoints.py`
+- Routes: Registered via `router_setup.py` under `/api/aws-dns`
+
+### API Endpoints
+- `POST /api/aws-dns/targets` — Register new domain target
+- `GET /api/aws-dns/targets` — List user's registered targets
+- `GET /api/aws-dns/targets/{target_id}` — Get single target
+- `POST /api/aws-dns/targets/{target_id}/refresh` — Refresh status from AWS
+- `DELETE /api/aws-dns/targets/{target_id}` — Delete target + AWS health check
+- `GET /api/aws-dns/aws-checks` — List all AWS health checks (admin view)
+
+### Frontend
+- Added "AWS Health" tab to `/app/frontend/src/pages/DNSHealthPage.jsx`
+- Features: Register form with advanced options, target cards with status badges, global region grid
