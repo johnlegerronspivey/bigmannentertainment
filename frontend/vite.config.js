@@ -32,6 +32,13 @@ export default defineConfig(({ mode }) => {
       ...processEnvDefine,
       'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
     },
+    css: {
+      lightningcss: {
+        drafts: {
+          customMedia: true,
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src'),
@@ -51,6 +58,8 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'build',
       sourcemap: false,
+      cssTarget: ['chrome111', 'edge111', 'firefox114', 'safari16.4'],
+      cssMinify: 'lightningcss',
       rolldownOptions: {
         moduleTypes: {
           '.js': 'jsx',

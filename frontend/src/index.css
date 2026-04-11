@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* --- Shadcn/UI Semantic Colors (HSL-based for compatibility) --- */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -28,6 +29,124 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
+
+  /* --- OKLCH Brand Color Scales (Big Mann Entertainment) --- */
+  --color-brand-50: oklch(0.97 0.01 275);
+  --color-brand-100: oklch(0.93 0.03 275);
+  --color-brand-200: oklch(0.86 0.06 275);
+  --color-brand-300: oklch(0.76 0.10 275);
+  --color-brand-400: oklch(0.65 0.15 275);
+  --color-brand-500: oklch(0.55 0.18 275);
+  --color-brand-600: oklch(0.47 0.17 275);
+  --color-brand-700: oklch(0.40 0.15 275);
+  --color-brand-800: oklch(0.33 0.12 275);
+  --color-brand-900: oklch(0.27 0.09 275);
+  --color-brand-950: oklch(0.20 0.07 275);
+
+  /* --- OKLCH Gold Accent Scale (Big Mann signature gold) --- */
+  --color-gold-50: oklch(0.98 0.02 85);
+  --color-gold-100: oklch(0.95 0.05 85);
+  --color-gold-200: oklch(0.90 0.10 85);
+  --color-gold-300: oklch(0.85 0.14 80);
+  --color-gold-400: oklch(0.80 0.16 75);
+  --color-gold-500: oklch(0.75 0.15 70);
+  --color-gold-600: oklch(0.65 0.14 65);
+  --color-gold-700: oklch(0.55 0.12 60);
+  --color-gold-800: oklch(0.45 0.10 60);
+  --color-gold-900: oklch(0.35 0.07 60);
+  --color-gold-950: oklch(0.25 0.05 60);
+
+  /* --- OKLCH Semantic Status Colors --- */
+  --color-success-50: oklch(0.97 0.02 145);
+  --color-success-100: oklch(0.93 0.05 145);
+  --color-success-200: oklch(0.86 0.10 145);
+  --color-success-300: oklch(0.76 0.14 145);
+  --color-success-400: oklch(0.67 0.17 150);
+  --color-success-500: oklch(0.58 0.16 150);
+  --color-success-600: oklch(0.50 0.14 150);
+  --color-success-700: oklch(0.42 0.12 150);
+  --color-success-800: oklch(0.35 0.09 150);
+  --color-success-900: oklch(0.28 0.07 150);
+  --color-success-950: oklch(0.20 0.05 150);
+
+  --color-warning-50: oklch(0.98 0.02 80);
+  --color-warning-100: oklch(0.95 0.06 80);
+  --color-warning-200: oklch(0.90 0.12 75);
+  --color-warning-300: oklch(0.84 0.16 70);
+  --color-warning-400: oklch(0.78 0.17 65);
+  --color-warning-500: oklch(0.72 0.16 60);
+  --color-warning-600: oklch(0.63 0.15 55);
+  --color-warning-700: oklch(0.53 0.13 55);
+  --color-warning-800: oklch(0.44 0.10 55);
+  --color-warning-900: oklch(0.35 0.08 55);
+  --color-warning-950: oklch(0.25 0.05 55);
+
+  --color-info-50: oklch(0.97 0.02 230);
+  --color-info-100: oklch(0.93 0.04 230);
+  --color-info-200: oklch(0.87 0.08 230);
+  --color-info-300: oklch(0.78 0.12 230);
+  --color-info-400: oklch(0.68 0.15 230);
+  --color-info-500: oklch(0.58 0.16 235);
+  --color-info-600: oklch(0.50 0.15 235);
+  --color-info-700: oklch(0.42 0.13 235);
+  --color-info-800: oklch(0.35 0.10 235);
+  --color-info-900: oklch(0.28 0.08 235);
+  --color-info-950: oklch(0.20 0.05 235);
+
+  --color-danger-50: oklch(0.97 0.01 25);
+  --color-danger-100: oklch(0.93 0.04 25);
+  --color-danger-200: oklch(0.87 0.09 25);
+  --color-danger-300: oklch(0.78 0.14 25);
+  --color-danger-400: oklch(0.68 0.18 25);
+  --color-danger-500: oklch(0.58 0.20 25);
+  --color-danger-600: oklch(0.50 0.19 25);
+  --color-danger-700: oklch(0.42 0.16 25);
+  --color-danger-800: oklch(0.35 0.13 25);
+  --color-danger-900: oklch(0.28 0.10 25);
+  --color-danger-950: oklch(0.20 0.07 25);
+
+  /* --- OKLCH Neutral Surface Scale --- */
+  --color-surface-50: oklch(0.98 0.003 265);
+  --color-surface-100: oklch(0.96 0.004 265);
+  --color-surface-200: oklch(0.92 0.005 265);
+  --color-surface-300: oklch(0.87 0.006 265);
+  --color-surface-400: oklch(0.71 0.007 265);
+  --color-surface-500: oklch(0.55 0.008 265);
+  --color-surface-600: oklch(0.45 0.007 265);
+  --color-surface-700: oklch(0.37 0.006 265);
+  --color-surface-800: oklch(0.27 0.005 265);
+  --color-surface-900: oklch(0.20 0.005 265);
+  --color-surface-950: oklch(0.14 0.004 265);
+
+  /* --- color-mix() Derived Utilities --- */
+  --color-brand-muted: color-mix(in oklch, oklch(0.55 0.18 275), oklch(0.96 0.004 265) 40%);
+  --color-brand-vivid: color-mix(in oklch, oklch(0.55 0.18 275), oklch(0.65 0.15 275) 50%);
+  --color-gold-soft: color-mix(in oklch, oklch(0.75 0.15 70), white 30%);
+  --color-gold-deep: color-mix(in oklch, oklch(0.75 0.15 70), black 25%);
+  --color-success-muted: color-mix(in oklch, oklch(0.58 0.16 150), oklch(0.96 0.004 265) 50%);
+  --color-danger-muted: color-mix(in oklch, oklch(0.58 0.20 25), oklch(0.96 0.004 265) 50%);
+  --color-warning-muted: color-mix(in oklch, oklch(0.72 0.16 60), oklch(0.96 0.004 265) 50%);
+  --color-info-muted: color-mix(in oklch, oklch(0.58 0.16 235), oklch(0.96 0.004 265) 50%);
+
+  /* --- OKLCH Social Platform Colors --- */
+  --color-social-spotify: oklch(0.65 0.18 150);
+  --color-social-youtube: oklch(0.55 0.22 28);
+  --color-social-tiktok: oklch(0.62 0.20 340);
+  --color-social-instagram: oklch(0.60 0.20 330);
+  --color-social-twitter: oklch(0.62 0.14 230);
+  --color-social-facebook: oklch(0.48 0.16 260);
+  --color-social-soundcloud: oklch(0.62 0.18 40);
+  --color-social-apple-music: oklch(0.55 0.22 355);
+
+  /* --- OKLCH Chart Palette (Perceptually Uniform) --- */
+  --color-chart-oklch-1: oklch(0.65 0.18 30);
+  --color-chart-oklch-2: oklch(0.65 0.18 150);
+  --color-chart-oklch-3: oklch(0.55 0.15 230);
+  --color-chart-oklch-4: oklch(0.65 0.15 70);
+  --color-chart-oklch-5: oklch(0.60 0.18 310);
+  --color-chart-oklch-6: oklch(0.70 0.14 190);
+
+  /* --- Radii & Animations (unchanged) --- */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

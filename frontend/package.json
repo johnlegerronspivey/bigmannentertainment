@@ -77,6 +77,8 @@
     "build:staging": "REACT_APP_STAGE=staging vite build",
     "build:production": "REACT_APP_STAGE=production vite build",
     "preview": "vite preview",
+    "start:no-color": "NO_COLOR=1 vite",
+    "build:no-color": "NO_COLOR=1 vite build",
     "deploy:development": "aws s3 sync build/ s3://bigmann-frontend-development-314108682794 --delete && aws cloudfront create-invalidation --distribution-id E2N1CXV6XQWOJ1 --paths '/*'",
     "deploy:staging": "aws s3 sync build/ s3://bigmann-frontend-staging-314108682794 --delete && aws cloudfront create-invalidation --distribution-id ${STAGING_DISTRIBUTION_ID} --paths '/*'",
     "deploy:production": "aws s3 sync build/ s3://bigmann-frontend-production-314108682794 --delete && aws cloudfront create-invalidation --distribution-id ${PRODUCTION_DISTRIBUTION_ID} --paths '/*'"

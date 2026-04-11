@@ -144,6 +144,7 @@ const AWSAIContentPage = lazy(() => import("./pages/AWSAIContentPage"));
 const AWSMessagingPage = lazy(() => import("./pages/AWSMessagingPage"));
 const AWSInfrastructurePage = lazy(() => import("./pages/AWSInfrastructurePage"));
 const RevenueTrackingPage = lazy(() => import("./pages/RevenueTrackingPage"));
+const ColorSystemPage = lazy(() => import("./pages/ColorSystemPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -199,6 +200,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/platforms" element={<PlatformsPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/colors" element={<ColorSystemPage />} />
 
             {/* Protected routes */}
             <Route path="/library" element={<ProtectedRoute><LibraryPage /></ProtectedRoute>} />
