@@ -23,6 +23,7 @@ Build a social media management and creator tools platform featuring the Unified
 - Analytics Forecasting & Comprehensive Platform Analytics De-mocking
 - Comprehensive Platform De-mocking (Content Stats, Compliance, Sponsorship, Contributors)
 - **[NEW - Feb 2026]** Component Refactoring: Broke down ComprehensivePlatformComponents.js (4273 lines) into 14 modular files under `/app/frontend/src/comprehensive-platform/`
+- **[NEW - Apr 2026]** Vite 8 Colors Support: OKLCH color palette, color-mix() derived utilities, Lightning CSS configuration, Color System reference page at /colors
 
 ### Component Refactoring Details (P2 - Completed Feb 2026)
 - `ComprehensivePlatformComponents.js` reduced from 4273 → 27 lines (barrel re-export)
@@ -51,6 +52,9 @@ Build a social media management and creator tools platform featuring the Unified
 
 ## Technical Notes
 - Vite 8 uses Rolldown/Oxc via `transformWithOxc: { lang: 'jsx' }` in vite.config.js
-- Tailwind v4: `@apply` in non-entry CSS requires `@reference "./index.css"`
+- Vite 8 Lightning CSS: `css.lightningcss` config with `build.cssMinify: 'lightningcss'` and `build.cssTarget: ['chrome111', 'edge111', 'firefox114', 'safari16.4']`
+- OKLCH color system: ~100 tokens (brand, gold, success, warning, info, danger, surface scales) + `color-mix()` derived colors + social platform + chart palette
+- Tailwind v4: `@apply` in non-entry CSS requires `@reference "./index.css"`. Colors defined in `@theme inline` block.
 - MongoDB: Always exclude `_id` from responses, handle `None` in aggregations
 - All URLs come from environment variables only
+- ANSI terminal colors: Use `NO_COLOR=1` env var or `yarn start:no-color` script to disable
