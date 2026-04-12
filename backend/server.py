@@ -217,11 +217,13 @@ app.add_middleware(
 from middleware import (
     performance_tracking_middleware,
     security_headers_middleware,
+    error_sanitization_middleware,
     apply_rate_limiting,
 )
 
 app.middleware("http")(performance_tracking_middleware)
 app.middleware("http")(security_headers_middleware)
+app.middleware("http")(error_sanitization_middleware)
 app.middleware("http")(apply_rate_limiting)
 
 # ============================================================
@@ -272,6 +274,7 @@ from routes.aws_blockchain_routes import router as aws_blockchain_router
 from routes.aws_ai_content_routes import router as aws_ai_content_router
 from routes.aws_messaging_routes import router as aws_messaging_router
 from routes.aws_infrastructure_routes import router as aws_infrastructure_router
+from routes.key_management_routes import router as key_management_router
 
 core_routers = [
     licensing_router, agency_router, admin_router, auth_router,
@@ -291,6 +294,7 @@ core_routers = [
     aws_ai_content_router,
     aws_messaging_router,
     aws_infrastructure_router,
+    key_management_router,
 ]
 
 for r in core_routers:

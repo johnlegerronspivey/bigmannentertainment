@@ -332,7 +332,7 @@ class GuardDutyService:
                 resource=ResourceDetails(
                     resource_type=ResourceType.IAM_USER,
                     user_name="ec2-role-user",
-                    access_key_id="AKIA1234567890EXAMPLE",
+                    access_key_id="AKIA****REDACTED",
                     extra_details={"assumed_role": "EC2-WebServer-Role"}
                 ),
                 status=FindingStatus.NEW,

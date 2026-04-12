@@ -145,6 +145,7 @@ const AWSMessagingPage = lazy(() => import("./pages/AWSMessagingPage"));
 const AWSInfrastructurePage = lazy(() => import("./pages/AWSInfrastructurePage"));
 const RevenueTrackingPage = lazy(() => import("./pages/RevenueTrackingPage"));
 const ColorSystemPage = lazy(() => import("./pages/ColorSystemPage"));
+const KeyVaultPage = lazy(() => import("./pages/KeyVaultPage"));
 
 // Re-export useAuth for backward compatibility
 export { useAuth } from "./contexts/AuthContext";
@@ -366,6 +367,7 @@ function App() {
             <Route path="/admin/industry" element={<AdminRoute><IndustryDashboard /></AdminRoute>} />
             <Route path="/admin/domain" element={<AdminRoute><DomainConfigPage /></AdminRoute>} />
             <Route path="/admin/rds-upgrade" element={<AdminRoute><RDSUpgradePage /></AdminRoute>} />
+            <Route path="/admin/key-vault" element={<AdminRoute><KeyVaultPage /></AdminRoute>} />
             
             {/* 404 Route - Must be last */}
             <Route path="*" element={<NotFoundPage />} />
